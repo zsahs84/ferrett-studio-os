@@ -42,6 +42,7 @@ body.beat-pulse .hud-vignette { opacity: 0.78; }
 body.beat-pulse-accent .hud-vignette { opacity: 0.55; }
 body.theme-amber { filter: hue-rotate(-100deg) saturate(1.25); }
 body.theme-stealth { filter: grayscale(0.88) brightness(0.82) contrast(1.1); }
+body.theme-infrared { filter: hue-rotate(-150deg) saturate(1.5) brightness(1.05) contrast(1.05); }
 #print-sheet-content { display:none; }
 @media print {
   body * { visibility: hidden; }
@@ -1212,10 +1213,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Alternate HUD themes — cheap CSS-filter re-tint, cycles default -> amber -> stealth.
-    window.HUD_THEMES = ['default', 'theme-amber', 'theme-stealth'];
+    window.HUD_THEMES = ['default', 'theme-amber', 'theme-infrared', 'theme-stealth'];
     window.HUD_THEME_KEY = 'ferrett_os_hud_theme_v1';
     window.applyHudTheme = (theme) => {
-        document.body.classList.remove('theme-amber', 'theme-stealth');
+        document.body.classList.remove('theme-amber', 'theme-infrared', 'theme-stealth');
         if (theme !== 'default') document.body.classList.add(theme);
         try { window.localStorage.setItem(window.HUD_THEME_KEY, theme); } catch (e) {}
     };

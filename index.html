@@ -65,7 +65,8 @@ body.quiet .vu-bar { height: 2px !important; transition: height 0.5s ease-out; }
 .bracket-cyan { border-color: rgba(0,229,255,0.5); }
 
 /* Proper Z-Indexing to fix overlay bug */
-header, nav, main { position:relative; z-index:10; backdrop-filter: blur(6px); }
+header, main { position:relative; z-index:10; backdrop-filter: blur(6px); }
+nav { backdrop-filter: blur(6px); }
 header { background: rgba(5,8,7,0.92); border-bottom:1px solid rgba(0,255,136,0.18); }
 nav { background: rgba(7,11,9,0.92); border-right:1px solid rgba(0,255,136,0.12); }
 main { background: rgba(5,8,7,0.72); }
@@ -194,7 +195,7 @@ main { background: rgba(5,8,7,0.72); }
 
   <div id="nav-backdrop" class="hidden lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[59]"></div>
 
-  <nav id="side-nav" class="fixed lg:static inset-y-0 left-0 z-[60] w-[260px] lg:w-[280px] h-full overflow-y-auto shrink-0 p-3 pt-11 lg:pt-3 flex flex-col gap-1.5 relative bg-[#050807] lg:bg-transparent -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out border-r border-[#00FF8814] lg:border-r-0">
+  <nav id="side-nav" class="fixed lg:relative inset-y-0 left-0 z-[60] lg:z-10 w-[260px] lg:w-[280px] h-full overflow-y-auto shrink-0 p-3 pt-11 lg:pt-3 flex flex-col gap-1.5 relative bg-[#050807] lg:bg-transparent -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out border-r border-[#00FF8814] lg:border-r-0">
     <button id="btn-close-nav" type="button" class="lg:hidden absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-[#E2E8F0]/50 hover:text-white text-[16px] font-bold cursor-pointer bg-transparent border-0" aria-label="Close navigation menu">×</button>
     <div class="bracket bracket-bl"></div><div class="bracket bracket-tl" style="opacity:0.35"></div>
     <button id="nav-cookbook" class="nav-btn active-nav-green text-[#00FF88] border-[#00FF8835] shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-all uppercase tracking-wider shadow-[0_0_12px_rgba(0,255,136,0.12)]">Beat & Vox Cookbook</button>

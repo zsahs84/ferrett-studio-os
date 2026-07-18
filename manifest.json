@@ -1,0 +1,16 @@
+{
+  "name": "FERRETT_STUDIO_OS",
+  "short_name": "FERRETT OS",
+  "description": "Beat & vox recipe cookbook, track log, tone/pedalboard rig book, and studio hardware HUD.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#050807",
+  "theme_color": "#050807",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

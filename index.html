@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#050807">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>FERRETT_STUDIO_OS // HUD v22.4 (FINAL STABLE)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<script>
+const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
+const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
+const DRIVE_FILE_NAME = 'FERRETT_OS_VAULT.json';
+
+window.gapiLoadComplete = function() { gapi.load('client', async () => { try { await gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] }); } catch (err) { console.error(err); } }); };
+window.gisLoadComplete = function() { try { window.tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file', login_hint: 'zsahs84@gmail.com', callback: async (resp) => { if (resp.error) { window.setDriveStatus(false); return; } window.setDriveStatus(true); await window.findOrPullDriveFile(); } }); } catch (err) { console.error(err); } };
+</script>
+<script async defer src="https://apis.google.com/js/api.js" onload="window.gapiLoadComplete()"></script>
+<script async defer src="https://accounts.google.com/gsi/client" onload="window.gisLoadComplete()"></script>
+
+<style>
+:root { --neon:#00FF88; --cyan:#00E5FF; --bg:#050807; }
+* { font-variant-ligatures:none; }
+body { background-color: var(--bg); color: #E2E8F0; font-family: 'JetBrains Mono', ui-monospace, monospace; overflow:hidden; }
+
+/* === ENHANCED CRT HUD LAYERS === */
+.hud-grid { position:fixed; inset:0; background-image: linear-gradient(rgba(0,255,136,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.07) 1px, transparent 1px), linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px); background-size: 40px 40px, 40px 40px, 120px 120px; animation: grid-drift 40s linear infinite; pointer-events:none; z-index:0; opacity:0.9; }
+.hud-scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 9991 !important; }
+.hud-scanlines::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 15vh; background: linear-gradient(to bottom, rgba(0, 255, 136, 0) 0%, rgba(0, 255, 136, 0.05) 25%, rgba(0, 255, 136, 0.3) 50%, rgba(0, 255, 136, 0.05) 75%, rgba(0, 255, 136, 0) 100%); animation: crt-roll 6s linear infinite; pointer-events: none; z-index: 9992 !important; mix-blend-mode: screen; }
+.hud-flicker { position: fixed; inset: 0; background: rgba(0, 255, 136, 0.02); pointer-events: none; z-index: 9993 !important; animation: crt-flicker 0.12s infinite alternate; mix-blend-mode: overlay; }
+.hud-vignette { position:fixed; inset:0; background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.65) 95%, rgba(0,0,0,0.95) 100%); pointer-events:none; z-index: 9994 !important; }
+
+.glitching-ui { animation: ui-glitch-shake 0.15s steps(2) infinite !important; text-shadow: 3px 0 0 rgba(255,0,64,0.8), -3px 0 0 rgba(0,255,255,0.8) !important; }
+@keyframes ui-glitch-shake { 0% { transform: translate(0, 0) skewX(0deg); } 20% { transform: translate(-4px, 2px) skewX(2deg); filter: contrast(1.2) brightness(1.2); } 40% { transform: translate(4px, -2px) skewX(-2deg); filter: contrast(0.8) brightness(0.8); } 60% { transform: translate(-2px, 4px) skewX(1deg); filter: contrast(1.3) brightness(1.1); } 80% { transform: translate(2px, -4px) skewX(-1deg); filter: contrast(0.9) brightness(0.9); } 100% { transform: translate(0, 0) skewX(0deg); } }
+
+.glitch-slice { position: fixed; inset: 0; pointer-events: none; z-index: 9999 !important; display: none; }
+.glitching-ui .glitch-slice { display: block; animation: glitch-clip 0.12s infinite linear alternate-reverse; }
+@keyframes glitch-clip { 0% { clip-path: inset(12% 0 80% 0); transform: translateX(-15px); background: rgba(0,255,136,0.15); } 20% { clip-path: inset(35% 0 45% 0); transform: translateX(20px); background: rgba(255,0,64,0.15); } 40% { clip-path: inset(65% 0 15% 0); transform: translateX(-10px); background: rgba(0,255,255,0.15); } 60% { clip-path: inset(5% 0 90% 0); transform: translateX(25px); background: rgba(255,255,255,0.1); } 80% { clip-path: inset(80% 0 5% 0); transform: translateX(-20px); background: rgba(255,0,255,0.15); } 100% { clip-path: inset(25% 0 55% 0); transform: translateX(10px); background: rgba(0,255,136,0.15); } }
+@keyframes grid-drift { 0% { background-position: 0 0, 0 0, 0 0; } 100% { background-position: 80px 80px, -40px 60px, 0 120px; } }
+@keyframes crt-roll { 0% { transform: translateY(-15vh); } 100% { transform: translateY(115vh); } }
+@keyframes crt-flicker { 0% { opacity: 0.9; } 25% { opacity: 0.5; } 50% { opacity: 0.8; } 75% { opacity: 1.0; } 100% { opacity: 0.6; } }
+
+body.quiet .hud-grid { animation-play-state: paused !important; }
+body.quiet .hud-scanlines::before { display: none !important; }
+body.quiet .hud-flicker { display: none !important; }
+body.quiet .wave-bar { animation: none !important; height: 3px !important; opacity: 0.3 !important; }
+body.quiet #hud-rec-dot { animation: none !important; opacity: 0.2 !important; box-shadow: none !important; }
+body.quiet .vu-bar { height: 2px !important; transition: height 0.5s ease-out; }
+
+/* UTILS */
+.bracket { position:absolute; width:14px; height:14px; border-color: rgba(0,255,136,0.55); pointer-events:none; }
+.bracket-tl { top:-1px; left:-1px; border-top:1.5px solid; border-left:1.5px solid; }
+.bracket-tr { top:-1px; right:-1px; border-top:1.5px solid; border-right:1.5px solid; }
+.bracket-bl { bottom:-1px; left:-1px; border-bottom:1.5px solid; border-left:1.5px solid; }
+.bracket-br { bottom:-1px; right:-1px; border-bottom:1.5px solid; border-right:1.5px solid; }
+.bracket-cyan { border-color: rgba(0,229,255,0.5); }
+
+/* Proper Z-Indexing to fix overlay bug */
+header, nav, main { position:relative; z-index:10; backdrop-filter: blur(6px); }
+header { background: rgba(5,8,7,0.92); border-bottom:1px solid rgba(0,255,136,0.18); }
+nav { background: rgba(7,11,9,0.92); border-right:1px solid rgba(0,255,136,0.12); }
+main { background: rgba(5,8,7,0.72); }
+
+#hud-rec-dot { width:8px; height:8px; background:#FF2A2A; border-radius:50%; box-shadow:0 0 8px #FF2A2A, 0 0 16px rgba(255,42,42,0.6); animation: rec-blink 1s steps(2) infinite; }
+@keyframes rec-blink { 0%, 45% { opacity:1; } 50%, 100% { opacity:0.15; } }
+#hud-timecode { font-family:'Share Tech Mono', monospace; letter-spacing:0.08em; color:#00FF88; text-shadow:0 0 8px rgba(0,255,136,0.6); }
+
+/* CSS Audio Animations (Restored) */
+.vu-wrap { display:flex; gap:2px; align-items:end; height:22px; }
+.vu-bar { width:3px; background: linear-gradient(to top, #00FF88, #00E5FF); box-shadow:0 0 6px rgba(0,255,136,0.4); transition: height 0.08s linear; min-height:2px; }
+.waveform { display:flex; gap:2px; align-items:center; height:18px; }
+.wave-bar { width:2px; background: rgba(0,229,255,0.9); box-shadow:0 0 4px rgba(0,229,255,0.6); animation: wave 0.9s ease-in-out infinite; }
+@keyframes wave { 0%,100% { height:3px; opacity:0.6; } 50% { height:16px; opacity:1; } }
+
+/* Cards & UI */
+.card { background-color: rgba(10,15,13,0.92); border:1px solid rgba(0,255,136,0.15); border-radius:4px; padding:1.25rem; position:relative; overflow:hidden; }
+.card::before { content:""; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, rgba(0,255,136,0.35), transparent); opacity:0.6; }
+.input-ferrett { background: rgba(5,8,7,0.9); border:1px solid rgba(0,255,136,0.22); color:#00FF88; border-radius:3px; padding:0.5rem; font-size:0.75rem; width:100%; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+.input-ferrett:focus { border-color: rgba(0,229,255,0.85); box-shadow:0 0 0 2px rgba(0,229,255,0.12), 0 0 12px rgba(0,229,255,0.25); }
+.btn-ferrett { background: rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.32); color:#00E5FF; padding:0.32rem 0.75rem; font-size:0.72rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.06em; transition:all 0.18s; }
+.btn-ferrett:hover { background: rgba(0,229,255,0.18); box-shadow:0 0 10px rgba(0,229,255,0.25); transform: translateY(-1px); }
+.btn-ferrett-green { background: rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.32); color:#00FF88; padding:0.32rem 0.75rem; font-size:0.72rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.06em; transition:all 0.18s; }
+.btn-ferrett-green:hover { background: rgba(0,255,136,0.18); box-shadow:0 0 10px rgba(0,255,136,0.25); transform: translateY(-1px); }
+.surprise-flash { animation: surpriseFlash 0.5s ease-out; }
+@keyframes surpriseFlash { 0% { box-shadow: 0 0 0 2px rgba(0,229,255,0.6), 0 0 30px rgba(0,229,255,0.3); } 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0); } }
+.btn-menu { background:transparent; border:1px solid transparent; transition:all 0.18s; }
+.btn-menu:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+
+.active-nav-green { background: rgba(0,255,136,0.15) !important; color: #00FF88 !important; border-color: #00FF88 !important; box-shadow: 0 0 12px rgba(0,255,136,0.2) !important; }
+.active-nav-cyan { background: rgba(0,229,255,0.15) !important; color: #00E5FF !important; border-color: #00E5FF !important; box-shadow: 0 0 12px rgba(0,229,255,0.2) !important; }
+.active-genre { background: rgba(0,229,255,0.14) !important; border-color:#00E5FF !important; color:#00E5FF !important; box-shadow:0 0 12px rgba(0,229,255,0.18); }
+.active-inst { background: rgba(0,255,136,0.14) !important; border-color:#00FF88 !important; color:#00FF88 !important; box-shadow:0 0 12px rgba(0,255,136,0.18); }
+
+.note-tab { padding:6px 12px; font-size:10px; font-weight:bold; border-top-left-radius:4px; border-top-right-radius:4px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; background:rgba(0,229,255,0.05); color:rgba(0,229,255,0.5); border:1px solid transparent; border-bottom:none; min-width:100px; justify-content:space-between; }
+.note-tab.active { background:rgba(0,229,255,0.15); color:#00E5FF; border-color:rgba(0,229,255,0.3); box-shadow:0 -4px 12px rgba(0,229,255,0.1); }
+.note-tab:hover:not(.active) { background:rgba(0,229,255,0.08); color:rgba(0,229,255,0.8); }
+.note-tab-close { opacity:0.4; padding:0 4px; font-size:12px; }
+.note-tab-close:hover { opacity:1; color:#FF4444; }
+
+.mode-reaper .show-luna { display:none !important; } .mode-luna .show-reaper { display:none !important; }
+.tab-section { display:none; } .tab-section.active { display:block; }
+.middle-tab { display:none; } .middle-tab.active { display:block; }
+
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.28); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,255,136,0.5); }
+
+#spl-canvas { filter: drop-shadow(0 0 10px rgba(0,255,136,0.35)); }
+.spl-readout { font-family:'Share Tech Mono', monospace; color:#00FF88; text-shadow:0 0 8px rgba(0,255,136,0.6); }
+
+@keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.comms-down-icon { animation: pulse-red 2s infinite; }
+
+.img-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(0,255,136,0.3); cursor: pointer; transition: transform 0.2s; }
+.img-preview:hover { transform: scale(1.05); }
+.file-upload-btn { display: inline-block; cursor: pointer; }
+</style>
+</head>
+<body class="mode-both h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black">
+
+<div class="hud-grid"></div><div class="hud-scanlines"></div><div class="hud-flicker"></div><div class="hud-vignette"></div><div class="glitch-slice"></div>
+
+<header class="shrink-0 h-[64px] flex items-center justify-between px-4 md:px-5 gap-3 relative">
+  <div class="bracket bracket-tl"></div><div class="bracket bracket-tr bracket-cyan"></div>
+  <div class="flex items-center gap-4 min-w-0">
+    <div class="leading-none">
+      <h1 class="text-[17px] md:text-[19px] font-bold tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">FERRETT_STUDIO_OS</h1>
+      <p class="text-[9px] tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2"><span id="daw-display-name">DUAL DAW WORKSPACE v22.4</span><span class="inline-flex items-center gap-1.5 ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
+    </div>
+    <div class="hidden lg:flex items-center gap-3 ml-4 pl-4 border-l border-[#00FF8814]">
+      <div class="vu-wrap" id="vuLeft"><div class="vu-bar" style="height:4px"></div><div class="vu-bar" style="height:8px"></div><div class="vu-bar" style="height:6px"></div><div class="vu-bar" style="height:10px"></div></div>
+      <div class="waveform" id="waveform"><div class="wave-bar" style="animation-delay:0s"></div><div class="wave-bar" style="animation-delay:0.08s"></div><div class="wave-bar" style="animation-delay:0.16s"></div><div class="wave-bar" style="animation-delay:0.24s"></div><div class="wave-bar" style="animation-delay:0.32s"></div><div class="wave-bar" style="animation-delay:0.4s"></div><div class="wave-bar" style="animation-delay:0.12s"></div><div class="wave-bar" style="animation-delay:0.2s"></div></div>
+      <div class="vu-wrap" id="vuRight"><div class="vu-bar" style="height:5px"></div><div class="vu-bar" style="height:9px"></div><div class="vu-bar" style="height:7px"></div><div class="vu-bar" style="height:11px"></div></div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-4 shrink-0">
+    <button id="btn-open-cmdk" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Search everything">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <span class="hidden sm:inline">SEARCH</span><kbd class="hidden sm:inline px-1 py-0.5 rounded bg-[#00E5FF15] border border-[#00E5FF30] text-[8px]">⌘K</kbd>
+    </button>
+    <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text">LIVE</span></button>
+    <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync">
+      <svg id="drive-icon-down" class="w-3.5 h-3.5 comms-down-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/><line x1="3" y1="3" x2="21" y2="21" stroke="#FF2A2A" stroke-width="2"/></svg>
+      <svg id="drive-icon-up" class="w-3.5 h-3.5 hidden drop-shadow-[0_0_8px_#00FF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/></svg>
+      <span id="drive-status-text" class="text-[9px] font-bold tracking-widest uppercase mt-[1px]">INTEL COMMS DOWN</span>
+    </button>
+    <div class="flex gap-1">
+      <button id="btn-open-vault-modal" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FFD60A40] bg-[#FFD60A]/8 text-[#FFD60A] hover:bg-[#FFD60A]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="View local storage usage">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+        <span class="hidden sm:inline">VAULT</span>
+      </button>
+      <button id="btn-backup-vault" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF8840] bg-[#00FF88]/8 text-[#00FF88] hover:bg-[#00FF88]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Download a local JSON backup of your entire vault">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        <span class="hidden sm:inline">BACKUP</span>
+      </button>
+      <button id="btn-restore-vault" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Restore vault from a local JSON backup file">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0l-4 4m4-4l4 4M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2"/></svg>
+        <span class="hidden sm:inline">RESTORE</span>
+      </button>
+      <input type="file" id="restore-vault-input" accept="application/json" class="hidden">
+    </div>
+    <div class="flex gap-1 p-1 bg-black/60 border border-[#00FF8818] rounded backdrop-blur">
+      <button id="btn-reaper" class="px-3.5 py-1 text-[10px] font-bold rounded text-[#7AFFBF]/45 hover:text-[#00FF88] uppercase tracking-wider transition-colors">REAPER</button>
+      <button id="btn-both" class="px-3.5 py-1 text-[10px] font-bold rounded bg-[#00FF88] text-black uppercase tracking-wider shadow-[0_0_10px_rgba(0,255,136,0.35)]">BOTH</button>
+      <button id="btn-luna" class="px-3.5 py-1 text-[10px] font-bold rounded text-[#7AFFBF]/45 hover:text-[#00E5FF] uppercase tracking-wider transition-colors">LUNA</button>
+    </div>
+  </div>
+</header>
+
+<div id="drive-conflict-banner" class="hidden shrink-0 bg-[#1a0a0a] border-b border-[#FF2A2A50] px-4 py-2.5 items-center justify-center gap-4 flex-wrap text-[10px] md:text-[11px] relative z-40">
+    <span class="text-[#FF8888] font-bold tracking-wide">⚠ VAULT CHANGED ELSEWHERE — this Drive backup was updated on another device/tab since your last sync here.</span>
+    <div class="flex gap-2 items-center">
+        <button id="btn-conflict-keep-mine" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;" title="Overwrite the Drive copy with what's on this device">KEEP MY VERSION</button>
+        <button id="btn-conflict-reload-theirs" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;" title="Discard local changes and reload the Drive copy">RELOAD THEIRS</button>
+        <button id="btn-conflict-dismiss" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer">×</button>
+    </div>
+</div>
+
+<div class="flex flex-1 min-h-0 overflow-hidden relative">
+
+  <nav class="w-[280px] h-full overflow-y-auto shrink-0 p-3 flex flex-col gap-1.5 relative">
+    <div class="bracket bracket-bl"></div><div class="bracket bracket-tl" style="opacity:0.35"></div>
+    <button id="nav-cookbook" class="nav-btn active-nav-green text-[#00FF88] border-[#00FF8835] shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-all uppercase tracking-wider shadow-[0_0_12px_rgba(0,255,136,0.12)]">Beat & Vox Cookbook</button>
+    <button id="nav-guitars" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Top Guitar/Bass Presets</button>
+    <button id="nav-hardware" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Hardware, Routing & Logic</button>
+    <button id="nav-links" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Web Tools & Intel</button>
+    <button id="nav-tracks" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Track DB [Images]</button>
+    <button id="nav-tones" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Tone DB [Tags/Img]</button>
+    <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Notes Vault</button>
+    <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator</button>
+
+    <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
+      <div class="flex items-center justify-between mb-2 px-1"><span class="text-[9px] tracking-[0.18em] text-[#00FF88]/70 uppercase font-bold">SPL // CONIC GAUGE</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-[#00FF8812] border border-[#00FF8818] text-[#00FF88]/60">LIVE</span></div>
+      <div class="flex flex-col items-center">
+        <canvas id="spl-canvas" width="140" height="140" class="w-[120px] h-[120px]"></canvas>
+        <div class="mt-1 flex items-baseline gap-1"><span id="spl-value" class="spl-readout text-[18px] font-bold tracking-widest">82.4</span><span class="text-[10px] text-[#00FF88]/55">dB</span></div>
+        <div class="w-full mt-2 h-[2px] bg-[#00FF8814] relative overflow-hidden rounded"><div id="spl-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#00FF88] via-[#00E5FF] to-[#FFD60A] transition-all duration-200" style="width:62%"></div></div>
+        <div class="flex justify-between w-full mt-1 text-[7px] tracking-widest text-white/25"><span>60</span><span>85</span><span>105</span></div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main-content" class="flex-1 h-full overflow-y-auto scroll-smooth relative">
+
+    <section id="tab-cookbook" class="middle-tab active p-4 md:p-8 min-h-[500px]">
+        <div class="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 gap-4">
+            <h2 class="text-[15px] font-bold tracking-widest text-[#00FF88]">THE ULTIMATE RECIPE BOOK</h2>
+            <div class="flex flex-wrap gap-2 shrink-0"><button id="btn-blend-genres" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-ferrett shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-add-cookbook" class="btn-ferrett-green shrink-0">+ ADD RECIPE</button></div>
+        </div>
+        
+        <div id="genre-blend-card" class="card mb-6 hidden relative overflow-hidden" style="border-color:#FFD60A40;">
+            <button id="btn-close-blend" type="button" class="absolute top-3 right-3 text-[#E2E8F0]/40 hover:text-white text-[14px] font-bold cursor-pointer bg-transparent border-0">×</button>
+            <div class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold uppercase mb-2">Genre Blend // Writer's Block Cure</div>
+            <h3 id="blend-title" class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FFD60A] uppercase mb-3 pr-8"></h3>
+            <div id="blend-prompts" class="space-y-2 mb-4"></div>
+            <button id="btn-reroll-blend" type="button" class="btn-ferrett" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">🎲 REROLL</button>
+        </div>
+
+        <div id="form-cookbook" class="card mb-6 hidden border-[#00FF8840]">
+            <h3 id="cookbook-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW RECIPE</h3>
+            <input type="hidden" id="cookbook-id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">GENRE / CATEGORY</label><input type="text" id="cookbook-genre" class="input-ferrett" list="cookbook-genre-list" placeholder="e.g., Trap / Drill"><datalist id="cookbook-genre-list"></datalist></div>
+                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TARGET</label><input type="text" id="cookbook-inst" class="input-ferrett" placeholder="e.g., Beats: Distorted 808 Sub"></div>
+            </div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DESCRIPTION & PHILOSOPHY</label><textarea id="cookbook-desc" class="input-ferrett h-16 resize-y"></textarea></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">LUNA (UAD DSP) CHAIN</label><textarea id="cookbook-luna" class="input-ferrett h-24 resize-y"></textarea></div>
+                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REAPER (NATIVE/VST) CHAIN</label><textarea id="cookbook-reaper" class="input-ferrett h-24 resize-y"></textarea></div>
+            </div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">WORKFLOW & ROUTING NOTES</label><textarea id="cookbook-notes" class="input-ferrett h-16 resize-y"></textarea></div>
+            <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40">
+                <label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">RECIPE SCREENSHOTS</label>
+                <div class="flex items-center gap-4"><label class="btn-ferrett-green file-upload-btn"><span>+ UPLOAD IMAGES</span><input type="file" id="cookbook-image-input" accept="image/*" multiple class="hidden"></label></div>
+                <div id="cookbook-image-preview-container" class="mt-4 flex flex-wrap gap-2"></div>
+            </div>
+            <div class="flex gap-3"><button id="btn-save-cookbook" class="btn-ferrett-green">SAVE RECIPE</button><button id="btn-cancel-cookbook" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white transition-colors">CANCEL</button></div>
+        </div>
+
+        <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
+            <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
+                <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide" id="genre-menu"></div></div>
+                <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
+            </div>
+            <div class="w-full md:w-[65%] p-6 md:p-8 bg-[rgba(10,15,13,0.8)] overflow-y-auto max-h-[800px] relative" id="recipe-display">
+                <div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[12px] tracking-widest uppercase border-2 border-dashed border-[#00FF8810] rounded-lg min-h-[400px]">Awaiting Selection...</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-guitars" class="middle-tab p-4 md:p-8 border-t border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="mb-6 flex flex-wrap gap-2 items-center text-[10px] font-mono">
+            <span class="px-2 py-1 rounded bg-[#00FF8814] border border-[#00FF8830] text-[#00FF88] tracking-widest">VERIFIED SOURCES</span>
+            <a href="https://www.tone3000.com/search?q=jcm800" target="_blank" class="px-3 py-1 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors">↗ TONE3000.COM</a>
+            <a href="https://sites.google.com/site/signalsaudiogodscab/" target="_blank" class="px-3 py-1 rounded bg-[rgba(255,255,255,0.04)] border border-white/10 text-[#A7DCC3] hover:text-white transition-colors">↗ GODS CAB IRs</a>
+        </div>
+        <div class="flex items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 mt-8"><h2 class="text-[15px] font-bold tracking-widest text-[#00FF88]">TOP STARRED TONES [PINNED]</h2><span class="text-[9px] text-[#A7DCC3]/50 tracking-widest">Manage these in Tone DB [Tags]</span></div>
+        <div id="starred-tones-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </section>
+
+    <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 max-w-7xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176</span></div>
+        <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">AUDIO INTERFACE: VOLT 176 → SANSUI → BOSE 301</h3></div>
+            <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80">
+                <div class="text-[#00E5FF] font-bold mb-4 border-b border-[#00E5FF30] pb-2">Volt 176 Headphone Out 6.35mm TRS <span class="text-white/40 font-normal">(8V Max)</span></div>
+                <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">TRS to Dual RCA → Sansui Amp Aux/CD <span class="text-[#FF4444]">(NOT PHONO)</span></span></div></div>
+                <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">TRS to 3.5mm TRS → Samsung Soundbar Aux</span></div></div>
+                <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">TRS to 3.5mm → Siberia Wired Headphones</span></div></div>
+                <div class="flex gap-3"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Bluetooth → Skullcandy JIB True Wireless</span> (Via SoundSource AutoEQ)</div></div>
+                <div class="mt-6 p-4 rounded border border-[#FF444430] bg-[#FF444410]">
+                    <h4 class="text-[#FF8888] font-bold text-[10px] tracking-widest mb-2">⚠ HARDWARE SAFETY PROTOCOLS</h4>
+                    <ul class="text-[10px] text-white/70 list-disc list-inside"><li><b class="text-white">HOT-SWAPPING:</b> Never swap headphone jack while Sansui volume is up.</li><li><b class="text-white">IMPEDANCE:</b> Keep Volt HP knob at <b class="text-[#FFD60A]">9 to 11 o'clock</b> for Line Level gear.</li></ul>
+                </div>
+            </div>
+        </div>
+        <h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88] mb-4 mt-10 border-b border-[#00FF8820] pb-2">SANSUI MONITOR LOGIC & EQ CURVES</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+            <div class="card border-[#00FF8830]"><h3 class="text-[#00FF88] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00FF8814] pb-1">FLAT // 60s REF</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Loudness OFF. Tone Defeat ON.</p><div class="mt-3 p-2 bg-[#00FF88]/10 rounded border border-[#00FF88]/20"><span class="text-[#00FF88] font-bold block mb-1">CALIBRATION</span>Pink Noise @ -14dBFS = 75dB SPL C-Weighted Slow at mix position.</div></div></div>
+            <div class="card border-[#00E5FF30]"><h3 class="text-[#00E5FF] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00E5FF14] pb-1">FOCUS ROBOT // 20s</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Simulates phone/laptop midrange.</p><div class="mt-3 p-2 bg-[#00E5FF]/10 rounded border border-[#00E5FF]/20"><span class="text-[#00E5FF] font-bold block mb-1">JS REA-EQ CURVE</span>Mono ON. HPF@120Hz | LPF@8kHz<br>+2dB@1.2kHz | +1.5dB@2.5kHz</div></div></div>
+            <div class="card border-[#FF444430]"><h3 class="text-[#FF8888] font-bold text-[12px] tracking-widest mb-2 border-b border-[#FF444414] pb-1">HYPE // 15s CONSUMER</h3><div class="text-[11px] text-[#FF8888]/80 font-mono"><p>Loudness ON. Bass +3, Treb +2.</p><div class="mt-3 p-2 bg-[#FF4444]/10 rounded border border-[#FF4444]/20"><span class="text-[#FF8888] font-bold block mb-1">JS REA-EQ CURVE</span>LowShelf+3.5dB@80Hz<br>HighShelf+2.0dB@10kHz</div></div></div>
+        </div>
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6 mt-10">
+            <h2 class="text-[15px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase">THE 28 FILE ARSENAL // SCRIPT DB</h2>
+            <button id="btn-add-script" class="btn-ferrett shrink-0">+ ADD SCRIPT</button>
+        </div>
+
+        <div id="form-script" class="card mb-6 hidden border-[#00E5FF40]">
+            <h3 id="script-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW LUA / PYTHON SCRIPT</h3>
+            <input type="hidden" id="script-id">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="md:col-span-1">
+                    <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FILE NAME</label>
+                    <input type="text" id="script-title" class="input-ferrett" placeholder="e.g., Fadr_MIDI_Extract.lua">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY / FOLDER</label>
+                    <input type="text" id="script-category" class="input-ferrett" placeholder="e.g., AI STEM & MIDI">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">KEYBOARD SHORTCUT</label>
+                    <input type="text" id="script-shortcut" class="input-ferrett" placeholder="e.g., Ctrl+Shift+F">
+                </div>
+            </div>
+            <div class="mb-5">
+                <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FUNCTION & LOGIC</label>
+                <textarea id="script-func" class="input-ferrett h-20 resize-y" placeholder="What does this script do?"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button id="btn-save-script" class="btn-ferrett">SAVE SCRIPT</button>
+                <button id="btn-cancel-script" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white transition-colors">CANCEL</button>
+            </div>
+        </div>
+
+        <div id="script-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
+        <div id="script-list" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    </div>
+
+    <div id="tab-links" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS & INTEL DB</h2><button id="btn-add-link" class="btn-ferrett">+ ADD INTEL</button></div>
+        <input type="text" id="search-link" class="input-ferrett w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search tools, URLs, or descriptions...">
+        <div id="form-link" class="card mb-6 hidden border-[#00E5FF40]">
+            <h3 id="link-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TOOL LINK</h3>
+            <input type="hidden" id="link-id">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">TOOL NAME</label><input type="text" id="link-title" class="input-ferrett"></div>
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="link-category" class="input-ferrett"><option value="AI & MIDI Extraction">AI & MIDI Extraction</option><option value="Tones, Amps & IRs">Tones, Amps & IRs</option><option value="Mixing & Mastering">Mixing & Mastering</option><option value="Samples & Instruments">Samples & Instruments</option><option value="Audio Utilities">Audio Utilities</option></select></div>
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DAW CONTEXT</label><select id="link-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div>
+                <div class="md:col-span-3"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FULL URL</label><input type="text" id="link-url" class="input-ferrett"></div>
+            </div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DESCRIPTION & WORKFLOW NOTES</label><textarea id="link-notes" class="input-ferrett h-16 resize-y"></textarea></div>
+            <div class="flex gap-3"><button id="btn-save-link" class="btn-ferrett">SAVE LINK</button><button id="btn-cancel-link" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+        </div>
+        <div id="link-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
+        <div id="link-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <div id="tab-tracks" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">TRACK SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><button id="btn-add-track" class="btn-ferrett-green">+ ADD CONFIG</button></div>
+        <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
+            <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW TRACK SETTING</h3>
+            <input type="hidden" id="track-id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TRACK</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">NOTES</label><textarea id="track-notes" class="input-ferrett h-20 resize-y"></textarea></div>
+            <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-4"><label class="btn-ferrett-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2"></div></div>
+            <div class="flex gap-3"><button id="btn-save-track" class="btn-ferrett-green">SAVE CONFIG</button><button id="btn-cancel-track" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+        </div>
+        <div id="track-list" class="grid grid-cols-1 gap-6"></div>
+    </div>
+
+    <div id="tab-tones" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><button id="btn-add-tone" class="btn-ferrett">+ ADD TONE</button></div>
+        <input type="text" id="search-tone" class="input-ferrett w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search custom library...">
+        <div id="form-tone" class="card mb-6 hidden border-[#00E5FF40]">
+            <h3 id="tone-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TONE COMBO</h3>
+            <input type="hidden" id="tone-id">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">PRESET NAME</label><input type="text" id="tone-name" class="input-ferrett"></div>
+                <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="tone-category" class="input-ferrett"><option value="CLEAN">CLEAN</option><option value="CRUNCH">CRUNCH</option><option value="DISTORTION">DISTORTION</option><option value="BASS">BASS</option></select></div>
+                <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DAW</label><select id="tone-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">NAM (AMP PROFILE)</label><input type="text" id="tone-nam" class="input-ferrett"></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">IR (CABINET)</label><input type="text" id="tone-ir" class="input-ferrett"></div>
+            </div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">EQ / PEDAL NOTES</label><textarea id="tone-notes" class="input-ferrett h-20 resize-y"></textarea></div>
+            <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
+                <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-2 font-bold">PEDALBOARD / GUI SCREENSHOTS</label>
+                <div class="flex items-center gap-4"><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="tone-image-input" accept="image/*" multiple class="hidden"></label></div>
+                <div id="tone-image-preview-container" class="mt-4 flex flex-wrap gap-2"></div>
+            </div>
+            <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
+                <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-2 font-bold">AUDIO REFERENCE CLIP (optional — one short clip so you can hear it, not just read it)</label>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <label class="btn-ferrett file-upload-btn text-center leading-tight"><span>+ UPLOAD CLIP</span><input type="file" id="tone-audio-input" accept="audio/*" class="hidden"></label>
+                    <button type="button" id="btn-record-tone-audio" class="btn-ferrett">🎙️ RECORD CLIP</button>
+                    <button type="button" id="btn-stop-tone-audio" class="btn-ferrett hidden" style="border-color:#FF2A2A50;color:#FF8888;">⏹ STOP</button>
+                    <span id="tone-record-status" class="text-[10px] font-bold text-[#FF5A5A] tracking-widest hidden"></span>
+                </div>
+                <div id="tone-audio-preview-container" class="mt-4"></div>
+            </div>
+            <div class="mb-5 flex items-center gap-3 bg-[#00E5FF]/10 p-3 rounded border border-[#00E5FF]/20 w-max"><input type="checkbox" id="tone-starred" class="w-4 h-4 cursor-pointer accent-[#00E5FF]"><label for="tone-starred" class="text-[11px] font-bold text-[#00E5FF] tracking-widest cursor-pointer mt-[2px]">PIN TO TOP GUITAR PRESETS [★]</label></div>
+            <div class="flex gap-3"><button id="btn-save-tone" class="btn-ferrett">SAVE TONE</button><button id="btn-cancel-tone" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+        </div>
+        <div id="tone-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
+        <div id="tone-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <section id="tab-notes" class="middle-tab p-4 md:p-8 min-h-[400px] flex flex-col bg-[#050807]">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 border-b border-[#00E5FF20] pb-2 gap-4">
+            <div class="flex flex-col gap-2 w-full">
+                <div class="flex items-center gap-4"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">NOTES VAULT [<span id="note-context-label" class="text-white">BOTH</span>]</h2><span id="save-status" class="text-[10px] font-bold tracking-widest text-[#00FF88] opacity-0 transition-opacity whitespace-nowrap">SAVED LOCALLY</span></div>
+                <div class="flex items-center gap-1 overflow-x-auto w-full pb-1 scrollbar-hide" id="notes-tabs-container"></div>
+            </div>
+            <button id="btn-add-note-tab" class="shrink-0 text-[10px] font-bold tracking-widest bg-[#00E5FF15] border border-[#00E5FF30] hover:bg-[#00E5FF30] text-[#00E5FF] px-3 py-1.5 rounded transition-colors">+ NEW TAB</button>
+        </div>
+        <input type="text" id="active-note-title" class="bg-transparent border-b border-[#00E5FF40] text-[#00E5FF] font-bold text-[13px] mb-3 px-2 py-1.5 focus:outline-none" placeholder="Name this note tab...">
+        <div id="notes-tasks-panel" class="hidden shrink-0 mb-3 p-3 rounded border border-[#00FF8825] bg-[rgba(0,255,136,0.03)] max-h-[180px] overflow-y-auto"></div>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] tracking-widest text-[#00E5FF]/40 uppercase">Type <span class="text-[#00E5FF]/70">[TODO] your task</span> on any line to add it to the checklist above</span>
+            <button id="btn-quick-add-task" class="shrink-0 text-[9px] font-bold tracking-widest bg-[#00FF8815] border border-[#00FF8830] hover:bg-[#00FF8830] text-[#00FF88] px-2.5 py-1 rounded transition-colors">+ TASK</button>
+        </div>
+        <textarea id="studio-notes" class="flex-1 w-full border border-[#00E5FF20] rounded p-5 text-[12px] font-mono leading-[1.6] focus:outline-none focus:border-[#00E5FF] text-[#C9FFE6] resize-none bg-[rgba(10,15,13,0.8)]" placeholder="Context-aware scratchpad..."></textarea>
+    </section>
+
+    <section id="tab-calc" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00E5FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">STUDIO CALCULATOR & TIME TOOLS</h2></div>
+        <div class="card border-[#00E5FF30] mb-6 flex flex-col md:flex-row items-center justify-center gap-8 p-8 md:p-12">
+            <div class="flex flex-col items-center gap-2"><span class="text-[12px] tracking-widest text-[#00E5FF]/70 font-bold">PROJECT TEMPO</span><div class="flex items-center gap-2"><input type="number" id="calc-bpm-main" value="120" class="bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[40px] font-bold text-[#00E5FF] w-40 py-2 focus:outline-none shadow-[0_0_15px_rgba(0,229,255,0.1)]"><span class="text-[14px] text-[#00E5FF]/50 font-bold">BPM</span></div></div>
+            <div class="text-[#00E5FF]/30 text-[32px] hidden md:block">||</div>
+            <button id="btn-tap-tempo-main" class="w-40 h-40 rounded-full bg-[#00E5FF]/10 border-2 border-[#00E5FF]/50 text-[#00E5FF] hover:bg-[#00E5FF] hover:text-black transition-all text-[22px] font-bold tracking-[0.3em] active:scale-95 shadow-[0_0_20px_rgba(0,229,255,0.2)]">TAP</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div class="card border-[#00FF8830]"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">STRAIGHT DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/2</span><span id="calc-main-12" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">1000ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/4</span><span id="calc-main-14" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">500ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8</span><span id="calc-main-18" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">250ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16</span><span id="calc-main-116" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">125ms</span></div></div></div>
+            <div class="card border-[#00E5FF30]"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">DOTTED DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/4 Dot</span><span id="calc-main-14d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">750ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Dot</span><span id="calc-main-18d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">375ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16 Dot</span><span id="calc-main-116d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">188ms</span></div></div></div>
+            <div class="card border-[#FFD60A30]"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">TRIPLET DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/4 Trip</span><span id="calc-main-14t" class="text-[#FFD60A] font-bold bg-[#FFD60A]/10 px-2 py-1 rounded">333ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Trip</span><span id="calc-main-18t" class="text-[#FFD60A] font-bold bg-[#FFD60A]/10 px-2 py-1 rounded">167ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16 Trip</span><span id="calc-main-116t" class="text-[#FFD60A] font-bold bg-[#FFD60A]/10 px-2 py-1 rounded">83ms</span></div></div></div>
+            <div class="card border-[#FF88FF30]"><h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-4 border-b border-[#FF88FF20] pb-2">LFO FREQUENCY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1 Bar</span><span id="calc-main-hz-bar" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">0.50 Hz</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/4 Note</span><span id="calc-main-hz-1" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">2.00 Hz</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Note</span><span id="calc-main-hz-2" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">4.00 Hz</span></div></div></div>
+        </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="chain-modal" class="fixed inset-0 bg-[#050807]/95 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center p-4 md:p-12">
+    <button id="close-chain-modal" class="absolute top-6 right-8 text-white/50 hover:text-[#00FF88] font-bold text-[32px] cursor-pointer transition-colors">×</button>
+    <div class="text-[#00FF88] tracking-[0.2em] font-bold text-[14px] absolute top-8 left-8 uppercase" id="chain-modal-title">PLUGIN CHAIN</div>
+    <div class="flex items-center gap-4 md:gap-8 overflow-x-auto w-full h-full pb-8 pt-16 scrollbar-hide" id="chain-modal-content"></div>
+</div>
+
+<div id="vault-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8" style="padding-top: 8vh;">
+    <div class="w-full max-w-lg">
+        <div class="card border-[#FFD60A40] relative">
+            <button id="close-vault-modal" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer">×</button>
+            <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">Vault Storage</h3>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">What's actually taking up space on this device.</p>
+            <div id="vault-storage-content" class="space-y-5 text-[11px]">
+                <div class="text-[#E2E8F0]/40 italic">Calculating...</div>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t border-[#FFD60A14]">
+                <button id="btn-refresh-vault-stats" class="btn-ferrett" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">↻ REFRESH</button>
+                <button id="btn-cleanup-orphaned-audio" class="btn-ferrett" style="border-color:#FF888850;color:#FF8888;background:rgba(255,136,136,0.08);">🧹 CLEAN UP ORPHANED CLIPS</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cmdk-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8" style="padding-top: 8vh;">
+    <div class="w-full max-w-2xl">
+        <div class="card border-[#00E5FF40] p-0 overflow-hidden shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-[#00E5FF20]">
+                <svg class="w-4 h-4 text-[#00E5FF]/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" id="cmdk-input" class="bg-transparent flex-1 outline-none text-[13px] text-[#E2E8F0] placeholder-[#E2E8F0]/30" placeholder="Search recipes, tones, links, scripts, or tags...">
+                <button id="cmdk-close" class="text-white/40 hover:text-white text-[18px] leading-none shrink-0">×</button>
+            </div>
+            <div id="cmdk-tagbar" class="flex flex-wrap gap-1.5 px-4 py-3 border-b border-[#00E5FF14]"></div>
+            <div id="cmdk-results" class="max-h-[50vh] overflow-y-auto p-2"></div>
+            <div class="px-4 py-2 border-t border-[#00E5FF14] text-[9px] text-white/30 tracking-widest flex justify-between">
+                <span>↵ JUMP TO ITEM</span><span>TAP A TAG TO FILTER A LIST</span><span>ESC CLOSE</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =========================================================================
+// DATA & LOGIC ENGINE
+// =========================================================================
+window.tokenClient = null; window.driveFileId = null; window.isDriveConnected = false; window.FERRETT_QUIET = false;
+window.tempTrackImages = []; window.tempToneImages = []; window.tempCookbookImages = [];
+
+const defaultDb = {
+    multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// FERRETT OS: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
+    tracks: [],
+    cookbook: [
+        { id: 201, genre: "G-Funk / 90s West Coast", inst: "Beats: Synthetic Kick & Snare", desc: "Punchy, synthesized drum machine kicks paired with a snappy, high-frequency clap.", luna: "API Vision: HPF exactly at 30Hz, +3dB at 60Hz. 1176 (slow attack, fast release). Oxide Cassette.", reaper: "API VST -> TDR Nova (dynamic EQ expanding 60Hz on kick hits) -> JS 1176.", notes: "Nudge clap/snare exactly 2 to 5 milliseconds BEFORE the kick drum for a lazy, wide feel.", images: [] },
+        { id: 202, genre: "G-Funk / 90s West Coast", inst: "Bass: Live P-Funk DI", desc: "The laid-back, Parliament-style live bass groove (e.g., 'Nuthin' but a 'G' Thang').", luna: "610-B Tube Preamp -> Moog Filter (Envelope follower set to slow 'wah' effect) -> LA-2A.", reaper: "Bass DI -> JS Auto-Wah (subtle depth) -> TDR Kotelnikov -> Pultec VST (boost 60Hz).", notes: "Play behind the beat. Leave plenty of space between notes. Slide into the root notes.", images: [] },
+        { id: 203, genre: "G-Funk / 90s West Coast", inst: "Synths: High Sine Portamento Lead", desc: "The iconic, high-pitched, gliding synthesizer whistle lead.", luna: "Pure sine -> Galaxy Tape Echo (mix 25%, dark repeats). Pure Plate Reverb (1.5s).", reaper: "Vital (Sine). Mono/Legato ON, Portamento 100-150ms -> Galaxy Echo VST -> Plate VST.", notes: "Keep MIDI high (C5 or C6 octave). Monophonic melody only. No chords.", images: [] },
+        { id: 204, genre: "G-Funk / 90s West Coast", inst: "Vox: Talkbox Anchor", desc: "Zapp & Roger style robotic vocal harmonies.", luna: "API 560 (surgically pull down 400Hz and 2kHz plastic resonances). LA-2A.", reaper: "ReaEQ (Aggressive HPF 150Hz) -> JS Chorus -> ReaComp.", notes: "Feed the talkbox with incredibly bright Sawtooth waves (filter wide open).", images: [] },
+        { id: 205, genre: "Aftermath / Shady 2000s", inst: "Beats: The '2001' Snare", desc: "Dr. Dre's signature ultra-dry, cracking snare. Zero reverb, layered with a rim or clap.", luna: "API Vision Strip. HPF at 200Hz. Massive boost at 5kHz for the crack. Compress with SSL E-Channel to flatten the transient.", reaper: "JS Transient Controller (max out attack, cut sustain entirely). ReaEQ (+4dB at 5kHz) -> TDR Kotelnikov.", notes: "The key is the dead silence after the hit. Use a noise gate with a 0ms release to physically chop the tail of the snare off.", images: [] },
+        { id: 206, genre: "Aftermath / Shady 2000s", inst: "Synths: Pizzicato Strings", desc: "The Scott Storch signature. Plucked, staccato orchestral strings providing the main bounce.", luna: "Neve 1073 (cut low-mids at 300Hz so it doesn't clash with the kick). LA-3A compressor. Very short, dark Room Reverb.", reaper: "Spitfire LABS Strings (Pizzicato patch). ReaEQ (HPF 200Hz) -> ReaComp -> Valhalla Room (0.5s decay).", notes: "Keep the MIDI velocities extremely rigid and identical. Pan slightly off-center (L15 or R15) to leave the middle open.", images: [] },
+        { id: 207, genre: "Aftermath / Shady 2000s", inst: "Keys: The Heavy Piano Stab", desc: "Ominous, heavily compressed grand piano (e.g., 'Still D.R.E.', 'Lose Yourself').", luna: "API 2500 Compressor (Thrust set to LOUD, slow attack, 4:1 ratio to make the hammers punch). Pultec EQ (+2dB at 100Hz).", reaper: "Grand Piano VST -> JS 1176 (slow attack) -> ReaEQ (boost 100Hz and 4kHz).", notes: "Play simple 2 or 3-note minor chords on the downbeat. Quantize perfectly to the grid.", images: [] },
+        { id: 208, genre: "Aftermath / Shady 2000s", inst: "Vox: The Shady Double Stack", desc: "Eminem's incredibly tight, aggressive, multi-layered vocal technique.", luna: "Lead Vox dead center (1176 into LA-2A). Double Track 1 panned L100. Double Track 2 panned R100. Group the doubles and heavily de-ess them.", reaper: "Lead Vox -> 1073 VST -> fast ReaComp -> Kotelnikov. Left/Right doubles: steep HPF at 300Hz -> smash with 1176 VST.", notes: "Physically rap the verses 3 times flawlessly. Do NOT use a chorus or widener. Aggressively align the transients manually.", images: [] },
+        { id: 209, genre: "80s Def Jam / Arena Rap", inst: "Beats: Distorted 808 Rock Kick", desc: "The 'Licensed to Ill' sound. TR-808s treated like a heavy metal drum kit.", luna: "Thermionic Culture Vulture (drive heavily). API 560 (boost 60Hz and 3kHz for click). Neve 33609 compressor.", reaper: "JS Distortion (Fuzz mode, low wet blend) -> ReaEQ (+5dB at 50Hz, +4dB at 4kHz) -> JS 1176.", notes: "Let the 808 decay ring out slightly to create a droning low end beneath the rock samples.", images: [] },
+        { id: 210, genre: "80s Def Jam / Arena Rap", inst: "Beats: Gated Snare Bomb", desc: "Massive, 80s rock-reverb snare hits.", luna: "Send snare to large Plate Reverb. Insert Noise Gate AFTER the reverb. Fast threshold, instant release.", reaper: "Valhalla VintageVerb (Large Plate, 3s decay) -> ReaGate (sidechained to dry snare, 150ms hold, 5ms release).", notes: "The reverb should sound huge but get sucked into absolute silence before the next hi-hat hit.", images: [] },
+        { id: 211, genre: "80s Def Jam / Arena Rap", inst: "Guitars: Sampled Hard Rock Chugs", desc: "Slayer / AC/DC style guitar hits used as rhythmic stabs.", luna: "Studer A800 (saturate heavily). API 2500 (crush the peaks). Pan hard left and right.", reaper: "Sample -> JS Transient Controller (max attack) -> TDR Kotelnikov (brickwall limit).", notes: "Truncate the guitar samples aggressively so they act as percussive hits, not melodic elements.", images: [] },
+        { id: 212, genre: "80s Def Jam / Arena Rap", inst: "Vox: The Shout Chorus", desc: "Three guys screaming into one microphone.", luna: "1073 Preamp (drive into red). 1176 (fastest attack/release, All Buttons In).", reaper: "JS Saturation -> JS 1176 (smashed) -> ReaEQ (High-pass at 200Hz to remove boominess from a group of guys).", notes: "Record everyone simultaneously on one omni-directional mic to get natural room bleed and phasing.", images: [] },
+        { id: 213, genre: "Soul Assassins / Cypress Hill", inst: "Beats: The Grimy Boom-Bap", desc: "Extremely dirty, muffled, slow-tempo drum breaks.", luna: "Studer A800 (7.5 ips). Pultec EQ (cut 10kHz to remove all shine). Fairchild 670 for glue.", reaper: "JS Decimator (12-bit) -> ReaEQ (Low-pass at 6kHz) -> TDR Kotelnikov (slow release to make the break breathe).", notes: "Layer a live, dusty funk breakbeat underneath programmed SP-1200 kick and snare hits.", images: [] },
+        { id: 214, genre: "Soul Assassins / Cypress Hill", inst: "Synths/Samples: The Squealing Loop", desc: "High-pitched, eerie, dissonant horns or sirens (e.g., 'Insane in the Brain').", luna: "API 560 (boost 2kHz aggressively). Galaxy Tape Echo (short slapback, high distortion).", reaper: "ReaEQ (High-pass at 500Hz, +6dB bell at 2.5kHz) -> Tape Cassette VST (max noise/flutter) -> JS Delay.", notes: "Pitch your horn/string sample up 1 or 2 octaves so it sounds thin, tense, and alien.", images: [] },
+        { id: 215, genre: "Soul Assassins / Cypress Hill", inst: "Bass: Fuzzed Upright", desc: "A murky, heavily distorted upright bass loop.", luna: "Thermionic Culture Vulture (Triode). Moog Filter (Low pass at 400Hz to roll off the fuzz buzz).", reaper: "JS Saturation (driven hard) -> ReaEQ (LPF at 300Hz, boost 80Hz).", notes: "The bass should sound blown-out but completely muffled, taking up zero high-end space.", images: [] },
+        { id: 216, genre: "Soul Assassins / Cypress Hill", inst: "Vox: The Nasal Megaphone", desc: "B-Real style hyper-nasal, compressed delivery.", luna: "Neve 1073 (High-pass at 250Hz, boost 1.5kHz). 1176 (smash 6dB of GR).", reaper: "ReaEQ (Telephone filter: HPF 300Hz, LPF 4kHz, +3dB at 1kHz) -> JS 1176.", notes: "Deliver the vocal from the back of the throat. Use extreme compression to keep every syllable audible.", images: [] },
+        { id: 217, genre: "Detroit Horrorcore", inst: "Beats: The Murder Groove", desc: "A collision of heavy funk breaks and 808s, mixed very loud.", luna: "Drum Bus -> API 2500 (Medium attack, thrust LOUD). Pultec (boost 60Hz and 10kHz).", reaper: "Drum Bus -> TDR Kotelnikov (peak crest control) -> Pultec VST -> JS Transient Controller.", notes: "Layer tight funk breakbeats (James Brown style) directly over sustained 808 subs.", images: [] },
+        { id: 218, genre: "Detroit Horrorcore", inst: "Keys: The Dark Carnival Organ", desc: "Circus/calliope organs soaked in modulation and dirt.", luna: "Organ -> Brigade Chorus (max depth). Studer A800 (drive input to break up the organ).", reaper: "Spitfire LABS (or FM Organ) -> JS Chorus -> JS Distortion (subtle overdrive) -> Valhalla VintageVerb.", notes: "Play minor and diminished scales. Keep the phrasing carnival-esque (oom-pah rhythm).", images: [] },
+        { id: 219, genre: "Detroit Horrorcore", inst: "Guitars: Thrash Metal Blend", desc: "Heavy metal power chords fading in and out of the beat.", luna: "NAM Profile -> API 560 (pull out 200Hz mud so the 808 can breathe). Pan L/R.", reaper: "NAM JCM800 -> Gods Cab IR -> ReaEQ (HPF 100Hz, LPF 8kHz).", notes: "Don't play constant riffs. Use the guitars purely to accent the downbeat of the hook.", images: [] },
+        { id: 220, genre: "Detroit Horrorcore", inst: "Vox: The Wicked Double", desc: "Abrasive, screaming lead vocals layered with pitched-down demonic doubles.", luna: "Lead: 1073 -> 1176. Double: Pitch down 1 octave. Run through Culture Vulture. Blend underneath.", reaper: "Lead: JS 1176 -> ReaEQ. Double: ReaPitch (Shift -12 semitones, Formant preserve OFF) -> JS Saturation.", notes: "The pitched-down vocal should be mixed low, acting as a sub-harmonic shadow to the main lead.", images: [] },
+        { id: 221, genre: "Early 2000s Southern Bounce", inst: "Beats: Minimalist 808 Snap", desc: "Bangladesh style. Incredibly sparse, hyper-punchy.", luna: "API Vision. No drum bus glue. Treat elements individually. 808: Culture Vulture. Snare: API 225L.", reaper: "808 -> JS Distortion. Snare -> JS Transient Controller (max attack). Keep mix completely dry.", notes: "Zero reverb. Zero tape emulation. The silence between the hits is what creates the bounce.", images: [] },
+        { id: 222, genre: "Early 2000s Southern Bounce", inst: "Beats: Tongue Clicks & Foley", desc: "Using weird mouth noises or household sounds instead of hi-hats.", luna: "Record tongue clicks -> 1073 (boost 8kHz). Compress with LA-3A. Short slap delay.", reaper: "Foley sample -> ReaEQ (HPF 500Hz) -> TDR Kotelnikov -> JS Delay.", notes: "Quantize rigidly to the 16th note grid. Pan them dynamically left and right.", images: [] },
+        { id: 223, genre: "Early 2000s Southern Bounce", inst: "Synths: The Simple Siren", desc: "A single, highly repetitive, abrasive synth note or whistle.", luna: "Moog Filter (crank resonance). Tape Echo (sync to 8th note).", reaper: "Vital (Square wave) -> ReaEQ (Bandpass 1kHz-3kHz) -> JS Ping Pong Delay.", notes: "The melody should be no more than 2 or 3 notes repeating relentlessly over the 808.", images: [] },
+        { id: 224, genre: "Early 2000s Southern Bounce", inst: "Vox: The Ad-Lib Bus", desc: "Constant background chanting and hypeman ad-libs panned wide.", luna: "Group Ad-Libs -> 1176 (smash) -> Oxide Tape -> Send to 1/4 note Delay.", reaper: "Group Ad-Libs -> ReaComp -> JS Saturation -> ReaDelay (1/4 note, 40% feedback) -> Pan wide.", notes: "Process the ad-libs drastically different from the lead vocal so they sit in their own space.", images: [] },
+        { id: 225, genre: "Southern Soul / Dungeon Family", inst: "Beats: The Live/MPC Hybrid", desc: "Blending live drum kit recordings with hard MPC drum machine hits.", luna: "Live Drum Bus: Studer A800 -> LA-2A. Drum Machine Bus: API 2500. Blend them together.", reaper: "Live Kit: Klanghelm IVGI2 -> TDR Kotelnikov. Drum Machine: JS Transient Controller. Group both -> ReaComp.", notes: "Keep the live drums slightly loose and unquantized, but quantize the drum machine strictly.", images: [] },
+        { id: 226, genre: "Southern Soul / Dungeon Family", inst: "Bass: Deep Analog Moog", desc: "Thick, sustained, soulful basslines that weave around the kick.", luna: "Minimoog -> Neve 1073 (boost 60Hz and 200Hz). LA-2A (slow, optical leveling).", reaper: "Surge XT (Analog Bass) -> Pultec VST (boost 60Hz) -> TDR Kotelnikov (soft knee).", notes: "Play actual bassline melodies (walking basslines), not just 808 sub hits on the downbeat.", images: [] },
+        { id: 227, genre: "Southern Soul / Dungeon Family", inst: "Guitars: Soulful Clean Strat", desc: "Curtis Mayfield-style R&B guitar licks and wah pedals.", luna: "Fender Twin Reverb -> Boss Auto-Wah -> Brigade Chorus -> Pure Plate.", reaper: "NAM JC-120 -> JS Auto-Wah -> JS Chorus -> Valhalla Room.", notes: "Use the neck pickup. Play highly syncopated 16th note strumming patterns.", images: [] },
+        { id: 228, genre: "Southern Soul / Dungeon Family", inst: "Vox: The Gospel Hook", desc: "Massive, soulful choir backing vocals layered heavily.", luna: "Choir Bus -> Pultec (boost 400Hz for warmth, 10kHz for air). LA-2A (squash). Plate Reverb (3s).", reaper: "Group Vocals -> ReaEQ (bump 300Hz) -> LA-2A VST -> Valhalla VintageVerb -> Stereo Enhancer.", notes: "Stack at least 8 to 12 vocal takes. Pan them evenly across the entire stereo field.", images: [] },
+        { id: 229, genre: "Boom-Bap Kings", inst: "Beats: Dusty Drum Bus", desc: "Preemo / Pete Rock style gritty, dusty MPC60 knock. Relies on bit-crushing to emulate old samplers.", luna: "Neve Preamp (drive input hard). Pultec EQ: Boost and Attenuate the 100Hz band simultaneously to create a resonant bump.", reaper: "JS Decimator (12-bit) -> Pultec VST (100Hz trick) -> JS Transient Controller (boost attack).", notes: "Choke the hi-hats with the kick drum to simulate a sampler with limited polyphony.", images: [] },
+        { id: 230, genre: "Boom-Bap Kings", inst: "Beats: Shuffling Hi-Hats", desc: "Raw, unquantized, multi-layered hi-hats that create the dragging, neck-snapping groove.", luna: "Studer A800 (drop to 7.5 ips to roll off crisp high-end). Pultec EQ (cut 5kHz).", reaper: "JS Decimator -> ReaEQ (LPF at 9kHz). Use the MPC Swing script to push 16th notes late.", notes: "Layer an acoustic hat with a synthetic shaker. Pan slightly apart. Vary velocities wildly.", images: [] },
+        { id: 231, genre: "Groove Innovators", inst: "Beats: The Dilla Swing", desc: "Extremely loose, intentionally unquantized drum loops that feel human and drunk.", luna: "Drum Bus -> Studer A800 (15ips). Pultec EQ (Subtle smile curve: +1dB 60Hz, +1dB 10kHz).", reaper: "Studer VST -> ReaEQ (Tame harsh 2kHz vinyl resonances). MPC Swing Script (57%).", notes: "Turn off snap-to-grid. Manually nudge kicks slightly late, pull snares slightly early.", images: [] },
+        { id: 232, genre: "Groove Innovators", inst: "Samples: The SP-1200 Pitch Trick", desc: "The Madlib/DOOM trick. Pitching samples up on a turntable, then down in the sampler for alias grit.", luna: "Thermionic Culture Vulture (Triode). API 560 (Boost 2kHz for that crunchy mid-range).", reaper: "Pitch UP +12st. Render. Pitch DOWN -12st (no formants) -> JS Decimator.", notes: "The resulting artifacts and crunch are the exact sound of 90s hardware samplers.", images: [] },
+        { id: 233, genre: "Underground Vanguards", inst: "Beats: Heavy Glitch Bus", desc: "El-P / Def Jux style. Aggressively gluing erratic, industrial percussion samples together.", luna: "Drum Bus -> Culture Vulture (Triode setting) -> API 2500 (30ms attack, 3:1 ratio, 3dB GR).", reaper: "Glitch Bus -> JS Saturation (barely clipping) -> TDR Kotelnikov (12dB peak crest control).", notes: "Ghost stalk MIDI velocity: Kicks 110-122, Snares 100-115, Ghost notes erratic 12-28.", images: [] },
+        { id: 234, genre: "Underground Vanguards", inst: "Synths: Dissonant Pluck", desc: "Aesop / Blockhead weirdness. Off-kilter, metallic, glass-like melodies.", luna: "Galaxy Tape Echo (darkest repeats) -> Pultec EQ (scoop 1kHz-3kHz heavily).", reaper: "Spitfire LABS Glass -> ReaEQ (scoop 2kHz) -> ReaDelay (un-synced echo).", notes: "Carve a 'hole' in the mid-range (2k-4k) to leave room for hyper-syllabic vocals.", images: [] },
+        { id: 235, genre: "Underground Vanguards", inst: "Vox: Hyper-Syllabic Lead", desc: "Hyper-intelligible, dense, fast-paced vocals that act as a rhythmic instrument (Aesop Rock).", luna: "Neve 1073 (HPF 100Hz, cut 300Hz, +shelf 10kHz) -> fast 1176 (5dB GR) -> smooth LA-2A (3dB GR).", reaper: "1073 VST -> ReaComp (1ms attack, 6:1 ratio for peaks) -> TDR Kotelnikov (RMS leveling) -> ReaXcomp (De-Ess 5k-8k).", notes: "Bone-dry dead center. If space is needed, use a 15ms micro-delay tucked underneath.", images: [] },
+        { id: 236, genre: "The Futurists", inst: "Beats: Beatbox & Mouth Percussion", desc: "Heavily processed beatboxing instead of drum machines.", luna: "1073 preamp. API 560 graphic EQ: cut below 150Hz, +4dB at 4kHz to emphasize lip smacks. Compress heavily with 1176.", reaper: "Run through JS Decimator. ReaEQ (HPF 200Hz, +3dB 5kHz) and ReaComp with fast attack.", notes: "Quantize exactly to the 16th note grid so it feels like a machine.", images: [] },
+        { id: 237, genre: "The Futurists", inst: "Synths: Bleepy Sine Arps", desc: "The Neptunes 'Grindin' signature plucky, staccato synthesizer lines.", luna: "Pure Sine wave -> Moog Filter (fast envelope) -> Brigade Chorus -> short 20ms Galaxy Echo slapback.", reaper: "Vital (Sine). ADSR: zero Attack, zero Sustain, incredibly fast Decay. JS Ping Pong Delay.", notes: "Play completely staccato. No overlapping notes. The space creates the bounce.", images: [] }
+    ],
+    links: [
+        { id: 1, title: 'Hookpad (Hooktheory)', url: 'https://hookpad.hooktheory.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Browser tool to map out complex jazz/neo-soul chord progressions. Analyzes scales and lets you export MIDI directly to Reaper.' },
+        { id: 2, title: 'Fadr AI', url: 'https://fadr.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Cloud-based Stem Separation and massive MIDI chord extraction.' },
+        { id: 3, title: 'Spotify Basic Pitch', url: 'http://basicpitch.spotify.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Converts audio to MIDI via Machine Learning.' },
+        { id: 4, title: 'Moises AI', url: 'https://moises.ai/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Excellent alternative to Fadr for web-based stem separation, tempo mapping, and key detection.' },
+        { id: 5, title: 'Lalal.ai', url: 'https://www.lalal.ai/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'The current industry leader in neural-network based stem separation. Highly accurate vocal isolation.' },
+        { id: 6, title: 'RipX', url: 'https://hitnmix.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Deep Audio Manipulation. Turns full mixes into editable MIDI and audio stems.' },
+        { id: 7, title: 'Tunebat', url: 'https://tunebat.com/', category: 'Samples & Instruments', daw: 'both', notes: 'The ultimate database for crate digging. Look up exact BPM, Key, and Camelot wheel position of almost any commercial song.' },
+        { id: 8, title: 'Splice', url: 'https://splice.com/', category: 'Samples & Instruments', daw: 'both', notes: 'The industry standard cloud sample, loop, and preset ecosystem.' },
+        { id: 9, title: 'Pianobook', url: 'https://www.pianobook.co.uk/', category: 'Samples & Instruments', daw: 'both', notes: 'Community-sourced free sample instruments for DecentSampler & Kontakt.' },
+        { id: 10, title: 'Spitfire LABS', url: 'https://labs.spitfireaudio.com/', category: 'Samples & Instruments', daw: 'both', notes: 'Free, professional-grade cinematic, orchestral, and organic VST instruments.' },
+        { id: 11, title: 'Tracklib', url: 'https://www.tracklib.com/', category: 'Samples & Instruments', daw: 'both', notes: 'Clearable, legal crate-digging. Sample actual vintage records without fear of copyright strikes.' },
+        { id: 12, title: 'Cymatics', url: 'https://cymatics.fm/', category: 'Samples & Instruments', daw: 'both', notes: 'Industry standard for modern Trap, Drill, and EDM drum kits.' },
+        { id: 13, title: 'Freesound.org', url: 'https://freesound.org/', category: 'Samples & Instruments', daw: 'both', notes: 'The rawest database of field recordings, foley, and weird noises. Perfect for granular synthesis.' },
+        { id: 14, title: 'Rhythm Roulette', url: 'https://www.youtube.com/playlist?list=PLB-XmXAB88c5r2U-H2HnZ1D_4Rj6E04Zg', category: 'Samples & Instruments', daw: 'both', notes: 'Video series. Watch legendary producers blindly pick 3 records and build a beat. Incredible workflow inspiration.' },
+        { id: 15, title: 'Mixchecker', url: 'https://www.mixchecker.com/', category: 'Mixing & Mastering', daw: 'both', notes: 'Simulates consumer devices (phones, laptops, car stereos) to verify mix translation.' },
+        { id: 16, title: 'Loudness Penalty', url: 'https://www.loudnesspenalty.com/', category: 'Mixing & Mastering', daw: 'both', notes: 'Check exactly how much streaming services (Spotify/Apple) will turn down your master due to LUFS limits.' },
+        { id: 17, title: 'Youlean Loudness Meter', url: 'https://youlean.co/', category: 'Mixing & Mastering', daw: 'both', notes: 'The industry standard free LUFS meter. Essential to have on your master bus.' },
+        { id: 18, title: 'Metric AB', url: 'https://www.plugin-alliance.com/en/products/adptr_metricab.html', category: 'Mixing & Mastering', daw: 'both', notes: 'The ultimate referencing tool. Instantly A/B your mix against commercial masters.' },
+        { id: 19, title: 'ToneHunt', url: 'https://tonehunt.org/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The largest community database for Neural Amp Modeler (NAM) profiles.' },
+        { id: 20, title: 'Tone3000', url: 'https://www.tone3000.com/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'Aggregated search engine for specific JCM800 and high-gain NAM captures.' },
+        { id: 21, title: 'Gods Cab IRs', url: 'https://sites.google.com/site/signalsaudiogodscab/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The legendary free Mesa OS Impulse Responses. Essential for heavy guitars.' },
+        { id: 22, title: 'SoundGym', url: 'https://www.soundgym.co/', category: 'Audio Utilities', daw: 'both', notes: 'Daily ear training workouts for audio engineers. Improves frequency recognition and EQ skills.' },
+        { id: 23, title: 'Equipboard', url: 'https://equipboard.com/', category: 'Audio Utilities', daw: 'both', notes: 'Look up exactly what analog gear, synths, and plugins famous producers use.' },
+        { id: 24, title: 'KVR Audio', url: 'https://www.kvraudio.com/', category: 'Audio Utilities', daw: 'both', notes: 'The largest database of VST plugins, reviews, and audio developer forums.' },
+        { id: 25, title: 'Plugin Boutique', url: 'https://www.pluginboutique.com/', category: 'Audio Utilities', daw: 'both', notes: 'The best hub for tracking down free utility VSTs and plugin sales.' },
+        { id: 26, title: 'AutoEq Database', url: 'https://github.com/jaakkopasanen/AutoEq', category: 'Audio Utilities', daw: 'both', notes: 'Database of EQ curves to flatten consumer headphones (use with SoundSource).' },
+        { id: 27, title: 'Glicol', url: 'https://glicol.org/', category: 'Audio Utilities', daw: 'both', notes: 'Weird Edge Case: Live-coding beat engine in the browser. Type syntax to generate chaotic, glitchy IDM rhythms.' },
+        { id: 28, title: 'Pink Trombone', url: 'https://dood.al/pinktrombone/', category: 'Audio Utilities', daw: 'both', notes: 'Weird Edge Case: Interactive speech synthesizer. Manipulate a digital throat to create alien vocal formants.' },
+        { id: 29, title: 'Gearspace', url: 'https://gearspace.com/', category: 'Audio Utilities', daw: 'both', notes: 'The largest professional audio engineering forum. Great for hardware troubleshooting.' }
+    ],
+    tones: [
+        { id: 101, name: "Gods Cab Heavy Core", category: "DISTORTION", daw: "both", nam: "NAM JCM800 High Gain", ir: "Gods Cab 1960B TS9", notes: "The absolute standard. Push the input, HPF at 90Hz, wide scoop at 300Hz.", starred: true, images: [] },
+        { id: 102, name: "Mesa V30 Chug", category: "DISTORTION", daw: "both", nam: "NAM Dual Recto", ir: "Mesa OS 4x12 SM57", notes: "Tight bottom end. LPF at 8kHz to remove fizz. Fast gate up front.", starred: true, images: [] },
+        { id: 103, name: "Bogren Plexi Smash", category: "CRUNCH", daw: "both", nam: "NAM Marshall Plexi", ir: "Bogren BD-Heavy-01", notes: "Vintage rock tone. Roll guitar volume down to 7. Boost 2.5kHz.", starred: true, images: [] },
+        { id: 104, name: "Orange 5150 Lead", category: "DISTORTION", daw: "reaper", nam: "NAM Peavey 5150", ir: "Orange 4x12 R121", notes: "Smooth, searing leads. Add short stereo delay (ping-pong) and plate reverb.", starred: true, images: [] },
+        { id: 105, name: "Modern Djent G-Drop", category: "DISTORTION", daw: "both", nam: "NAM Fortin Nameless", ir: "Zilla Cab 4x12", notes: "For 7/8 strings. Pre-EQ: Pull out 200Hz massively before hitting the amp to tighten low end.", starred: true, images: [] },
+        { id: 106, name: "Fender Twin Glass", category: "CLEAN", daw: "both", nam: "NAM Deluxe Reverb", ir: "Fender Twin Jensen", notes: "Crystal clean. Compress heavily with optical comp (LA-2A) for sustain.", starred: true, images: [] },
+        { id: 107, name: "Roland JC-120 Chorus", category: "CLEAN", daw: "both", nam: "NAM Roland JC-120", ir: "JC-120 Direct", notes: "80s Pop / Mac DeMarco vibe. Add wide Brigade chorus and subtle tape flutter.", starred: true, images: [] },
+        { id: 108, name: "Edge of Breakup Vox", category: "CRUNCH", daw: "luna", nam: "NAM Vox AC30", ir: "Vox Alnico Blue", notes: "Dig in to distort. Mid-heavy. Perfect for indie rock rhythm tracking.", starred: true, images: [] },
+        { id: 109, name: "Ampeg 8x10 Pocket", category: "BASS", daw: "both", nam: "NAM SVT", ir: "Ampeg 8x10 MD421", notes: "The ultimate rock bass. HPF at 28Hz, compress with 1176. Blend with DI.", starred: true, images: [] },
+        { id: 110, name: "Fuzz Bass Monster", category: "BASS", daw: "reaper", nam: "NAM Rat Pedal + SVT", ir: "Ampeg 8x10 Mix", notes: "Aggressive grind. High-pass the distortion at 200Hz to protect the sub fundamentals.", starred: true, images: [] },
+        { id: 111, name: "Neo-Soul DI Smooth", category: "BASS", daw: "both", nam: "None (Neve Preamp)", ir: "None", notes: "No amp. Direct through 610-B or 1073. Boost 60Hz, soft knee compression.", starred: false, images: [] },
+        { id: 112, name: "G-Funk Clean Wah", category: "CLEAN", daw: "both", nam: "NAM Fender Twin", ir: "Fender 2x12", notes: "Route through an Auto-Wah or Envelope Filter pedal before the amp. Keep the high end tamed.", starred: false, images: [] },
+        { id: 113, name: "Boom Bap Upright DI", category: "BASS", daw: "both", nam: "Neve 1073", ir: "None", notes: "Mute the strings with your palm. Compress heavily with an 1176. Roll off tone knob to zero.", starred: false, images: [] },
+        { id: 114, name: "Aftermath Clean Strat", category: "CLEAN", daw: "both", nam: "NAM Roland JC-120", ir: "JC-120 Direct", notes: "Neck pickup. Completely dry. Pluck very hard with fingers for the percussive stab.", starred: false, images: [] }
+    ]
+};
+
+
+window.db = JSON.parse(JSON.stringify(defaultDb)); 
+window.storageAvailable = false;
+
+try {
+    const saved = window.localStorage.getItem('ferrett_os_db_v22.4'); 
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        window.db.tracks = parsed.tracks || [];
+        if (parsed.tones && parsed.tones.length > 0) window.db.tones = parsed.tones;
+        if (parsed.links && parsed.links.length > 0) { window.db.links = parsed.links; defaultDb.links.forEach(dLink => { if (!window.db.links.find(l => l.url === dLink.url)) window.db.links.push(dLink); }); } 
+        else { window.db.links = defaultDb.links; }
+        if (parsed.cookbook && parsed.cookbook.length > 0) { window.db.cookbook = parsed.cookbook; } 
+        else { window.db.cookbook = defaultDb.cookbook; }
+        window.db.multiNotes = parsed.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }];
+    }
+    window.storageAvailable = true;
+} catch(e) {}
+
+window.currentNoteId = window.db.multiNotes[0].id;
+window.dbTimeout = null;
+
+// === SESSION STOPWATCH (persisted, pausable — drives the header REC timecode) ===
+window.SESSION_KEY = 'ferrett_os_session_v1';
+window.loadSessionState = () => {
+    try { const raw = window.localStorage.getItem(window.SESSION_KEY); if (raw) { const parsed = JSON.parse(raw); if (typeof parsed.elapsedMs === 'number') return parsed; } } catch (e) {}
+    return { elapsedMs: 0, running: true, startedAt: Date.now() };
+};
+window.sessionState = window.loadSessionState();
+window.saveSessionState = () => { try { window.localStorage.setItem(window.SESSION_KEY, JSON.stringify(window.sessionState)); } catch (e) {} };
+window.getSessionElapsedMs = () => window.sessionState.running ? window.sessionState.elapsedMs + (Date.now() - window.sessionState.startedAt) : window.sessionState.elapsedMs;
+window.toggleSessionTimer = () => {
+    if (window.sessionState.running) { window.sessionState.elapsedMs = window.getSessionElapsedMs(); window.sessionState.running = false; window.sessionState.startedAt = null; }
+    else { window.sessionState.running = true; window.sessionState.startedAt = Date.now(); }
+    window.saveSessionState(); window.updateSessionUI();
+};
+window.resetSessionTimer = () => {
+    if (!confirm('Reset the session timer to 00:00:00:00?')) return;
+    window.sessionState.elapsedMs = 0; window.sessionState.startedAt = window.sessionState.running ? Date.now() : null;
+    window.saveSessionState();
+};
+window.updateSessionUI = () => {
+    const dot = document.getElementById('hud-rec-dot'); const label = document.getElementById('hud-rec-label'); if (!dot || !label) return;
+    if (window.sessionState.running) { dot.style.animation = ''; dot.style.opacity = ''; dot.style.boxShadow = ''; label.textContent = 'REC'; label.style.color = '#FF5A5A'; }
+    else { dot.style.animation = 'none'; dot.style.opacity = '0.25'; dot.style.boxShadow = 'none'; label.textContent = 'PAUSED'; label.style.color = 'rgba(226,232,240,0.4)'; }
+};
+
+window.saveDataLocally = () => {
+    if(!window.storageAvailable) return;
+    try { window.localStorage.setItem('ferrett_os_db_v22.4', JSON.stringify(window.db)); const status = document.getElementById('save-status'); if(status) { status.classList.remove('opacity-0'); clearTimeout(window.saveTimeout); window.saveTimeout = setTimeout(() => status.classList.add('opacity-0'), 1500); } } catch(e) { }
+};
+
+window.saveData = () => { window.saveDataLocally(); if (window.isDriveConnected) { clearTimeout(window.dbTimeout); window.dbTimeout = setTimeout(() => { window.uploadToDrive(window.db); }, 2000); } };
+
+window.setDriveStatus = function(connected) { 
+    window.isDriveConnected = connected; const btn = document.getElementById('drive-auth-btn'); const txt = document.getElementById('drive-status-text'); const iconDown = document.getElementById('drive-icon-down'); const iconUp = document.getElementById('drive-icon-up'); 
+    if (connected) { btn?.classList.replace('border-[#FF2A2A]', 'border-[#00FF88]'); btn?.classList.replace('bg-[#FF2A2A]/10', 'bg-[#00FF88]/10'); btn?.classList.replace('text-[#FF2A2A]', 'text-[#00FF88]'); btn?.classList.replace('hover:bg-[#FF2A2A]/20', 'hover:bg-[#00FF88]/20'); if(txt) txt.innerText = 'INTEL COMM LINK EST'; iconDown?.classList.add('hidden'); iconUp?.classList.remove('hidden'); } 
+    else { btn?.classList.replace('border-[#00FF88]', 'border-[#FF2A2A]'); btn?.classList.replace('bg-[#00FF88]/10', 'bg-[#FF2A2A]/10'); btn?.classList.replace('text-[#00FF88]', 'text-[#FF2A2A]'); btn?.classList.replace('hover:bg-[#00FF88]/20', 'hover:bg-[#FF2A2A]/20'); if(txt) txt.innerText = 'INTEL COMMS DOWN'; iconUp?.classList.add('hidden'); iconDown?.classList.remove('hidden'); } 
+}
+
+// === DRIVE SYNC CONFLICT CHECK ===
+// Lightweight last-write-wins guard: before pushing, check the cloud file's modifiedTime
+// against the last one we actually saw. A mismatch means it changed elsewhere (another
+// device/tab) since we last synced here, so we pause the push and warn instead of overwriting.
+window.DRIVE_SYNC_META_KEY = 'ferrett_os_drive_sync_meta_v1';
+window.driveSyncMeta = (() => { try { const raw = window.localStorage.getItem(window.DRIVE_SYNC_META_KEY); if (raw) return JSON.parse(raw); } catch (e) {} return { lastKnownModifiedTime: null }; })();
+window.saveDriveSyncMeta = () => { try { window.localStorage.setItem(window.DRIVE_SYNC_META_KEY, JSON.stringify(window.driveSyncMeta)); } catch (e) {} };
+window.pendingSyncDbData = null;
+window.showConflictBanner = () => { document.getElementById('drive-conflict-banner')?.classList.remove('hidden'); document.getElementById('drive-conflict-banner')?.classList.add('flex'); };
+window.hideConflictBanner = () => { document.getElementById('drive-conflict-banner')?.classList.add('hidden'); document.getElementById('drive-conflict-banner')?.classList.remove('flex'); };
+
+window.findOrPullDriveFile = async function() { 
+    try { 
+        let res = await gapi.client.drive.files.list({ q: `name='${DRIVE_FILE_NAME}' and trashed=false`, spaces: 'drive', fields: 'files(id, modifiedTime)' }); 
+        if (res.result.files && res.result.files.length > 0) { 
+            window.driveFileId = res.result.files[0].id; 
+            window.driveSyncMeta.lastKnownModifiedTime = res.result.files[0].modifiedTime; window.saveDriveSyncMeta();
+            window.hideConflictBanner(); window.pendingSyncDbData = null;
+            let fileRes = await gapi.client.drive.files.get({ fileId: window.driveFileId, alt: 'media' }); 
+            let cloudDb = null; 
+            if (typeof fileRes.result === 'object' && fileRes.result !== null) { cloudDb = fileRes.result; } else if (typeof fileRes.body === 'string') { cloudDb = JSON.parse(fileRes.body); } 
+            if (cloudDb) { 
+                window.db.tracks = cloudDb.tracks || []; window.db.tones = cloudDb.tones || defaultDb.tones; window.db.cookbook = cloudDb.cookbook || defaultDb.cookbook;
+                if (cloudDb.links) { window.db.links = cloudDb.links; defaultDb.links.forEach(dLink => { if (!window.db.links.find(l => l.url === dLink.url)) window.db.links.push(dLink); }); } else { window.db.links = defaultDb.links; }
+                window.db.multiNotes = cloudDb.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }]; 
+                window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI(); 
+            } 
+        } 
+        try {
+            let audioRes = await gapi.client.drive.files.list({ q: `name='${DRIVE_AUDIO_FILE_NAME}' and trashed=false`, spaces: 'drive', fields: 'files(id, modifiedTime)' });
+            if (audioRes.result.files && audioRes.result.files.length > 0) {
+                window.driveAudioFileId = audioRes.result.files[0].id;
+                let audioFileRes = await gapi.client.drive.files.get({ fileId: window.driveAudioFileId, alt: 'media' });
+                let cloudClips = null;
+                if (typeof audioFileRes.result === 'object' && audioFileRes.result !== null) cloudClips = audioFileRes.result; else if (typeof audioFileRes.body === 'string') cloudClips = JSON.parse(audioFileRes.body);
+                if (cloudClips) { for (const [clipId, b64] of Object.entries(cloudClips)) { const numId = parseInt(clipId, 10); await window.audioDbSet(isNaN(numId) ? clipId : numId, b64); } }
+            }
+        } catch (err) {}
+    } catch (err) {} 
+}
+
+window.uploadToDriveRaw = async function(dbData) {
+    if (!window.isDriveConnected) return;
+    try {
+        const file = new Blob([JSON.stringify(dbData)], {type: 'application/json'}); const form = new FormData(); form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' })); form.append('file', file); const token = gapi.client.getToken().access_token; let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime'; let method = 'POST'; if (window.driveFileId) { url = `https://www.googleapis.com/upload/drive/v3/files/${window.driveFileId}?uploadType=multipart&fields=id,modifiedTime`; method = 'PATCH'; } let res = await fetch(url, { method: method, headers: { 'Authorization': 'Bearer ' + token }, body: form }); let jsonRes = await res.json(); if (!window.driveFileId) window.driveFileId = jsonRes.id; 
+        if (jsonRes.modifiedTime) { window.driveSyncMeta.lastKnownModifiedTime = jsonRes.modifiedTime; window.saveDriveSyncMeta(); }
+        window.pendingSyncDbData = null; window.hideConflictBanner();
+    } catch (err) {} 
+}
+
+window.uploadToDrive = async function(dbData) {
+    if (!window.isDriveConnected) return;
+    if (window.driveFileId && window.driveSyncMeta.lastKnownModifiedTime) {
+        try {
+            const meta = await gapi.client.drive.files.get({ fileId: window.driveFileId, fields: 'modifiedTime' });
+            if (meta.result && meta.result.modifiedTime && meta.result.modifiedTime !== window.driveSyncMeta.lastKnownModifiedTime) {
+                window.pendingSyncDbData = dbData;
+                window.showConflictBanner();
+                return; // hold off overwriting until the person picks a side
+            }
+        } catch (err) {}
+    }
+    await window.uploadToDriveRaw(dbData);
+}
+
+window.resolveConflictKeepMine = async () => { const data = window.pendingSyncDbData || window.db; window.hideConflictBanner(); await window.uploadToDriveRaw(data); };
+window.resolveConflictReloadTheirs = async () => { if (!confirm('This discards any local changes made since your last sync and reloads the version currently on Drive. Continue?')) return; window.hideConflictBanner(); await window.findOrPullDriveFile(); };
+
+const DRIVE_AUDIO_FILE_NAME = 'FERRETT_OS_AUDIO_CLIPS.json';
+window.uploadAudioToDrive = async function() {
+    if (!window.isDriveConnected) return;
+    try {
+        const allClips = await window.audioDbGetAll();
+        const file = new Blob([JSON.stringify(allClips)], { type: 'application/json' }); const form = new FormData(); form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_AUDIO_FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' })); form.append('file', file); const token = gapi.client.getToken().access_token; let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart'; let method = 'POST'; if (window.driveAudioFileId) { url = `https://www.googleapis.com/upload/drive/v3/files/${window.driveAudioFileId}?uploadType=multipart`; method = 'PATCH'; } let res = await fetch(url, { method: method, headers: { 'Authorization': 'Bearer ' + token }, body: form }); let jsonRes = await res.json(); if (!window.driveAudioFileId) window.driveAudioFileId = jsonRes.id;
+    } catch (err) {}
+}
+window.scheduleAudioDriveSync = () => { if (!window.isDriveConnected) return; clearTimeout(window.audioDbTimeout); window.audioDbTimeout = setTimeout(() => window.uploadAudioToDrive(), 2000); };
+
+
+window.downloadVaultBackup = () => {
+    try {
+        const payload = { exportedAt: new Date().toISOString(), source: 'FERRETT_STUDIO_OS', db: window.db };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        a.href = url; a.download = `ferrett_vault_backup_${stamp}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+    } catch (e) { alert('Backup failed: ' + e.message); }
+};
+
+window.restoreVaultFromFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        let parsed;
+        try { parsed = JSON.parse(e.target.result); } catch (err) { alert('That file is not valid JSON.'); return; }
+        const incoming = (parsed && parsed.db) ? parsed.db : parsed;
+        if (!incoming || typeof incoming !== 'object') { alert('That file does not look like a vault backup.'); return; }
+        const looksValid = ['tracks', 'tones', 'links', 'cookbook', 'multiNotes'].some(k => Array.isArray(incoming[k]));
+        if (!looksValid) { alert('That file does not look like a vault backup.'); return; }
+        if (!confirm('This will REPLACE your current vault with the contents of this backup file. This cannot be undone. Continue?')) return;
+        window.db.tracks = incoming.tracks || [];
+        window.db.tones = incoming.tones || [];
+        window.db.links = incoming.links || [];
+        window.db.cookbook = incoming.cookbook || [];
+        window.db.multiNotes = incoming.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }];
+        window.currentNoteId = window.db.multiNotes[0].id;
+        window.saveData();
+        if (window.refreshAllUI) window.refreshAllUI();
+        alert('Vault restored from backup.');
+    };
+    reader.onerror = () => alert('Could not read that file.');
+    reader.readAsText(file);
+};
+
+window.compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader(); reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image(); img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width; let height = img.height; const MAX_WIDTH = 600;
+                if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+                canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+            }; img.onerror = error => reject(error);
+        };
+    });
+};
+
+window.renderImagePreviews = (containerId, imgArray, targetArrayName) => {
+    const container = document.getElementById(containerId); if(!container) return; container.innerHTML = '';
+    imgArray.forEach((b64, index) => {
+        const wrapper = document.createElement('div'); wrapper.className = 'flex items-center gap-2';
+        wrapper.innerHTML = `<div class="relative inline-block"><img src="${b64}" class="w-16 h-16 object-cover border border-[#00FF8830] rounded cursor-pointer" onclick="window.openImageModalSingle('${b64}')"><button type="button" class="absolute -top-2 -right-2 bg-[#FF2A2A] text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold cursor-pointer hover:scale-110 z-10" onclick="window.removeTempImage(${index}, '${targetArrayName}', '${containerId}')">×</button></div>${index < imgArray.length - 1 ? '<span class="text-[#00FF88]/40 font-bold text-[14px]">→</span>' : ''}`;
+        container.appendChild(wrapper);
+    });
+};
+
+// === TONE AUDIO REFERENCE CLIPS (IndexedDB, kept out of the localStorage-backed vault so a big clip can never break a save) ===
+window.AUDIO_DB_NAME = 'ferrett_os_audio_v1'; window.AUDIO_STORE = 'clips'; window.AUDIO_MAX_BYTES = 15 * 1024 * 1024; window.AUDIO_MAX_RECORD_SECONDS = 60;
+
+window.openAudioDB = () => new Promise((resolve, reject) => {
+    if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
+    const req = indexedDB.open(window.AUDIO_DB_NAME, 1);
+    req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(window.AUDIO_STORE)) req.result.createObjectStore(window.AUDIO_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+});
+window.audioDbGet = async (id) => { try { const db = await window.openAudioDB(); return await new Promise((resolve, reject) => { const tx = db.transaction(window.AUDIO_STORE, 'readonly'); const r = tx.objectStore(window.AUDIO_STORE).get(id); r.onsuccess = () => resolve(r.result || null); r.onerror = () => reject(r.error); }); } catch (e) { return null; } };
+window.audioDbSet = async (id, base64) => { try { const db = await window.openAudioDB(); return await new Promise((resolve, reject) => { const tx = db.transaction(window.AUDIO_STORE, 'readwrite'); tx.objectStore(window.AUDIO_STORE).put(base64, id); tx.oncomplete = () => resolve(true); tx.onerror = () => reject(tx.error); }); } catch (e) { return false; } };
+window.audioDbDelete = async (id) => { try { const db = await window.openAudioDB(); return await new Promise((resolve, reject) => { const tx = db.transaction(window.AUDIO_STORE, 'readwrite'); tx.objectStore(window.AUDIO_STORE).delete(id); tx.oncomplete = () => resolve(true); tx.onerror = () => reject(tx.error); }); } catch (e) { return false; } };
+window.audioDbGetAll = async () => { try { const db = await window.openAudioDB(); return await new Promise((resolve, reject) => { const tx = db.transaction(window.AUDIO_STORE, 'readonly'); const store = tx.objectStore(window.AUDIO_STORE); const out = {}; const req = store.openCursor(); req.onsuccess = (e) => { const cur = e.target.result; if (cur) { out[cur.key] = cur.value; cur.continue(); } else resolve(out); }; req.onerror = () => reject(req.error); }); } catch (e) { return {}; } };
+
+window.tempToneAudio = null; // base64 data URL of the pending clip for the open tone form, or null
+
+window.formatBytes = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+window.LOCALSTORAGE_SOFT_CAP = 5 * 1024 * 1024; // typical per-origin localStorage ceiling browsers enforce (~5-10MB)
+
+window.computeStorageStats = async () => {
+    let vaultBytes = 0, imageBytes = 0, imageCount = 0;
+    try {
+        const vaultJson = JSON.stringify(window.db);
+        vaultBytes = new Blob([vaultJson]).size;
+        const collectImages = (arr) => { (arr || []).forEach((item) => { (item.images || []).forEach((b64) => { imageBytes += new Blob([b64]).size; imageCount++; }); }); };
+        collectImages(window.db.tracks); collectImages(window.db.tones); collectImages(window.db.cookbook);
+    } catch (e) {}
+    const textBytes = Math.max(0, vaultBytes - imageBytes);
+
+    let audioBytes = 0, audioCount = 0, orphanedAudioCount = 0;
+    let audioClips = {};
+    try {
+        audioClips = await window.audioDbGetAll();
+        const liveToneIds = new Set(window.db.tones.map((t) => t.id));
+        Object.entries(audioClips).forEach(([key, b64]) => {
+            audioBytes += new Blob([b64]).size; audioCount++;
+            const numKey = parseInt(key, 10);
+            if (!liveToneIds.has(numKey)) orphanedAudioCount++;
+        });
+    } catch (e) {}
+
+    let quota = null, usage = null;
+    try { if (navigator.storage && navigator.storage.estimate) { const est = await navigator.storage.estimate(); quota = est.quota; usage = est.usage; } } catch (e) {}
+
+    return { vaultBytes, textBytes, imageBytes, imageCount, audioBytes, audioCount, orphanedAudioCount, quota, usage };
+};
+
+window.renderStorageBar = (label, usedBytes, capBytes, colorHex) => {
+    const pct = capBytes ? Math.min(100, (usedBytes / capBytes) * 100) : 0;
+    const barColor = pct > 90 ? '#FF4444' : (pct > 70 ? '#FFD60A' : colorHex);
+    return `<div><div class="flex justify-between text-[10px] mb-1"><span class="text-[#E2E8F0]/60 font-bold uppercase tracking-widest">${label}</span><span style="color:${barColor}" class="font-bold">${window.formatBytes(usedBytes)}${capBytes ? ` / ${window.formatBytes(capBytes)}` : ''}</span></div><div class="w-full h-2 rounded bg-black/50 border border-[#E2E8F014] overflow-hidden"><div class="h-full rounded transition-all" style="width:${pct}%;background:${barColor};box-shadow:0 0 8px ${barColor}80;"></div></div></div>`;
+};
+
+window.renderVaultStorageMeter = async () => {
+    const content = document.getElementById('vault-storage-content'); if (!content) return;
+    content.innerHTML = `<div class="text-[#E2E8F0]/40 italic">Calculating...</div>`;
+    const stats = await window.computeStorageStats();
+    let html = '';
+    html += window.renderStorageBar('Vault Data (localStorage — text + images)', stats.vaultBytes, window.LOCALSTORAGE_SOFT_CAP, '#00FF88');
+    html += `<div class="text-[10px] text-[#E2E8F0]/40 -mt-3 pl-0.5">↳ ${window.formatBytes(stats.textBytes)} text/notes, ${window.formatBytes(stats.imageBytes)} across ${stats.imageCount} image${stats.imageCount === 1 ? '' : 's'}</div>`;
+    html += window.renderStorageBar(`Audio Clips (IndexedDB, ${stats.audioCount} clip${stats.audioCount === 1 ? '' : 's'})`, stats.audioBytes, null, '#00E5FF');
+    if (stats.orphanedAudioCount > 0) html += `<div class="text-[10px] text-[#FF8888]">⚠ ${stats.orphanedAudioCount} orphaned clip${stats.orphanedAudioCount === 1 ? '' : 's'} (no matching tone) — safe to clean up.</div>`;
+    if (stats.quota) html += window.renderStorageBar('Total Device Storage (this app, browser-reported)', stats.usage || 0, stats.quota, '#FFD60A');
+    else html += `<div class="text-[10px] text-[#E2E8F0]/30 italic">Browser doesn't expose total quota here — the two meters above are the numbers that matter.</div>`;
+    content.innerHTML = html;
+    const cleanupBtn = document.getElementById('btn-cleanup-orphaned-audio'); if (cleanupBtn) cleanupBtn.classList.toggle('hidden', stats.orphanedAudioCount === 0);
+};
+
+window.cleanupOrphanedAudio = async () => {
+    const stats = await window.computeStorageStats();
+    if (stats.orphanedAudioCount === 0) { alert('No orphaned clips found.'); return; }
+    if (!confirm(`Delete ${stats.orphanedAudioCount} orphaned audio clip(s) with no matching tone? This can't be undone.`)) return;
+    const audioClips = await window.audioDbGetAll();
+    const liveToneIds = new Set(window.db.tones.map((t) => t.id));
+    const deletions = Object.keys(audioClips).filter((key) => !liveToneIds.has(parseInt(key, 10)));
+    for (const key of deletions) { await window.audioDbDelete(parseInt(key, 10) || key); }
+    window.scheduleAudioDriveSync();
+    window.renderVaultStorageMeter();
+};
+
+window.renderAudioPreview = (containerId, base64) => {
+    const container = document.getElementById(containerId); if (!container) return;
+    if (!base64) { container.innerHTML = `<div class="text-[10px] text-[#E2E8F0]/30 italic">No reference clip attached.</div>`; return; }
+    container.innerHTML = `<div class="flex items-center gap-3 flex-wrap"><audio controls src="${base64}" class="h-8 max-w-full"></audio><button type="button" id="btn-remove-tone-audio" class="text-[10px] font-bold text-[#FF8888] hover:text-white">REMOVE CLIP</button></div>`;
+    document.getElementById('btn-remove-tone-audio')?.addEventListener('click', () => { window.tempToneAudio = null; window.renderAudioPreview(containerId, null); });
+};
+
+window.handleToneAudioUpload = (e) => {
+    const file = e.target.files && e.target.files[0]; if (!file) return;
+    if (file.size > window.AUDIO_MAX_BYTES) { alert('That clip is over 15MB. Trim it down first, or keep reference clips short (a few seconds is plenty).'); e.target.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => { window.tempToneAudio = ev.target.result; window.renderAudioPreview('tone-audio-preview-container', window.tempToneAudio); };
+    reader.onerror = () => alert('Could not read that audio file.');
+    reader.readAsDataURL(file);
+    e.target.value = '';
+};
+
+window.MEDIA_RECORDER_SUPPORTED = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+window.toneRecorder = null; window.toneRecorderChunks = []; window.toneRecordingStart = null; window.toneRecordingTimer = null;
+
+window.setToneRecordingUI = (isRecording) => {
+    document.getElementById('btn-record-tone-audio')?.classList.toggle('hidden', isRecording);
+    document.getElementById('btn-stop-tone-audio')?.classList.toggle('hidden', !isRecording);
+    const status = document.getElementById('tone-record-status'); if (status) { status.classList.toggle('hidden', !isRecording); if (!isRecording) status.textContent = ''; }
+};
+
+window.updateToneRecordingLabel = () => {
+    const label = document.getElementById('tone-record-status'); if (!label || !window.toneRecordingStart) return;
+    const secs = Math.floor((Date.now() - window.toneRecordingStart) / 1000);
+    label.textContent = `● REC 00:${String(secs).padStart(2, '0')}`;
+    if (secs >= window.AUDIO_MAX_RECORD_SECONDS) window.stopToneRecording();
+};
+
+window.startToneRecording = async () => {
+    if (!window.MEDIA_RECORDER_SUPPORTED) { alert('This browser does not support in-browser audio recording. Use + Upload Clip instead.'); return; }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        window.toneRecorderChunks = [];
+        const mimeType = (window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported('audio/webm')) ? 'audio/webm' : '';
+        window.toneRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+        window.toneRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) window.toneRecorderChunks.push(e.data); };
+        window.toneRecorder.onstop = () => {
+            stream.getTracks().forEach((t) => t.stop());
+            const blob = new Blob(window.toneRecorderChunks, { type: window.toneRecorder.mimeType || 'audio/webm' });
+            const reader = new FileReader();
+            reader.onload = () => { window.tempToneAudio = reader.result; window.renderAudioPreview('tone-audio-preview-container', window.tempToneAudio); };
+            reader.readAsDataURL(blob);
+        };
+        window.toneRecorder.start();
+        window.toneRecordingStart = Date.now();
+        window.setToneRecordingUI(true);
+        clearInterval(window.toneRecordingTimer); window.toneRecordingTimer = setInterval(window.updateToneRecordingLabel, 250);
+        window.updateToneRecordingLabel();
+    } catch (err) {
+        alert('Could not access the microphone (permission denied or unavailable).');
+    }
+};
+
+window.stopToneRecording = () => {
+    if (window.toneRecorder && window.toneRecorder.state !== 'inactive') window.toneRecorder.stop();
+    clearInterval(window.toneRecordingTimer); window.toneRecordingTimer = null; window.toneRecordingStart = null;
+    window.setToneRecordingUI(false);
+};
+
+window.removeTempImage = (index, arrayName, containerId) => { 
+    if(arrayName === 'track') { window.tempTrackImages.splice(index, 1); window.renderImagePreviews(containerId, window.tempTrackImages, 'track'); }
+    else if(arrayName === 'tone') { window.tempToneImages.splice(index, 1); window.renderImagePreviews(containerId, window.tempToneImages, 'tone'); }
+    else if(arrayName === 'cookbook') { window.tempCookbookImages.splice(index, 1); window.renderImagePreviews(containerId, window.tempCookbookImages, 'cookbook'); }
+};
+
+window.openImageModalSingle = (b64) => {
+    const content = document.getElementById('chain-modal-content'); if(!content) return;
+    content.innerHTML = `<img src="${b64}" class="max-h-[70vh] object-contain border border-[#00FF8850] rounded shadow-[0_0_20px_rgba(0,255,136,0.2)]">`;
+    document.getElementById('chain-modal')?.classList.replace('hidden', 'flex');
+};
+
+window.openModalGallery = (type, id) => {
+    const item = window.db[type].find(t => t.id === id);
+    if (!item || !item.images) return;
+    const content = document.getElementById('chain-modal-content'); if(!content) return; content.innerHTML = '';
+    item.images.forEach((b64, i) => {
+        content.innerHTML += `<img src="${b64}" class="max-h-[75vh] object-contain border border-[#00FF8850] rounded shadow-[0_0_20px_rgba(0,255,136,0.2)]">`;
+        if (i < item.images.length - 1) content.innerHTML += `<span class="text-[#00FF88] font-bold text-[30px] md:text-[50px] shrink-0">→</span>`;
+    });
+    const title = document.getElementById('chain-modal-title');
+    if(title) title.innerText = (type === 'cookbook' ? 'RECIPE CHAIN' : (type === 'tones' ? 'PEDALBOARD / RIG' : 'PLUGIN CHAIN'));
+    document.getElementById('chain-modal')?.classList.replace('hidden', 'flex');
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('close-chain-modal')?.addEventListener('click', () => document.getElementById('chain-modal')?.classList.replace('flex', 'hidden'));
+    document.getElementById('drive-auth-btn')?.addEventListener('click', () => { if (!window.isDriveConnected && window.tokenClient) { window.tokenClient.requestAccessToken({prompt: 'consent'}); } else if (!window.tokenClient) { alert("Google Auth script is blocked or still loading. Check your AdBlocker."); } });
+    document.getElementById('btn-backup-vault')?.addEventListener('click', () => window.downloadVaultBackup());
+    document.getElementById('btn-restore-vault')?.addEventListener('click', () => document.getElementById('restore-vault-input')?.click());
+    document.getElementById('restore-vault-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.restoreVaultFromFile(file); e.target.value = ''; });
+    document.getElementById('btn-open-vault-modal')?.addEventListener('click', () => { document.getElementById('vault-modal')?.classList.replace('hidden', 'flex'); window.renderVaultStorageMeter(); });
+    document.getElementById('close-vault-modal')?.addEventListener('click', () => document.getElementById('vault-modal')?.classList.replace('flex', 'hidden'));
+    document.getElementById('vault-modal')?.addEventListener('click', (e) => { if (e.target.id === 'vault-modal') document.getElementById('vault-modal')?.classList.replace('flex', 'hidden'); });
+    document.getElementById('btn-refresh-vault-stats')?.addEventListener('click', () => window.renderVaultStorageMeter());
+    document.getElementById('btn-cleanup-orphaned-audio')?.addEventListener('click', () => window.cleanupOrphanedAudio());
+    document.getElementById('btn-conflict-keep-mine')?.addEventListener('click', () => window.resolveConflictKeepMine());
+    document.getElementById('btn-conflict-reload-theirs')?.addEventListener('click', () => window.resolveConflictReloadTheirs());
+    document.getElementById('btn-conflict-dismiss')?.addEventListener('click', () => window.hideConflictBanner());
+
+    const quietBtn = document.getElementById('btn-toggle-quiet'); const quietText = document.getElementById('quiet-text'); const quietDot = document.getElementById('quiet-dot');
+    quietBtn?.addEventListener('click', () => {
+        window.FERRETT_QUIET = !window.FERRETT_QUIET;
+        if (window.FERRETT_QUIET) { document.body.classList.add('quiet'); quietBtn.classList.replace('border-[#00FF88]', 'border-[#E2E8F0]/30'); quietBtn.classList.replace('bg-[#00FF88]/10', 'bg-transparent'); quietBtn.classList.replace('text-[#00FF88]', 'text-[#E2E8F0]/50'); quietDot?.classList.replace('bg-[#00FF88]', 'bg-[#E2E8F0]/30'); quietDot?.classList.remove('animate-pulse'); if(quietText) quietText.innerText = 'QUIET'; } 
+        else { document.body.classList.remove('quiet'); quietBtn.classList.replace('border-[#E2E8F0]/30', 'border-[#00FF88]'); quietBtn.classList.replace('bg-transparent', 'bg-[#00FF88]/10'); quietBtn.classList.replace('text-[#E2E8F0]/50', 'text-[#00FF88]'); quietDot?.classList.replace('bg-[#E2E8F0]/30', 'bg-[#00FF88]'); quietDot?.classList.add('animate-pulse'); if(quietText) quietText.innerText = 'LIVE'; }
+    });
+
+    // === CLICKABLE TAG PILL SYSTEM ===
+    window.currentLinkTag = 'ALL'; window.currentToneTag = 'ALL'; window.currentScriptTag = 'ALL';
+    window.pillColor = (str) => { const palette = ['#00FF88','#00E5FF','#FFD60A','#FF8888','#FF88FF','#7AFFBF','#88AAFF','#FFA05C']; let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0; return palette[h % palette.length]; };
+    window.toneCategoryColor = (cat) => cat === 'DISTORTION' ? '#FF8888' : (cat === 'CLEAN' ? '#00E5FF' : (cat === 'BASS' ? '#FFD60A' : '#00FF88'));
+
+    window.renderTagBarGeneric = (containerId, categories, activeVal, colorFn, onSelect) => {
+        const bar = document.getElementById(containerId); if(!bar) return; bar.innerHTML = '';
+        const allBtn = document.createElement('button'); const allActive = activeVal === 'ALL';
+        allBtn.className = 'px-2.5 py-1 rounded text-[9px] font-bold tracking-widest uppercase border transition-all cursor-pointer';
+        allBtn.style.color = allActive ? '#fff' : 'rgba(255,255,255,0.4)'; allBtn.style.borderColor = allActive ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)'; allBtn.style.background = allActive ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.03)';
+        allBtn.innerText = 'ALL TAGS'; allBtn.addEventListener('click', () => onSelect('ALL')); bar.appendChild(allBtn);
+        categories.forEach(cat => {
+            const c = colorFn(cat); const isActive = activeVal === cat; const btn = document.createElement('button');
+            btn.className = 'px-2.5 py-1 rounded text-[9px] font-bold tracking-widest uppercase border transition-all cursor-pointer';
+            btn.style.color = c; btn.style.borderColor = isActive ? c : c + '30'; btn.style.background = isActive ? c + '22' : c + '0A'; if (isActive) btn.style.boxShadow = `0 0 10px ${c}30`;
+            btn.innerText = cat; btn.title = `Filter by ${cat}`; btn.addEventListener('click', () => onSelect(cat)); bar.appendChild(btn);
+        });
+    };
+    window.setLinkTag = (cat) => { window.currentLinkTag = cat; window.renderLinks(); };
+    window.setToneTag = (cat) => { window.currentToneTag = cat; window.renderTones(); };
+    window.setScriptTag = (cat) => { window.currentScriptTag = cat; window.renderScripts(); };
+    // Jump helper used by the command palette to land on a filtered, tag-scoped list
+    window.jumpToTag = (scope, tag) => {
+        if (scope === 'tones') { window.switchTab('tones'); window.setToneTag(tag); }
+        else if (scope === 'links') { window.switchTab('links'); window.setLinkTag(tag); }
+        else if (scope === 'scripts') { window.switchTab('hardware'); window.setScriptTag(tag); }
+        else if (scope === 'cookbook') { window.switchTab('cookbook'); window.selectGenre(tag); }
+        window.closeCmdk();
+    };
+
+    window.renderCookbookMenu = () => {
+        const genreMenu = document.getElementById('genre-menu'); const datalist = document.getElementById('cookbook-genre-list');
+        if(!genreMenu || !datalist || !window.db.cookbook || window.db.cookbook.length === 0) return;
+        genreMenu.innerHTML = ''; datalist.innerHTML = '';
+        const genres = [...new Set(window.db.cookbook.map(r => r.genre))];
+        genres.forEach(genre => {
+            const btn = document.createElement('button'); btn.className = 'btn-menu w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold text-[#00E5FF]/60 border border-transparent'; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
+            const option = document.createElement('option'); option.value = genre; datalist.appendChild(option);
+        });
+        if(genres.length > 0 && (!window.currentCookbookGenre || !genres.includes(window.currentCookbookGenre))) window.selectGenre(genres[0]);
+        else if(window.currentCookbookGenre) window.selectGenre(window.currentCookbookGenre);
+    };
+
+    window.currentCookbookGenre = null; window.currentCookbookId = null;
+
+    window.selectGenre = (genre) => {
+        window.currentCookbookGenre = genre; window.currentCookbookId = null;
+        const buttons = document.getElementById('genre-menu')?.children || [];
+        for(let btn of buttons) { if(btn.innerText === genre.toUpperCase()) btn.classList.add('active-genre'); else btn.classList.remove('active-genre'); }
+        const instMenu = document.getElementById('inst-menu'); if(instMenu) instMenu.innerHTML = ''; 
+        const instruments = window.db.cookbook.filter(r => r.genre === genre);
+        instruments.forEach((data, index) => {
+            const btn = document.createElement('button'); btn.className = 'btn-menu w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold text-[#00FF88]/60 border border-transparent'; btn.innerText = data.inst; btn.dataset.id = data.id; btn.addEventListener('click', () => window.selectInst(data.id)); if(instMenu) instMenu.appendChild(btn);
+            if (index === 0) setTimeout(() => window.selectInst(data.id), 50);
+        });
+    };
+
+    window.selectInst = (id) => {
+        window.currentCookbookId = id; const buttons = document.getElementById('inst-menu')?.children || [];
+        for(let btn of buttons) { if(parseInt(btn.dataset.id, 10) === id) btn.classList.add('active-inst'); else btn.classList.remove('active-inst'); }
+        const data = window.db.cookbook.find(r => r.id === id); if(!data) return;
+
+        let imagesHtml = '';
+        if (data.images && data.images.length > 0) {
+            imagesHtml = `<div class="mt-4 p-3 bg-black/40 rounded border border-[#00FF8820]"><div class="text-[9px] text-[#00FF88]/70 tracking-widest mb-3 font-bold uppercase flex items-center gap-2">Signal Chain / Settings</div><div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide cursor-pointer group" onclick="window.openModalGallery('cookbook', ${data.id})">`;
+            data.images.forEach((imgB64, i) => { imagesHtml += `<img src="${imgB64}" class="w-20 h-20 object-cover border border-[#00FF8840] rounded shadow-[0_0_10px_rgba(0,255,136,0.1)] group-hover:border-[#00FF88] transition-colors">`; if (i < data.images.length - 1) imagesHtml += `<span class="text-[#00FF88]/50 font-bold text-[18px] shrink-0">→</span>`; });
+            imagesHtml += `</div></div>`;
+        }
+
+        const disp = document.getElementById('recipe-display');
+        if(disp) disp.innerHTML = `
+            <div class="animate-fade-in relative group">
+                <div class="absolute top-0 right-0 hidden group-hover:flex gap-3 z-20 bg-[rgba(10,15,13,0.9)] px-2 py-1 rounded">
+                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+                </div>
+                <div class="border-b border-[#00FF8820] pb-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-2 pr-20"><h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#00FF88] uppercase">${data.inst}</h2><span class="text-[9px] md:text-[10px] tracking-widest text-[#00E5FF] uppercase bg-[#00E5FF10] px-3 py-1.5 rounded border border-[#00E5FF20]">${data.genre}</span></div>
+                <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
+                <div class="space-y-6">
+                    <div class="show-luna bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00E5FF30]"><h4 class="text-[#00E5FF] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00E5FF14] pb-2 flex items-center gap-2"><span class="bg-[#00E5FF] w-1.5 h-1.5 rounded-full"></span> LUNA (UAD DSP) CHAIN</h4><p class="text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.luna}</p></div>
+                    <div class="show-reaper bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> REAPER (NATIVE/VST)</h4><p class="text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p></div>
+                    <div class="bg-[rgba(10,15,13,0.9)] p-5 rounded border border-[#E2E8F010]"><h4 class="text-[#E2E8F0]/50 text-[10px] font-bold tracking-widest uppercase mb-3">WORKFLOW & ROUTING NOTES</h4><p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${data.notes}</p></div>
+                    ${imagesHtml}
+                </div>
+            </div>
+        `;
+    };
+
+    window.blendGenres = () => {
+        const genres = [...new Set((window.db.cookbook || []).map(r => r.genre))];
+        if (genres.length < 2) { alert('Add recipes in at least 2 different genres to blend combos.'); return; }
+        let a = genres[Math.floor(Math.random() * genres.length)]; let b;
+        do { b = genres[Math.floor(Math.random() * genres.length)]; } while (b === a);
+        const recipesA = window.db.cookbook.filter(r => r.genre === a); const recipesB = window.db.cookbook.filter(r => r.genre === b);
+        const instA = recipesA[Math.floor(Math.random() * recipesA.length)].inst; const instB = recipesB[Math.floor(Math.random() * recipesB.length)].inst;
+        const connectors = ['×', 'MEETS', 'COLLIDES WITH', 'FUSED WITH', 'VS'];
+        const connector = connectors[Math.floor(Math.random() * connectors.length)];
+        const title = `${a} ${connector} ${b}`;
+        const templatePool = [
+            `Run a ${a}-style ${instA} chain underneath ${b}-style ${instB} elements.`,
+            `Borrow the energy of ${a}'s ${instA} and the texture of ${b}'s ${instB}.`,
+            `Start a beat in ${a} mode, then flip the drop into full ${b} territory.`,
+            `Layer ${b} instrumentation on top of a ${a} rhythmic foundation.`,
+            `Write ${a}-leaning vocals/flow over a ${b}-leaning instrumental.`,
+            `Take ${a}'s tempo and swing, but chase ${b}'s harmonic/tonal vibe.`,
+            `Process ${instA} through the mindset of ${b}, and ${instB} through the mindset of ${a}.`
+        ];
+        const shuffled = [...templatePool].sort(() => Math.random() - 0.5);
+        const picks = shuffled.slice(0, 3);
+        const titleEl = document.getElementById('blend-title'); if (titleEl) titleEl.textContent = title;
+        const promptsEl = document.getElementById('blend-prompts');
+        if (promptsEl) promptsEl.innerHTML = picks.map(p => `<div class="text-[11px] md:text-[12px] text-[#E2E8F0]/85 font-mono leading-relaxed bg-black/40 border border-[#FFD60A20] rounded px-3 py-2">→ ${p}</div>`).join('');
+        const card = document.getElementById('genre-blend-card');
+        if (card) { card.classList.remove('hidden'); card.classList.add('surprise-flash'); setTimeout(() => card.classList.remove('surprise-flash'), 500); card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    };
+
+    window.surpriseCookbook = () => {
+        const recipes = window.db.cookbook || [];
+        if (recipes.length === 0) return;
+        let pick = recipes[Math.floor(Math.random() * recipes.length)];
+        if (recipes.length > 1 && window.currentCookbookId != null) {
+            const others = recipes.filter(r => r.id !== window.currentCookbookId);
+            if (others.length > 0) pick = others[Math.floor(Math.random() * others.length)];
+        }
+        window.switchTab('cookbook');
+        window.selectGenre(pick.genre);
+        setTimeout(() => {
+            window.selectInst(pick.id);
+            document.getElementById('recipe-display')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const disp = document.getElementById('recipe-display');
+            if (disp) { disp.classList.add('surprise-flash'); setTimeout(() => disp.classList.remove('surprise-flash'), 500); }
+        }, 60);
+    };
+
+    window.refreshAllUI = () => {
+        if (window.renderTracks) window.renderTracks(); if (window.renderTones) window.renderTones(); if (window.renderStarredTones) window.renderStarredTones();
+        if (window.renderLinks) window.renderLinks(); if (window.renderNoteTabs) window.renderNoteTabs(); if (window.renderCookbookMenu) window.renderCookbookMenu();
+    };
+
+    window.currentMode = 'both';
+    window.setDAW = (mode) => {
+        window.currentMode = mode; document.body.className = `mode-${mode} h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black`;
+        if(window.FERRETT_QUIET) document.body.classList.add('quiet'); 
+        ['reaper', 'both', 'luna'].forEach(m => { const btn = document.getElementById(`btn-${m}`); if(btn) { if (m === mode) btn.className = `px-4 py-1 text-[10px] font-bold rounded uppercase tracking-wider transition-colors ${m === 'luna' ? 'bg-[#00E5FF] text-black' : 'bg-[#00FF88] text-black'}`; else btn.className = `px-4 py-1 text-[10px] font-bold rounded text-[#7AFFBF]/40 hover:text-${m === 'luna' ? '[#00E5FF]' : '[#00FF88]'} uppercase tracking-wider transition-colors`; } });
+        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = mode === 'both' ? 'DUAL DAW WORKSPACE v22.4' : `${mode.toUpperCase()} WORKSPACE v22.4`;
+        window.refreshAllUI();
+    };
+
+    window.switchTab = (tabId) => {
+        document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
+        if(targetTab) { targetTab.classList.add('active'); document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'instant' }); }
+        document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
+        const activeBtn = document.getElementById(`nav-${tabId}`);
+        if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); if (['tones', 'notes', 'links', 'calc'].includes(tabId)) activeBtn.classList.add('active-nav-cyan'); else activeBtn.classList.add('active-nav-green'); }
+    };
+
+    window.toggleForm = (formId) => {
+        const form = document.getElementById(formId); if(!form) return; form.classList.toggle('hidden');
+        if(!form.classList.contains('hidden')) {
+            form.querySelectorAll('input:not([type=hidden]), textarea, select').forEach(i => { if(i.type === 'checkbox') i.checked = false; else if(i.tagName === 'SELECT') i.selectedIndex = 0; else i.value = ''; });
+            if(formId === 'form-track') { document.getElementById('track-form-title').innerText = 'NEW TRACK SETTING'; window.tempTrackImages = []; window.renderImagePreviews('track-image-preview-container', [], 'track'); }
+            if(formId === 'form-tone') { document.getElementById('tone-form-title').innerText = 'NEW TONE COMBO'; window.tempToneImages = []; window.renderImagePreviews('tone-image-preview-container', [], 'tone'); window.stopToneRecording(); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); }
+            if(formId === 'form-cookbook') { document.getElementById('cookbook-form-title').innerText = 'NEW RECIPE'; window.tempCookbookImages = []; window.renderImagePreviews('cookbook-image-preview-container', [], 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); }
+            if(formId === 'form-link') { const t = document.getElementById('link-form-title'); if(t) t.innerText = 'NEW TOOL LINK'; }
+            setTimeout(() => { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+        } else { if(formId === 'form-cookbook') document.getElementById('cookbook-split-view')?.classList.remove('hidden'); if(formId === 'form-tone') window.stopToneRecording(); }
+    };
+    
+    document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
+    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'notes', 'calc'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+
+    document.getElementById('calc-bpm')?.addEventListener('input', (e) => window.updateCalc(e.target.value)); document.getElementById('calc-bpm-main')?.addEventListener('input', (e) => { const cb = document.getElementById('calc-bpm'); if(cb) cb.value = e.target.value; window.updateCalc(e.target.value); });
+    const tapHandler = () => { const now = Date.now(); window.tapTimes = window.tapTimes || []; window.tapTimes.push(now); if(window.tapTimes.length > 4) window.tapTimes.shift(); if(window.tapTimes.length > 1) { let sum = 0; for(let i=1; i<window.tapTimes.length; i++) { sum += (window.tapTimes[i] - window.tapTimes[i-1]); } const avg = sum / (window.tapTimes.length - 1); const bpm = Math.round(60000 / avg); const cb = document.getElementById('calc-bpm'); const cbm = document.getElementById('calc-bpm-main'); if(cb) cb.value = bpm; if(cbm) cbm.value = bpm; window.updateCalc(bpm); } clearTimeout(window.tapTimeout); window.tapTimeout = setTimeout(() => { window.tapTimes = []; }, 2000); };
+    document.getElementById('btn-tap-tempo')?.addEventListener('click', tapHandler); document.getElementById('btn-tap-tempo-main')?.addEventListener('click', tapHandler);
+    
+    window.updateCalc = function(bpm) {
+        if(bpm > 0) {
+            const bMs = 60000 / bpm; const u = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+            u('calc-14', Math.round(bMs) + 'ms'); u('calc-18', Math.round(bMs / 2) + 'ms'); u('calc-dot', Math.round(bMs * 0.75) + 'ms'); u('calc-hz', (bpm / 60).toFixed(2) + ' Hz');
+            u('calc-main-12', Math.round(bMs * 2) + 'ms'); u('calc-main-14', Math.round(bMs) + 'ms'); u('calc-main-18', Math.round(bMs / 2) + 'ms'); u('calc-main-116', Math.round(bMs / 4) + 'ms');
+            u('calc-main-14d', Math.round(bMs * 1.5) + 'ms'); u('calc-main-18d', Math.round((bMs / 2) * 1.5) + 'ms'); u('calc-main-116d', Math.round((bMs / 4) * 1.5) + 'ms');
+            u('calc-main-14t', Math.round(bMs * 0.6667) + 'ms'); u('calc-main-18t', Math.round((bMs / 2) * 0.6667) + 'ms'); u('calc-main-116t', Math.round((bMs / 4) * 0.6667) + 'ms');
+            u('calc-main-hz-bar', (bpm / 240).toFixed(2) + ' Hz'); u('calc-main-hz-1', (bpm / 60).toFixed(2) + ' Hz'); u('calc-main-hz-2', ((bpm / 60) * 2).toFixed(2) + ' Hz');
+        }
+    }
+
+    const notesTitleInput = document.getElementById('active-note-title'); const notesTextArea = document.getElementById('studio-notes'); const notesTabsContainer = document.getElementById('notes-tabs-container'); const notesTasksPanel = document.getElementById('notes-tasks-panel');
+    window.renderNoteTabs = () => { if(!notesTabsContainer) return; notesTabsContainer.innerHTML = ''; window.db.multiNotes.forEach(note => { const isActive = note.id === window.currentNoteId; const tab = document.createElement('div'); tab.className = `note-tab ${isActive ? 'active' : ''}`; tab.innerHTML = `<span class="truncate max-w-[120px] select-none" data-id="${note.id}">${note.title || 'Untitled'}</span><span class="note-tab-close" data-close-id="${note.id}">×</span>`; notesTabsContainer.appendChild(tab); }); const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote && notesTitleInput && notesTextArea) { notesTitleInput.value = activeNote.title; notesTextArea.value = activeNote.content; } window.renderNoteTasks(); };
+
+    const escapeHtml = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    window.renderNoteTasks = () => {
+        if (!notesTasksPanel) return;
+        const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId);
+        const content = activeNote ? (activeNote.content || '') : '';
+        const lines = content.split('\n');
+        const taskIdxs = [];
+        lines.forEach((line, i) => { if (/^\s*\[(TODO|DONE)\]/i.test(line)) taskIdxs.push(i); });
+        if (taskIdxs.length === 0) { notesTasksPanel.innerHTML = ''; notesTasksPanel.classList.add('hidden'); return; }
+        const openCount = taskIdxs.filter(i => /^\s*\[TODO\]/i.test(lines[i])).length;
+        notesTasksPanel.classList.remove('hidden');
+        notesTasksPanel.innerHTML = `<div class="text-[9px] tracking-widest text-[#00FF88] font-bold uppercase mb-2">Checklist — ${openCount} open / ${taskIdxs.length} total</div>` +
+            taskIdxs.map(i => {
+                const line = lines[i]; const done = /^\s*\[DONE\]/i.test(line);
+                const text = line.replace(/^\s*\[(TODO|DONE)\]\s?/i, '');
+                return `<label class="flex items-start gap-2 px-1 py-1 rounded hover:bg-white/5 cursor-pointer group">
+                    <input type="checkbox" data-line-idx="${i}" class="note-task-checkbox mt-[3px] w-3.5 h-3.5 accent-[#00FF88] cursor-pointer shrink-0" ${done ? 'checked' : ''}>
+                    <span class="text-[11px] font-mono leading-snug ${done ? 'line-through opacity-40 text-[#7AFFBF]' : 'text-[#C9FFE6]'}">${escapeHtml(text) || '(empty task)'}</span>
+                </label>`;
+            }).join('');
+    };
+    notesTasksPanel?.addEventListener('change', (e) => {
+        if (!e.target.classList.contains('note-task-checkbox')) return;
+        const idx = parseInt(e.target.dataset.lineIdx, 10);
+        const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId);
+        if (!activeNote) return;
+        const lines = (activeNote.content || '').split('\n');
+        if (lines[idx] === undefined) return;
+        lines[idx] = lines[idx].replace(/^(\s*)\[(TODO|DONE)\]/i, (m, ws) => `${ws}[${e.target.checked ? 'DONE' : 'TODO'}]`);
+        activeNote.content = lines.join('\n');
+        if (notesTextArea) notesTextArea.value = activeNote.content;
+        window.saveData();
+        window.renderNoteTasks();
+    });
+    document.getElementById('btn-quick-add-task')?.addEventListener('click', () => {
+        const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId);
+        if (!activeNote || !notesTextArea) return;
+        const prefix = activeNote.content && !activeNote.content.endsWith('\n') ? '\n' : '';
+        activeNote.content = (activeNote.content || '') + `${prefix}[TODO] `;
+        notesTextArea.value = activeNote.content;
+        window.saveData(); window.renderNoteTasks();
+        notesTextArea.focus(); notesTextArea.setSelectionRange(notesTextArea.value.length, notesTextArea.value.length);
+    });
+    notesTabsContainer?.addEventListener('click', (e) => { if (e.target.dataset.id) { window.currentNoteId = parseInt(e.target.dataset.id); window.renderNoteTabs(); } if (e.target.dataset.closeId) { const idToDelete = parseInt(e.target.dataset.closeId); if (confirm('Delete this note tab?')) { window.db.multiNotes = window.db.multiNotes.filter(n => n.id !== idToDelete); if (window.db.multiNotes.length === 0) window.db.multiNotes.push({ id: Date.now(), title: 'Main Scratchpad', content: '' }); if (window.currentNoteId === idToDelete) window.currentNoteId = window.db.multiNotes[window.db.multiNotes.length - 1].id; window.saveData(); window.renderNoteTabs(); } } });
+    document.getElementById('btn-add-note-tab')?.addEventListener('click', () => { const newNote = { id: Date.now(), title: 'New Note', content: '' }; window.db.multiNotes.push(newNote); window.currentNoteId = newNote.id; window.saveData(); window.renderNoteTabs(); notesTitleInput?.focus(); notesTitleInput?.select(); });
+    notesTitleInput?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.title = e.target.value; const activeTabSpan = notesTabsContainer.querySelector('.note-tab.active span[data-id]'); if (activeTabSpan) activeTabSpan.innerText = activeNote.title || 'Untitled'; window.saveData(); } });
+    notesTextArea?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.content = e.target.value; window.saveData(); window.renderNoteTasks(); } });
+
+    const handleImgUpload = async (e, arrayRef, containerId, arrayName) => { const files = e.target.files; if(!files || files.length === 0) return; for(let i=0; i<files.length; i++) { try { const base64 = await window.compressImage(files[i]); arrayRef.push(base64); } catch(err) { } } window.renderImagePreviews(containerId, arrayRef, arrayName); };
+    document.getElementById('cookbook-image-input')?.addEventListener('change', (e) => handleImgUpload(e, window.tempCookbookImages, 'cookbook-image-preview-container', 'cookbook'));
+    document.getElementById('track-image-input')?.addEventListener('change', (e) => handleImgUpload(e, window.tempTrackImages, 'track-image-preview-container', 'track'));
+    document.getElementById('tone-image-input')?.addEventListener('change', (e) => handleImgUpload(e, window.tempToneImages, 'tone-image-preview-container', 'tone'));
+    document.getElementById('tone-audio-input')?.addEventListener('change', (e) => window.handleToneAudioUpload(e));
+    document.getElementById('btn-record-tone-audio')?.addEventListener('click', () => window.startToneRecording());
+    document.getElementById('btn-stop-tone-audio')?.addEventListener('click', () => window.stopToneRecording());
+    if (!window.MEDIA_RECORDER_SUPPORTED) document.getElementById('btn-record-tone-audio')?.classList.add('hidden');
+
+    document.getElementById('btn-add-cookbook')?.addEventListener('click', () => window.toggleForm('form-cookbook')); document.getElementById('btn-cancel-cookbook')?.addEventListener('click', () => window.toggleForm('form-cookbook'));
+    document.getElementById('btn-surprise-cookbook')?.addEventListener('click', () => window.surpriseCookbook());
+    document.getElementById('btn-blend-genres')?.addEventListener('click', () => window.blendGenres());
+    document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());
+    document.getElementById('btn-close-blend')?.addEventListener('click', () => document.getElementById('genre-blend-card')?.classList.add('hidden'));
+    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, images: [...window.tempCookbookImages] }; if (idStr) window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
+
+    document.getElementById('btn-add-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('btn-cancel-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('search-link')?.addEventListener('keyup', () => window.renderLinks());
+    document.getElementById('btn-save-link')?.addEventListener('click', () => { const idStr = document.getElementById('link-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const link = { id: id, title: document.getElementById('link-title').value || 'Unnamed Tool', url: document.getElementById('link-url').value || '#', category: document.getElementById('link-category').value, daw: document.getElementById('link-daw').value, notes: document.getElementById('link-notes').value }; if (!link.url.startsWith('http') && link.url !== '#') link.url = 'https://' + link.url; if (idStr) window.db.links = window.db.links.map(l => l.id === link.id ? link : l); else window.db.links.unshift(link); window.saveData(); window.toggleForm('form-link'); window.renderLinks(); });
+
+    document.getElementById('btn-add-track')?.addEventListener('click', () => window.toggleForm('form-track')); document.getElementById('btn-cancel-track')?.addEventListener('click', () => window.toggleForm('form-track'));
+    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
+
+    document.getElementById('btn-add-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('btn-cancel-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('search-tone')?.addEventListener('keyup', () => window.renderTones());
+    document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
+
+    document.addEventListener('click', (e) => {
+        const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnDelCb = e.target.closest('.btn-del-cookbook'); if(btnDelCb && confirm("Delete this recipe?")) { window.db.cookbook = window.db.cookbook.filter(r => r.id !== parseInt(btnDelCb.dataset.id, 10)); window.saveData(); window.renderCookbookMenu(); }
+        const btnCloneTone = e.target.closest('.btn-clone-tone'); if(btnCloneTone) window.cloneTone(parseInt(btnCloneTone.dataset.id, 10));
+        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnDelTrack = e.target.closest('.btn-del-track'); if(btnDelTrack && confirm("Delete this track config?")) { window.db.tracks = window.db.tracks.filter(t => t.id !== parseInt(btnDelTrack.dataset.id, 10)); window.saveData(); window.renderTracks(); }
+        const btnCloneTrack = e.target.closest('.btn-clone-track'); if(btnCloneTrack) window.cloneTrack(parseInt(btnCloneTrack.dataset.id, 10));
+        const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-daw').value = tone.daw; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
+        const btnDelTone = e.target.closest('.btn-del-tone'); if(btnDelTone && confirm("Delete this tone?")) { const delId = parseInt(btnDelTone.dataset.id, 10); window.db.tones = window.db.tones.filter(t => t.id !== delId); window.saveData(); window.audioDbDelete(delId).then(() => window.scheduleAudioDriveSync()); window.renderTones(); window.renderStarredTones(); }
+        const btnCloneCb = e.target.closest('.btn-clone-cookbook'); if(btnCloneCb) window.cloneCookbook(parseInt(btnCloneCb.dataset.id, 10)); 
+        const btnEditLink = e.target.closest('.btn-edit-link'); if(btnEditLink) { const link = window.db.links.find(l => l.id === parseInt(btnEditLink.dataset.id, 10)); if(link) { document.getElementById('link-id').value = link.id; document.getElementById('link-title').value = link.title; document.getElementById('link-url').value = link.url; document.getElementById('link-category').value = link.category; document.getElementById('link-daw').value = link.daw; document.getElementById('link-notes').value = link.notes; const t=document.getElementById('link-form-title'); if(t) t.innerText = 'EDIT TOOL LINK'; document.getElementById('form-link')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-link')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnDelLink = e.target.closest('.btn-del-link'); if(btnDelLink && confirm("Delete this link?")) { window.db.links = window.db.links.filter(l => l.id !== parseInt(btnDelLink.dataset.id, 10)); window.saveData(); window.renderLinks(); }
+        const btnTagLink = e.target.closest('.btn-tag-link'); if(btnTagLink) window.setLinkTag(btnTagLink.dataset.tag);
+        const btnTagTone = e.target.closest('.btn-tag-tone'); if(btnTagTone) window.setToneTag(btnTagTone.dataset.tag);
+        const btnTagScript = e.target.closest('.btn-tag-script'); if(btnTagScript) window.setScriptTag(btnTagScript.dataset.tag);
+        const btnPlayToneAudio = e.target.closest('.btn-play-tone-audio'); if (btnPlayToneAudio) window.playToneAudio(parseInt(btnPlayToneAudio.dataset.toneAudio, 10), btnPlayToneAudio);
+    });
+
+    window.playToneAudio = async (id, btn) => {
+        const slot = document.getElementById(`tone-audio-slot-${id}`); if (!slot) return;
+        if (slot.dataset.loaded === '1') { slot.classList.toggle('hidden'); return; }
+        const origLabel = btn.innerText; btn.innerText = 'LOADING...';
+        const b64 = await window.audioDbGet(id);
+        if (b64) { slot.innerHTML = `<audio controls autoplay src="${b64}" class="w-full h-8"></audio>`; slot.dataset.loaded = '1'; }
+        else { slot.innerHTML = `<div class="text-[9px] text-[#FF8888] italic">Clip not found on this device — connect Google Drive to sync it back down.</div>`; }
+        btn.innerText = origLabel;
+    };
+
+    window.renderLinks = () => { const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.links.filter(l => window.currentMode === 'both' || l.daw === window.currentMode || l.daw === 'both'); const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.pillColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.pillColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${l.title}">${l.title}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${l.notes}</p><a href="${l.url}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
+    
+    window.getImagesHtml = (imagesArray, colorClass, type, id) => { if (!imagesArray || imagesArray.length === 0) return ''; let html = `<div class="mt-4 p-3 bg-black/40 rounded border border-[${colorClass}20]"><div class="text-[9px] text-[${colorClass}]/70 tracking-widest mb-3 font-bold uppercase flex items-center gap-2">Signal Chain / Plugin Flow</div><div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide cursor-pointer group" onclick="window.openModalGallery('${type}', ${id})">`; imagesArray.forEach((imgB64, i) => { html += `<img src="${imgB64}" class="w-20 h-20 object-cover border border-[${colorClass}40] rounded shadow-[0_0_10px_rgba(0,0,0,0.5)] group-hover:border-[${colorClass}] transition-colors">`; if (i < imagesArray.length - 1) html += `<span class="text-[${colorClass}]/50 font-bold text-[18px] shrink-0">→</span>`; }); html += `</div></div>`; return html; };
+
+    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
+    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); const allCats = [...new Set(filtered.map(t => t.category))].sort(); window.renderTagBarGeneric('tone-tag-bar', allCats, window.currentToneTag, window.toneCategoryColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.category === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const catColor = window.toneCategoryColor(t.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><button data-tag="${t.category}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${catColor}; border-color:${catColor}40; background:${catColor}0A;" title="Filter by ${t.category}">${t.category}</button>${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${catColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
+    window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.db.tones.filter(t => t.starred && (window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both')).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = t.category === 'DISTORTION' ? '#FF8888' : (t.category === 'CLEAN' ? '#00E5FF' : (t.category === 'BASS' ? '#FFD60A' : '#00FF88')); const catBg = t.category === 'DISTORTION' ? '#FF4444' : (t.category === 'CLEAN' ? '#00E5FF' : (t.category === 'BASS' ? '#FFD60A' : '#00FF88')); list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${t.name.toUpperCase()}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${t.nam} + ${t.ir}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${t.notes}</p></div>`; }); };
+    window.cloneCookbook = (id) => {
+    const orig = window.db.cookbook.find(r => r.id === id); if(!orig) return;
+    const clone = JSON.parse(JSON.stringify(orig)); clone.id = Date.now(); clone.inst = clone.inst + ' (Copy)';
+    window.db.cookbook.push(clone); window.currentCookbookGenre = clone.genre;
+    window.saveData(); window.renderCookbookMenu(); setTimeout(() => window.selectInst(clone.id), 100);
+};
+window.cloneTrack = (id) => {
+    const orig = window.db.tracks.find(t => t.id === id); if(!orig) return;
+    const clone = JSON.parse(JSON.stringify(orig)); clone.id = Date.now(); clone.inst = clone.inst + ' (Copy)';
+    window.db.tracks.unshift(clone); window.saveData(); window.renderTracks();
+};
+window.cloneTone = (id) => {
+    const orig = window.db.tones.find(t => t.id === id); if(!orig) return;
+    const clone = JSON.parse(JSON.stringify(orig)); clone.id = Date.now(); clone.name = clone.name + ' (Copy)'; clone.starred = false;
+    window.db.tones.unshift(clone); window.saveData(); window.renderTones(); window.renderStarredTones();
+    if (orig.hasAudio) { window.audioDbGet(orig.id).then((b64) => { if (b64) { window.audioDbSet(clone.id, b64).then(() => window.scheduleAudioDriveSync()); } }); }
+};
+    window.renderCookbookMenu(); window.setDAW('both'); window.switchTab('cookbook'); window.renderNoteTabs();
+
+    // HUD ANIMATIONS
+    // Real session stopwatch — persisted across reloads, pausable via the REC/timecode control.
+    const tcEl = document.getElementById('hud-timecode'); function fmt(n) { return String(n).padStart(2,'0'); }
+    let sessionSaveCounter = 0;
+    setInterval(()=>{
+        const ms = window.getSessionElapsedMs();
+        const totalSec = Math.floor(ms/1000); const frame = Math.floor(((ms%1000)/1000)*30);
+        if (tcEl) tcEl.textContent = `${fmt(Math.floor(totalSec/3600)%24)}:${fmt(Math.floor((totalSec%3600)/60))}:${fmt(totalSec%60)}:${fmt(frame)}`;
+        if (window.sessionState.running) { sessionSaveCounter++; if (sessionSaveCounter >= 150) { sessionSaveCounter = 0; window.sessionState.elapsedMs = ms; window.sessionState.startedAt = Date.now(); window.saveSessionState(); } }
+    }, 1000/30);
+    document.getElementById('btn-session-toggle')?.addEventListener('click', () => window.toggleSessionTimer());
+    document.getElementById('btn-session-reset')?.addEventListener('click', (e) => { e.stopPropagation(); window.resetSessionTimer(); });
+    window.updateSessionUI();
+    window.addEventListener('beforeunload', () => { if (window.sessionState.running) { window.sessionState.elapsedMs = window.getSessionElapsedMs(); window.sessionState.startedAt = Date.now(); } window.saveSessionState(); });
+    
+    function rV() { return 3 + Math.pow(Math.random(), 0.7)*18; }
+    const vL = document.querySelectorAll('#vuLeft .vu-bar'); const vR = document.querySelectorAll('#vuRight .vu-bar');
+    setInterval(()=>{ if(window.FERRETT_QUIET) return; vL.forEach(b=>b.style.height=rV()+'px'); vR.forEach(b=>b.style.height=rV()+'px'); }, 90);
+    
+    function tG() { if(window.FERRETT_QUIET) return; document.body.classList.add('glitching-ui'); setTimeout(()=>document.body.classList.remove('glitching-ui'), 120+Math.random()*200); }
+    setInterval(()=>{ if(!window.FERRETT_QUIET && Math.random()<0.1) tG(); }, 700);
+    document.addEventListener('click', e=>{ if(!window.FERRETT_QUIET && (e.target.closest('.nav-btn')||e.target.closest('#genre-menu')||e.target.closest('#inst-menu')||e.target.closest('.note-tab'))) if(Math.random()<0.6) tG(); });
+
+    const c = document.getElementById('spl-canvas');
+    if(c) {
+        const ctx = c.getContext('2d'); let spl=82.4, peak=84.1, rms=79.8, target=82.4;
+        function dG(val) {
+            ctx.clearRect(0,0,140,140); ctx.beginPath(); ctx.arc(70,70,58,0,Math.PI*2); ctx.strokeStyle='rgba(0,255,136,0.08)'; ctx.lineWidth=10; ctx.stroke();
+            const sA=-Math.PI*0.78, range=Math.PI*1.56;
+            for(let i=0;i<120;i++) {
+                let t=i/120, col=window.FERRETT_QUIET?'rgba(226,232,240,0.1)':(t<0.45?`rgba(0,255,136,${0.6+t*0.4})`:(t<0.68?`rgba(0,229,255,0.75)`:(t<0.85?`rgba(255,214,10,0.85)`:`rgba(255,68,68,0.9)`)));
+                ctx.beginPath(); ctx.arc(70,70,58,sA+t*range,sA+((i+1)/120)*range); ctx.strokeStyle=col; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+            }
+            ctx.save(); ctx.translate(70,70);
+            for(let i=0;i<=10;i++) {
+                ctx.rotate(sA+(i/10)*range); ctx.beginPath(); ctx.moveTo(0,-52); ctx.lineTo(0,-46); ctx.strokeStyle=window.FERRETT_QUIET?'rgba(255,255,255,0.05)':(i%2?'rgba(255,255,255,0.18)':'rgba(0,255,136,0.45)'); ctx.lineWidth=i%5===0?1.5:1; ctx.stroke(); ctx.rotate(-(sA+(i/10)*range));
+            }
+            ctx.restore();
+            const nA = sA + Math.min(1,Math.max(0,(val-60)/45))*range;
+            ctx.save(); ctx.translate(70,70); ctx.rotate(nA);
+            ctx.beginPath(); ctx.moveTo(0,6); ctx.lineTo(0,-50); ctx.strokeStyle=window.FERRETT_QUIET?'#64748b':'#E6FFF4'; ctx.lineWidth=2; ctx.shadowColor=window.FERRETT_QUIET?'transparent':'#00FF88'; ctx.shadowBlur=window.FERRETT_QUIET?0:10; ctx.stroke();
+            ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle='#050807'; ctx.fill(); ctx.strokeStyle=window.FERRETT_QUIET?'#64748b':'#00FF88'; ctx.lineWidth=1.2; ctx.stroke();
+            ctx.restore();
+            ctx.beginPath(); ctx.arc(70,70,2.2,0,Math.PI*2); ctx.fillStyle=window.FERRETT_QUIET?'#64748b':'#00FF88'; ctx.shadowColor=window.FERRETT_QUIET?'transparent':'#00FF88'; ctx.shadowBlur=window.FERRETT_QUIET?0:8; ctx.fill();
+        }
+        function l() {
+            if(window.FERRETT_QUIET) { spl=60; peak=60; rms=60; } 
+            else { if(Math.random()<0.04) target=72+Math.random()*28; spl+=(target-spl)*0.08+(Math.random()-0.5)*0.35; spl=Math.max(62,Math.min(104.5,spl)); peak=Math.max(peak*0.998,spl+Math.random()*1.2); rms=rms*0.92+spl*0.08; }
+            dG(spl);
+            const ve=document.getElementById('spl-value'), pe=document.getElementById('spl-peak'), re=document.getElementById('spl-rms'), b=document.getElementById('spl-bar');
+            if(ve) ve.textContent=spl.toFixed(1); if(pe) pe.textContent=peak.toFixed(1); if(re) re.textContent=rms.toFixed(1); if(b) b.style.width=window.FERRETT_QUIET?'0%':((spl-60)/45*100).toFixed(1)+'%';
+            requestAnimationFrame(l);
+        }
+        l();
+    }
+    setInterval(()=>{ if(!window.FERRETT_QUIET) document.querySelectorAll('.bracket').forEach(b=>b.style.opacity=(0.45+Math.random()*0.55).toFixed(2)); }, 1200);
+// =========================================================================
+// THE SCRIPT ARSENAL MODULE PATCH
+// =========================================================================
+
+const defaultScripts = [
+    { id: 401, title: "UVR_4Pass_Trigger.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+U", func: "Select item → temp ~/tmp/run_uvr_4pass_*.command → chmod +x → open Terminal → launches 4-pass python script." },
+    { id: 402, title: "UVR_4Pass_ULTIMATE.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "P1 MDX Inst_HQ_3 split → P2 De-Echo vocals → P3 BS-Roformer re-isolate lead → P4 De-Verb drums. Outputs to Stems/UVR/." },
+    { id: 403, title: "Fadr_MIDI_Extract_v6.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+F", func: "Auto-glue 41588 → Python nohup → gfx chooser (Kontakt/Vital) → poll fadr_status → insert MIDI at source." },
+    { id: 404, title: "Fadr_Chord_Mapper.lua", category: "AI STEM & MIDI", shortcut: "Alt+C", func: "Finds CSV in fadr.com/midi, parses fadr_start_t + item_start_pos → markers + MIDI on Synth Bus." },
+    { id: 405, title: "Autoproject_setup_master.lua", category: "PROJECT BUILDER", shortcut: "Ctrl+Shift+A", func: "Recursive search UVR/Fadr stems, builds FX Returns (Galaxy Tape/Plate), Main Vox Bus, Synth, Guitar, Bass, Drum Bus. Generates Master Chain (Kotelnikov+S73+Limiter)." },
+    { id: 406, title: "Flow_Vocal_Pro_v2.lua", category: "VOCAL CHAIN", shortcut: "Ctrl+Shift+V", func: "Lead Vox PRO chain: ReaEQ HPF80 -4dB@250 -3dB@3.5k +2dB air, Nova dyn 1k, ReaComp 3:1, Sat Knob 30%, Graillon2 30%, OTT 15%." },
+    { id: 407, title: "Double_Tracker_ADT.lua", category: "VOCAL CHAIN", shortcut: "Ctrl+D", func: "Select lead → new track, -12ms nudge, ReaPitch -6c + kHs Chorus = Abbey Road ADT width." },
+    { id: 408, title: "ghost_stalk_velocity.lua", category: "POCKET & MIDI", shortcut: "Ctrl+Shift+G", func: "Randomizes MIDI velocity: Kick36 (110-122), Snare38 (100-115), Ghost (12-28), Closed Hat (45-75)." },
+    { id: 409, title: "pocket_nudge.lua", category: "POCKET & MIDI", shortcut: "Alt+P", func: "BASS/808 nudged -5ms early, DRUM/KICK/SNARE nudged +4ms late. Dilla/Voodoo pocketing." },
+    { id: 410, title: "Load_Mega_Tone_Menu.lua", category: "INTERFACE & TONES", shortcut: "Ctrl+T", func: "Reads ~/Music/NAM_Rig/presets.txt Type|Style|Name|amp|ir|fx, cascading menu >Type>Style>Name, loads Gateway once + 1176+Nova+Clipper." },
+    { id: 411, title: "Flow_OneClick_Render_v2.lua", category: "WORKFLOW & EXPORT", shortcut: "Ctrl+Alt+R", func: "Auto-names Song_Vocals/Inst/Mix_YYYYMMDD from project name, solos VOX/INST/MIX BUS, renders using most recent 42230, unsolos." },
+    { id: 412, title: "Export_Stems_Collab.lua", category: "WORKFLOW & EXPORT", shortcut: "Ctrl+Alt+E", func: "Renders all non-folder tracks 24-bit +2-bar tail → Stems/Export_YYYYMMDD/Song_Track_YYYYMMDD.wav." }
+];
+
+// 1. Initialize the Array if it doesn't exist
+if (!window.db.scripts) window.db.scripts = JSON.parse(JSON.stringify(defaultScripts));
+
+// 2. The Render Engine
+window.renderScripts = () => {
+    const list = document.getElementById('script-list');
+    if(!list) return;
+
+    // Sort alphabetically by Category
+    const sortedScripts = [...window.db.scripts].sort((a, b) => a.category.localeCompare(b.category));
+    const allCats = [...new Set(sortedScripts.map(s => s.category))].sort();
+    if (window.renderTagBarGeneric) window.renderTagBarGeneric('script-tag-bar', allCats, window.currentScriptTag, window.pillColor, window.setScriptTag);
+
+    const filtered = window.currentScriptTag && window.currentScriptTag !== 'ALL' ? sortedScripts.filter(s => s.category === window.currentScriptTag) : sortedScripts;
+    list.innerHTML = '';
+    if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No scripts match this tag.</div>`; return; }
+
+    filtered.forEach(s => {
+        const pc = window.pillColor ? window.pillColor(s.category) : '#00E5FF';
+        list.innerHTML += `
+            <div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col">
+                <div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20">
+                    <button data-id="${s.id}" class="btn-edit-script text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button>
+                    <button data-id="${s.id}" class="btn-del-script text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+                </div>
+                <div class="flex items-center justify-between mb-2 pr-16">
+                    <h4 class="font-bold text-[13px] text-[#00E5FF] truncate" title="${s.title}">${s.title}</h4>
+                    <code class="px-1.5 py-0.5 bg-[#00E5FF15] border border-[#00E5FF30] rounded text-[#00E5FF] text-[9px] font-mono whitespace-nowrap shrink-0">${s.shortcut}</code>
+                </div>
+                <div class="mb-3"><button data-tag="${s.category}" class="btn-tag-script text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${s.category}">${s.category}</button></div>
+                <p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1">${s.func}</p>
+            </div>
+        `;
+    });
+};
+
+// 3. Hook into the existing UI Refresher
+const originalRefresh = window.refreshAllUI;
+window.refreshAllUI = () => {
+    if (originalRefresh) originalRefresh();
+    window.renderScripts();
+};
+
+// 4. Form Controls & Delegation
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-add-script')?.addEventListener('click', () => {
+        if(window.toggleForm) window.toggleForm('form-script');
+    });
+
+    document.getElementById('btn-cancel-script')?.addEventListener('click', () => {
+        if(window.toggleForm) window.toggleForm('form-script');
+    });
+
+    document.getElementById('btn-save-script')?.addEventListener('click', () => {
+        const idStr = document.getElementById('script-id').value;
+        const id = idStr ? parseInt(idStr, 10) : Date.now();
+        const scriptData = {
+            id: id,
+            title: document.getElementById('script-title').value || 'Unnamed_Script.lua',
+            category: document.getElementById('script-category').value || 'UNCATEGORIZED',
+            shortcut: document.getElementById('script-shortcut').value || 'None',
+            func: document.getElementById('script-func').value
+        };
+        
+        if (idStr) window.db.scripts = window.db.scripts.map(s => s.id === scriptData.id ? scriptData : s); 
+        else window.db.scripts.push(scriptData);
+        
+        window.saveData(); 
+        if(window.toggleForm) window.toggleForm('form-script'); 
+        window.renderScripts();
+    });
+
+    // Global Click Listener for Edit/Delete
+    document.addEventListener('click', (e) => {
+        const btnEdit = e.target.closest('.btn-edit-script');
+        if (btnEdit) {
+            const scriptData = window.db.scripts.find(s => s.id === parseInt(btnEdit.dataset.id, 10));
+            if (scriptData) {
+                document.getElementById('script-id').value = scriptData.id;
+                document.getElementById('script-title').value = scriptData.title;
+                document.getElementById('script-category').value = scriptData.category;
+                document.getElementById('script-shortcut').value = scriptData.shortcut;
+                document.getElementById('script-func').value = scriptData.func;
+                
+                const titleEl = document.getElementById('script-form-title');
+                if (titleEl) titleEl.innerText = 'EDIT SCRIPT';
+                
+                document.getElementById('form-script')?.classList.remove('hidden');
+                setTimeout(() => { document.getElementById('form-script')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+            }
+        }
+
+        const btnDel = e.target.closest('.btn-del-script');
+        if (btnDel && confirm("Delete this script configuration?")) {
+            window.db.scripts = window.db.scripts.filter(s => s.id !== parseInt(btnDel.dataset.id, 10));
+            window.saveData();
+            window.renderScripts();
+        }
+    });
+
+    // Initial Render
+    setTimeout(() => { window.renderScripts(); }, 100);
+});
+
+});
+</script>
+
+<script>
+// =========================================================================
+// ⌘K QUICK-SEARCH COMMAND PALETTE
+// =========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+
+    window.buildSearchIndex = () => {
+        const idx = [];
+        (window.db.tones || []).forEach(t => idx.push({ scope: 'tones', id: t.id, title: t.name, tag: t.category, sub: [t.nam, t.ir].filter(Boolean).join(' · '), text: `${t.name} ${t.category} ${t.nam || ''} ${t.ir || ''} ${t.notes || ''}`.toLowerCase(), color: window.toneCategoryColor(t.category) }));
+        (window.db.links || []).forEach(l => idx.push({ scope: 'links', id: l.id, title: l.title, tag: l.category, sub: l.url, text: `${l.title} ${l.category} ${l.notes || ''} ${l.url || ''}`.toLowerCase(), color: window.pillColor(l.category) }));
+        (window.db.scripts || []).forEach(s => idx.push({ scope: 'scripts', id: s.id, title: s.title, tag: s.category, sub: s.shortcut, text: `${s.title} ${s.category} ${s.func || ''}`.toLowerCase(), color: window.pillColor(s.category) }));
+        (window.db.cookbook || []).forEach(r => idx.push({ scope: 'cookbook', id: r.id, title: r.inst, tag: r.genre, sub: r.genre, text: `${r.inst} ${r.genre} ${r.desc || ''} ${r.notes || ''}`.toLowerCase(), color: window.pillColor(r.genre) }));
+        return idx;
+    };
+
+    const scopeLabel = { tones: 'TONE', links: 'LINK', scripts: 'SCRIPT', cookbook: 'RECIPE' };
+
+    window.renderCmdkResults = (query) => {
+        const results = document.getElementById('cmdk-results'); if (!results) return;
+        const idx = window.buildSearchIndex(); const q = (query || '').trim().toLowerCase();
+        let matches = q ? idx.filter(it => it.text.includes(q) || it.tag.toLowerCase().includes(q)) : idx;
+        matches = matches.slice(0, 50);
+        results.innerHTML = '';
+        if (matches.length === 0) { results.innerHTML = `<div class="text-center text-[10px] text-white/30 italic p-6 tracking-widest uppercase">No matches // adjust query</div>`; return; }
+        matches.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 cursor-pointer group transition-colors';
+            row.innerHTML = `<span class="text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded border shrink-0" style="color:${m.color}; border-color:${m.color}40;">${scopeLabel[m.scope]}</span><div class="flex-1 min-w-0"><div class="text-[12px] text-white truncate">${m.title}</div>${m.sub ? `<div class="text-[10px] text-white/35 truncate">${m.sub}</div>` : ''}</div><button class="cmdk-tag-pill text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border shrink-0 opacity-70 group-hover:opacity-100 transition-all hover:brightness-125 cursor-pointer" data-scope="${m.scope}" data-tag="${m.tag}" style="color:${m.color}; border-color:${m.color}40; background:${m.color}0A;" title="Filter ${scopeLabel[m.scope]}s by ${m.tag}">${m.tag}</button>`;
+            row.addEventListener('click', (e) => { if (e.target.closest('.cmdk-tag-pill')) return; window.cmdkJumpToItem(m.scope, m.id); });
+            results.appendChild(row);
+        });
+        results.querySelectorAll('.cmdk-tag-pill').forEach(p => p.addEventListener('click', (e) => { e.stopPropagation(); window.jumpToTag(p.dataset.scope, p.dataset.tag); }));
+    };
+
+    window.renderCmdkTagBar = () => {
+        const bar = document.getElementById('cmdk-tagbar'); if (!bar) return; bar.innerHTML = '';
+        const groups = [
+            { scope: 'cookbook', label: 'RECIPE', items: [...new Set((window.db.cookbook || []).map(r => r.genre))], color: window.pillColor },
+            { scope: 'tones', label: 'TONE', items: [...new Set((window.db.tones || []).map(t => t.category))], color: window.toneCategoryColor },
+            { scope: 'links', label: 'LINK', items: [...new Set((window.db.links || []).map(l => l.category))], color: window.pillColor },
+            { scope: 'scripts', label: 'SCRIPT', items: [...new Set((window.db.scripts || []).map(s => s.category))], color: window.pillColor }
+        ];
+        groups.forEach(g => { g.items.sort().forEach(tag => { const c = g.color(tag); const btn = document.createElement('button'); btn.className = 'px-2 py-1 rounded text-[8px] font-bold tracking-widest uppercase border cursor-pointer transition-all hover:brightness-125'; btn.style.color = c; btn.style.borderColor = c + '40'; btn.style.background = c + '0A'; btn.title = `${g.label}: ${tag}`; btn.innerText = tag; btn.addEventListener('click', () => window.jumpToTag(g.scope, tag)); bar.appendChild(btn); }); });
+    };
+
+    window.cmdkJumpToItem = (scope, id) => {
+        if (scope === 'tones') {
+            window.switchTab('tones'); window.currentToneTag = 'ALL'; window.renderTones();
+            setTimeout(() => { const el = [...document.querySelectorAll('#tone-list .btn-edit-tone')].find(b => parseInt(b.dataset.id, 10) === id)?.closest('.card'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('glitching-ui'); setTimeout(() => el.classList.remove('glitching-ui'), 350); } }, 100);
+        } else if (scope === 'links') {
+            window.switchTab('links'); window.currentLinkTag = 'ALL'; window.renderLinks();
+            setTimeout(() => { const el = [...document.querySelectorAll('#link-list .btn-edit-link')].find(b => parseInt(b.dataset.id, 10) === id)?.closest('.card'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('glitching-ui'); setTimeout(() => el.classList.remove('glitching-ui'), 350); } }, 100);
+        } else if (scope === 'scripts') {
+            window.switchTab('hardware'); window.currentScriptTag = 'ALL'; window.renderScripts();
+            setTimeout(() => { const el = [...document.querySelectorAll('#script-list .btn-edit-script')].find(b => parseInt(b.dataset.id, 10) === id)?.closest('.card'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('glitching-ui'); setTimeout(() => el.classList.remove('glitching-ui'), 350); } }, 100);
+        } else if (scope === 'cookbook') {
+            const recipe = window.db.cookbook.find(r => r.id === id);
+            if (recipe) { window.switchTab('cookbook'); window.selectGenre(recipe.genre); setTimeout(() => window.selectInst(recipe.id), 120); }
+        }
+        window.closeCmdk();
+    };
+
+    window.openCmdk = () => {
+        const modal = document.getElementById('cmdk-modal'); if (!modal) return;
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        const input = document.getElementById('cmdk-input'); if (input) { input.value = ''; setTimeout(() => input.focus(), 50); }
+        window.renderCmdkResults(''); window.renderCmdkTagBar();
+    };
+    window.closeCmdk = () => { const modal = document.getElementById('cmdk-modal'); if (!modal) return; modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+    document.getElementById('btn-open-cmdk')?.addEventListener('click', () => window.openCmdk());
+    document.getElementById('cmdk-close')?.addEventListener('click', () => window.closeCmdk());
+    document.getElementById('cmdk-modal')?.addEventListener('click', (e) => { if (e.target.id === 'cmdk-modal') window.closeCmdk(); });
+    document.getElementById('cmdk-input')?.addEventListener('input', (e) => window.renderCmdkResults(e.target.value));
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); else window.openCmdk(); }
+        if (e.key === 'Escape') { const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); }
+    });
+});
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then((reg) => console.log('[SW] registered, scope:', reg.scope))
+            .catch((err) => console.warn('[SW] registration failed (fine if opened via file:// or a fresh deploy):', err));
+    });
+}
+</script>
+</body>
+</html>

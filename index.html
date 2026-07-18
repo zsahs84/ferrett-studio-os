@@ -218,7 +218,8 @@ main { background: rgba(5,8,7,0.72); }
     </div>
   </nav>
 
-  <main id="main-content" class="flex-1 h-full overflow-y-auto scroll-smooth relative">
+  <main id="main-content" class="flex-1 h-full overflow-hidden relative flex flex-col">
+  <div id="tab-scroll-area" class="flex-1 overflow-y-auto scroll-smooth relative">
 
     <section id="tab-cookbook" class="middle-tab active p-4 md:p-8 min-h-[500px]">
         <div class="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 gap-4">
@@ -403,23 +404,6 @@ main { background: rgba(5,8,7,0.72); }
         <div id="tone-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
 
-    <section id="tab-notes" class="middle-tab p-4 md:p-8 min-h-[400px] flex flex-col bg-[#050807]">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 border-b border-[#00E5FF20] pb-2 gap-4">
-            <div class="flex flex-col gap-2 w-full">
-                <div class="flex items-center gap-4"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">NOTES VAULT [<span id="note-context-label" class="text-white">BOTH</span>]</h2><span id="save-status" class="text-[10px] font-bold tracking-widest text-[#00FF88] opacity-0 transition-opacity whitespace-nowrap">SAVED LOCALLY</span></div>
-                <div class="flex items-center gap-1 overflow-x-auto w-full pb-1 scrollbar-hide" id="notes-tabs-container"></div>
-            </div>
-            <button id="btn-add-note-tab" class="shrink-0 text-[10px] font-bold tracking-widest bg-[#00E5FF15] border border-[#00E5FF30] hover:bg-[#00E5FF30] text-[#00E5FF] px-3 py-1.5 rounded transition-colors">+ NEW TAB</button>
-        </div>
-        <input type="text" id="active-note-title" class="bg-transparent border-b border-[#00E5FF40] text-[#00E5FF] font-bold text-[13px] mb-3 px-2 py-1.5 focus:outline-none" placeholder="Name this note tab...">
-        <div id="notes-tasks-panel" class="hidden shrink-0 mb-3 p-3 rounded border border-[#00FF8825] bg-[rgba(0,255,136,0.03)] max-h-[180px] overflow-y-auto"></div>
-        <div class="flex items-center justify-between mb-2">
-            <span class="text-[9px] tracking-widest text-[#00E5FF]/40 uppercase">Type <span class="text-[#00E5FF]/70">[TODO] your task</span> on any line to add it to the checklist above</span>
-            <button id="btn-quick-add-task" class="shrink-0 text-[9px] font-bold tracking-widest bg-[#00FF8815] border border-[#00FF8830] hover:bg-[#00FF8830] text-[#00FF88] px-2.5 py-1 rounded transition-colors">+ TASK</button>
-        </div>
-        <textarea id="studio-notes" class="flex-1 w-full border border-[#00E5FF20] rounded p-5 text-[12px] font-mono leading-[1.6] focus:outline-none focus:border-[#00E5FF] text-[#C9FFE6] resize-none bg-[rgba(10,15,13,0.8)]" placeholder="Context-aware scratchpad..."></textarea>
-    </section>
-
     <section id="tab-calc" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00E5FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">STUDIO CALCULATOR & TIME TOOLS</h2></div>
         <div class="card border-[#00E5FF30] mb-6 flex flex-col md:flex-row items-center justify-center gap-8 p-8 md:p-12">
@@ -481,6 +465,34 @@ main { background: rgba(5,8,7,0.72); }
             <p class="text-[9px] text-[#E2E8F0]/30 mt-4 text-center max-w-lg mx-auto leading-relaxed">Low strings (bass low B/E) can be genuinely hard to pick up on a phone or tablet's built-in mic — the low-frequency roll-off on small mics makes the fundamental weak. It'll work, but for reliable low-B tracking, an audio interface input beats a phone mic every time.</p>
         </div>
     </section>
+
+  </div>
+
+  <div id="notes-footer" class="shrink-0 border-t-2 border-[#00E5FF30] bg-[#050807] relative z-20">
+    <button id="notes-footer-toggle" type="button" class="w-full flex items-center justify-between gap-3 px-4 md:px-8 py-2.5 cursor-pointer bg-transparent border-0 text-left">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <svg id="notes-footer-chevron" class="w-3.5 h-3.5 text-[#00E5FF]/60 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+        <span class="text-[11px] tracking-widest font-bold text-[#00E5FF] shrink-0">NOTES [<span id="note-context-label" class="text-white">BOTH</span>]</span>
+        <span id="notes-footer-active-title" class="text-[10px] text-[#00E5FF]/40 truncate">No active note</span>
+      </div>
+      <span id="save-status" class="text-[10px] font-bold tracking-widest text-[#00FF88] opacity-0 transition-opacity whitespace-nowrap shrink-0">SAVED LOCALLY</span>
+    </button>
+    <div id="notes-footer-body" class="hidden px-4 md:px-8 pb-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-3 gap-3">
+            <div class="flex flex-col gap-2 w-full">
+                <div class="flex items-center gap-1 overflow-x-auto w-full pb-1 scrollbar-hide" id="notes-tabs-container"></div>
+            </div>
+            <button id="btn-add-note-tab" class="shrink-0 text-[10px] font-bold tracking-widest bg-[#00E5FF15] border border-[#00E5FF30] hover:bg-[#00E5FF30] text-[#00E5FF] px-3 py-1.5 rounded transition-colors">+ NEW TAB</button>
+        </div>
+        <input type="text" id="active-note-title" class="bg-transparent border-b border-[#00E5FF40] text-[#00E5FF] font-bold text-[13px] mb-3 px-2 py-1.5 focus:outline-none w-full" placeholder="Name this note tab...">
+        <div id="notes-tasks-panel" class="hidden shrink-0 mb-3 p-3 rounded border border-[#00FF8825] bg-[rgba(0,255,136,0.03)] max-h-[140px] overflow-y-auto"></div>
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] tracking-widest text-[#00E5FF]/40 uppercase">Type <span class="text-[#00E5FF]/70">[TODO] your task</span> on any line to add it to the checklist above</span>
+            <button id="btn-quick-add-task" class="shrink-0 text-[9px] font-bold tracking-widest bg-[#00FF8815] border border-[#00FF8830] hover:bg-[#00FF8830] text-[#00FF88] px-2.5 py-1 rounded transition-colors">+ TASK</button>
+        </div>
+        <textarea id="studio-notes" class="w-full h-40 md:h-48 border border-[#00E5FF20] rounded p-4 text-[12px] font-mono leading-[1.6] focus:outline-none focus:border-[#00E5FF] text-[#C9FFE6] resize-none bg-[rgba(10,15,13,0.8)]" placeholder="Context-aware scratchpad..."></textarea>
+    </div>
+  </div>
 
   </main>
 </div>
@@ -1215,10 +1227,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.switchTab = (tabId) => {
         if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
-        if(targetTab) { targetTab.classList.add('active'); document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'instant' }); }
+        if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
         const activeBtn = document.getElementById(`nav-${tabId}`);
-        if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); if (['tones', 'notes', 'links', 'calc'].includes(tabId)) activeBtn.classList.add('active-nav-cyan'); else activeBtn.classList.add('active-nav-green'); }
+        if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); if (['tones', 'links', 'calc'].includes(tabId)) activeBtn.classList.add('active-nav-cyan'); else activeBtn.classList.add('active-nav-green'); }
     };
 
     window.toggleForm = (formId) => {
@@ -1234,7 +1246,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
-    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'notes', 'calc'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+
+    // Notes is a persistent footer under every tab, not a switchable tab — just expand/collapse it.
+    window.NOTES_FOOTER_KEY = 'ferrett_os_notes_footer_open_v1';
+    window.setNotesFooterOpen = (open) => {
+        const body = document.getElementById('notes-footer-body'); const chevron = document.getElementById('notes-footer-chevron'); const navBtn = document.getElementById('nav-notes');
+        if (body) body.classList.toggle('hidden', !open);
+        if (chevron) chevron.style.transform = open ? 'rotate(180deg)' : '';
+        if (navBtn) { if (open) { navBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); navBtn.classList.add('active-nav-cyan'); } else { navBtn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); navBtn.classList.remove('active-nav-cyan'); } }
+        try { window.localStorage.setItem(window.NOTES_FOOTER_KEY, open ? '1' : '0'); } catch (e) {}
+    };
+    window.toggleNotesFooter = () => { const body = document.getElementById('notes-footer-body'); window.setNotesFooterOpen(body ? body.classList.contains('hidden') : true); };
+    document.getElementById('notes-footer-toggle')?.addEventListener('click', () => window.toggleNotesFooter());
+    document.getElementById('nav-notes')?.addEventListener('click', () => { window.toggleNotesFooter(); document.getElementById('notes-footer')?.scrollIntoView({ behavior: 'smooth', block: 'end' }); });
+    let notesFooterInitiallyOpen = false;
+    try { notesFooterInitiallyOpen = window.localStorage.getItem(window.NOTES_FOOTER_KEY) === '1'; } catch (e) {}
+    window.setNotesFooterOpen(notesFooterInitiallyOpen);
 
     document.getElementById('calc-bpm')?.addEventListener('input', (e) => window.updateCalc(e.target.value)); document.getElementById('calc-bpm-main')?.addEventListener('input', (e) => { const cb = document.getElementById('calc-bpm'); if(cb) cb.value = e.target.value; window.updateCalc(e.target.value); });
     const tapHandler = () => { const now = Date.now(); window.tapTimes = window.tapTimes || []; window.tapTimes.push(now); if(window.tapTimes.length > 4) window.tapTimes.shift(); if(window.tapTimes.length > 1) { let sum = 0; for(let i=1; i<window.tapTimes.length; i++) { sum += (window.tapTimes[i] - window.tapTimes[i-1]); } const avg = sum / (window.tapTimes.length - 1); const bpm = Math.round(60000 / avg); const cb = document.getElementById('calc-bpm'); const cbm = document.getElementById('calc-bpm-main'); if(cb) cb.value = bpm; if(cbm) cbm.value = bpm; window.updateCalc(bpm); } clearTimeout(window.tapTimeout); window.tapTimeout = setTimeout(() => { window.tapTimes = []; }, 2000); };
@@ -1455,7 +1483,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const notesTitleInput = document.getElementById('active-note-title'); const notesTextArea = document.getElementById('studio-notes'); const notesTabsContainer = document.getElementById('notes-tabs-container'); const notesTasksPanel = document.getElementById('notes-tasks-panel');
-    window.renderNoteTabs = () => { if(!notesTabsContainer) return; notesTabsContainer.innerHTML = ''; window.db.multiNotes.forEach(note => { const isActive = note.id === window.currentNoteId; const tab = document.createElement('div'); tab.className = `note-tab ${isActive ? 'active' : ''}`; tab.innerHTML = `<span class="truncate max-w-[120px] select-none" data-id="${note.id}">${note.title || 'Untitled'}</span><span class="note-tab-close" data-close-id="${note.id}">×</span>`; notesTabsContainer.appendChild(tab); }); const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote && notesTitleInput && notesTextArea) { notesTitleInput.value = activeNote.title; notesTextArea.value = activeNote.content; } window.renderNoteTasks(); };
+    window.renderNoteTabs = () => { if(!notesTabsContainer) return; notesTabsContainer.innerHTML = ''; window.db.multiNotes.forEach(note => { const isActive = note.id === window.currentNoteId; const tab = document.createElement('div'); tab.className = `note-tab ${isActive ? 'active' : ''}`; tab.innerHTML = `<span class="truncate max-w-[120px] select-none" data-id="${note.id}">${note.title || 'Untitled'}</span><span class="note-tab-close" data-close-id="${note.id}">×</span>`; notesTabsContainer.appendChild(tab); }); const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote && notesTitleInput && notesTextArea) { notesTitleInput.value = activeNote.title; notesTextArea.value = activeNote.content; } const footerTitle = document.getElementById('notes-footer-active-title'); if (footerTitle) footerTitle.textContent = activeNote ? (activeNote.title || 'Untitled') : 'No active note'; window.renderNoteTasks(); };
 
     const escapeHtml = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     window.renderNoteTasks = () => {
@@ -1502,7 +1530,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     notesTabsContainer?.addEventListener('click', (e) => { if (e.target.dataset.id) { window.currentNoteId = parseInt(e.target.dataset.id); window.renderNoteTabs(); } if (e.target.dataset.closeId) { const idToDelete = parseInt(e.target.dataset.closeId); if (confirm('Delete this note tab?')) { window.db.multiNotes = window.db.multiNotes.filter(n => n.id !== idToDelete); if (window.db.multiNotes.length === 0) window.db.multiNotes.push({ id: Date.now(), title: 'Main Scratchpad', content: '' }); if (window.currentNoteId === idToDelete) window.currentNoteId = window.db.multiNotes[window.db.multiNotes.length - 1].id; window.saveData(); window.renderNoteTabs(); } } });
     document.getElementById('btn-add-note-tab')?.addEventListener('click', () => { const newNote = { id: Date.now(), title: 'New Note', content: '' }; window.db.multiNotes.push(newNote); window.currentNoteId = newNote.id; window.saveData(); window.renderNoteTabs(); notesTitleInput?.focus(); notesTitleInput?.select(); });
-    notesTitleInput?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.title = e.target.value; const activeTabSpan = notesTabsContainer.querySelector('.note-tab.active span[data-id]'); if (activeTabSpan) activeTabSpan.innerText = activeNote.title || 'Untitled'; window.saveData(); } });
+    notesTitleInput?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.title = e.target.value; const activeTabSpan = notesTabsContainer.querySelector('.note-tab.active span[data-id]'); if (activeTabSpan) activeTabSpan.innerText = activeNote.title || 'Untitled'; const footerTitle = document.getElementById('notes-footer-active-title'); if (footerTitle) footerTitle.textContent = activeNote.title || 'Untitled'; window.saveData(); } });
     notesTextArea?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.content = e.target.value; window.saveData(); window.renderNoteTasks(); } });
 
     const handleImgUpload = async (e, arrayRef, containerId, arrayName) => { const files = e.target.files; if(!files || files.length === 0) return; for(let i=0; i<files.length; i++) { try { const base64 = await window.compressImage(files[i]); arrayRef.push(base64); } catch(err) { } } window.renderImagePreviews(containerId, arrayRef, arrayName); };

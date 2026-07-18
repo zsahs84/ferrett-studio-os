@@ -40,6 +40,8 @@ body { background-color: var(--bg); color: #E2E8F0; font-family: 'JetBrains Mono
 .hud-vignette { position:fixed; inset:0; background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.65) 95%, rgba(0,0,0,0.95) 100%); pointer-events:none; z-index: 9994 !important; transition: opacity 0.07s ease-out; }
 body.beat-pulse .hud-vignette { opacity: 0.78; }
 body.beat-pulse-accent .hud-vignette { opacity: 0.55; }
+body.theme-amber { filter: hue-rotate(-100deg) saturate(1.25); }
+body.theme-stealth { filter: grayscale(0.88) brightness(0.82) contrast(1.1); }
 #print-sheet-content { display:none; }
 @media print {
   body * { visibility: hidden; }
@@ -166,7 +168,9 @@ main { background: rgba(5,8,7,0.72); }
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <span class="hidden sm:inline">SEARCH</span><kbd class="hidden sm:inline px-1 py-0.5 rounded bg-[#00E5FF15] border border-[#00E5FF30] text-[8px]">⌘K</kbd>
     </button>
+    <button id="btn-open-shortcuts" class="hidden lg:flex items-center justify-center w-8 h-8 rounded border border-[#00FF8830] text-[#00FF88]/60 hover:text-[#00FF88] hover:border-[#00FF8860] transition-all cursor-pointer text-[11px] font-bold" title="Keyboard shortcuts (?)">?</button>
     <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Toggle quiet HUD animations"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text" class="hidden sm:inline">LIVE</span></button>
+    <button id="btn-cycle-theme" class="w-8 h-8 flex items-center justify-center rounded border border-[#E2E8F030] text-[#E2E8F0]/60 hover:text-white hover:border-[#E2E8F060] cursor-pointer text-[13px]" title="Cycle HUD color theme">🎨</button>
     <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync">
       <svg id="drive-icon-down" class="w-3.5 h-3.5 comms-down-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/><line x1="3" y1="3" x2="21" y2="21" stroke="#FF2A2A" stroke-width="2"/></svg>
       <svg id="drive-icon-up" class="w-3.5 h-3.5 hidden drop-shadow-[0_0_8px_#00FF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/></svg>
@@ -294,6 +298,22 @@ main { background: rgba(5,8,7,0.72); }
 
     <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 max-w-7xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176</span></div>
+
+        <div class="card border-[#00FF8830] mb-8">
+            <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4>
+                <div class="flex gap-2">
+                    <button id="btn-patchbay-add-device" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">+ DEVICE</button>
+                    <button id="btn-patchbay-clear" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">CLEAR ALL</button>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/30 mb-3">Drag boxes to arrange your actual signal chain. Tap/click one port dot, then another, to connect them. Tap a connection line to remove it.</p>
+            <div id="patchbay-canvas" class="relative w-full h-[380px] rounded border border-[#00FF8820] bg-black/40 overflow-auto" style="touch-action:none;">
+                <svg id="patchbay-svg" class="absolute top-0 left-0 pointer-events-none" style="width:1200px;height:800px;"></svg>
+                <div id="patchbay-devices" class="relative" style="width:1200px;height:800px;"></div>
+            </div>
+        </div>
+
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
             <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">AUDIO INTERFACE: VOLT 176 → SANSUI → BOSE 301</h3></div>
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80">
@@ -376,6 +396,7 @@ main { background: rgba(5,8,7,0.72); }
             <input type="hidden" id="track-id">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TRACK</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REFERENCE LINK (YouTube / Spotify — shows an inline player)</label><input type="text" id="track-reflink" placeholder="https://..." class="input-ferrett"></div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">NOTES</label><textarea id="track-notes" class="input-ferrett h-20 resize-y"></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>📸 CAMERA</span><input type="file" id="track-camera-input" accept="image/*" capture="environment" class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="track"></div><p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear directly.</p></div>
             <div class="flex gap-3"><button id="btn-save-track" class="btn-ferrett-green">SAVE CONFIG</button><button id="btn-cancel-track" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
@@ -564,6 +585,41 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-refresh-vault-stats" class="btn-ferrett" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">↻ REFRESH</button>
                 <button id="btn-cleanup-orphaned-audio" class="btn-ferrett" style="border-color:#FF888850;color:#FF8888;background:rgba(255,136,136,0.08);">🧹 CLEAN UP ORPHANED CLIPS</button>
             </div>
+            <div class="mt-6 pt-4 border-t border-[#FFD60A14]">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-[11px] font-bold tracking-widest text-[#00E5FF] uppercase">Plugin Coverage</h4>
+                    <button id="btn-check-coverage" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🔍 CHECK</button>
+                </div>
+                <p class="text-[10px] text-[#E2E8F0]/40 mb-3">Owned plugins never referenced in a single recipe or tone.</p>
+                <div id="plugin-coverage-content" class="text-[10px] text-[#E2E8F0]/30 italic"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="shortcuts-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 8vh;">
+    <div class="w-full max-w-md">
+        <div class="card border-[#00FF8840] relative">
+            <button id="close-shortcuts-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0">×</button>
+            <h3 class="text-[13px] font-bold tracking-widest text-[#00FF88] uppercase mb-5 pr-8">⌨️ Keyboard Shortcuts</h3>
+            <div class="space-y-2.5 text-[11px]">
+                <div class="flex justify-between"><span class="text-[#E2E8F0]/60">Search everything</span><kbd class="px-2 py-0.5 rounded bg-black/50 border border-[#00E5FF30] text-[#00E5FF] font-mono">⌘/Ctrl K</kbd></div>
+                <div class="flex justify-between"><span class="text-[#E2E8F0]/60">Start/stop metronome</span><kbd class="px-2 py-0.5 rounded bg-black/50 border border-[#00FF8830] text-[#00FF88] font-mono">Space</kbd></div>
+                <div class="flex justify-between"><span class="text-[#E2E8F0]/60">Close any modal / drawer</span><kbd class="px-2 py-0.5 rounded bg-black/50 border border-[#E2E8F030] text-[#E2E8F0] font-mono">Esc</kbd></div>
+                <div class="flex justify-between"><span class="text-[#E2E8F0]/60">Show this list</span><kbd class="px-2 py-0.5 rounded bg-black/50 border border-[#FFD60A30] text-[#FFD60A] font-mono">?</kbd></div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/30 mt-5">Space only toggles the metronome while you're on the Studio Tools tab and not typing in a field.</p>
+        </div>
+    </div>
+</div>
+
+<div id="history-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl">
+        <div class="card border-[#FF88FF40] relative">
+            <button id="close-history-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0">×</button>
+            <h3 class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase mb-1 pr-8">🕐 Version History</h3>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Last 3 versions before your most recent edits. Restoring replaces the current chain text — your current version isn't lost, it just becomes the newest history entry.</p>
+            <div id="history-modal-content" class="space-y-3"></div>
         </div>
     </div>
 </div>
@@ -623,6 +679,7 @@ window.tokenClient = null; window.driveFileId = null; window.isDriveConnected = 
 window.tempTrackImages = []; window.tempToneImages = []; window.tempCookbookImages = [];
 
 const defaultDb = {
+    patchbay: { devices: [], connections: [] },
     multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// FERRETT OS: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
     tracks: [],
     cookbook: [
@@ -783,6 +840,14 @@ window.renderSessionStats = () => {
     const t = document.getElementById('stat-today'); if (t) t.textContent = window.fmtHoursMins(stats.todayMs);
     const w = document.getElementById('stat-week'); if (w) w.textContent = window.fmtHoursMins(stats.weekMs);
     const s = document.getElementById('stat-streak'); if (s) s.textContent = stats.streak;
+    window.updateAppBadge?.(stats);
+};
+
+// App icon badge (installed PWA only) — shows today's session minutes as a live badge count.
+window.updateAppBadge = (stats) => {
+    if (!('setAppBadge' in navigator)) return;
+    const mins = Math.round(stats.todayMs / 60000);
+    try { if (mins > 0) navigator.setAppBadge(mins); else navigator.clearAppBadge?.(); } catch (e) {}
 };
 
 window.saveDataLocally = () => {
@@ -1146,6 +1211,21 @@ document.addEventListener('DOMContentLoaded', () => {
         else { document.body.classList.remove('quiet'); quietBtn.classList.replace('border-[#E2E8F0]/30', 'border-[#00FF88]'); quietBtn.classList.replace('bg-transparent', 'bg-[#00FF88]/10'); quietBtn.classList.replace('text-[#E2E8F0]/50', 'text-[#00FF88]'); quietDot?.classList.replace('bg-[#E2E8F0]/30', 'bg-[#00FF88]'); quietDot?.classList.add('animate-pulse'); if(quietText) quietText.innerText = 'LIVE'; }
     });
 
+    // Alternate HUD themes — cheap CSS-filter re-tint, cycles default -> amber -> stealth.
+    window.HUD_THEMES = ['default', 'theme-amber', 'theme-stealth'];
+    window.HUD_THEME_KEY = 'ferrett_os_hud_theme_v1';
+    window.applyHudTheme = (theme) => {
+        document.body.classList.remove('theme-amber', 'theme-stealth');
+        if (theme !== 'default') document.body.classList.add(theme);
+        try { window.localStorage.setItem(window.HUD_THEME_KEY, theme); } catch (e) {}
+    };
+    document.getElementById('btn-cycle-theme')?.addEventListener('click', () => {
+        const current = window.HUD_THEMES.find((t) => t !== 'default' && document.body.classList.contains(t)) || 'default';
+        const next = window.HUD_THEMES[(window.HUD_THEMES.indexOf(current) + 1) % window.HUD_THEMES.length];
+        window.applyHudTheme(next);
+    });
+    try { window.applyHudTheme(window.localStorage.getItem(window.HUD_THEME_KEY) || 'default'); } catch (e) {}
+
     // === CLICKABLE TAG PILL SYSTEM ===
     window.currentLinkTag = 'ALL'; window.currentToneTag = 'ALL'; window.currentScriptTag = 'ALL';
     window.pillColor = (str) => { const palette = ['#00FF88','#00E5FF','#FFD60A','#FF8888','#FF88FF','#7AFFBF','#88AAFF','#FFA05C']; let h = 0; for (let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0; return palette[h % palette.length]; };
@@ -1222,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(disp) disp.innerHTML = `
             <div class="animate-fade-in relative group">
                 <div class="absolute top-0 right-0 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20 bg-[rgba(10,15,13,0.9)] px-2 py-1 rounded">
-                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button><button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button>${data.history && data.history.length ? `<button data-id="${data.id}" class="btn-history-cookbook text-[10px] font-bold text-[#FF88FF] hover:text-white">🕐 HISTORY</button>` : ''}<button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
                 </div>
                 <div class="border-b border-[#00FF8820] pb-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-2 pr-20"><h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#00FF88] uppercase">${data.inst}</h2><span class="text-[9px] md:text-[10px] tracking-widest text-[#00E5FF] uppercase bg-[#00E5FF10] px-3 py-1.5 rounded border border-[#00E5FF20]">${data.genre}</span></div>
                 <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
@@ -1259,18 +1339,125 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    window.PLUGIN_TOOLTIPS = [
+        ['1176', 'FET compressor — fast, punchy, aggressive on transients.'],
+        ['LA-2A', 'Optical compressor — slow, smooth, musical leveling.'],
+        ['LA-3A', 'Optical compressor — faster/brighter sibling of the LA-2A.'],
+        ['Fairchild', 'Vari-mu tube compressor — glue and warmth, vintage mastering staple.'],
+        ['Distressor', 'Versatile FET/opto hybrid compressor.'],
+        ['dbx 160', 'VCA compressor — punchy, aggressive drum bus classic.'],
+        ['API 2500', 'VCA bus compressor — punch and glue, selectable knee/thrust.'],
+        ['SSL G-Bus', 'The classic SSL bus compressor — glue for a whole mix or drum bus.'],
+        ['SSL E-Channel', 'SSL channel strip — EQ + dynamics in one, punchy British console tone.'],
+        ['Manley Variable Mu', 'Tube compressor/limiter with a built-in EQ, gentle and warm.'],
+        ['Manley Massive Passive', 'Passive tube EQ — broad, musical, hard to make sound bad.'],
+        ['Pultec EQP', 'Passive tube EQ — the classic boost-and-cut-same-frequency trick.'],
+        ['Pultec MEQ', 'Passive tube midrange EQ, pairs with the EQP-1A.'],
+        ['Pultec HLF', 'Passive tube low-pass/high-pass filter.'],
+        ['Neve 1073', 'Classic British preamp/EQ — warm, musical low-end push.'],
+        ['API Vision', 'API channel strip — fast, punchy, aggressive American console tone.'],
+        ['CHANNEV', 'Hybrid Neve-preamp + 1176-style compressor channel strip.'],
+        ['610-A', 'Tube preamp — warm coloration on the way in.'],
+        ['Helios Type 69', 'Vintage British preamp/EQ, rock-and-roll character.'],
+        ['Avalon', 'Clean, hi-fi tube/solid-state preamp and channel strip.'],
+        ['Studer A800', 'Analog tape machine emulation — saturation, wow/flutter, glue.'],
+        ['Oxide Tape', 'Tape saturation emulation.'],
+        ['Ampex ATR-102', 'Mastering-grade tape machine emulation.'],
+        ['Tape Cassette', 'Lo-fi cassette tape emulation — wobble, hiss, character.'],
+        ['CHOWTapeModel', 'Free open-source tape saturation/wobble emulation.'],
+        ['Vinyl', 'Vinyl record emulation — crackle, wear, warmth.'],
+        ['TDR Nova', 'Free dynamic EQ — surgical or musical, extremely flexible.'],
+        ['TDR Kotelnikov', 'Free mastering-grade transparent compressor/limiter.'],
+        ['Ocean Way Studios Deluxe', 'Convolution reverb suite modeling a famous studio room.'],
+        ['Hitsville Chambers', 'Motown-style echo chamber reverb.'],
+        ['Capitol Chambers', 'Classic Capitol Studios chamber reverb.'],
+        ['Lexicon 224', 'Iconic 80s digital reverb — lush plates and halls.'],
+        ['ValhallaSupermassive', 'Huge ambient delay/reverb hybrid — free.'],
+        ['NeuralAmpModeler', 'Free neural-network guitar amp/pedal profiler.'],
+        ['NadIR', 'Cabinet impulse response (IR) loader.'],
+        ['bx_boom', 'Sub-bass/808 generator plugin.'],
+        ['bx_blackdist2', 'Aggressive black-box style distortion.'],
+        ['bx_yellowdrive', 'Tube-style overdrive.'],
+        ['bx_greenscreamer', 'Tube Screamer-style overdrive emulation.'],
+        ['Graillon', 'Real-time pitch/formant shifter — robot vocals, T-Pain effect, correction.'],
+        ['Melodyne', 'Pitch/time editing tool — vocal tuning and note-level editing.'],
+        ['Kontakt', 'Sample-based virtual instrument workstation.'],
+        ['HALion Sonic', 'Steinberg sample-based workstation/instrument.'],
+        ['Vital', 'Free wavetable synthesizer.'],
+        ['Surge XT', 'Free, powerful hybrid synthesizer.'],
+        ['Minimoog', 'Classic analog synth emulation — thick monophonic bass/leads.'],
+        ['kHs Ladder Filter', 'Resonant analog-style filter — Moog-esque sweeps.'],
+        ['kHs Delay', 'Simple, clean delay module.'],
+        ['kHs Chorus', 'Modulation chorus effect.'],
+        ['kHs Bitcrush', 'Digital degradation/lo-fi crunch effect.'],
+        ['kHs Ring Mod', 'Ring modulator — metallic, robotic textures.'],
+        ['kHs Reverb', 'Simple algorithmic reverb.'],
+        ['kHs', 'Kilohearts snap-in effect module.'],
+        ['bx_subfilter', 'Sub-frequency filtering/enhancement tool.'],
+        ['bx_cleansweep', 'Utility high/low-pass filter.'],
+        ['ReaEQ', 'REAPER stock parametric EQ (free, built-in).'],
+        ['ReaComp', 'REAPER stock compressor (free, built-in).'],
+        ['ReaXcomp', 'REAPER stock multiband compressor (free, built-in).'],
+        ['ReaGate', 'REAPER stock noise gate (free, built-in).'],
+        ['ReaDelay', 'REAPER stock delay (free, built-in).'],
+        ['ReaPitch', 'REAPER stock pitch shifter (free, built-in).'],
+        ['ReaVerbate', 'REAPER stock reverb (free, built-in).'],
+        ['JS Decimator', 'REAPER stock bit-crusher/sample-rate reducer script.'],
+        ['JS Transient', 'REAPER stock transient shaper script.'],
+        ['JS Distortion', 'REAPER stock distortion script.'],
+        ['JS Saturation', 'REAPER stock saturation script.'],
+        ['JS 1176', 'REAPER stock 1176-style compressor emulation script.']
+    ];
+    window.pluginTooltip = (label) => {
+        const l = (label || '').toLowerCase();
+        const hit = window.PLUGIN_TOOLTIPS.find(([key]) => l.includes(key.toLowerCase()));
+        return hit ? hit[1] : 'Studio processing step.';
+    };
+
     window.renderChainFlow = (text, color) => {
         const nodes = window.parseChainToNodes(text);
         if (nodes.length === 0) return `<div class="text-[10px] text-[#E2E8F0]/30 italic">Nothing to visualize.</div>`;
         return `<div class="flex items-stretch gap-2 overflow-x-auto pb-2 scrollbar-hide">` + nodes.map((n, i) => `
             <div class="shrink-0 flex items-center gap-2">
-                <div class="min-w-[110px] max-w-[160px] rounded border px-3 py-2.5 text-center" style="border-color:${color}50;background:${color}10;">
+                <div class="min-w-[110px] max-w-[160px] rounded border px-3 py-2.5 text-center cursor-help" style="border-color:${color}50;background:${color}10;" title="${window.pluginTooltip(n.label)}">
                     <div class="text-[10px] font-bold tracking-wide leading-tight" style="color:${color};">${n.label}</div>
                     ${n.detail ? `<div class="text-[8px] text-[#E2E8F0]/50 mt-1 leading-snug">${n.detail}</div>` : ''}
                 </div>
                 ${i < nodes.length - 1 ? `<span style="color:${color}80;" class="text-[16px] font-bold shrink-0">→</span>` : ''}
             </div>`).join('') + `</div>`;
     };
+
+    window.openHistoryModal = (recipe) => {
+        const content = document.getElementById('history-modal-content'); if (!content) return;
+        const history = recipe.history || [];
+        if (history.length === 0) { content.innerHTML = `<div class="text-[10px] text-[#E2E8F0]/30 italic">No previous versions saved yet.</div>`; }
+        else {
+            content.innerHTML = history.map((h, i) => `
+                <div class="p-3 rounded border border-[#FF88FF20] bg-black/40">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/70">${new Date(h.savedAt).toLocaleString()}</span>
+                        <button data-recipe-id="${recipe.id}" data-history-idx="${i}" class="btn-restore-history text-[9px] font-bold px-2 py-1 rounded border border-[#00FF8850] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">↺ RESTORE</button>
+                    </div>
+                    <div class="text-[10px] text-[#E2E8F0]/60 font-mono line-clamp-2">${(h.luna || '').slice(0, 90)}${(h.luna || '').length > 90 ? '…' : ''}</div>
+                </div>`).join('');
+        }
+        const modal = document.getElementById('history-modal'); if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    };
+    window.closeHistoryModal = () => { const modal = document.getElementById('history-modal'); if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } };
+    window.restoreHistoryVersion = (recipeId, idx) => {
+        const recipe = window.db.cookbook.find((r) => r.id === recipeId); if (!recipe || !recipe.history || !recipe.history[idx]) return;
+        if (!confirm('Restore this version? Your current version will be saved into history first.')) return;
+        const snapshot = { desc: recipe.desc, luna: recipe.luna, reaper: recipe.reaper, notes: recipe.notes, savedAt: Date.now() };
+        const restored = recipe.history[idx];
+        recipe.desc = restored.desc; recipe.luna = restored.luna; recipe.reaper = restored.reaper; recipe.notes = restored.notes;
+        recipe.history = [snapshot, ...recipe.history.filter((_, i) => i !== idx)].slice(0, 3);
+        window.saveData();
+        window.closeHistoryModal();
+        window.selectInst(recipeId);
+    };
+    document.getElementById('close-history-modal')?.addEventListener('click', () => window.closeHistoryModal());
+    document.getElementById('history-modal')?.addEventListener('click', (e) => { if (e.target.id === 'history-modal') window.closeHistoryModal(); });
+    document.getElementById('history-modal-content')?.addEventListener('click', (e) => { const btn = e.target.closest('.btn-restore-history'); if (btn) window.restoreHistoryVersion(parseInt(btn.dataset.recipeId, 10), parseInt(btn.dataset.historyIdx, 10)); });
 
     window.printRecipeSheet = (recipe) => {
         const el = document.getElementById('print-sheet-content'); if (!el) return;
@@ -1346,6 +1533,104 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-import-links')?.addEventListener('click', () => document.getElementById('links-pack-input')?.click());
     document.getElementById('links-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importLinksPack(file); e.target.value = ''; });
+
+    // === PATCHBAY / ROUTING DIAGRAM ===
+    window.db.patchbay = window.db.patchbay || { devices: [], connections: [] };
+    window.patchbayPending = null; // { deviceId, side }
+    window.patchbayDrag = null; // { deviceId, offsetX, offsetY }
+
+    window.PORT_OFFSET_Y = 30; window.DEVICE_W = 140; window.DEVICE_H = 60;
+
+    window.renderPatchbay = () => {
+        const devicesEl = document.getElementById('patchbay-devices'); const svg = document.getElementById('patchbay-svg');
+        if (!devicesEl || !svg) return;
+        const pb = window.db.patchbay;
+        devicesEl.innerHTML = pb.devices.map((d) => `
+            <div class="patchbay-device absolute select-none rounded border-2 border-[#00FF8850] bg-[rgba(5,8,7,0.95)] flex items-center justify-center text-center px-2 cursor-grab" data-device-id="${d.id}" style="left:${d.x}px; top:${d.y}px; width:${window.DEVICE_W}px; height:${window.DEVICE_H}px;">
+                <button data-device-id="${d.id}" class="patchbay-del-device absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#FF2A2A] text-white text-[10px] font-bold flex items-center justify-center cursor-pointer z-10">×</button>
+                <span class="text-[10px] font-bold text-[#00FF88] break-words pointer-events-none">${d.name}</span>
+                <div class="patchbay-port absolute w-3.5 h-3.5 rounded-full bg-[#00E5FF] border-2 border-black cursor-pointer" data-device-id="${d.id}" data-side="left" style="left:-7px; top:${window.PORT_OFFSET_Y - 7}px;"></div>
+                <div class="patchbay-port absolute w-3.5 h-3.5 rounded-full bg-[#00E5FF] border-2 border-black cursor-pointer" data-device-id="${d.id}" data-side="right" style="right:-7px; top:${window.PORT_OFFSET_Y - 7}px;"></div>
+            </div>`).join('');
+
+        const portPos = (deviceId, side) => {
+            const d = pb.devices.find((x) => x.id === deviceId); if (!d) return { x: 0, y: 0 };
+            return { x: d.x + (side === 'left' ? 0 : window.DEVICE_W), y: d.y + window.PORT_OFFSET_Y };
+        };
+        svg.innerHTML = pb.connections.map((c, i) => {
+            const p1 = portPos(c.from.deviceId, c.from.side); const p2 = portPos(c.to.deviceId, c.to.side);
+            return `<line data-conn-idx="${i}" class="patchbay-line" x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#00E5FF" stroke-width="2" style="pointer-events:auto;cursor:pointer;" /><line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="transparent" stroke-width="14" style="pointer-events:auto;cursor:pointer;" data-conn-idx="${i}" class="patchbay-line-hit" />`;
+        }).join('');
+    };
+
+    window.savePatchbay = () => { window.saveData(); };
+
+    window.addPatchbayDevice = () => {
+        const name = prompt('Device name (e.g. "Volt 176", "Sansui Amp", "Pedal 1"):'); if (!name) return;
+        const id = Date.now();
+        const canvas = document.getElementById('patchbay-canvas');
+        const x = 20 + ((window.db.patchbay.devices.length * 60) % 900); const y = 20 + ((window.db.patchbay.devices.length * 45) % 600);
+        window.db.patchbay.devices.push({ id, name, x, y });
+        window.savePatchbay(); window.renderPatchbay();
+    };
+
+    window.deletePatchbayDevice = (id) => {
+        window.db.patchbay.devices = window.db.patchbay.devices.filter((d) => d.id !== id);
+        window.db.patchbay.connections = window.db.patchbay.connections.filter((c) => c.from.deviceId !== id && c.to.deviceId !== id);
+        window.savePatchbay(); window.renderPatchbay();
+    };
+
+    window.deletePatchbayConnection = (idx) => {
+        window.db.patchbay.connections.splice(idx, 1);
+        window.savePatchbay(); window.renderPatchbay();
+    };
+
+    (() => {
+        const canvas = document.getElementById('patchbay-canvas');
+        document.getElementById('btn-patchbay-add-device')?.addEventListener('click', () => window.addPatchbayDevice());
+        document.getElementById('btn-patchbay-clear')?.addEventListener('click', () => { if (confirm('Clear the entire patchbay diagram?')) { window.db.patchbay = { devices: [], connections: [] }; window.savePatchbay(); window.renderPatchbay(); } });
+
+        canvas?.addEventListener('click', (e) => {
+            const delBtn = e.target.closest('.patchbay-del-device'); if (delBtn) { window.deletePatchbayDevice(parseInt(delBtn.dataset.deviceId, 10)); return; }
+            const line = e.target.closest('.patchbay-line, .patchbay-line-hit'); if (line) { window.deletePatchbayConnection(parseInt(line.dataset.connIdx, 10)); return; }
+            const port = e.target.closest('.patchbay-port');
+            if (port) {
+                const deviceId = parseInt(port.dataset.deviceId, 10); const side = port.dataset.side;
+                if (window.patchbayPending && (window.patchbayPending.deviceId !== deviceId || window.patchbayPending.side !== side)) {
+                    if (window.patchbayPending.deviceId !== deviceId) {
+                        window.db.patchbay.connections.push({ from: window.patchbayPending, to: { deviceId, side } });
+                        window.savePatchbay();
+                    }
+                    window.patchbayPending = null;
+                } else {
+                    window.patchbayPending = { deviceId, side };
+                }
+                window.renderPatchbay();
+                if (window.patchbayPending) { const activePort = document.querySelector(`.patchbay-port[data-device-id="${window.patchbayPending.deviceId}"][data-side="${window.patchbayPending.side}"]`); activePort?.classList.add('ring-2', 'ring-[#FFD60A]'); activePort?.style.setProperty('background', '#FFD60A'); }
+            }
+        });
+
+        let dragTarget = null, dragOffsetX = 0, dragOffsetY = 0;
+        canvas?.addEventListener('pointerdown', (e) => {
+            const deviceEl = e.target.closest('.patchbay-device'); if (!deviceEl || e.target.closest('.patchbay-port, .patchbay-del-device')) return;
+            const id = parseInt(deviceEl.dataset.deviceId, 10);
+            const d = window.db.patchbay.devices.find((x) => x.id === id); if (!d) return;
+            const rect = canvas.getBoundingClientRect();
+            dragTarget = d; dragOffsetX = (e.clientX + canvas.scrollLeft - rect.left) - d.x; dragOffsetY = (e.clientY + canvas.scrollTop - rect.top) - d.y;
+        });
+        canvas?.addEventListener('pointermove', (e) => {
+            if (!dragTarget) return;
+            const rect = canvas.getBoundingClientRect();
+            dragTarget.x = Math.max(0, (e.clientX + canvas.scrollLeft - rect.left) - dragOffsetX);
+            dragTarget.y = Math.max(0, (e.clientY + canvas.scrollTop - rect.top) - dragOffsetY);
+            window.renderPatchbay();
+        });
+        const endDrag = () => { if (dragTarget) { window.savePatchbay(); dragTarget = null; } };
+        canvas?.addEventListener('pointerup', endDrag);
+        canvas?.addEventListener('pointerleave', endDrag);
+
+        window.renderPatchbay();
+    })();
 
     window.importRecipePack = (file) => {
         const reader = new FileReader();
@@ -1464,6 +1749,51 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
     };
 
+
+    // === PLUGIN COVERAGE GAP-CHECK ===
+    window.OWNED_PLUGINS = [
+        'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
+        'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
+        'Hitsville EQ', 'CHANNEV', '1176 Rev A', 'bx_blackdist2', 'Dream Amp', '610-A', 'Fairchild 660',
+        'Hemisphere', 'Waterfall Rotary Speaker', 'Neve 1073', 'SSDSampler5', 'Amplifiers', 'bx_distorange',
+        'Ocean Way Studios Deluxe', 'Sitala', 'Ampex ATR-102', 'Electra', 'VD-DEEP', 'Diablo Lite', 'Stems 3',
+        'Hitsville EQ Mastering', 'Kontakt 8', 'WaveLab', 'HALion Sonic', 'A-Type Multiband', 'Oxide Tape',
+        'Teletronix LA-2', 'bx_tuner', 'Manley Massive Passive', 'bx_shredspread', 'Trigger_2', 'Saturation Knob',
+        'Tape Cassette 2', 'LA-2A Gray', 'TDR Nova', 'SSL G-Bus Compressor', 'DrumGPT', 'elysia niveau filter',
+        'Fairchild 670', 'API Vision Channel Strip', 'Manley Preamp', 'LA-2A Silver', 'Capitol Compressor',
+        'bx_boom', 'ParametricOD', 'CHOWTapeModel', 'ValhallaSupermassive', 'KolinMB', 'IVGI2', 'Studer A800',
+        'bx_subfilter', 'Massive Passive M', 'Emissary', 'Topline Vocal Suite', 'Neutone Morpho', 'bx_bluechorus2',
+        'Filterjam', 'Distressor', '1176AE', 'VoiceAssist', 'Manley Variable Mu', 'Marshall Plexi Classic',
+        'bx_megasingle', 'MT-PowerDrumKit', 'Vital', 'Hitsville Chambers', 'Pultec HLF-3C', 'bx_masterdesk Classic',
+        'Ruby Amp', 'bx_cleansweep', 'Pultec EQP-1A', 'kHs Gate', 'kHs Distortion', 'kHs Delay', 'kHs Resonator',
+        'kHs Formant Filter', 'kHs Compactor', 'kHs Dynamics', 'kHs Channel Mixer', 'kHs Nonlinear Filter',
+        'kHs Phaser', 'kHs Dual Delay', 'kHs Clipper', 'kHs Compressor', 'kHs Pitch Shifter', 'kHs Shaper',
+        'kHs Gain', 'kHs Comb Filter', 'kHs Phase Distortion', 'kHs Flanger', 'kHs Trance Gate',
+        'kHs Transient Shaper', 'kHs Tape Stop', 'kHs 3-Band EQ', 'kHs Haas', 'kHs Ladder Filter', 'kHs Chorus',
+        'kHs Ensemble', 'kHs Stereo', 'kHs Bitcrush', 'kHs Reverser', 'kHs Frequency Shifter', 'kHs Ring Mod',
+        'kHs Limiter', 'kHs Reverb', 'kHs Filter', 'NeuralAmpModeler', 'Woodrow Amp', 'Verve', 'Ravel',
+        'Surge XT Effects', 'Neutone FX', 'Surge XT', 'Melodyne', 'Studio D Chorus', 'SSL E-Channel Strip',
+        'Lion Amp', 'bx_opto Pedal', 'ChordAXE Lite', '1176LN Rev E', 'Avalon VT-737SP', 'TDR Kotelnikov',
+        'Siren', 'Manley VoxBox', 'Opal', 'Ampeg SVTVR Classic', 'bx_meter', 'Drawmer S73', 'dbx 160',
+        'Minimoog', 'SpectraLayers', 'Vinyl', 'Waterfall B3', 'bx_yellowdrive', 'API 2500', 'DynAssist',
+        'TSAR-1R Reverb', '176', 'FIN-MICRO', 'bx_greenscreamer', 'Paradise Guitar Studio', 'SINE Player',
+        'NeuralNote', 'Helios Type 69', 'Graillon 3', '175-B', 'bx_metal2', 'Lexicon 224', 'LA-3A'
+    ];
+
+    window.checkPluginCoverage = () => {
+        const el = document.getElementById('plugin-coverage-content'); if (!el) return;
+        el.innerHTML = 'Scanning...';
+        const haystack = [
+            ...(window.db.cookbook || []).flatMap((r) => [r.luna, r.reaper, r.notes]),
+            ...(window.db.tones || []).flatMap((t) => [t.nam, t.ir, t.notes]),
+            ...(window.db.tracks || []).flatMap((t) => [t.plugins, t.notes])
+        ].join(' \n ').toLowerCase();
+        const unused = window.OWNED_PLUGINS.filter((p) => !haystack.includes(p.toLowerCase()));
+        if (unused.length === 0) { el.innerHTML = `<div class="text-[#00FF88]">Every owned plugin shows up somewhere. Nice.</div>`; return; }
+        el.innerHTML = `<div class="mb-2 text-[#E2E8F0]/50">${unused.length} of ${window.OWNED_PLUGINS.length} owned plugins have never been referenced:</div><div class="flex flex-wrap gap-1.5">` +
+            unused.map((p) => `<span class="px-2 py-1 rounded border border-[#FFD60A30] text-[#FFD60A] bg-[#FFD60A]/5">${p}</span>`).join('') + `</div>`;
+    };
+    document.getElementById('btn-check-coverage')?.addEventListener('click', () => window.checkPluginCoverage());
 
     window.blendGenres = () => {
 
@@ -1962,13 +2292,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());
     document.getElementById('btn-close-blend')?.addEventListener('click', () => document.getElementById('genre-blend-card')?.classList.add('hidden'));
-    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, images: [...window.tempCookbookImages] }; if (idStr) window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
+    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, images: [...window.tempCookbookImages] }; if (idStr) { const old = window.db.cookbook.find(r => r.id === recipe.id); if (old) { const snapshot = { desc: old.desc, luna: old.luna, reaper: old.reaper, notes: old.notes, savedAt: Date.now() }; recipe.history = [snapshot, ...(old.history || [])].slice(0, 3); } window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); } else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
 
     document.getElementById('btn-add-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('btn-cancel-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('search-link')?.addEventListener('keyup', () => window.renderLinks());
     document.getElementById('btn-save-link')?.addEventListener('click', () => { const idStr = document.getElementById('link-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const link = { id: id, title: document.getElementById('link-title').value || 'Unnamed Tool', url: document.getElementById('link-url').value || '#', category: document.getElementById('link-category').value, daw: document.getElementById('link-daw').value, notes: document.getElementById('link-notes').value }; if (!link.url.startsWith('http') && link.url !== '#') link.url = 'https://' + link.url; if (idStr) window.db.links = window.db.links.map(l => l.id === link.id ? link : l); else window.db.links.unshift(link); window.saveData(); window.toggleForm('form-link'); window.renderLinks(); });
 
     document.getElementById('btn-add-track')?.addEventListener('click', () => window.toggleForm('form-track')); document.getElementById('btn-cancel-track')?.addEventListener('click', () => window.toggleForm('form-track'));
-    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
+    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, reflink: document.getElementById('track-reflink')?.value || '', notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
 
     document.getElementById('btn-add-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('btn-cancel-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('search-tone')?.addEventListener('keyup', () => window.renderTones());
     document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
@@ -1977,13 +2307,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelCb = e.target.closest('.btn-del-cookbook'); if(btnDelCb && confirm("Delete this recipe?")) { window.db.cookbook = window.db.cookbook.filter(r => r.id !== parseInt(btnDelCb.dataset.id, 10)); window.saveData(); window.renderCookbookMenu(); }
         const btnCloneTone = e.target.closest('.btn-clone-tone'); if(btnCloneTone) window.cloneTone(parseInt(btnCloneTone.dataset.id, 10));
-        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; const rl = document.getElementById('track-reflink'); if (rl) rl.value = track.reflink || ''; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelTrack = e.target.closest('.btn-del-track'); if(btnDelTrack && confirm("Delete this track config?")) { window.db.tracks = window.db.tracks.filter(t => t.id !== parseInt(btnDelTrack.dataset.id, 10)); window.saveData(); window.renderTracks(); }
         const btnCloneTrack = e.target.closest('.btn-clone-track'); if(btnCloneTrack) window.cloneTrack(parseInt(btnCloneTrack.dataset.id, 10));
+        const btnExportTrack = e.target.closest('.btn-export-track'); if(btnExportTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnExportTrack.dataset.id, 10)); if (track) window.exportTrackHandoff(track); }
         const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-daw').value = tone.daw; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
         const btnDelTone = e.target.closest('.btn-del-tone'); if(btnDelTone && confirm("Delete this tone?")) { const delId = parseInt(btnDelTone.dataset.id, 10); window.db.tones = window.db.tones.filter(t => t.id !== delId); window.saveData(); window.audioDbDelete(delId).then(() => window.scheduleAudioDriveSync()); window.renderTones(); window.renderStarredTones(); }
         const btnCloneCb = e.target.closest('.btn-clone-cookbook'); if(btnCloneCb) window.cloneCookbook(parseInt(btnCloneCb.dataset.id, 10)); 
         const btnPrintCb = e.target.closest('.btn-print-cookbook'); if(btnPrintCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnPrintCb.dataset.id, 10)); if (recipe) window.printRecipeSheet(recipe); }
+        const btnHistoryCb = e.target.closest('.btn-history-cookbook'); if(btnHistoryCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnHistoryCb.dataset.id, 10)); if (recipe) window.openHistoryModal(recipe); }
         const btnEditLink = e.target.closest('.btn-edit-link'); if(btnEditLink) { const link = window.db.links.find(l => l.id === parseInt(btnEditLink.dataset.id, 10)); if(link) { document.getElementById('link-id').value = link.id; document.getElementById('link-title').value = link.title; document.getElementById('link-url').value = link.url; document.getElementById('link-category').value = link.category; document.getElementById('link-daw').value = link.daw; document.getElementById('link-notes').value = link.notes; const t=document.getElementById('link-form-title'); if(t) t.innerText = 'EDIT TOOL LINK'; document.getElementById('form-link')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-link')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelLink = e.target.closest('.btn-del-link'); if(btnDelLink && confirm("Delete this link?")) { window.db.links = window.db.links.filter(l => l.id !== parseInt(btnDelLink.dataset.id, 10)); window.saveData(); window.renderLinks(); }
         const btnTagLink = e.target.closest('.btn-tag-link'); if(btnTagLink) window.setLinkTag(btnTagLink.dataset.tag);
@@ -2006,7 +2338,46 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.getImagesHtml = (imagesArray, colorClass, type, id) => { if (!imagesArray || imagesArray.length === 0) return ''; let html = `<div class="mt-4 p-3 bg-black/40 rounded border border-[${colorClass}20]"><div class="text-[9px] text-[${colorClass}]/70 tracking-widest mb-3 font-bold uppercase flex items-center gap-2">Signal Chain / Plugin Flow</div><div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide cursor-pointer group" onclick="window.openModalGallery('${type}', ${id})">`; imagesArray.forEach((imgB64, i) => { html += `<img src="${imgB64}" class="w-20 h-20 object-cover border border-[${colorClass}40] rounded shadow-[0_0_10px_rgba(0,0,0,0.5)] group-hover:border-[${colorClass}] transition-colors">`; if (i < imagesArray.length - 1) html += `<span class="text-[${colorClass}]/50 font-bold text-[18px] shrink-0">→</span>`; }); html += `</div></div>`; return html; };
 
-    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
+    window.exportTrackHandoff = (track) => {
+        const imagesHtml = (track.images || []).map((b64) => `<img src="${b64}" style="max-width:100%;border-radius:6px;margin:8px 0;border:1px solid #333;">`).join('');
+        const embedHtml = track.reflink ? `<p style="margin-top:16px;"><a href="${track.reflink}" style="color:#00E5FF;">Reference: ${track.reflink}</a></p>` : '';
+        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${track.inst} — Session Handoff</title>
+<style>body{background:#0a0f0d;color:#e2e8f0;font-family:'Courier New',monospace;max-width:700px;margin:40px auto;padding:0 20px;line-height:1.6;}
+h1{color:#00FF88;font-size:20px;letter-spacing:0.05em;}
+.meta{color:#7AFFBF99;font-size:12px;margin-bottom:24px;}
+h2{color:#00E5FF;font-size:13px;border-bottom:1px solid #333;padding-bottom:6px;margin-top:28px;}
+p{font-size:13px;white-space:pre-wrap;}
+.chain{background:#000;padding:12px;border-radius:6px;border:1px solid #222;font-size:12px;}</style></head>
+<body>
+<h1>${track.inst}</h1>
+<div class="meta">DAW: ${track.daw} — Exported from FERRETT_STUDIO_OS on ${new Date().toLocaleDateString()}</div>
+<h2>FX CHAIN</h2>
+<div class="chain">${track.plugins || 'None listed'}</div>
+<h2>NOTES</h2>
+<p>${track.notes || '(none)'}</p>
+${embedHtml}
+${imagesHtml ? `<h2>SCREENSHOTS</h2>${imagesHtml}` : ''}
+</body></html>`;
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${(track.inst || 'track').replace(/[^a-z0-9]/gi, '_')}_handoff.html`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
+    window.getEmbedHtml = (url) => {
+        if (!url) return '';
+        try {
+            const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{6,})/);
+            if (ytMatch) return `<div class="mt-3 rounded overflow-hidden border border-white/10"><iframe width="100%" height="160" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+            const spMatch = url.match(/open\.spotify\.com\/(track|album|playlist|artist)\/([\w]+)/);
+            if (spMatch) return `<div class="mt-3 rounded overflow-hidden"><iframe style="border-radius:8px" src="https://open.spotify.com/embed/${spMatch[1]}/${spMatch[2]}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>`;
+        } catch (e) {}
+        return `<a href="${url}" target="_blank" rel="noopener" class="mt-3 inline-block text-[10px] font-bold text-[#00E5FF] hover:underline">🔗 Reference link ↗</a>`;
+    };
+
+    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-export-track text-[10px] font-bold text-[#FF88FF] hover:text-white">📤 EXPORT</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getEmbedHtml(t.reflink)}${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
     window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); const allCats = [...new Set(filtered.map(t => t.category))].sort(); window.renderTagBarGeneric('tone-tag-bar', allCats, window.currentToneTag, window.toneCategoryColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.category === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const catColor = window.toneCategoryColor(t.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><button data-tag="${t.category}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${catColor}; border-color:${catColor}40; background:${catColor}0A;" title="Filter by ${t.category}">${t.category}</button>${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${catColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
     window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.db.tones.filter(t => t.starred && (window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both')).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = t.category === 'DISTORTION' ? '#FF8888' : (t.category === 'CLEAN' ? '#00E5FF' : (t.category === 'BASS' ? '#FFD60A' : '#00FF88')); const catBg = t.category === 'DISTORTION' ? '#FF4444' : (t.category === 'CLEAN' ? '#00E5FF' : (t.category === 'BASS' ? '#FFD60A' : '#00FF88')); list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${t.name.toUpperCase()}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${t.nam} + ${t.ir}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${t.notes}</p></div>`; }); };
 
@@ -2050,7 +2421,7 @@ window.cloneTone = (id) => {
     // HUD ANIMATIONS
     // Real session stopwatch — persisted across reloads, pausable via the REC/timecode control.
     const tcEl = document.getElementById('hud-timecode'); function fmt(n) { return String(n).padStart(2,'0'); }
-    let sessionSaveCounter = 0; let lastLogTick = Date.now();
+    let sessionSaveCounter = 0; let lastLogTick = Date.now(); let badgeCounter = 0;
     setInterval(()=>{
         const ms = window.getSessionElapsedMs();
         const totalSec = Math.floor(ms/1000); const frame = Math.floor(((ms%1000)/1000)*30);
@@ -2058,6 +2429,7 @@ window.cloneTone = (id) => {
         if (window.sessionState.running) {
             const now = Date.now(); window.logSessionTime(now - lastLogTick); lastLogTick = now;
             sessionSaveCounter++; if (sessionSaveCounter >= 150) { sessionSaveCounter = 0; window.sessionState.elapsedMs = ms; window.sessionState.startedAt = Date.now(); window.saveSessionState(); }
+            badgeCounter++; if (badgeCounter >= 1800) { badgeCounter = 0; window.updateAppBadge?.(window.getSessionStats?.()); }
         } else { lastLogTick = Date.now(); }
     }, 1000/30);
     document.getElementById('btn-session-toggle')?.addEventListener('click', () => window.toggleSessionTimer());
@@ -2342,8 +2714,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cmdk-input')?.addEventListener('input', (e) => window.renderCmdkResults(e.target.value));
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); else window.openCmdk(); }
-        if (e.key === 'Escape') { const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); }
+        const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+        if (e.key === '?' && !isTyping) { e.preventDefault(); const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } }
+        if (e.key === ' ' && !isTyping && document.getElementById('tab-calc')?.classList.contains('active')) { e.preventDefault(); window.metro?.running ? window.stopMetronome() : window.startMetronome(); }
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk();
+            document.querySelectorAll('.fixed.flex[id$="-modal"]').forEach((m) => { m.classList.add('hidden'); m.classList.remove('flex'); });
+        }
     });
+    document.getElementById('close-shortcuts-modal')?.addEventListener('click', () => { const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.add('hidden'); m.classList.remove('flex'); } });
+    document.getElementById('btn-open-shortcuts')?.addEventListener('click', () => { const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } });
+    document.getElementById('shortcuts-modal')?.addEventListener('click', (e) => { if (e.target.id === 'shortcuts-modal') { e.currentTarget.classList.add('hidden'); e.currentTarget.classList.remove('flex'); } });
 });
 </script>
 

@@ -223,7 +223,7 @@ main { background: rgba(5,8,7,0.72); }
     <section id="tab-cookbook" class="middle-tab active p-4 md:p-8 min-h-[500px]">
         <div class="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 gap-4">
             <h2 class="text-[15px] font-bold tracking-widest text-[#00FF88]">THE ULTIMATE RECIPE BOOK</h2>
-            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-ferrett shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-add-cookbook" class="btn-ferrett-green shrink-0">+ ADD RECIPE</button></div>
+            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-ferrett shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-import-recipes" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-ferrett-green shrink-0">+ ADD RECIPE</button></div>
         </div>
         
         <div id="genre-blend-card" class="card mb-6 hidden relative overflow-hidden" style="border-color:#FFD60A40;">
@@ -1071,6 +1071,34 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
+    window.importRecipePack = (file) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            let incoming;
+            try { incoming = JSON.parse(ev.target.result); } catch (e) { alert('That file is not valid JSON.'); return; }
+            const list = Array.isArray(incoming) ? incoming : (Array.isArray(incoming.cookbook) ? incoming.cookbook : null);
+            if (!list) { alert('Expected a JSON array of recipes (or a {"cookbook":[...]} object).'); return; }
+            const existing = window.db.cookbook || [];
+            const existingKeys = new Set(existing.map((r) => `${(r.genre || '').trim().toLowerCase()}|${(r.inst || '').trim().toLowerCase()}`));
+            let nextId = existing.reduce((max, r) => Math.max(max, r.id || 0), 200) + 1;
+            let added = 0, skipped = 0;
+            list.forEach((r) => {
+                if (!r.genre || !r.inst) { skipped++; return; }
+                const key = `${r.genre.trim().toLowerCase()}|${r.inst.trim().toLowerCase()}`;
+                if (existingKeys.has(key)) { skipped++; return; }
+                existingKeys.add(key);
+                existing.push({ id: nextId++, genre: r.genre, inst: r.inst, desc: r.desc || '', luna: r.luna || '', reaper: r.reaper || '', notes: r.notes || '', images: [] });
+                added++;
+            });
+            window.db.cookbook = existing;
+            window.saveData();
+            window.renderCookbookMenu();
+            alert(`Imported ${added} new recipe${added === 1 ? '' : 's'}.${skipped ? ` Skipped ${skipped} (duplicates or missing genre/instrument).` : ''}`);
+        };
+        reader.onerror = () => alert('Could not read that file.');
+        reader.readAsText(file);
+    };
+
     window.blendGenres = () => {
         const genres = [...new Set((window.db.cookbook || []).map(r => r.genre))];
         if (genres.length < 2) { alert('Add recipes in at least 2 different genres to blend combos.'); return; }
@@ -1232,6 +1260,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-add-cookbook')?.addEventListener('click', () => window.toggleForm('form-cookbook')); document.getElementById('btn-cancel-cookbook')?.addEventListener('click', () => window.toggleForm('form-cookbook'));
     document.getElementById('btn-surprise-cookbook')?.addEventListener('click', () => window.surpriseCookbook());
     document.getElementById('btn-blend-genres')?.addEventListener('click', () => window.blendGenres());
+    document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
+    document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());
     document.getElementById('btn-close-blend')?.addEventListener('click', () => document.getElementById('genre-blend-card')?.classList.add('hidden'));
     document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, images: [...window.tempCookbookImages] }; if (idStr) window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });

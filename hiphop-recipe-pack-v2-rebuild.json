@@ -1,0 +1,498 @@
+[
+  {
+    "genre": "G-Funk / 90s West Coast",
+    "inst": "Beats: Synthetic Kick & Snare",
+    "desc": "Punchy, synthesized drum machine kicks paired with a snappy, high-frequency clap.",
+    "luna": "API Vision Channel Strip (HPF at 30Hz, +3dB at 60Hz). 1176 Rev A (slow attack, fast release). Oxide Tape (subtle wow).",
+    "reaper": "API Vision Channel Strip VST -> TDR Nova (dynamic EQ expanding 60Hz on kick hits) -> JS 1176.",
+    "notes": "Nudge clap/snare exactly 2 to 5 milliseconds BEFORE the kick drum for a lazy, wide feel."
+  },
+  {
+    "genre": "G-Funk / 90s West Coast",
+    "inst": "Bass: Live P-Funk DI",
+    "desc": "The laid-back, Parliament-style live bass groove (e.g., 'Nuthin' but a 'G' Thang').",
+    "luna": "610-A Tube Preamp -> Kilohearts kHs Ladder Filter (slow envelope automation for a 'wah' swell) -> LA-2A.",
+    "reaper": "Bass DI -> Kilohearts kHs Ladder Filter VST (automated cutoff) -> TDR Kotelnikov -> Pultec EQP-1A VST (boost 60Hz).",
+    "notes": "Play behind the beat. Leave plenty of space between notes. Slide into the root notes."
+  },
+  {
+    "genre": "G-Funk / 90s West Coast",
+    "inst": "Synths: High Sine Portamento Lead",
+    "desc": "The iconic, high-pitched, gliding synthesizer whistle lead.",
+    "luna": "Pure sine (Vital) -> Tube Delay (mix 25%, dark repeats). Lexicon 224 Plate (1.5s).",
+    "reaper": "Vital (Sine). Mono/Legato ON, Portamento 100-150ms -> Tube Delay VST -> Lexicon 224 VST.",
+    "notes": "Keep MIDI high (C5 or C6 octave). Monophonic melody only. No chords."
+  },
+  {
+    "genre": "G-Funk / 90s West Coast",
+    "inst": "Vox: Talkbox Anchor",
+    "desc": "Zapp & Roger style robotic vocal harmonies.",
+    "luna": "Pultec MEQ-5 (surgically pull down 400Hz and 2kHz plastic resonances). LA-2A.",
+    "reaper": "ReaEQ (Aggressive HPF 150Hz) -> JS Chorus -> ReaComp.",
+    "notes": "Feed the talkbox with incredibly bright Sawtooth waves (filter wide open)."
+  },
+  {
+    "genre": "G-Funk / 90s West Coast",
+    "inst": "Synths: Deep Sub Bassline",
+    "desc": "A round, deep Moog-style sub bassline sitting under the live P-Funk bass for extra low-end weight.",
+    "luna": "Minimoog -> Neve 1073 (boost 60Hz) -> LA-3A (slow glue).",
+    "reaper": "Surge XT (analog bass patch) -> ReaEQ (boost 50-70Hz) -> TDR Kotelnikov.",
+    "notes": "Keep it monophonic and locked to the kick's root note \u2014 it should reinforce, not compete with, the live bass."
+  },
+  {
+    "genre": "G-Funk / 90s West Coast",
+    "inst": "Vox: G-Funk Ad-Lib Whisper",
+    "desc": "Laid-back, half-spoken ad-libs tucked low in the mix, classic Snoop/Warren G phrasing.",
+    "luna": "Manley Preamp (warm, low gain). LA-2A (light, slow). Hitsville Chambers (short slap).",
+    "reaper": "1073 VST (low gain) -> ReaComp (2:1, slow) -> ReaVerbate (short room, low mix).",
+    "notes": "Record close to the mic at conversational volume \u2014 don't push for loudness, push for laid-back cool."
+  },
+  {
+    "genre": "Aftermath / Shady 2000s",
+    "inst": "Beats: The '2001' Snare",
+    "desc": "Dr. Dre's signature ultra-dry, cracking snare. Zero reverb, layered with a rim or clap.",
+    "luna": "API Vision Channel Strip. HPF at 200Hz. Massive boost at 5kHz for the crack. SSL E-Channel Strip to flatten the transient.",
+    "reaper": "JS Transient Controller (max out attack, cut sustain entirely). ReaEQ (+4dB at 5kHz) -> TDR Kotelnikov.",
+    "notes": "The key is the dead silence after the hit. Use a noise gate with a 0ms release to physically chop the tail of the snare off."
+  },
+  {
+    "genre": "Aftermath / Shady 2000s",
+    "inst": "Synths: Pizzicato Strings",
+    "desc": "The Scott Storch signature. Plucked, staccato orchestral strings providing the main bounce.",
+    "luna": "Neve 1073 (cut low-mids at 300Hz so it doesn't clash with the kick). LA-3A compressor. Hitsville Chambers (very short, dark).",
+    "reaper": "HALion Sonic (Pizzicato Strings patch). ReaEQ (HPF 200Hz) -> ReaComp -> ReaVerbate (0.5s decay, dark).",
+    "notes": "Keep the MIDI velocities extremely rigid and identical. Pan slightly off-center (L15 or R15) to leave the middle open."
+  },
+  {
+    "genre": "Aftermath / Shady 2000s",
+    "inst": "Keys: The Heavy Piano Stab",
+    "desc": "Ominous, heavily compressed grand piano (e.g., 'Still D.R.E.', 'Lose Yourself').",
+    "luna": "API 2500 Compressor (Thrust set to LOUD, slow attack, 4:1 ratio). Pultec EQP-1A (+2dB at 100Hz).",
+    "reaper": "Kontakt 8 (Grand Piano) -> JS 1176 (slow attack) -> ReaEQ (boost 100Hz and 4kHz).",
+    "notes": "Play simple 2 or 3-note minor chords on the downbeat. Quantize perfectly to the grid."
+  },
+  {
+    "genre": "Aftermath / Shady 2000s",
+    "inst": "Vox: The Shady Double Stack",
+    "desc": "Eminem's incredibly tight, aggressive, multi-layered vocal technique.",
+    "luna": "Lead Vox dead center (1176 Rev A into LA-2A). Double Track 1 panned L100. Double Track 2 panned R100. De-ess the doubles with TDR Nova.",
+    "reaper": "Lead Vox -> 1073 VST -> fast ReaComp -> Kotelnikov. Left/Right doubles: steep HPF at 300Hz -> smash with 1176AE VST.",
+    "notes": "Physically rap the verses 3 times flawlessly. Do NOT use a chorus or widener. Aggressively align the transients manually."
+  },
+  {
+    "genre": "Aftermath / Shady 2000s",
+    "inst": "Synths: Dark Orchestral Hit Stab",
+    "desc": "Ominous, low orchestral hit accenting the downbeat, Dre/Storch-style tension builder.",
+    "luna": "Kontakt 8 (Orchestral Hit) -> Manley Massive Passive (scoop mids for a hollow, tense tone) -> Hitsville Chambers.",
+    "reaper": "Kontakt 8 -> ReaEQ (mid scoop) -> ReaVerbate (dark, medium decay).",
+    "notes": "Reserve it for the biggest moment in the arrangement \u2014 a hook drop or a beat switch. Overusing it kills the impact."
+  },
+  {
+    "genre": "Aftermath / Shady 2000s",
+    "inst": "Vox: Interlude Skit Dialogue",
+    "desc": "Dry, close-mic'd spoken-word skit dialogue between song sections, Aftermath-style.",
+    "luna": "Manley Preamp (natural gain) -> LA-2A (very light). No reverb.",
+    "reaper": "1073 VST (clean) -> ReaComp (1.5:1, gentle) -> ReaEQ (light presence boost 3kHz).",
+    "notes": "Keep it completely dry and upfront \u2014 the contrast with the reverb-heavy music around it is the effect."
+  },
+  {
+    "genre": "80s Def Jam / Arena Rap",
+    "inst": "Beats: Distorted 808 Rock Kick",
+    "desc": "The 'Licensed to Ill' sound. TR-808s treated like a heavy metal drum kit.",
+    "luna": "bx_blackdist2 (drive heavily). Pultec MEQ-5 (boost 60Hz and 3kHz for click). SSL G-Bus Compressor.",
+    "reaper": "JS Distortion (Fuzz mode, low wet blend) -> ReaEQ (+5dB at 50Hz, +4dB at 4kHz) -> JS 1176.",
+    "notes": "Let the 808 decay ring out slightly to create a droning low end beneath the rock samples."
+  },
+  {
+    "genre": "80s Def Jam / Arena Rap",
+    "inst": "Beats: Gated Snare Bomb",
+    "desc": "Massive, 80s rock-reverb snare hits.",
+    "luna": "Send snare to Ocean Way Studios Deluxe (Large Plate). Insert Noise Gate AFTER the reverb. Fast threshold, instant release.",
+    "reaper": "ReaVerbate (Large Plate, 3s decay) -> ReaGate (sidechained to dry snare, 150ms hold, 5ms release).",
+    "notes": "The reverb should sound huge but get sucked into absolute silence before the next hi-hat hit."
+  },
+  {
+    "genre": "80s Def Jam / Arena Rap",
+    "inst": "Guitars: Sampled Hard Rock Chugs",
+    "desc": "Slayer / AC/DC style guitar hits used as rhythmic stabs.",
+    "luna": "Studer A800 (saturate heavily). API 2500 (crush the peaks). Pan hard left and right.",
+    "reaper": "Sample -> JS Transient Controller (max attack) -> TDR Kotelnikov (brickwall limit).",
+    "notes": "Truncate the guitar samples aggressively so they act as percussive hits, not melodic elements."
+  },
+  {
+    "genre": "80s Def Jam / Arena Rap",
+    "inst": "Vox: The Shout Chorus",
+    "desc": "Three guys screaming into one microphone.",
+    "luna": "Neve 1073 (drive into red). 1176 Rev A (fastest attack/release, All Buttons In style).",
+    "reaper": "JS Saturation -> JS 1176 (smashed) -> ReaEQ (High-pass at 200Hz to remove boominess from a group of guys).",
+    "notes": "Record everyone simultaneously on one omni-directional mic to get natural room bleed and phasing."
+  },
+  {
+    "genre": "80s Def Jam / Arena Rap",
+    "inst": "Guitars: NAM Arena Power Chord Wall",
+    "desc": "A wide, distorted wall of layered power chords under the hook, using amp modeling instead of samples.",
+    "luna": "NeuralAmpModeler (high-gain profile) -> NadIR (4x12 cab) -> double-track panned hard L/R.",
+    "reaper": "NeuralAmpModeler VST3 -> NadIR VST3 -> ReaEQ (scoop 400-600Hz to avoid mud) -> TDR Kotelnikov.",
+    "notes": "Track the same riff twice (not copy-paste) for a natural, slightly-different double that feels wide."
+  },
+  {
+    "genre": "80s Def Jam / Arena Rap",
+    "inst": "Beats: Cannon Rimshot Layer",
+    "desc": "A huge, cracking rimshot layered under the gated snare for extra transient snap.",
+    "luna": "Trigger_2 (layer a sampled rimshot on snare hits). API Vision Channel Strip (boost 3-5kHz).",
+    "reaper": "Trigger_2 VST3 -> ReaEQ (presence boost) -> JS Transient Controller (max attack).",
+    "notes": "Blend it low under the main snare \u2014 it should thicken the crack, not become its own separate hit."
+  },
+  {
+    "genre": "Soul Assassins / Cypress Hill",
+    "inst": "Beats: The Grimy Boom-Bap",
+    "desc": "Extremely dirty, muffled, slow-tempo drum breaks.",
+    "luna": "Studer A800 (7.5 ips). Pultec HLF-3C (cut 10kHz to remove all shine). Fairchild 670 for glue.",
+    "reaper": "JS Decimator (12-bit) -> ReaEQ (Low-pass at 6kHz) -> TDR Kotelnikov (slow release to make the break breathe).",
+    "notes": "Layer a live, dusty funk breakbeat underneath programmed SP-1200 kick and snare hits."
+  },
+  {
+    "genre": "Soul Assassins / Cypress Hill",
+    "inst": "Synths/Samples: The Squealing Loop",
+    "desc": "High-pitched, eerie, dissonant horns or sirens (e.g., 'Insane in the Brain').",
+    "luna": "Pultec MEQ-5 (boost 2kHz aggressively). Tube Delay (short slapback, high distortion).",
+    "reaper": "ReaEQ (High-pass at 500Hz, +6dB bell at 2.5kHz) -> Tape Cassette 2 VST (max noise/flutter) -> JS Delay.",
+    "notes": "Pitch your horn/string sample up 1 or 2 octaves so it sounds thin, tense, and alien."
+  },
+  {
+    "genre": "Soul Assassins / Cypress Hill",
+    "inst": "Bass: Fuzzed Upright",
+    "desc": "A murky, heavily distorted upright bass loop.",
+    "luna": "bx_blackdist2 (Triode-style setting). Kilohearts kHs Ladder Filter (Low pass at 400Hz to roll off the fuzz buzz).",
+    "reaper": "JS Saturation (driven hard) -> ReaEQ (LPF at 300Hz, boost 80Hz).",
+    "notes": "The bass should sound blown-out but completely muffled, taking up zero high-end space."
+  },
+  {
+    "genre": "Soul Assassins / Cypress Hill",
+    "inst": "Vox: The Nasal Megaphone",
+    "desc": "B-Real style hyper-nasal, compressed delivery.",
+    "luna": "Neve 1073 (High-pass at 250Hz, boost 1.5kHz). 1176 Rev A (smash 6dB of GR).",
+    "reaper": "ReaEQ (Telephone filter: HPF 300Hz, LPF 4kHz, +3dB at 1kHz) -> JS 1176.",
+    "notes": "Deliver the vocal from the back of the throat. Use extreme compression to keep every syllable audible."
+  },
+  {
+    "genre": "Soul Assassins / Cypress Hill",
+    "inst": "Samples: Sitar/Eastern Loop Flip",
+    "desc": "A hypnotic, droning Eastern string loop (sitar/tanpura-style) chopped and looped, the 'Insane' cousin move.",
+    "luna": "Kontakt 8 (Ethnic/World library) -> Pultec MEQ-5 (boost 2-3kHz for the buzzy overtones) -> Capitol Chambers (short).",
+    "reaper": "Kontakt 8 -> ReaEQ (presence boost) -> ReaVerbate (short room).",
+    "notes": "Loop a 1-2 bar phrase exactly \u2014 the hypnotic repetition is the point, avoid variation."
+  },
+  {
+    "genre": "Soul Assassins / Cypress Hill",
+    "inst": "Vox: Group Chant Hook",
+    "desc": "Multiple voices chanting a short, repetitive hook phrase together, stoner-rap crowd energy.",
+    "luna": "610-A Tube Preamp (drive warm). LA-2A (squash together as a group).",
+    "reaper": "1073 VST -> ReaComp (3:1) -> ReaEQ (HPF 200Hz to clean up group rumble).",
+    "notes": "Record 3+ people chanting together in one take rather than stacking solo takes \u2014 the imperfect unison is the vibe."
+  },
+  {
+    "genre": "Detroit Horrorcore",
+    "inst": "Beats: The Murder Groove",
+    "desc": "A collision of heavy funk breaks and 808s, mixed very loud.",
+    "luna": "Drum Bus -> API 2500 (Medium attack, thrust LOUD). Pultec EQP-1A (boost 60Hz and 10kHz).",
+    "reaper": "Drum Bus -> TDR Kotelnikov (peak crest control) -> Pultec EQP-1A VST -> JS Transient Controller.",
+    "notes": "Layer tight funk breakbeats (James Brown style) directly over sustained 808 subs."
+  },
+  {
+    "genre": "Detroit Horrorcore",
+    "inst": "Keys: The Dark Carnival Organ",
+    "desc": "Circus/calliope organs soaked in modulation and dirt.",
+    "luna": "Organ (HALion Sonic) -> Brigade Chorus (max depth). Studer A800 (drive input to break up the organ).",
+    "reaper": "HALion Sonic (Organ patch) -> JS Chorus -> JS Distortion (subtle overdrive) -> ReaVerbate.",
+    "notes": "Play minor and diminished scales. Keep the phrasing carnival-esque (oom-pah rhythm)."
+  },
+  {
+    "genre": "Detroit Horrorcore",
+    "inst": "Guitars: Thrash Metal Blend",
+    "desc": "Heavy metal power chords fading in and out of the beat.",
+    "luna": "NeuralAmpModeler (high-gain profile) -> Pultec MEQ-5 (pull out 200Hz mud so the 808 can breathe). Pan L/R.",
+    "reaper": "NeuralAmpModeler VST3 (JCM800-style profile) -> NadIR (cab) -> ReaEQ (HPF 100Hz, LPF 8kHz).",
+    "notes": "Don't play constant riffs. Use the guitars purely to accent the downbeat of the hook."
+  },
+  {
+    "genre": "Detroit Horrorcore",
+    "inst": "Vox: The Wicked Double",
+    "desc": "Abrasive, screaming lead vocals layered with pitched-down demonic doubles.",
+    "luna": "Lead: 1073 -> 1176 Rev A. Double: Pitch down 1 octave via Graillon 3. Run through bx_blackdist2. Blend underneath.",
+    "reaper": "Lead: JS 1176 -> ReaEQ. Double: ReaPitch (Shift -12 semitones, Formant preserve OFF) -> JS Saturation.",
+    "notes": "The pitched-down vocal should be mixed low, acting as a sub-harmonic shadow to the main lead."
+  },
+  {
+    "genre": "Detroit Horrorcore",
+    "inst": "Synths: Detuned Circus Bell Melody",
+    "desc": "A dissonant, slightly-detuned bell/celeste melody adding an unsettling, off-kilter texture.",
+    "luna": "Kontakt 8 (Bells/Celeste) detuned -10 to -20 cents -> Manley Massive Passive (thin the tone) -> Capitol Chambers.",
+    "reaper": "Kontakt 8 -> ReaPitch (fine detune) -> ReaEQ (thin) -> ReaVerbate.",
+    "notes": "Detune by ear so it sits 'almost right' \u2014 too far and it just sounds broken instead of eerie."
+  },
+  {
+    "genre": "Detroit Horrorcore",
+    "inst": "Vox: Ghostly Whisper Layer",
+    "desc": "A breathy, reverb-drenched whisper layer floating underneath the main lead vocal.",
+    "luna": "Manley Preamp (very low gain, close mic). Ocean Way Studios Deluxe (long, dark plate).",
+    "reaper": "1073 VST (low gain) -> ReaEQ (HPF 300Hz) -> ReaVerbate (long, dark, high mix) -> automate volume very low.",
+    "notes": "This layer should be almost subliminal \u2014 felt more than consciously heard."
+  },
+  {
+    "genre": "Early 2000s Southern Bounce",
+    "inst": "Beats: Minimalist 808 Snap",
+    "desc": "Bangladesh style. Incredibly sparse, hyper-punchy.",
+    "luna": "API Vision Channel Strip. No drum bus glue. Treat elements individually. 808: bx_blackdist2. Snare: API 2500.",
+    "reaper": "808 -> JS Distortion. Snare -> JS Transient Controller (max attack). Keep mix completely dry.",
+    "notes": "Zero reverb. Zero tape emulation. The silence between the hits is what creates the bounce."
+  },
+  {
+    "genre": "Early 2000s Southern Bounce",
+    "inst": "Beats: Tongue Clicks & Foley",
+    "desc": "Using weird mouth noises or household sounds instead of hi-hats.",
+    "luna": "Record tongue clicks -> Neve 1073 (boost 8kHz). Compress with LA-3A. Short Tube Delay slap.",
+    "reaper": "Foley sample -> ReaEQ (HPF 500Hz) -> TDR Kotelnikov -> JS Delay.",
+    "notes": "Quantize rigidly to the 16th note grid. Pan them dynamically left and right."
+  },
+  {
+    "genre": "Early 2000s Southern Bounce",
+    "inst": "Synths: The Simple Siren",
+    "desc": "A single, highly repetitive, abrasive synth note or whistle.",
+    "luna": "Kilohearts kHs Ladder Filter (crank resonance). Tube Delay (sync to 8th note).",
+    "reaper": "Vital (Square wave) -> ReaEQ (Bandpass 1kHz-3kHz) -> JS Ping Pong Delay.",
+    "notes": "The melody should be no more than 2 or 3 notes repeating relentlessly over the 808."
+  },
+  {
+    "genre": "Early 2000s Southern Bounce",
+    "inst": "Vox: The Ad-Lib Bus",
+    "desc": "Constant background chanting and hypeman ad-libs panned wide.",
+    "luna": "Group Ad-Libs -> 1176 Rev A (smash) -> Oxide Tape -> Send to 1/4 note Tube Delay.",
+    "reaper": "Group Ad-Libs -> ReaComp -> JS Saturation -> ReaDelay (1/4 note, 40% feedback) -> Pan wide.",
+    "notes": "Process the ad-libs drastically different from the lead vocal so they sit in their own space."
+  },
+  {
+    "genre": "Early 2000s Southern Bounce",
+    "inst": "Beats: Triplet Hi-Hat Bounce",
+    "desc": "Fast triplet hi-hat rolls giving the beat its rolling, bouncing forward momentum.",
+    "luna": "SSL G-Bus Compressor (fast pump). Pultec EQP-1A (air boost at 10-12kHz).",
+    "reaper": "ReaComp (fast attack/release) -> ReaEQ (+3dB shelf 10kHz).",
+    "notes": "Program in triplet subdivisions, not straight 16ths \u2014 that's what gives the beat its bounce vs. a flat pattern."
+  },
+  {
+    "genre": "Early 2000s Southern Bounce",
+    "inst": "Synths: Horn Stab Punctuation",
+    "desc": "A short, punchy brass stab accenting the end of bars, Southern bounce horn-section energy.",
+    "luna": "HALion Sonic (Brass Section) -> API Vision Channel Strip (fast compression) -> Capitol Chambers (short).",
+    "reaper": "HALion Sonic -> ReaComp (fast) -> ReaVerbate (short room).",
+    "notes": "Keep hits extremely short and staccato \u2014 one or two stabs per bar, never sustained."
+  },
+  {
+    "genre": "Southern Soul / Dungeon Family",
+    "inst": "Beats: The Live/MPC Hybrid",
+    "desc": "Blending live drum kit recordings with hard MPC drum machine hits.",
+    "luna": "Live Drum Bus: Studer A800 -> LA-2A. Drum Machine Bus: API 2500. Blend them together.",
+    "reaper": "Live Kit: IVGI2 -> TDR Kotelnikov. Drum Machine: JS Transient Controller. Group both -> ReaComp.",
+    "notes": "Keep the live drums slightly loose and unquantized, but quantize the drum machine strictly."
+  },
+  {
+    "genre": "Southern Soul / Dungeon Family",
+    "inst": "Bass: Deep Analog Moog",
+    "desc": "Thick, sustained, soulful basslines that weave around the kick.",
+    "luna": "Minimoog -> Neve 1073 (boost 60Hz and 200Hz). LA-2A (slow, optical leveling).",
+    "reaper": "Surge XT (Analog Bass) -> Pultec EQP-1A VST (boost 60Hz) -> TDR Kotelnikov (soft knee).",
+    "notes": "Play actual bassline melodies (walking basslines), not just 808 sub hits on the downbeat."
+  },
+  {
+    "genre": "Southern Soul / Dungeon Family",
+    "inst": "Guitars: Soulful Clean Strat",
+    "desc": "Curtis Mayfield-style R&B guitar licks and wah pedals.",
+    "luna": "NeuralAmpModeler (clean Fender-style profile) -> Kilohearts kHs Ladder Filter (auto-wah automation) -> Brigade Chorus -> Ocean Way Studios Deluxe (plate).",
+    "reaper": "NeuralAmpModeler VST3 (clean profile) -> Kilohearts kHs Ladder Filter VST -> JS Chorus -> ReaVerbate.",
+    "notes": "Use the neck pickup. Play highly syncopated 16th note strumming patterns."
+  },
+  {
+    "genre": "Southern Soul / Dungeon Family",
+    "inst": "Vox: The Gospel Hook",
+    "desc": "Massive, soulful choir backing vocals layered heavily.",
+    "luna": "Choir Bus -> Pultec EQP-1A (boost 400Hz for warmth, 10kHz for air). LA-2A (squash). Ocean Way Studios Deluxe (Plate, 3s).",
+    "reaper": "Group Vocals -> ReaEQ (bump 300Hz) -> LA-2A VST -> ReaVerbate -> Kilohearts kHs Stereo (width).",
+    "notes": "Stack at least 8 to 12 vocal takes. Pan them evenly across the entire stereo field."
+  },
+  {
+    "genre": "Southern Soul / Dungeon Family",
+    "inst": "Keys: Warm Rhodes Chord Bed",
+    "desc": "Sustained, warm Rhodes chords sitting under the whole track, classic Organized Noize warmth.",
+    "luna": "Kontakt 8 (Rhodes) -> Neve 1073 (warm boost 200Hz) -> Studio D Chorus (subtle) -> Hitsville Chambers.",
+    "reaper": "Kontakt 8 -> ReaEQ (warmth boost) -> JS Chorus -> ReaVerbate (short).",
+    "notes": "Play slow-moving, sustained chords \u2014 this is a bed, not a lead. Let it breathe under the vocal."
+  },
+  {
+    "genre": "Southern Soul / Dungeon Family",
+    "inst": "Vox: Southern Preacher Ad-Lib",
+    "desc": "A single, impassioned, half-sung/half-shouted ad-lib phrase, Southern-church-influenced delivery.",
+    "luna": "610-A Tube Preamp (drive warm). 1176 Rev A (moderate). Hitsville Chambers (short slap).",
+    "reaper": "1073 VST -> ReaComp (3:1) -> ReaVerbate (short room).",
+    "notes": "Deliver it once, full commitment, no punch-ins \u2014 the raw emotion is what sells this element."
+  },
+  {
+    "genre": "Boom-Bap Kings",
+    "inst": "Beats: Dusty Drum Bus",
+    "desc": "Premier / Pete Rock style gritty, dusty MPC60 knock. Relies on bit-crushing to emulate old samplers.",
+    "luna": "Neve 1073 (drive input hard). Pultec EQP-1A: Boost and Attenuate the 100Hz band simultaneously to create a resonant bump.",
+    "reaper": "JS Decimator (12-bit) -> Pultec EQP-1A VST (100Hz trick) -> JS Transient Controller (boost attack).",
+    "notes": "Choke the hi-hats with the kick drum to simulate a sampler with limited polyphony."
+  },
+  {
+    "genre": "Boom-Bap Kings",
+    "inst": "Beats: Shuffling Hi-Hats",
+    "desc": "Raw, unquantized, multi-layered hi-hats that create the dragging, neck-snapping groove.",
+    "luna": "Studer A800 (drop to 7.5 ips to roll off crisp high-end). Pultec HLF-3C (cut 5kHz).",
+    "reaper": "JS Decimator -> ReaEQ (LPF at 9kHz). Use the MPC Swing script to push 16th notes late.",
+    "notes": "Layer an acoustic hat with a synthetic shaker. Pan slightly apart. Vary velocities wildly."
+  },
+  {
+    "genre": "Boom-Bap Kings",
+    "inst": "Samples: Jazz Horn Loop Chop",
+    "desc": "A warm, chopped jazz horn sample loop \u2014 the Premier/Pete Rock trumpet-and-sax move.",
+    "luna": "Kontakt 8 (Brass/Horns) -> 610-A Tube Preamp (warm drive) -> Fairchild 670 (glue) -> Capitol Chambers.",
+    "reaper": "Kontakt 8 -> ReaEQ (warmth boost 200-400Hz) -> ReaComp (gentle) -> ReaVerbate (short).",
+    "notes": "Chop on the phrase, not the beat \u2014 preserve the horn player's natural breath and swing."
+  },
+  {
+    "genre": "Boom-Bap Kings",
+    "inst": "Bass: Simple Sampled Upright",
+    "desc": "A one or two-note sampled upright bass hit, doubling the kick's root for extra weight.",
+    "luna": "610-A Tube Preamp -> LA-2A (slow) -> Pultec EQP-1A (boost 80Hz).",
+    "reaper": "ReaEQ (boost low end) -> ReaComp (2:1, slow) -> ReaVerbate (very short/off).",
+    "notes": "One sustained note per bar is enough \u2014 this isn't a bassline, it's low-end reinforcement for the sample loop."
+  },
+  {
+    "genre": "Boom-Bap Kings",
+    "inst": "Vox: Battle-Rap Delivery",
+    "desc": "Aggressive, in-your-face lyrical delivery with hard consonants, classic boom-bap battle energy.",
+    "luna": "Neve 1073 (drive hot). 1176 Rev A (fast, aggressive, 8-10dB GR).",
+    "reaper": "1073 VST -> JS 1176 (smashed) -> ReaEQ (presence boost 3-4kHz for consonant clarity).",
+    "notes": "Push the mic gain hotter than feels comfortable \u2014 a little grit at the source sells the aggression."
+  },
+  {
+    "genre": "Groove Innovators",
+    "inst": "Beats: The Dilla Swing",
+    "desc": "Extremely loose, intentionally unquantized drum loops that feel human and drunk.",
+    "luna": "Drum Bus -> Studer A800 (15ips). Pultec EQP-1A (Subtle smile curve: +1dB 60Hz, +1dB 10kHz).",
+    "reaper": "Studer-style VST -> ReaEQ (Tame harsh 2kHz vinyl resonances). MPC Swing Script (57%).",
+    "notes": "Turn off snap-to-grid. Manually nudge kicks slightly late, pull snares slightly early."
+  },
+  {
+    "genre": "Groove Innovators",
+    "inst": "Samples: The SP-1200 Pitch Trick",
+    "desc": "The Madlib/DOOM trick. Pitching samples up on a turntable, then down in the sampler for alias grit.",
+    "luna": "bx_blackdist2 (Triode-style). Pultec MEQ-5 (Boost 2kHz for that crunchy mid-range).",
+    "reaper": "Pitch UP +12st. Render. Pitch DOWN -12st (no formants) -> JS Decimator.",
+    "notes": "The resulting artifacts and crunch are the exact sound of 90s hardware samplers."
+  },
+  {
+    "genre": "Groove Innovators",
+    "inst": "Keys: Wonky Rhodes Loop",
+    "desc": "A slightly-detuned, hazy Rhodes/keys sample loop with intentional pitch wobble, Dilla-esque warmth.",
+    "luna": "Kontakt 8 (Rhodes) -> Oxide Tape (heavy wow/flutter) -> Manley Massive Passive (warm scoop).",
+    "reaper": "Kontakt 8 -> CHOWTapeModel (wobble) -> ReaEQ (warm scoop).",
+    "notes": "Automate a slow, subtle pitch drift over the loop rather than a fixed detune \u2014 it should feel alive, not static."
+  },
+  {
+    "genre": "Groove Innovators",
+    "inst": "Bass: Thick Sampled Sub",
+    "desc": "A thick, slightly distorted sampled bass note reinforcing the low end under the chopped drums.",
+    "luna": "bx_boom (short decay, tuned to root) -> Pultec EQP-1A (boost 60-80Hz).",
+    "reaper": "bx_boom VST -> ReaEQ (boost low end) -> ParametricOD (light drive).",
+    "notes": "Keep it simple \u2014 one or two sustained notes locked to the sample's key center."
+  },
+  {
+    "genre": "Groove Innovators",
+    "inst": "Vox: Laid-Back Pocket Flow",
+    "desc": "Extremely relaxed, behind-the-beat vocal delivery matching the loose, drunk drum swing.",
+    "luna": "Manley Preamp (warm). LA-2A (slow, gentle).",
+    "reaper": "1073 VST -> ReaComp (2:1, slow attack) -> ReaEQ (light warmth boost).",
+    "notes": "Track the vocal while listening to the swung drums on loop \u2014 the pocket has to be felt, not counted."
+  },
+  {
+    "genre": "Underground Vanguards",
+    "inst": "Beats: Heavy Glitch Bus",
+    "desc": "El-P / Def Jux style. Aggressively gluing erratic, industrial percussion samples together.",
+    "luna": "Drum Bus -> bx_blackdist2 (Triode-style setting) -> API 2500 (30ms attack, 3:1 ratio, 3dB GR).",
+    "reaper": "Glitch Bus -> JS Saturation (barely clipping) -> TDR Kotelnikov (12dB peak crest control).",
+    "notes": "Ghost stalk MIDI velocity: Kicks 110-122, Snares 100-115, Ghost notes erratic 12-28."
+  },
+  {
+    "genre": "Underground Vanguards",
+    "inst": "Synths: Dissonant Pluck",
+    "desc": "Aesop / Blockhead weirdness. Off-kilter, metallic, glass-like melodies.",
+    "luna": "Tube Delay (darkest repeats) -> Pultec MEQ-5 (scoop 1kHz-3kHz heavily).",
+    "reaper": "Kontakt 8 (Glass/Mallet patch) -> ReaEQ (scoop 2kHz) -> ReaDelay (un-synced echo).",
+    "notes": "Carve a 'hole' in the mid-range (2k-4k) to leave room for hyper-syllabic vocals."
+  },
+  {
+    "genre": "Underground Vanguards",
+    "inst": "Vox: Hyper-Syllabic Lead",
+    "desc": "Hyper-intelligible, dense, fast-paced vocals that act as a rhythmic instrument (Aesop Rock).",
+    "luna": "Neve 1073 (HPF 100Hz, cut 300Hz, +shelf 10kHz) -> fast 1176 Rev A (5dB GR) -> smooth LA-2A (3dB GR).",
+    "reaper": "1073 VST -> ReaComp (1ms attack, 6:1 ratio for peaks) -> TDR Kotelnikov (RMS leveling) -> ReaXcomp (De-Ess 5k-8k).",
+    "notes": "Bone-dry dead center. If space is needed, use a 15ms micro-delay tucked underneath."
+  },
+  {
+    "genre": "Underground Vanguards",
+    "inst": "Synths: Industrial Metallic Percussion",
+    "desc": "Clanging, metallic, non-musical percussion samples layered into the beat for texture.",
+    "luna": "Kilohearts kHs Ring Mod (metallic character) -> Kilohearts kHs Bitcrush (light grit) -> Pultec HLF-3C.",
+    "reaper": "Kilohearts kHs Ring Mod VST -> Kilohearts kHs Bitcrush VST -> ReaEQ (shape).",
+    "notes": "Layer these as ghost hits between the main drum pattern rather than replacing the kick/snare."
+  },
+  {
+    "genre": "Underground Vanguards",
+    "inst": "Vox: Pitch-Shifted Backing Harmony",
+    "desc": "A subtle, robotic-sounding pitched backing vocal supporting the hyper-syllabic lead.",
+    "luna": "Graillon 3 (pitch shift + light formant lower). Manley Preamp.",
+    "reaper": "Graillon 3 VST3 -> ReaEQ (HPF 300Hz) -> ReaComp (light).",
+    "notes": "Keep the pitch shift small (3-5 semitones) \u2014 too extreme and it stops sounding intentional."
+  },
+  {
+    "genre": "The Futurists",
+    "inst": "Beats: Beatbox & Mouth Percussion",
+    "desc": "Heavily processed beatboxing instead of drum machines.",
+    "luna": "Neve 1073 preamp. Pultec MEQ-5: cut below 150Hz, +4dB at 4kHz to emphasize lip smacks. Compress heavily with 1176 Rev A.",
+    "reaper": "Run through JS Decimator. ReaEQ (HPF 200Hz, +3dB 5kHz) and ReaComp with fast attack.",
+    "notes": "Quantize exactly to the 16th note grid so it feels like a machine."
+  },
+  {
+    "genre": "The Futurists",
+    "inst": "Synths: Bleepy Sine Arps",
+    "desc": "The Neptunes 'Grindin' signature plucky, staccato synthesizer lines.",
+    "luna": "Pure Sine wave (Vital) -> Kilohearts kHs Ladder Filter (fast envelope) -> Brigade Chorus -> short 20ms Tube Delay slapback.",
+    "reaper": "Vital (Sine). ADSR: zero Attack, zero Sustain, incredibly fast Decay. JS Ping Pong Delay.",
+    "notes": "Play completely staccato. No overlapping notes. The space creates the bounce."
+  },
+  {
+    "genre": "The Futurists",
+    "inst": "Vox: Vocoded Robo-Hook",
+    "desc": "A vocoded, futuristic robotic hook line, Neptunes/Timbaland-style vocal processing.",
+    "luna": "Graillon 3 (vocoder mode) -> API Vision Channel Strip (presence boost).",
+    "reaper": "Graillon 3 VST3 -> ReaEQ (2-3kHz boost for intelligibility).",
+    "notes": "Feed it a simple, catchy, monophonic phrase \u2014 the vocoder effect works best on short, punchy hooks."
+  },
+  {
+    "genre": "The Futurists",
+    "inst": "Synths: Squelchy Filter Bass",
+    "desc": "A resonant, squelchy synth bass with filter movement, a Neptunes/Timbaland low-end signature.",
+    "luna": "Surge XT (saw bass) -> Kilohearts kHs Ladder Filter (resonant sweep automation).",
+    "reaper": "Surge XT VST -> Kilohearts kHs Ladder Filter VST (automated cutoff) -> ReaEQ (boost 80Hz).",
+    "notes": "Automate the filter cutoff per-note or per-phrase rather than a static setting \u2014 the movement is the character."
+  },
+  {
+    "genre": "The Futurists",
+    "inst": "Beats: Clicky Minimal Percussion",
+    "desc": "Ultra-minimal, clicky, non-traditional percussion sounds replacing standard hi-hats.",
+    "luna": "Kilohearts kHs Clipper (hard clip for click) -> Kilohearts kHs Transient Shaper (max attack).",
+    "reaper": "Kilohearts kHs Clipper VST -> Kilohearts kHs Transient Shaper VST -> ReaEQ (HPF 300Hz).",
+    "notes": "These should sound almost like mouse-clicks or typewriter keys \u2014 deliberately non-organic and futuristic."
+  }
+]

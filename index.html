@@ -1078,22 +1078,28 @@ document.addEventListener('DOMContentLoaded', () => {
             try { incoming = JSON.parse(ev.target.result); } catch (e) { alert('That file is not valid JSON.'); return; }
             const list = Array.isArray(incoming) ? incoming : (Array.isArray(incoming.cookbook) ? incoming.cookbook : null);
             if (!list) { alert('Expected a JSON array of recipes (or a {"cookbook":[...]} object).'); return; }
+            const doUpdate = confirm(`This pack has ${list.length} recipe(s).\n\nOK = UPDATE any that already exist (matched by genre + instrument) with this new content, and add anything new.\nCancel = only ADD new ones, skip anything that already exists.`);
             const existing = window.db.cookbook || [];
-            const existingKeys = new Set(existing.map((r) => `${(r.genre || '').trim().toLowerCase()}|${(r.inst || '').trim().toLowerCase()}`));
+            const keyOf = (r) => `${(r.genre || '').trim().toLowerCase()}|${(r.inst || '').trim().toLowerCase()}`;
+            const existingByKey = new Map(existing.map((r) => [keyOf(r), r]));
             let nextId = existing.reduce((max, r) => Math.max(max, r.id || 0), 200) + 1;
-            let added = 0, skipped = 0;
+            let added = 0, updated = 0, skipped = 0;
             list.forEach((r) => {
                 if (!r.genre || !r.inst) { skipped++; return; }
-                const key = `${r.genre.trim().toLowerCase()}|${r.inst.trim().toLowerCase()}`;
-                if (existingKeys.has(key)) { skipped++; return; }
-                existingKeys.add(key);
-                existing.push({ id: nextId++, genre: r.genre, inst: r.inst, desc: r.desc || '', luna: r.luna || '', reaper: r.reaper || '', notes: r.notes || '', images: [] });
-                added++;
+                const key = keyOf(r);
+                const match = existingByKey.get(key);
+                if (match) {
+                    if (doUpdate) { match.desc = r.desc || match.desc; match.luna = r.luna || match.luna; match.reaper = r.reaper || match.reaper; match.notes = r.notes || match.notes; updated++; }
+                    else { skipped++; }
+                    return;
+                }
+                const fresh = { id: nextId++, genre: r.genre, inst: r.inst, desc: r.desc || '', luna: r.luna || '', reaper: r.reaper || '', notes: r.notes || '', images: [] };
+                existing.push(fresh); existingByKey.set(key, fresh); added++;
             });
             window.db.cookbook = existing;
             window.saveData();
             window.renderCookbookMenu();
-            alert(`Imported ${added} new recipe${added === 1 ? '' : 's'}.${skipped ? ` Skipped ${skipped} (duplicates or missing genre/instrument).` : ''}`);
+            alert(`Added ${added} new recipe${added === 1 ? '' : 's'}.${updated ? ` Updated ${updated} existing.` : ''}${skipped ? ` Skipped ${skipped}.` : ''}`);
         };
         reader.onerror = () => alert('Could not read that file.');
         reader.readAsText(file);

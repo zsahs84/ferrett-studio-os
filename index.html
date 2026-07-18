@@ -1326,6 +1326,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     window.blendGenres = () => {
+
+
         const genres = [...new Set((window.db.cookbook || []).map(r => r.genre))];
         if (genres.length < 2) { alert('Add recipes in at least 2 different genres to blend combos.'); return; }
         let a = genres[Math.floor(Math.random() * genres.length)]; let b;

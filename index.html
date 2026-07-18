@@ -263,8 +263,9 @@ main { background: rgba(5,8,7,0.72); }
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">WORKFLOW & ROUTING NOTES</label><textarea id="cookbook-notes" class="input-ferrett h-16 resize-y"></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">RECIPE SCREENSHOTS</label>
-                <div class="flex items-center gap-4"><label class="btn-ferrett-green file-upload-btn"><span>+ UPLOAD IMAGES</span><input type="file" id="cookbook-image-input" accept="image/*" multiple class="hidden"></label></div>
-                <div id="cookbook-image-preview-container" class="mt-4 flex flex-wrap gap-2"></div>
+                <div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn"><span>+ UPLOAD IMAGES</span><input type="file" id="cookbook-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn"><span>📸 CAMERA</span><input type="file" id="cookbook-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
+                <div id="cookbook-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="cookbook"></div>
+                <p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear/pedals directly.</p>
             </div>
             <div class="flex gap-3"><button id="btn-save-cookbook" class="btn-ferrett-green">SAVE RECIPE</button><button id="btn-cancel-cookbook" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white transition-colors">CANCEL</button></div>
         </div>
@@ -376,7 +377,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TRACK</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">NOTES</label><textarea id="track-notes" class="input-ferrett h-20 resize-y"></textarea></div>
-            <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-4"><label class="btn-ferrett-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2"></div></div>
+            <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>📸 CAMERA</span><input type="file" id="track-camera-input" accept="image/*" capture="environment" class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="track"></div><p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear directly.</p></div>
             <div class="flex gap-3"><button id="btn-save-track" class="btn-ferrett-green">SAVE CONFIG</button><button id="btn-cancel-track" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
         </div>
         <div id="track-list" class="grid grid-cols-1 gap-6"></div>
@@ -398,8 +399,9 @@ main { background: rgba(5,8,7,0.72); }
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">EQ / PEDAL NOTES</label><textarea id="tone-notes" class="input-ferrett h-20 resize-y"></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-2 font-bold">PEDALBOARD / GUI SCREENSHOTS</label>
-                <div class="flex items-center gap-4"><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="tone-image-input" accept="image/*" multiple class="hidden"></label></div>
-                <div id="tone-image-preview-container" class="mt-4 flex flex-wrap gap-2"></div>
+                <div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="tone-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn text-center leading-tight" style="border-color:#00E5FF80;color:#00E5FF;"><span>📸 CAMERA</span><input type="file" id="tone-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
+                <div id="tone-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="tone"></div>
+                <p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap your actual pedalboard/amp settings.</p>
             </div>
             <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-2 font-bold">AUDIO REFERENCE CLIP (optional — one short clip so you can hear it, not just read it)</label>
@@ -1873,10 +1875,38 @@ document.addEventListener('DOMContentLoaded', () => {
     notesTitleInput?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.title = e.target.value; const activeTabSpan = notesTabsContainer.querySelector('.note-tab.active span[data-id]'); if (activeTabSpan) activeTabSpan.innerText = activeNote.title || 'Untitled'; const footerTitle = document.getElementById('notes-footer-active-title'); if (footerTitle) footerTitle.textContent = activeNote.title || 'Untitled'; window.saveData(); } });
     notesTextArea?.addEventListener('input', (e) => { const activeNote = window.db.multiNotes.find(n => n.id === window.currentNoteId); if (activeNote) { activeNote.content = e.target.value; window.saveData(); window.renderNoteTasks(); } });
 
-    const handleImgUpload = async (e, arrayRef, containerId, arrayName) => { const files = e.target.files; if(!files || files.length === 0) return; for(let i=0; i<files.length; i++) { try { const base64 = await window.compressImage(files[i]); arrayRef.push(base64); } catch(err) { } } window.renderImagePreviews(containerId, arrayRef, arrayName); };
+    const processImageFiles = async (files, arrayRef, containerId, arrayName) => {
+        if (!files || files.length === 0) return;
+        const imageFiles = [...files].filter((f) => f.type.startsWith('image/'));
+        for (let i = 0; i < imageFiles.length; i++) { try { const base64 = await window.compressImage(imageFiles[i]); arrayRef.push(base64); } catch (err) { } }
+        window.renderImagePreviews(containerId, arrayRef, arrayName);
+    };
+    const handleImgUpload = (e, arrayRef, containerId, arrayName) => processImageFiles(e.target.files, arrayRef, containerId, arrayName);
+
+    const IMG_TARGETS = {
+        cookbook: () => window.tempCookbookImages,
+        track: () => window.tempTrackImages,
+        tone: () => window.tempToneImages
+    };
     document.getElementById('cookbook-image-input')?.addEventListener('change', (e) => handleImgUpload(e, window.tempCookbookImages, 'cookbook-image-preview-container', 'cookbook'));
     document.getElementById('track-image-input')?.addEventListener('change', (e) => handleImgUpload(e, window.tempTrackImages, 'track-image-preview-container', 'track'));
     document.getElementById('tone-image-input')?.addEventListener('change', (e) => handleImgUpload(e, window.tempToneImages, 'tone-image-preview-container', 'tone'));
+    document.getElementById('cookbook-camera-input')?.addEventListener('change', (e) => { handleImgUpload(e, window.tempCookbookImages, 'cookbook-image-preview-container', 'cookbook'); e.target.value = ''; });
+    document.getElementById('track-camera-input')?.addEventListener('change', (e) => { handleImgUpload(e, window.tempTrackImages, 'track-image-preview-container', 'track'); e.target.value = ''; });
+    document.getElementById('tone-camera-input')?.addEventListener('change', (e) => { handleImgUpload(e, window.tempToneImages, 'tone-image-preview-container', 'tone'); e.target.value = ''; });
+
+    // Drag & drop onto any of the three image preview zones (cookbook/track/tone).
+    document.querySelectorAll('[data-drop-zone]').forEach((zone) => {
+        const kind = zone.dataset.dropZone;
+        const containerId = zone.id;
+        ['dragenter', 'dragover'].forEach((evt) => zone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); zone.style.outline = '2px dashed currentColor'; zone.style.outlineOffset = '4px'; }));
+        ['dragleave', 'dragend'].forEach((evt) => zone.addEventListener(evt, (e) => { zone.style.outline = ''; }));
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault(); e.stopPropagation(); zone.style.outline = '';
+            const arrayRef = IMG_TARGETS[kind]?.(); if (!arrayRef) return;
+            processImageFiles(e.dataTransfer.files, arrayRef, containerId, kind);
+        });
+    });
     document.getElementById('tone-audio-input')?.addEventListener('change', (e) => window.handleToneAudioUpload(e));
     document.getElementById('btn-record-tone-audio')?.addEventListener('click', () => window.startToneRecording());
     document.getElementById('btn-stop-tone-audio')?.addEventListener('click', () => window.stopToneRecording());

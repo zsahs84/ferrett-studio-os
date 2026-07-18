@@ -204,8 +204,8 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-links" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Web Tools & Intel</button>
     <button id="nav-tracks" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Track DB [Images]</button>
     <button id="nav-tones" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Tone DB [Tags/Img]</button>
+    <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator & Tools</button>
     <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Notes Vault</button>
-    <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator</button>
 
     <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
       <div class="flex items-center justify-between mb-2 px-1"><span class="text-[9px] tracking-[0.18em] text-[#00FF88]/70 uppercase font-bold">SPL // CONIC GAUGE</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-[#00FF8812] border border-[#00FF8818] text-[#00FF88]/60">LIVE</span></div>
@@ -432,6 +432,53 @@ main { background: rgba(5,8,7,0.72); }
             <div class="card border-[#00E5FF30]"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">DOTTED DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/4 Dot</span><span id="calc-main-14d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">750ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Dot</span><span id="calc-main-18d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">375ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16 Dot</span><span id="calc-main-116d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">188ms</span></div></div></div>
             <div class="card border-[#FFD60A30]"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">TRIPLET DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/4 Trip</span><span id="calc-main-14t" class="text-[#FFD60A] font-bold bg-[#FFD60A]/10 px-2 py-1 rounded">333ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Trip</span><span id="calc-main-18t" class="text-[#FFD60A] font-bold bg-[#FFD60A]/10 px-2 py-1 rounded">167ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16 Trip</span><span id="calc-main-116t" class="text-[#FFD60A] font-bold bg-[#FFD60A]/10 px-2 py-1 rounded">83ms</span></div></div></div>
             <div class="card border-[#FF88FF30]"><h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-4 border-b border-[#FF88FF20] pb-2">LFO FREQUENCY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1 Bar</span><span id="calc-main-hz-bar" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">0.50 Hz</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/4 Note</span><span id="calc-main-hz-1" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">2.00 Hz</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Note</span><span id="calc-main-hz-2" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">4.00 Hz</span></div></div></div>
+        </div>
+
+        <div class="card border-[#00FF8830] mt-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">METRONOME</h4>
+            <div class="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-6">
+                <div class="flex items-center gap-2">
+                    <button id="btn-metro-bpm-minus" type="button" class="w-8 h-8 rounded border border-[#00FF8840] text-[#00FF88] font-bold hover:bg-[#00FF88]/10 cursor-pointer">−</button>
+                    <input type="number" id="metro-bpm" value="120" min="30" max="300" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[24px] font-bold text-[#00FF88] w-24 py-1 focus:outline-none">
+                    <button id="btn-metro-bpm-plus" type="button" class="w-8 h-8 rounded border border-[#00FF8840] text-[#00FF88] font-bold hover:bg-[#00FF88]/10 cursor-pointer">+</button>
+                    <span class="text-[10px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-[10px] text-[#00FF88]/60 font-bold tracking-widest">BEATS/MEASURE</label>
+                    <select id="metro-beats" class="bg-black/50 border border-[#00FF88]/40 rounded text-[#00FF88] text-[13px] font-bold px-2 py-1.5 focus:outline-none">
+                        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                    </select>
+                </div>
+                <button id="btn-metro-tap" type="button" class="btn-ferrett px-4 py-2">TAP</button>
+                <button id="btn-metro-toggle" type="button" class="btn-ferrett-green px-6 py-2">▶ START</button>
+            </div>
+            <div class="flex items-center justify-center gap-2 md:gap-3 mb-6 flex-wrap" id="metro-beat-dots"></div>
+            <div class="flex items-center justify-center">
+                <div id="metro-flash" class="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-[#00FF8830] transition-colors duration-75"></div>
+            </div>
+        </div>
+
+        <div class="card border-[#00E5FF30] mt-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">TUNER</h4>
+            <div class="flex flex-wrap gap-2 mb-4 justify-center">
+                <button id="btn-tuner-guitar" type="button" class="btn-ferrett" style="border-color:#00E5FF80;color:#00E5FF;background:rgba(0,229,255,0.12);">6-STRING GUITAR</button>
+                <button id="btn-tuner-bass" type="button" class="btn-ferrett">5-STRING BASS</button>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-6 justify-center" id="tuner-string-buttons"></div>
+            <div class="flex flex-col items-center gap-3">
+                <div class="flex items-baseline gap-3">
+                    <div id="tuner-note-display" class="text-[56px] md:text-[64px] font-bold text-[#00E5FF] leading-none">--</div>
+                    <div id="tuner-cents-display" class="text-[14px] text-[#00E5FF]/50 font-mono w-16">&nbsp;</div>
+                </div>
+                <div id="tuner-freq-display" class="text-[11px] text-[#00E5FF]/40 font-mono">-- Hz</div>
+                <div class="w-full max-w-md h-4 bg-black/50 rounded-full relative overflow-hidden border border-[#00E5FF]/20 mt-2">
+                    <div class="absolute inset-y-0 left-1/2 w-[2px] bg-[#00E5FF]/30 -translate-x-1/2 z-10"></div>
+                    <div id="tuner-needle" class="absolute top-0 h-full w-2 bg-[#E2E8F0]/70 transition-all duration-100 rounded-full" style="left:50%;"></div>
+                </div>
+                <button id="btn-tuner-toggle" type="button" class="btn-ferrett-green px-6 py-2 mt-3">🎙️ START TUNER</button>
+                <p id="tuner-status" class="text-[10px] text-[#E2E8F0]/30 mt-1 h-4"></p>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/30 mt-4 text-center max-w-lg mx-auto leading-relaxed">Low strings (bass low B/E) can be genuinely hard to pick up on a phone or tablet's built-in mic — the low-frequency roll-off on small mics makes the fundamental weak. It'll work, but for reliable low-B tracking, an audio interface input beats a phone mic every time.</p>
         </div>
     </section>
 
@@ -1166,6 +1213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.switchTab = (tabId) => {
+        if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
@@ -1191,6 +1239,209 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('calc-bpm')?.addEventListener('input', (e) => window.updateCalc(e.target.value)); document.getElementById('calc-bpm-main')?.addEventListener('input', (e) => { const cb = document.getElementById('calc-bpm'); if(cb) cb.value = e.target.value; window.updateCalc(e.target.value); });
     const tapHandler = () => { const now = Date.now(); window.tapTimes = window.tapTimes || []; window.tapTimes.push(now); if(window.tapTimes.length > 4) window.tapTimes.shift(); if(window.tapTimes.length > 1) { let sum = 0; for(let i=1; i<window.tapTimes.length; i++) { sum += (window.tapTimes[i] - window.tapTimes[i-1]); } const avg = sum / (window.tapTimes.length - 1); const bpm = Math.round(60000 / avg); const cb = document.getElementById('calc-bpm'); const cbm = document.getElementById('calc-bpm-main'); if(cb) cb.value = bpm; if(cbm) cbm.value = bpm; window.updateCalc(bpm); } clearTimeout(window.tapTimeout); window.tapTimeout = setTimeout(() => { window.tapTimes = []; }, 2000); };
     document.getElementById('btn-tap-tempo')?.addEventListener('click', tapHandler); document.getElementById('btn-tap-tempo-main')?.addEventListener('click', tapHandler);
+
+    // === METRONOME (Web Audio scheduler for accurate timing, not setInterval drift) ===
+    window.metro = { running: false, ctx: null, nextNoteTime: 0, currentBeat: 0, beatsPerMeasure: 4, timerID: null, lookahead: 25, scheduleAheadTime: 0.1 };
+
+    window.renderMetroDots = () => {
+        const container = document.getElementById('metro-beat-dots'); if (!container) return;
+        const n = window.metro.beatsPerMeasure;
+        container.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'metro-dot w-8 h-8 md:w-9 md:h-9 rounded-full border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-75 ' + (i === 0 ? 'border-[#FFD60A50] text-[#FFD60A]/50' : 'border-[#00FF8830] text-[#00FF88]/40');
+            dot.textContent = (i + 1).toString();
+            dot.dataset.beat = i;
+            container.appendChild(dot);
+        }
+    };
+
+    window.metroScheduleClick = (beatNum, time) => {
+        const ctx = window.metro.ctx; if (!ctx) return;
+        const isAccent = beatNum === 0;
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.frequency.value = isAccent ? 1600 : 1000;
+        gain.gain.setValueAtTime(isAccent ? 0.9 : 0.5, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(time); osc.stop(time + 0.06);
+        const delayMs = Math.max(0, (time - ctx.currentTime) * 1000);
+        setTimeout(() => window.metroFlashBeat(beatNum), delayMs);
+    };
+
+    window.metroFlashBeat = (beatNum) => {
+        const isAccent = beatNum === 0;
+        document.querySelectorAll('.metro-dot').forEach((dot) => {
+            const b = parseInt(dot.dataset.beat, 10);
+            if (b === beatNum) { dot.style.background = isAccent ? '#FFD60A' : '#00FF88'; dot.style.color = '#000'; dot.style.borderColor = isAccent ? '#FFD60A' : '#00FF88'; dot.style.boxShadow = `0 0 12px ${isAccent ? '#FFD60A' : '#00FF88'}`; }
+            else { dot.style.background = ''; dot.style.color = ''; dot.style.borderColor = ''; dot.style.boxShadow = ''; }
+        });
+        const flash = document.getElementById('metro-flash');
+        if (flash) {
+            flash.style.background = isAccent ? '#FFD60A' : '#00FF88';
+            flash.style.borderColor = isAccent ? '#FFD60A' : '#00FF88';
+            flash.style.boxShadow = `0 0 30px ${isAccent ? '#FFD60A' : '#00FF88'}`;
+            clearTimeout(window.metroFlashTimeout);
+            window.metroFlashTimeout = setTimeout(() => { flash.style.background = ''; flash.style.borderColor = ''; flash.style.boxShadow = ''; }, 90);
+        }
+    };
+
+    window.metroNextNote = () => {
+        const bpm = parseFloat(document.getElementById('metro-bpm')?.value) || 120;
+        const secondsPerBeat = 60.0 / bpm;
+        window.metro.nextNoteTime += secondsPerBeat;
+        window.metro.currentBeat = (window.metro.currentBeat + 1) % window.metro.beatsPerMeasure;
+    };
+
+    window.metroScheduler = () => {
+        while (window.metro.nextNoteTime < window.metro.ctx.currentTime + window.metro.scheduleAheadTime) {
+            window.metroScheduleClick(window.metro.currentBeat, window.metro.nextNoteTime);
+            window.metroNextNote();
+        }
+        window.metro.timerID = setTimeout(window.metroScheduler, window.metro.lookahead);
+    };
+
+    window.startMetronome = () => {
+        if (window.metro.running) return;
+        window.metro.ctx = window.metro.ctx || new (window.AudioContext || window.webkitAudioContext)();
+        if (window.metro.ctx.state === 'suspended') window.metro.ctx.resume();
+        window.metro.currentBeat = 0;
+        window.metro.nextNoteTime = window.metro.ctx.currentTime + 0.05;
+        window.metro.running = true;
+        window.metroScheduler();
+        const btn = document.getElementById('btn-metro-toggle'); if (btn) { btn.textContent = '■ STOP'; btn.classList.remove('btn-ferrett-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
+    };
+
+    window.stopMetronome = () => {
+        if (!window.metro.running) return;
+        window.metro.running = false;
+        clearTimeout(window.metro.timerID);
+        document.querySelectorAll('.metro-dot').forEach((dot) => { dot.style.background = ''; dot.style.color = ''; dot.style.borderColor = ''; dot.style.boxShadow = ''; });
+        const flash = document.getElementById('metro-flash'); if (flash) { flash.style.background = ''; flash.style.borderColor = ''; flash.style.boxShadow = ''; }
+        const btn = document.getElementById('btn-metro-toggle'); if (btn) { btn.textContent = '▶ START'; btn.classList.add('btn-ferrett-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+    };
+
+    window.renderMetroDots();
+    document.getElementById('btn-metro-toggle')?.addEventListener('click', () => { window.metro.running ? window.stopMetronome() : window.startMetronome(); });
+    document.getElementById('btn-metro-bpm-minus')?.addEventListener('click', () => { const el = document.getElementById('metro-bpm'); if (el) el.value = Math.max(30, parseInt(el.value, 10) - 1); });
+    document.getElementById('btn-metro-bpm-plus')?.addEventListener('click', () => { const el = document.getElementById('metro-bpm'); if (el) el.value = Math.min(300, parseInt(el.value, 10) + 1); });
+    document.getElementById('metro-beats')?.addEventListener('change', (e) => { window.metro.beatsPerMeasure = parseInt(e.target.value, 10); window.metro.currentBeat = 0; window.renderMetroDots(); });
+    window.metroTapTimes = [];
+    document.getElementById('btn-metro-tap')?.addEventListener('click', () => {
+        const now = Date.now(); window.metroTapTimes.push(now); if (window.metroTapTimes.length > 4) window.metroTapTimes.shift();
+        if (window.metroTapTimes.length > 1) { let sum = 0; for (let i = 1; i < window.metroTapTimes.length; i++) sum += (window.metroTapTimes[i] - window.metroTapTimes[i - 1]); const bpm = Math.round(60000 / (sum / (window.metroTapTimes.length - 1))); const el = document.getElementById('metro-bpm'); if (el) el.value = Math.max(30, Math.min(300, bpm)); }
+        clearTimeout(window.metroTapTimeout); window.metroTapTimeout = setTimeout(() => { window.metroTapTimes = []; }, 2000);
+    });
+
+    // === TUNER (mic input + autocorrelation pitch detection) ===
+    const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const GUITAR_STRINGS = [{ name: 'E2', freq: 82.41 }, { name: 'A2', freq: 110.00 }, { name: 'D3', freq: 146.83 }, { name: 'G3', freq: 196.00 }, { name: 'B3', freq: 246.94 }, { name: 'E4', freq: 329.63 }];
+    const BASS5_STRINGS = [{ name: 'B0', freq: 30.87 }, { name: 'E1', freq: 41.20 }, { name: 'A1', freq: 55.00 }, { name: 'D2', freq: 73.42 }, { name: 'G2', freq: 98.00 }];
+    window.tuner = { running: false, ctx: null, analyser: null, buf: null, stream: null, rafId: null, mode: 'guitar', targetFreq: null };
+
+    window.noteNumFromFreq = (f) => Math.round(12 * (Math.log(f / 440) / Math.log(2))) + 69;
+    window.freqFromNoteNum = (n) => 440 * Math.pow(2, (n - 69) / 12);
+    window.centsOff = (f, n) => Math.floor(1200 * (Math.log(f / window.freqFromNoteNum(n)) / Math.log(2)));
+    window.noteNameFromNum = (n) => NOTE_NAMES[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1);
+
+    window.autoCorrelatePitch = (buf, sampleRate) => {
+        const SIZE = buf.length;
+        let rms = 0;
+        for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+        rms = Math.sqrt(rms / SIZE);
+        if (rms < 0.01) return -1;
+        let r1 = 0, r2 = SIZE - 1;
+        const thres = 0.2;
+        for (let i = 0; i < SIZE / 2; i++) { if (Math.abs(buf[i]) < thres) { r1 = i; break; } }
+        for (let i = 1; i < SIZE / 2; i++) { if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; } }
+        const trimmed = buf.slice(r1, r2);
+        const n2 = trimmed.length;
+        const c = new Array(n2).fill(0);
+        for (let i = 0; i < n2; i++) { for (let j = 0; j < n2 - i; j++) c[i] += trimmed[j] * trimmed[j + i]; }
+        let d = 0; while (d < n2 - 1 && c[d] > c[d + 1]) d++;
+        let maxVal = -1, maxPos = -1;
+        for (let i = d; i < n2; i++) { if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; } }
+        let T0 = maxPos;
+        if (T0 <= 0 || T0 >= n2 - 1) return -1;
+        const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+        const a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+        if (a) T0 = T0 - b / (2 * a);
+        return T0 > 0 ? sampleRate / T0 : -1;
+    };
+
+    window.renderTunerStrings = () => {
+        const container = document.getElementById('tuner-string-buttons'); if (!container) return;
+        const strings = window.tuner.mode === 'guitar' ? GUITAR_STRINGS : BASS5_STRINGS;
+        container.innerHTML = strings.map((s) => `<button type="button" class="tuner-string-btn btn-ferrett" data-freq="${s.freq}" style="min-width:56px;">${s.name}</button>`).join('');
+        container.querySelectorAll('.tuner-string-btn').forEach((btn) => btn.addEventListener('click', () => {
+            container.querySelectorAll('.tuner-string-btn').forEach((b) => { b.style.background = ''; b.style.borderColor = ''; b.style.color = ''; });
+            btn.style.background = 'rgba(0,229,255,0.18)'; btn.style.borderColor = '#00E5FF'; btn.style.color = '#00E5FF';
+            window.tuner.targetFreq = parseFloat(btn.dataset.freq);
+        }));
+    };
+
+    window.updateTunerReading = () => {
+        if (!window.tuner.running) return;
+        window.tuner.analyser.getFloatTimeDomainData(window.tuner.buf);
+        const freq = window.autoCorrelatePitch(window.tuner.buf, window.tuner.ctx.sampleRate);
+        const noteEl = document.getElementById('tuner-note-display'); const centsEl = document.getElementById('tuner-cents-display'); const freqEl = document.getElementById('tuner-freq-display'); const needle = document.getElementById('tuner-needle');
+        if (freq > 0 && freq < 1200) {
+            let cents, label;
+            if (window.tuner.targetFreq) { cents = Math.floor(1200 * (Math.log(freq / window.tuner.targetFreq) / Math.log(2))); label = null; }
+            else { const noteNum = window.noteNumFromFreq(freq); cents = window.centsOff(freq, noteNum); label = window.noteNameFromNum(noteNum); }
+            if (noteEl) noteEl.textContent = label || (window.tuner.targetFreq ? GUITAR_STRINGS.concat(BASS5_STRINGS).find(s => s.freq === window.tuner.targetFreq)?.name || '--' : '--');
+            if (freqEl) freqEl.textContent = freq.toFixed(1) + ' Hz';
+            const clamped = Math.max(-50, Math.min(50, cents));
+            if (needle) needle.style.left = (50 + clamped) + '%';
+            const absC = Math.abs(cents);
+            const color = absC <= 5 ? '#00FF88' : (absC <= 15 ? '#FFD60A' : '#FF5A5A');
+            if (noteEl) noteEl.style.color = color; if (needle) needle.style.background = color;
+            if (centsEl) centsEl.textContent = (cents > 0 ? '+' : '') + cents;
+        } else {
+            if (freqEl) freqEl.textContent = '-- Hz'; if (centsEl) centsEl.textContent = '';
+        }
+        window.tuner.rafId = requestAnimationFrame(window.updateTunerReading);
+    };
+
+    window.startTuner = async () => {
+        if (window.tuner.running) return;
+        const statusEl = document.getElementById('tuner-status');
+        try {
+            window.tuner.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+            window.tuner.ctx = window.tuner.ctx || new (window.AudioContext || window.webkitAudioContext)();
+            if (window.tuner.ctx.state === 'suspended') await window.tuner.ctx.resume();
+            const source = window.tuner.ctx.createMediaStreamSource(window.tuner.stream);
+            window.tuner.analyser = window.tuner.ctx.createAnalyser();
+            window.tuner.analyser.fftSize = 8192;
+            window.tuner.buf = new Float32Array(window.tuner.analyser.fftSize);
+            source.connect(window.tuner.analyser);
+            window.tuner.running = true;
+            window.updateTunerReading();
+            const btn = document.getElementById('btn-tuner-toggle'); if (btn) { btn.textContent = '■ STOP TUNER'; btn.classList.remove('btn-ferrett-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
+            if (statusEl) statusEl.textContent = 'Listening...';
+        } catch (err) {
+            if (statusEl) statusEl.textContent = 'Microphone access denied or unavailable.';
+        }
+    };
+
+    window.stopTuner = () => {
+        if (!window.tuner.running) return;
+        window.tuner.running = false;
+        cancelAnimationFrame(window.tuner.rafId);
+        window.tuner.stream?.getTracks().forEach((t) => t.stop());
+        const btn = document.getElementById('btn-tuner-toggle'); if (btn) { btn.textContent = '🎙️ START TUNER'; btn.classList.add('btn-ferrett-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+        const statusEl = document.getElementById('tuner-status'); if (statusEl) statusEl.textContent = '';
+        const noteEl = document.getElementById('tuner-note-display'); if (noteEl) { noteEl.textContent = '--'; noteEl.style.color = ''; }
+        const freqEl = document.getElementById('tuner-freq-display'); if (freqEl) freqEl.textContent = '-- Hz';
+        const centsEl = document.getElementById('tuner-cents-display'); if (centsEl) centsEl.textContent = '';
+        const needle = document.getElementById('tuner-needle'); if (needle) { needle.style.left = '50%'; needle.style.background = ''; }
+    };
+
+    window.renderTunerStrings();
+    document.getElementById('btn-tuner-toggle')?.addEventListener('click', () => { window.tuner.running ? window.stopTuner() : window.startTuner(); });
+    document.getElementById('btn-tuner-guitar')?.addEventListener('click', (e) => { window.tuner.mode = 'guitar'; window.tuner.targetFreq = null; window.renderTunerStrings(); e.target.style.background = 'rgba(0,229,255,0.12)'; e.target.style.borderColor = '#00E5FF80'; e.target.style.color = '#00E5FF'; const b = document.getElementById('btn-tuner-bass'); if (b) { b.style.background = ''; b.style.borderColor = ''; b.style.color = ''; } });
+    document.getElementById('btn-tuner-bass')?.addEventListener('click', (e) => { window.tuner.mode = 'bass'; window.tuner.targetFreq = null; window.renderTunerStrings(); e.target.style.background = 'rgba(0,229,255,0.12)'; e.target.style.borderColor = '#00E5FF80'; e.target.style.color = '#00E5FF'; const g = document.getElementById('btn-tuner-guitar'); if (g) { g.style.background = ''; g.style.borderColor = ''; g.style.color = ''; } });
+
     
     window.updateCalc = function(bpm) {
         if(bpm > 0) {

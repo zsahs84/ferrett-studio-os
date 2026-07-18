@@ -37,7 +37,19 @@ body { background-color: var(--bg); color: #E2E8F0; font-family: 'JetBrains Mono
 .hud-scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 9991 !important; }
 .hud-scanlines::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 15vh; background: linear-gradient(to bottom, rgba(0, 255, 136, 0) 0%, rgba(0, 255, 136, 0.05) 25%, rgba(0, 255, 136, 0.3) 50%, rgba(0, 255, 136, 0.05) 75%, rgba(0, 255, 136, 0) 100%); animation: crt-roll 6s linear infinite; pointer-events: none; z-index: 9992 !important; mix-blend-mode: screen; }
 .hud-flicker { position: fixed; inset: 0; background: rgba(0, 255, 136, 0.02); pointer-events: none; z-index: 9993 !important; animation: crt-flicker 0.12s infinite alternate; mix-blend-mode: overlay; }
-.hud-vignette { position:fixed; inset:0; background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.65) 95%, rgba(0,0,0,0.95) 100%); pointer-events:none; z-index: 9994 !important; }
+.hud-vignette { position:fixed; inset:0; background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.65) 95%, rgba(0,0,0,0.95) 100%); pointer-events:none; z-index: 9994 !important; transition: opacity 0.07s ease-out; }
+body.beat-pulse .hud-vignette { opacity: 0.78; }
+body.beat-pulse-accent .hud-vignette { opacity: 0.55; }
+#print-sheet-content { display:none; }
+@media print {
+  body * { visibility: hidden; }
+  #print-sheet-content, #print-sheet-content * { visibility: visible; }
+  #print-sheet-content { display:block; position: absolute; top:0; left:0; width:100%; padding:30px; color:#000; background:#fff; font-family: 'Courier New', monospace; }
+  #print-sheet-content h1 { font-size:20px; margin-bottom:4px; }
+  #print-sheet-content h2 { font-size:13px; color:#333; margin:18px 0 6px; border-bottom:1px solid #999; padding-bottom:3px; }
+  #print-sheet-content p { font-size:12px; line-height:1.5; white-space:pre-wrap; }
+  #print-sheet-content .meta { font-size:11px; color:#555; margin-bottom:16px; }
+}
 
 .glitching-ui { animation: ui-glitch-shake 0.15s steps(2) infinite !important; text-shadow: 3px 0 0 rgba(255,0,64,0.8), -3px 0 0 rgba(0,255,255,0.8) !important; }
 @keyframes ui-glitch-shake { 0% { transform: translate(0, 0) skewX(0deg); } 20% { transform: translate(-4px, 2px) skewX(2deg); filter: contrast(1.2) brightness(1.2); } 40% { transform: translate(4px, -2px) skewX(-2deg); filter: contrast(0.8) brightness(0.8); } 60% { transform: translate(-2px, 4px) skewX(1deg); filter: contrast(1.3) brightness(1.1); } 80% { transform: translate(2px, -4px) skewX(-1deg); filter: contrast(0.9) brightness(0.9); } 100% { transform: translate(0, 0) skewX(0deg); } }
@@ -145,6 +157,7 @@ main { background: rgba(5,8,7,0.72); }
       <div class="vu-wrap" id="vuLeft"><div class="vu-bar" style="height:4px"></div><div class="vu-bar" style="height:8px"></div><div class="vu-bar" style="height:6px"></div><div class="vu-bar" style="height:10px"></div></div>
       <div class="waveform" id="waveform"><div class="wave-bar" style="animation-delay:0s"></div><div class="wave-bar" style="animation-delay:0.08s"></div><div class="wave-bar" style="animation-delay:0.16s"></div><div class="wave-bar" style="animation-delay:0.24s"></div><div class="wave-bar" style="animation-delay:0.32s"></div><div class="wave-bar" style="animation-delay:0.4s"></div><div class="wave-bar" style="animation-delay:0.12s"></div><div class="wave-bar" style="animation-delay:0.2s"></div></div>
       <div class="vu-wrap" id="vuRight"><div class="vu-bar" style="height:5px"></div><div class="vu-bar" style="height:9px"></div><div class="vu-bar" style="height:7px"></div><div class="vu-bar" style="height:11px"></div></div>
+      <button id="btn-vu-live-toggle" type="button" class="w-6 h-6 flex items-center justify-center rounded border border-[#00FF8830] text-[#00FF88]/50 hover:text-[#00FF88] hover:border-[#00FF8860] cursor-pointer text-[10px]" title="Toggle live mic input on the VU meters (otherwise decorative)">🎙️</button>
     </div>
   </div>
 
@@ -457,6 +470,22 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex items-center justify-center">
                 <div id="metro-flash" class="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-[#00FF8830] transition-colors duration-75"></div>
             </div>
+        </div>
+
+        <div class="card border-[#FFD60A30] mt-6">
+            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">PRACTICE ROUTINE (RAMP TEMPO)</h4>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-4">Runs the metronome above, auto-increasing tempo on a timer. Good for scales, picking exercises, anything you want to build speed on.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">START BPM</label><input type="number" id="routine-start-bpm" value="80" min="30" max="300" class="w-full bg-black/50 border border-[#FFD60A]/40 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">+BPM EACH STEP</label><input type="number" id="routine-increment" value="10" min="1" max="50" class="w-full bg-black/50 border border-[#FFD60A]/40 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">MIN PER STEP</label><input type="number" id="routine-step-mins" value="2" min="1" max="30" class="w-full bg-black/50 border border-[#FFD60A]/40 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">TOTAL STEPS</label><input type="number" id="routine-steps" value="5" min="1" max="20" class="w-full bg-black/50 border border-[#FFD60A]/40 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+            </div>
+            <div class="flex items-center gap-4 flex-wrap">
+                <button id="btn-routine-toggle" type="button" class="btn-ferrett-green px-6 py-2">▶ START ROUTINE</button>
+                <div id="routine-status" class="text-[11px] font-mono text-[#FFD60A]/80"></div>
+            </div>
+            <div id="routine-progress-bar-wrap" class="hidden mt-4 w-full h-2 rounded-full bg-black/50 border border-[#FFD60A20] overflow-hidden"><div id="routine-progress-bar" class="h-full bg-[#FFD60A] transition-all duration-1000" style="width:0%"></div></div>
         </div>
 
         <div class="card border-[#00E5FF30] mt-6">
@@ -1192,20 +1221,94 @@ document.addEventListener('DOMContentLoaded', () => {
         const disp = document.getElementById('recipe-display');
         if(disp) disp.innerHTML = `
             <div class="animate-fade-in relative group">
-                <div class="absolute top-0 right-0 hidden group-hover:flex gap-3 z-20 bg-[rgba(10,15,13,0.9)] px-2 py-1 rounded">
-                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+                <div class="absolute top-0 right-0 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20 bg-[rgba(10,15,13,0.9)] px-2 py-1 rounded">
+                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button><button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
                 </div>
                 <div class="border-b border-[#00FF8820] pb-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-2 pr-20"><h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#00FF88] uppercase">${data.inst}</h2><span class="text-[9px] md:text-[10px] tracking-widest text-[#00E5FF] uppercase bg-[#00E5FF10] px-3 py-1.5 rounded border border-[#00E5FF20]">${data.genre}</span></div>
                 <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
+                <button id="btn-toggle-chain-view" type="button" class="mb-4 text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF88FF40] text-[#FF88FF] hover:bg-[#FF88FF]/10 cursor-pointer">🔗 VISUALIZE CHAINS</button>
                 <div class="space-y-6">
-                    <div class="show-luna bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00E5FF30]"><h4 class="text-[#00E5FF] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00E5FF14] pb-2 flex items-center gap-2"><span class="bg-[#00E5FF] w-1.5 h-1.5 rounded-full"></span> LUNA (UAD DSP) CHAIN</h4><p class="text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.luna}</p></div>
-                    <div class="show-reaper bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> REAPER (NATIVE/VST)</h4><p class="text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p></div>
+                    <div class="show-luna bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00E5FF30]"><h4 class="text-[#00E5FF] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00E5FF14] pb-2 flex items-center gap-2"><span class="bg-[#00E5FF] w-1.5 h-1.5 rounded-full"></span> LUNA (UAD DSP) CHAIN</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.luna}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.luna, '#00E5FF')}</div></div>
+                    <div class="show-reaper bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> REAPER (NATIVE/VST)</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.reaper, '#00FF88')}</div></div>
                     <div class="bg-[rgba(10,15,13,0.9)] p-5 rounded border border-[#E2E8F010]"><h4 class="text-[#E2E8F0]/50 text-[10px] font-bold tracking-widest uppercase mb-3">WORKFLOW & ROUTING NOTES</h4><p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${data.notes}</p></div>
                     ${imagesHtml}
                 </div>
             </div>
         `;
+        document.getElementById('btn-toggle-chain-view')?.addEventListener('click', (e) => {
+            const showingFlow = !document.querySelector('#recipe-display .chain-flow-view')?.classList.contains('hidden');
+            document.querySelectorAll('#recipe-display .chain-text-view').forEach((el) => el.classList.toggle('hidden', !showingFlow));
+            document.querySelectorAll('#recipe-display .chain-flow-view').forEach((el) => el.classList.toggle('hidden', showingFlow));
+            e.target.textContent = showingFlow ? '🔗 VISUALIZE CHAINS' : '📝 SHOW TEXT';
+        });
     };
+
+    // Parses a chain description into discrete plugin/step "nodes" for the flow-diagram view.
+    // Chains are written inconsistently (some use "->" arrows, some are just sentences), so this
+    // falls back to sentence-splitting when no arrows are present, on a best-effort basis.
+    window.parseChainToNodes = (text) => {
+        if (!text) return [];
+        let segments = text.split('->').map((s) => s.trim()).filter(Boolean);
+        if (segments.length < 2) segments = text.split(/(?<=[.;])\s+/).map((s) => s.trim()).filter(Boolean);
+        return segments.map((seg) => {
+            const cleaned = seg.replace(/\.$/, '');
+            const parenMatch = cleaned.match(/^([^(,.]+)[\s]*[\(,]?(.*)$/);
+            const label = parenMatch ? parenMatch[1].trim() : cleaned;
+            const detail = parenMatch && parenMatch[2] ? parenMatch[2].replace(/\)$/, '').trim() : '';
+            return { label: label || cleaned, detail };
+        });
+    };
+
+    window.renderChainFlow = (text, color) => {
+        const nodes = window.parseChainToNodes(text);
+        if (nodes.length === 0) return `<div class="text-[10px] text-[#E2E8F0]/30 italic">Nothing to visualize.</div>`;
+        return `<div class="flex items-stretch gap-2 overflow-x-auto pb-2 scrollbar-hide">` + nodes.map((n, i) => `
+            <div class="shrink-0 flex items-center gap-2">
+                <div class="min-w-[110px] max-w-[160px] rounded border px-3 py-2.5 text-center" style="border-color:${color}50;background:${color}10;">
+                    <div class="text-[10px] font-bold tracking-wide leading-tight" style="color:${color};">${n.label}</div>
+                    ${n.detail ? `<div class="text-[8px] text-[#E2E8F0]/50 mt-1 leading-snug">${n.detail}</div>` : ''}
+                </div>
+                ${i < nodes.length - 1 ? `<span style="color:${color}80;" class="text-[16px] font-bold shrink-0">→</span>` : ''}
+            </div>`).join('') + `</div>`;
+    };
+
+    window.printRecipeSheet = (recipe) => {
+        const el = document.getElementById('print-sheet-content'); if (!el) return;
+        el.innerHTML = `
+            <h1>FERRETT_STUDIO_OS — Session Sheet</h1>
+            <div class="meta">${recipe.genre} — printed ${new Date().toLocaleDateString()}</div>
+            <h2>${recipe.inst}</h2>
+            <p>${recipe.desc || ''}</p>
+            <h2>LUNA (UAD DSP) CHAIN</h2>
+            <p>${recipe.luna || ''}</p>
+            <h2>REAPER (NATIVE/VST)</h2>
+            <p>${recipe.reaper || ''}</p>
+            <h2>WORKFLOW & ROUTING NOTES</h2>
+            <p>${recipe.notes || ''}</p>
+        `;
+        window.print();
+    };
+
+    // Gesture: swipe left/right on the recipe display to move between instruments within the current genre.
+    window.swipeCookbookInst = (dir) => {
+        const buttons = [...document.querySelectorAll('#inst-menu button[data-id]')];
+        if (buttons.length < 2) return;
+        const idx = buttons.findIndex((b) => parseInt(b.dataset.id, 10) === window.currentCookbookId);
+        if (idx === -1) return;
+        const nextIdx = (idx + dir + buttons.length) % buttons.length;
+        window.selectInst(parseInt(buttons[nextIdx].dataset.id, 10));
+        const disp = document.getElementById('recipe-display');
+        if (disp) { disp.style.transition = 'opacity 0.12s'; disp.style.opacity = '0.4'; setTimeout(() => { disp.style.opacity = '1'; }, 120); }
+    };
+    (() => {
+        let touchStartX = 0, touchStartY = 0;
+        const disp = document.getElementById('recipe-display');
+        disp?.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, { passive: true });
+        disp?.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].clientX - touchStartX; const dy = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) window.swipeCookbookInst(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    })();
 
     window.importRecipePack = (file) => {
         const reader = new FileReader();
@@ -1388,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.switchTab = (tabId) => {
-        if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); }
+        if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); }
         if (tabId === 'calc') { window.renderSessionStats?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
@@ -1476,6 +1579,12 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(window.metroFlashTimeout);
             window.metroFlashTimeout = setTimeout(() => { flash.style.background = ''; flash.style.borderColor = ''; flash.style.boxShadow = ''; }, 90);
         }
+        if (!window.FERRETT_QUIET) {
+            const pulseClass = isAccent ? 'beat-pulse-accent' : 'beat-pulse';
+            document.body.classList.add(pulseClass);
+            clearTimeout(window.beatPulseTimeout);
+            window.beatPulseTimeout = setTimeout(() => document.body.classList.remove('beat-pulse', 'beat-pulse-accent'), 70);
+        }
     };
 
     window.metroNextNote = () => {
@@ -1540,6 +1649,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.metroTapTimes.length > 1) { let sum = 0; for (let i = 1; i < window.metroTapTimes.length; i++) sum += (window.metroTapTimes[i] - window.metroTapTimes[i - 1]); const bpm = Math.round(60000 / (sum / (window.metroTapTimes.length - 1))); const el = document.getElementById('metro-bpm'); if (el) el.value = Math.max(30, Math.min(300, bpm)); }
         clearTimeout(window.metroTapTimeout); window.metroTapTimeout = setTimeout(() => { window.metroTapTimes = []; }, 2000);
     });
+
+    // === PRACTICE ROUTINE (ramps metronome tempo on a timer) ===
+    window.routine = { running: false, step: 0, totalSteps: 5, stepMs: 0, stepStartedAt: 0, tickInterval: null, stepTimeout: null };
+
+    window.fmtMmSs = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+    window.routineTick = () => {
+        const elapsed = Date.now() - window.routine.stepStartedAt;
+        const remaining = window.routine.stepMs - elapsed;
+        const statusEl = document.getElementById('routine-status');
+        const bpmEl = document.getElementById('metro-bpm');
+        if (statusEl) statusEl.textContent = `Step ${window.routine.step + 1}/${window.routine.totalSteps} — ${bpmEl?.value || ''} BPM — ${window.fmtMmSs(remaining)} left in step`;
+        const bar = document.getElementById('routine-progress-bar'); if (bar) bar.style.width = `${Math.round(((window.routine.step + (elapsed / window.routine.stepMs)) / window.routine.totalSteps) * 100)}%`;
+    };
+
+    window.routineAdvanceStep = () => {
+        window.routine.step++;
+        if (window.routine.step >= window.routine.totalSteps) { window.stopRoutine(true); return; }
+        const incr = parseInt(document.getElementById('routine-increment')?.value, 10) || 10;
+        const bpmEl = document.getElementById('metro-bpm');
+        if (bpmEl) bpmEl.value = Math.min(300, parseInt(bpmEl.value, 10) + incr);
+        window.routine.stepStartedAt = Date.now();
+        window.routine.stepTimeout = setTimeout(window.routineAdvanceStep, window.routine.stepMs);
+    };
+
+    window.startRoutine = () => {
+        if (window.routine.running) return;
+        const startBpm = parseInt(document.getElementById('routine-start-bpm')?.value, 10) || 80;
+        const stepMins = parseFloat(document.getElementById('routine-step-mins')?.value) || 2;
+        const totalSteps = parseInt(document.getElementById('routine-steps')?.value, 10) || 5;
+        const bpmEl = document.getElementById('metro-bpm'); if (bpmEl) bpmEl.value = startBpm;
+        window.routine.running = true; window.routine.step = 0; window.routine.totalSteps = totalSteps; window.routine.stepMs = stepMins * 60 * 1000; window.routine.stepStartedAt = Date.now();
+        if (!window.metro.running) window.startMetronome();
+        window.routine.stepTimeout = setTimeout(window.routineAdvanceStep, window.routine.stepMs);
+        window.routine.tickInterval = setInterval(window.routineTick, 1000);
+        window.routineTick();
+        document.getElementById('routine-progress-bar-wrap')?.classList.remove('hidden');
+        const btn = document.getElementById('btn-routine-toggle'); if (btn) { btn.textContent = '■ STOP ROUTINE'; btn.classList.remove('btn-ferrett-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
+    };
+
+    window.stopRoutine = (completed) => {
+        if (!window.routine.running && !completed) return;
+        window.routine.running = false;
+        clearTimeout(window.routine.stepTimeout); clearInterval(window.routine.tickInterval);
+        const statusEl = document.getElementById('routine-status'); if (statusEl) statusEl.textContent = completed ? '✓ Routine complete.' : '';
+        const bar = document.getElementById('routine-progress-bar'); if (bar) bar.style.width = completed ? '100%' : '0%';
+        const btn = document.getElementById('btn-routine-toggle'); if (btn) { btn.textContent = '▶ START ROUTINE'; btn.classList.add('btn-ferrett-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+        if (completed) window.stopMetronome();
+    };
+
+    document.getElementById('btn-routine-toggle')?.addEventListener('click', () => { window.routine.running ? window.stopRoutine(false) : window.startRoutine(); });
 
     // === TUNER (mic input + autocorrelation pitch detection) ===
     const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -1758,6 +1918,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-daw').value = tone.daw; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
         const btnDelTone = e.target.closest('.btn-del-tone'); if(btnDelTone && confirm("Delete this tone?")) { const delId = parseInt(btnDelTone.dataset.id, 10); window.db.tones = window.db.tones.filter(t => t.id !== delId); window.saveData(); window.audioDbDelete(delId).then(() => window.scheduleAudioDriveSync()); window.renderTones(); window.renderStarredTones(); }
         const btnCloneCb = e.target.closest('.btn-clone-cookbook'); if(btnCloneCb) window.cloneCookbook(parseInt(btnCloneCb.dataset.id, 10)); 
+        const btnPrintCb = e.target.closest('.btn-print-cookbook'); if(btnPrintCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnPrintCb.dataset.id, 10)); if (recipe) window.printRecipeSheet(recipe); }
         const btnEditLink = e.target.closest('.btn-edit-link'); if(btnEditLink) { const link = window.db.links.find(l => l.id === parseInt(btnEditLink.dataset.id, 10)); if(link) { document.getElementById('link-id').value = link.id; document.getElementById('link-title').value = link.title; document.getElementById('link-url').value = link.url; document.getElementById('link-category').value = link.category; document.getElementById('link-daw').value = link.daw; document.getElementById('link-notes').value = link.notes; const t=document.getElementById('link-form-title'); if(t) t.innerText = 'EDIT TOOL LINK'; document.getElementById('form-link')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-link')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelLink = e.target.closest('.btn-del-link'); if(btnDelLink && confirm("Delete this link?")) { window.db.links = window.db.links.filter(l => l.id !== parseInt(btnDelLink.dataset.id, 10)); window.saveData(); window.renderLinks(); }
         const btnTagLink = e.target.closest('.btn-tag-link'); if(btnTagLink) window.setLinkTag(btnTagLink.dataset.tag);
@@ -1776,13 +1937,32 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerText = origLabel;
     };
 
-    window.renderLinks = () => { const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.links.filter(l => window.currentMode === 'both' || l.daw === window.currentMode || l.daw === 'both'); const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.pillColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.pillColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${l.title}">${l.title}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${l.notes}</p><a href="${l.url}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
+    window.renderLinks = () => { const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.links.filter(l => window.currentMode === 'both' || l.daw === window.currentMode || l.daw === 'both'); const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.pillColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.pillColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${l.title}">${l.title}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${l.notes}</p><a href="${l.url}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
     
     window.getImagesHtml = (imagesArray, colorClass, type, id) => { if (!imagesArray || imagesArray.length === 0) return ''; let html = `<div class="mt-4 p-3 bg-black/40 rounded border border-[${colorClass}20]"><div class="text-[9px] text-[${colorClass}]/70 tracking-widest mb-3 font-bold uppercase flex items-center gap-2">Signal Chain / Plugin Flow</div><div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide cursor-pointer group" onclick="window.openModalGallery('${type}', ${id})">`; imagesArray.forEach((imgB64, i) => { html += `<img src="${imgB64}" class="w-20 h-20 object-cover border border-[${colorClass}40] rounded shadow-[0_0_10px_rgba(0,0,0,0.5)] group-hover:border-[${colorClass}] transition-colors">`; if (i < imagesArray.length - 1) html += `<span class="text-[${colorClass}]/50 font-bold text-[18px] shrink-0">→</span>`; }); html += `</div></div>`; return html; };
 
-    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
-    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); const allCats = [...new Set(filtered.map(t => t.category))].sort(); window.renderTagBarGeneric('tone-tag-bar', allCats, window.currentToneTag, window.toneCategoryColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.category === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const catColor = window.toneCategoryColor(t.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><button data-tag="${t.category}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${catColor}; border-color:${catColor}40; background:${catColor}0A;" title="Filter by ${t.category}">${t.category}</button>${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${catColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
+    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
+    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); const allCats = [...new Set(filtered.map(t => t.category))].sort(); window.renderTagBarGeneric('tone-tag-bar', allCats, window.currentToneTag, window.toneCategoryColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.category === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const catColor = window.toneCategoryColor(t.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><button data-tag="${t.category}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${catColor}; border-color:${catColor}40; background:${catColor}0A;" title="Filter by ${t.category}">${t.category}</button>${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${catColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
     window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.db.tones.filter(t => t.starred && (window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both')).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = t.category === 'DISTORTION' ? '#FF8888' : (t.category === 'CLEAN' ? '#00E5FF' : (t.category === 'BASS' ? '#FFD60A' : '#00FF88')); const catBg = t.category === 'DISTORTION' ? '#FF4444' : (t.category === 'CLEAN' ? '#00E5FF' : (t.category === 'BASS' ? '#FFD60A' : '#00FF88')); list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${t.name.toUpperCase()}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${t.nam} + ${t.ir}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${t.notes}</p></div>`; }); };
+
+    // Gesture: double-tap a tone card to instantly pin/unpin it (no need to open the edit form).
+    window.toggleToneStar = (id) => {
+        const tone = window.db.tones.find((t) => t.id === id); if (!tone) return;
+        if (!tone.starred && window.db.tones.filter((t) => t.starred).length >= 10) { alert('You already have 10 Pinned Tones. Unpin an old tone first.'); return; }
+        tone.starred = !tone.starred;
+        window.saveData(); window.renderTones(); window.renderStarredTones();
+    };
+    (() => {
+        let lastTapTime = 0, lastTapId = null;
+        document.getElementById('tone-list')?.addEventListener('click', (e) => {
+            const card = e.target.closest('[data-tone-id]'); if (!card || e.target.closest('button')) return;
+            const id = parseInt(card.dataset.toneId, 10);
+            const now = Date.now();
+            if (id === lastTapId && now - lastTapTime < 350) { window.toggleToneStar(id); lastTapTime = 0; lastTapId = null; }
+            else { lastTapTime = now; lastTapId = id; }
+        });
+    })();
+
     window.cloneCookbook = (id) => {
     const orig = window.db.cookbook.find(r => r.id === id); if(!orig) return;
     const clone = JSON.parse(JSON.stringify(orig)); clone.id = Date.now(); clone.inst = clone.inst + ' (Copy)';
@@ -1820,9 +2000,43 @@ window.cloneTone = (id) => {
     window.updateSessionUI();
     window.addEventListener('beforeunload', () => { if (window.sessionState.running) { window.sessionState.elapsedMs = window.getSessionElapsedMs(); window.sessionState.startedAt = Date.now(); } window.saveSessionState(); });
     
+    // VU meters: decorative random animation by default; toggle to drive them from real mic input.
     function rV() { return 3 + Math.pow(Math.random(), 0.7)*18; }
     const vL = document.querySelectorAll('#vuLeft .vu-bar'); const vR = document.querySelectorAll('#vuRight .vu-bar');
-    setInterval(()=>{ if(window.FERRETT_QUIET) return; vL.forEach(b=>b.style.height=rV()+'px'); vR.forEach(b=>b.style.height=rV()+'px'); }, 90);
+    window.vuLive = { active: false, ctx: null, analyser: null, buf: null, stream: null };
+    setInterval(()=>{ if(window.FERRETT_QUIET || window.vuLive.active) return; vL.forEach(b=>b.style.height=rV()+'px'); vR.forEach(b=>b.style.height=rV()+'px'); }, 90);
+
+    window.vuLiveTick = () => {
+        if (!window.vuLive.active) return;
+        window.vuLive.analyser.getByteTimeDomainData(window.vuLive.buf);
+        let sum = 0; for (let i = 0; i < window.vuLive.buf.length; i++) { const v = (window.vuLive.buf[i] - 128) / 128; sum += v * v; }
+        const rms = Math.sqrt(sum / window.vuLive.buf.length);
+        const px = Math.min(22, 3 + rms * 90);
+        vL.forEach((b, i) => b.style.height = Math.max(2, px - i * 1.5 + (Math.random() * 2)) + 'px');
+        vR.forEach((b, i) => b.style.height = Math.max(2, px - i * 1.5 + (Math.random() * 2)) + 'px');
+        requestAnimationFrame(window.vuLiveTick);
+    };
+
+    window.startVuLive = async () => {
+        try {
+            window.vuLive.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            window.vuLive.ctx = window.vuLive.ctx || new (window.AudioContext || window.webkitAudioContext)();
+            if (window.vuLive.ctx.state === 'suspended') await window.vuLive.ctx.resume();
+            const source = window.vuLive.ctx.createMediaStreamSource(window.vuLive.stream);
+            window.vuLive.analyser = window.vuLive.ctx.createAnalyser(); window.vuLive.analyser.fftSize = 1024;
+            window.vuLive.buf = new Uint8Array(window.vuLive.analyser.fftSize);
+            source.connect(window.vuLive.analyser);
+            window.vuLive.active = true;
+            window.vuLiveTick();
+            const btn = document.getElementById('btn-vu-live-toggle'); if (btn) { btn.classList.add('text-[#00FF88]'); btn.style.borderColor = '#00FF88'; btn.style.boxShadow = '0 0 8px #00FF8860'; }
+        } catch (err) { alert('Could not access the microphone for live VU metering.'); }
+    };
+    window.stopVuLive = () => {
+        window.vuLive.active = false;
+        window.vuLive.stream?.getTracks().forEach((t) => t.stop());
+        const btn = document.getElementById('btn-vu-live-toggle'); if (btn) { btn.classList.remove('text-[#00FF88]'); btn.style.borderColor = ''; btn.style.boxShadow = ''; }
+    };
+    document.getElementById('btn-vu-live-toggle')?.addEventListener('click', () => { window.vuLive.active ? window.stopVuLive() : window.startVuLive(); });
     
     function tG() { if(window.FERRETT_QUIET) return; document.body.classList.add('glitching-ui'); setTimeout(()=>document.body.classList.remove('glitching-ui'), 120+Math.random()*200); }
     setInterval(()=>{ if(!window.FERRETT_QUIET && Math.random()<0.1) tG(); }, 700);
@@ -1901,7 +2115,7 @@ window.renderScripts = () => {
         const pc = window.pillColor ? window.pillColor(s.category) : '#00E5FF';
         list.innerHTML += `
             <div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col">
-                <div class="absolute top-3 right-3 hidden group-hover:flex gap-3 z-20">
+                <div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20">
                     <button data-id="${s.id}" class="btn-edit-script text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button>
                     <button data-id="${s.id}" class="btn-del-script text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
                 </div>
@@ -2077,5 +2291,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
+<div id="print-sheet-content"></div>
 </body>
 </html>

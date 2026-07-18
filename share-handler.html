@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FERRETT_STUDIO_OS // Saving Share...</title>
+<style>
+  body { background:#050807; color:#C9FFE6; font-family: 'JetBrains Mono', 'Courier New', monospace; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; padding:24px; text-align:center; }
+  .card { max-width:420px; border:1px solid rgba(0,255,136,0.3); border-radius:8px; padding:32px 24px; background:rgba(10,15,13,0.6); }
+  h1 { color:#00FF88; font-size:14px; letter-spacing:0.15em; margin:0 0 16px; }
+  p { font-size:12px; color:rgba(226,232,240,0.6); line-height:1.6; word-break:break-word; }
+  .field { text-align:left; margin-top:12px; font-size:11px; }
+  .field b { color:#00E5FF; display:block; margin-bottom:2px; }
+  a.btn { display:inline-block; margin-top:20px; padding:10px 20px; border:1px solid #00FF8850; border-radius:4px; color:#00FF88; text-decoration:none; font-size:11px; letter-spacing:0.1em; font-weight:bold; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="status">SAVING TO TRACK DB...</h1>
+    <div id="details"></div>
+    <p id="msg">Redirecting to the app...</p>
+    <a href="./index.html" class="btn">OPEN APP NOW</a>
+  </div>
+
+<script>
+  function getParam(name) { return new URLSearchParams(window.location.search).get(name) || ''; }
+  const title = getParam('title');
+  const text = getParam('text');
+  const url = getParam('url');
+  const DB_KEY = 'ferrett_os_db_v22.4';
+
+  const detailsEl = document.getElementById('details');
+  let html = '';
+  if (title) html += `<div class="field"><b>TITLE</b>${title}</div>`;
+  if (text) html += `<div class="field"><b>TEXT</b>${text}</div>`;
+  if (url) html += `<div class="field"><b>URL</b>${url}</div>`;
+  detailsEl.innerHTML = html || '<p style="color:#FF8888">Nothing was shared.</p>';
+
+  try {
+    if (title || text || url) {
+      const raw = localStorage.getItem(DB_KEY);
+      const db = raw ? JSON.parse(raw) : {};
+      if (!Array.isArray(db.tracks)) db.tracks = [];
+      const notesParts = [];
+      if (text) notesParts.push(text);
+      if (url) notesParts.push(url);
+      db.tracks.unshift({
+        id: Date.now(),
+        inst: title || 'Shared Reference',
+        daw: 'both',
+        plugins: '',
+        notes: notesParts.join('\n\n'),
+        images: []
+      });
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+      document.getElementById('status').textContent = '✓ SAVED TO TRACK DB';
+    } else {
+      document.getElementById('status').textContent = 'NOTHING TO SAVE';
+      document.getElementById('msg').textContent = 'No shared content was received.';
+    }
+  } catch (e) {
+    document.getElementById('status').textContent = '⚠ COULD NOT SAVE';
+    document.getElementById('msg').textContent = 'Local storage was unavailable. Try opening the app directly.';
+  }
+
+  setTimeout(() => { window.location.href = './index.html'; }, 1800);
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+[
+  {
+    "title": "ReaPack",
+    "url": "https://reapack.com/",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Free package manager for REAPER. Installs thousands of community scripts/extensions in a couple clicks \u2014 this is the single highest-value free tool for a REAPER user that isn't already on your list."
+  },
+  {
+    "title": "VMPK (Virtual MIDI Piano Keyboard)",
+    "url": "https://vmpk.sourceforge.io/",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Free, open source. Turns your computer keyboard/mouse into a MIDI controller when you don't have a physical one handy \u2014 useful for quick sketching on the road."
+  },
+  {
+    "title": "MidiEditor",
+    "url": "https://www.midieditor.org/",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Free, open source standalone MIDI file editor/piano roll \u2014 handy for cleaning up or hand-editing MIDI files outside your DAW."
+  },
+  {
+    "title": "Captain Chords",
+    "url": "https://mixedinkey.com/captain-plugins/captain-chords/",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Paid ($79+) VST/AU chord & progression writer with genre-sorted presets, drag MIDI straight into your DAW. The industry go-to for fast chord ideas."
+  },
+  {
+    "title": "Scaler 2",
+    "url": "https://www.pluginboutique.com/product/2-Sequencers-Arps/8-Melodic-Sequencer/9059-Scaler-2",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Paid, widely considered the standard scale/chord-detection and MIDI generation plugin. Detects the key/scale of anything you feed it and suggests chord progressions that fit."
+  },
+  {
+    "title": "Chordify",
+    "url": "https://chordify.net/",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Free (with paid tier). Paste any song link and it auto-detects the chord progression in real time as the track plays \u2014 great for quick reference or covers."
+  },
+  {
+    "title": "BandLab SongStarter",
+    "url": "https://www.bandlab.com/songstarter",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Free AI-generated song starters (chords + drums + bass) as a jumping-off point when you're stuck, exportable as stems/MIDI."
+  },
+  {
+    "title": "Groove Monkee",
+    "url": "https://groovemonkee.com/",
+    "category": "MIDI & Composition Tools",
+    "daw": "both",
+    "notes": "Free and paid MIDI drum loop packs across genres, built for dragging straight into a DAW to build realistic-feeling programmed drums fast."
+  },
+  {
+    "title": "Riffusion",
+    "url": "https://www.riffusion.com/",
+    "category": "AI & MIDI Extraction",
+    "daw": "both",
+    "notes": "Weird one-off: real-time AI music generation from text prompts via spectrogram diffusion. Good for weird texture/sound-design starting points, not polished output."
+  },
+  {
+    "title": "99Sounds",
+    "url": "https://99sounds.org/",
+    "category": "Samples & Instruments",
+    "daw": "both",
+    "notes": "Long-running free sample pack archive \u2014 drums, synths, foley, all genres, zero cost, no account needed."
+  },
+  {
+    "title": "Bedroom Producers Blog",
+    "url": "https://bedroomproducersblog.com/",
+    "category": "Samples & Instruments",
+    "daw": "both",
+    "notes": "Long-running blog cataloguing free VST plugins, sample packs, and IRs as they're released. Good to check periodically."
+  },
+  {
+    "title": "MusicRadar Free Samples Archive",
+    "url": "https://www.musicradar.com/news/tech/free-music-samples-royalty-free-loops-hits-and-multis",
+    "category": "Samples & Instruments",
+    "daw": "both",
+    "notes": "A large, continuously updated hub of free royalty-free sample packs across genres from a major music-tech publication."
+  },
+  {
+    "title": "Voxengo SPAN",
+    "url": "https://www.voxengo.com/product/span/",
+    "category": "Mixing & Mastering",
+    "daw": "both",
+    "notes": "Free, extremely capable real-time spectrum analyzer. A staple utility on nearly every professional's master bus."
+  },
+  {
+    "title": "LANDR Mastering",
+    "url": "https://www.landr.com/",
+    "category": "Mixing & Mastering",
+    "daw": "both",
+    "notes": "AI mastering with a free tier for previews. Useful as a quick reference master to A/B against your own, even if you don't use its output as final."
+  },
+  {
+    "title": "Ownhammer",
+    "url": "https://www.ownhammer.com/",
+    "category": "Tones, Amps & IRs",
+    "daw": "both",
+    "notes": "Paid, extremely respected boutique cab IR developer \u2014 free samples/demos available per pack before buying."
+  },
+  {
+    "title": "Audacity",
+    "url": "https://www.audacityteam.org/",
+    "category": "Audio Utilities",
+    "daw": "both",
+    "notes": "Free, open source multi-track audio editor. The reliable fallback for quick edits, format conversion, or de-clicking/de-noising outside your main DAW."
+  },
+  {
+    "title": "MuseScore",
+    "url": "https://musescore.org/",
+    "category": "Audio Utilities",
+    "daw": "both",
+    "notes": "Free, open source notation software. Useful for writing out a quick lead sheet/chart for session players, or reading tab/notation."
+  },
+  {
+    "title": "CloudConvert",
+    "url": "https://cloudconvert.com/",
+    "category": "Audio Utilities",
+    "daw": "both",
+    "notes": "Free-tier online file converter that handles virtually any audio/video/project format conversion in a browser, no install needed."
+  },
+  {
+    "title": "WhoSampled",
+    "url": "https://www.whosampled.com/",
+    "category": "Audio Utilities",
+    "daw": "both",
+    "notes": "Free database tracing samples, covers, and remixes back to their sources \u2014 essential for hip-hop crate-digging research and clearance sanity checks."
+  },
+  {
+    "title": "RhymeZone",
+    "url": "https://www.rhymezone.com/",
+    "category": "Audio Utilities",
+    "daw": "both",
+    "notes": "Free rhyming dictionary and near-rhyme finder. Genuinely useful mid-writing-session tool that has nothing to do with plugins."
+  },
+  {
+    "title": "Chrome Music Lab",
+    "url": "https://musiclab.chromeexperiments.com/",
+    "category": "Audio Utilities",
+    "daw": "both",
+    "notes": "Weird one-off: free, playful browser experiments (rhythm, spectrogram, oscillators) from Google. More toy than tool, but good for quick ear-training breaks or teaching kids the basics."
+  }
+]

@@ -351,7 +351,7 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tab-links" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS & INTEL DB</h2><button id="btn-add-link" class="btn-ferrett">+ ADD INTEL</button></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS & INTEL DB</h2><div class="flex gap-2"><button id="btn-import-links" class="btn-ferrett" style="border-color:#FF88FF50;color:#FF88FF;">📦 IMPORT PACK</button><input type="file" id="links-pack-input" accept="application/json" class="hidden"><button id="btn-add-link" class="btn-ferrett">+ ADD INTEL</button></div></div>
         <input type="text" id="search-link" class="input-ferrett w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search tools, URLs, or descriptions...">
         <div id="form-link" class="card mb-6 hidden border-[#00E5FF40]">
             <h3 id="link-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TOOL LINK</h3>
@@ -666,11 +666,9 @@ const defaultDb = {
     ],
     links: [
         { id: 1, title: 'Hookpad (Hooktheory)', url: 'https://hookpad.hooktheory.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Browser tool to map out complex jazz/neo-soul chord progressions. Analyzes scales and lets you export MIDI directly to Reaper.' },
-        { id: 2, title: 'Fadr AI', url: 'https://fadr.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Cloud-based Stem Separation and massive MIDI chord extraction.' },
+        { id: 2, title: 'Fadr AI', url: 'https://fadr.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'MIDI chord/stem extraction and mastering assistant. The MIDI extraction is the standout feature beyond simple vocal isolation.' },
         { id: 3, title: 'Spotify Basic Pitch', url: 'http://basicpitch.spotify.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Converts audio to MIDI via Machine Learning.' },
-        { id: 4, title: 'Moises AI', url: 'https://moises.ai/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Excellent alternative to Fadr for web-based stem separation, tempo mapping, and key detection.' },
-        { id: 5, title: 'Lalal.ai', url: 'https://www.lalal.ai/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'The current industry leader in neural-network based stem separation. Highly accurate vocal isolation.' },
-        { id: 6, title: 'RipX', url: 'https://hitnmix.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Deep Audio Manipulation. Turns full mixes into editable MIDI and audio stems.' },
+        { id: 6, title: 'RipX', url: 'https://hitnmix.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Deep Audio Manipulation. Turns full mixes into editable MIDI and audio stems, note-by-note — more than just vocal removal.' },
         { id: 7, title: 'Tunebat', url: 'https://tunebat.com/', category: 'Samples & Instruments', daw: 'both', notes: 'The ultimate database for crate digging. Look up exact BPM, Key, and Camelot wheel position of almost any commercial song.' },
         { id: 8, title: 'Splice', url: 'https://splice.com/', category: 'Samples & Instruments', daw: 'both', notes: 'The industry standard cloud sample, loop, and preset ecosystem.' },
         { id: 9, title: 'Pianobook', url: 'https://www.pianobook.co.uk/', category: 'Samples & Instruments', daw: 'both', notes: 'Community-sourced free sample instruments for DecentSampler & Kontakt.' },
@@ -685,7 +683,7 @@ const defaultDb = {
         { id: 18, title: 'Metric AB', url: 'https://www.plugin-alliance.com/en/products/adptr_metricab.html', category: 'Mixing & Mastering', daw: 'both', notes: 'The ultimate referencing tool. Instantly A/B your mix against commercial masters.' },
         { id: 19, title: 'ToneHunt', url: 'https://tonehunt.org/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The largest community database for Neural Amp Modeler (NAM) profiles.' },
         { id: 20, title: 'Tone3000', url: 'https://www.tone3000.com/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'Aggregated search engine for specific JCM800 and high-gain NAM captures.' },
-        { id: 21, title: 'Gods Cab IRs', url: 'https://sites.google.com/site/signalsaudiogodscab/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The legendary free Mesa OS Impulse Responses. Essential for heavy guitars.' },
+        { id: 21, title: 'Gods Cab IRs', url: 'https://wilkinsonaudio.com/products/gods-cab', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The legendary free Mesa OS Impulse Responses (700+ IRs). Essential for heavy guitars. Original signalsaudio.com site is defunct — this is the current, verified free download.' },
         { id: 22, title: 'SoundGym', url: 'https://www.soundgym.co/', category: 'Audio Utilities', daw: 'both', notes: 'Daily ear training workouts for audio engineers. Improves frequency recognition and EQ skills.' },
         { id: 23, title: 'Equipboard', url: 'https://equipboard.com/', category: 'Audio Utilities', daw: 'both', notes: 'Look up exactly what analog gear, synths, and plugins famous producers use.' },
         { id: 24, title: 'KVR Audio', url: 'https://www.kvraudio.com/', category: 'Audio Utilities', daw: 'both', notes: 'The largest database of VST plugins, reviews, and audio developer forums.' },
@@ -1311,6 +1309,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) window.swipeCookbookInst(dx < 0 ? 1 : -1);
         }, { passive: true });
     })();
+
+    window.importLinksPack = (file) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            let incoming;
+            try { incoming = JSON.parse(ev.target.result); } catch (e) { alert('That file is not valid JSON.'); return; }
+            const list = Array.isArray(incoming) ? incoming : (Array.isArray(incoming.links) ? incoming.links : null);
+            if (!list) { alert('Expected a JSON array of links (or a {"links":[...]} object).'); return; }
+            const doUpdate = confirm(`This pack has ${list.length} link(s).\n\nOK = UPDATE any that already exist (matched by title) with this new content, and add anything new.\nCancel = only ADD new ones, skip anything that already exists.`);
+            const existing = window.db.links || [];
+            const keyOf = (l) => (l.title || '').trim().toLowerCase();
+            const existingByKey = new Map(existing.map((l) => [keyOf(l), l]));
+            let nextId = existing.reduce((max, l) => Math.max(max, l.id || 0), 0) + 1;
+            let added = 0, updated = 0, skipped = 0;
+            list.forEach((l) => {
+                if (!l.title || !l.url) { skipped++; return; }
+                const key = keyOf(l);
+                const match = existingByKey.get(key);
+                if (match) {
+                    if (doUpdate) { match.url = l.url || match.url; match.category = l.category || match.category; match.notes = l.notes || match.notes; match.daw = l.daw || match.daw || 'both'; updated++; }
+                    else { skipped++; }
+                    return;
+                }
+                const fresh = { id: nextId++, title: l.title, url: l.url, category: l.category || 'Audio Utilities', daw: l.daw || 'both', notes: l.notes || '' };
+                existing.push(fresh); existingByKey.set(key, fresh); added++;
+            });
+            window.db.links = existing;
+            window.saveData();
+            window.renderLinks();
+            alert(`Added ${added} new link${added === 1 ? '' : 's'}.${updated ? ` Updated ${updated} existing.` : ''}${skipped ? ` Skipped ${skipped}.` : ''}`);
+        };
+        reader.onerror = () => alert('Could not read that file.');
+        reader.readAsText(file);
+    };
+
+    document.getElementById('btn-import-links')?.addEventListener('click', () => document.getElementById('links-pack-input')?.click());
+    document.getElementById('links-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importLinksPack(file); e.target.value = ''; });
 
     window.importRecipePack = (file) => {
         const reader = new FileReader();

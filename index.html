@@ -259,6 +259,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
             <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
                 <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide" id="genre-menu"></div></div>
+                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex items-center justify-between gap-2 flex-wrap"><span id="genre-bpm-readout" class="text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span><button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button></div>
                 <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
             </div>
             <div class="w-full md:w-[65%] p-6 md:p-8 bg-[rgba(10,15,13,0.8)] overflow-y-auto max-h-[800px] relative" id="recipe-display">
@@ -406,6 +407,22 @@ main { background: rgba(5,8,7,0.72); }
 
     <section id="tab-calc" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00E5FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">STUDIO CALCULATOR & TIME TOOLS</h2></div>
+
+        <div class="card border-[#FFD60A40] mb-6 text-center py-8" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(0,229,255,0.04));">
+            <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-2">🚀 Session Starter</h3>
+            <p class="text-[10px] text-[#E2E8F0]/50 mb-5 max-w-md mx-auto">One tap: picks a recipe, sets the metronome to that genre's tempo, opens a fresh checklist note, and starts the session timer.</p>
+            <button id="btn-session-starter" type="button" class="btn-ferrett-green px-8 py-3 text-[13px]">START A SESSION</button>
+            <div class="mt-4"><button id="btn-open-lyria-tools" type="button" class="text-[10px] font-bold tracking-widest text-[#00E5FF]/70 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0 underline underline-offset-2">🎼 or just open the Lyria Prompt Generator</button></div>
+        </div>
+
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">SESSION STATS</h4>
+            <div class="grid grid-cols-3 gap-4 text-center" id="session-stats-display">
+                <div><div id="stat-today" class="text-[22px] font-bold text-[#00FF88]">--</div><div class="text-[9px] text-[#00FF88]/50 tracking-widest mt-1">TODAY</div></div>
+                <div><div id="stat-week" class="text-[22px] font-bold text-[#00E5FF]">--</div><div class="text-[9px] text-[#00E5FF]/50 tracking-widest mt-1">THIS WEEK</div></div>
+                <div><div id="stat-streak" class="text-[22px] font-bold text-[#FFD60A]">--</div><div class="text-[9px] text-[#FFD60A]/50 tracking-widest mt-1">DAY STREAK</div></div>
+            </div>
+        </div>
         <div class="card border-[#00E5FF30] mb-6 flex flex-col md:flex-row items-center justify-center gap-8 p-8 md:p-12">
             <div class="flex flex-col items-center gap-2"><span class="text-[12px] tracking-widest text-[#00E5FF]/70 font-bold">PROJECT TEMPO</span><div class="flex items-center gap-2"><input type="number" id="calc-bpm-main" value="120" class="bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[40px] font-bold text-[#00E5FF] w-40 py-2 focus:outline-none shadow-[0_0_15px_rgba(0,229,255,0.1)]"><span class="text-[14px] text-[#00E5FF]/50 font-bold">BPM</span></div></div>
             <div class="text-[#00E5FF]/30 text-[32px] hidden md:block">||</div>
@@ -515,6 +532,36 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t border-[#FFD60A14]">
                 <button id="btn-refresh-vault-stats" class="btn-ferrett" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">↻ REFRESH</button>
                 <button id="btn-cleanup-orphaned-audio" class="btn-ferrett" style="border-color:#FF888850;color:#FF8888;background:rgba(255,136,136,0.08);">🧹 CLEAN UP ORPHANED CLIPS</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="lyria-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl">
+        <div class="card border-[#00E5FF40] relative">
+            <button id="close-lyria-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0">×</button>
+            <h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF] uppercase mb-1 pr-8">🎼 Lyria Prompt Generator</h3>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Builds an instrumental music-generation prompt from a genre's actual recipe data, plus anything specific you want included.</p>
+
+            <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">GENRE / VIBE</label>
+            <select id="lyria-genre-select" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-4 focus:outline-none"></select>
+
+            <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">BPM</label>
+            <input type="number" id="lyria-bpm" class="w-32 bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[#E2E8F0] text-[13px] px-3 py-2 mb-4 focus:outline-none">
+
+            <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">ANY SPECIFIC REQUESTS? (optional)</label>
+            <textarea id="lyria-custom-notes" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-4 h-16 resize-none focus:outline-none" placeholder="e.g. use electric bass, minimal kick/snare kit, no strings"></textarea>
+
+            <div class="flex gap-2 mb-4">
+                <button id="btn-lyria-generate" type="button" class="btn-ferrett-green flex-1">GENERATE PROMPT</button>
+                <button id="btn-lyria-regenerate" type="button" class="btn-ferrett hidden" title="Generate a different variation">🎲</button>
+            </div>
+
+            <div id="lyria-output-wrap" class="hidden">
+                <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">GENERATED PROMPT</label>
+                <textarea id="lyria-output" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-32 resize-none focus:outline-none" readonly></textarea>
+                <button id="btn-lyria-copy" type="button" class="btn-ferrett mt-2 w-full">📋 COPY TO CLIPBOARD</button>
             </div>
         </div>
     </div>
@@ -680,6 +727,33 @@ window.updateSessionUI = () => {
     const dot = document.getElementById('hud-rec-dot'); const label = document.getElementById('hud-rec-label'); if (!dot || !label) return;
     if (window.sessionState.running) { dot.style.animation = ''; dot.style.opacity = ''; dot.style.boxShadow = ''; label.textContent = 'REC'; label.style.color = '#FF5A5A'; }
     else { dot.style.animation = 'none'; dot.style.opacity = '0.25'; dot.style.boxShadow = 'none'; label.textContent = 'PAUSED'; label.style.color = 'rgba(226,232,240,0.4)'; }
+};
+
+// === SESSION LOG (per-day totals for hours/streak stats — separate from the live elapsed-since-reset timecode) ===
+window.SESSION_LOG_KEY = 'ferrett_os_session_log_v1';
+window.sessionLog = (() => { try { const raw = window.localStorage.getItem(window.SESSION_LOG_KEY); if (raw) return JSON.parse(raw); } catch (e) {} return {}; })();
+window.saveSessionLog = () => { try { window.localStorage.setItem(window.SESSION_LOG_KEY, JSON.stringify(window.sessionLog)); } catch (e) {} };
+window.fmtDateKey = (d) => d.toISOString().slice(0, 10);
+window.logSessionTime = (deltaMs) => { if (deltaMs <= 0) return; const key = window.fmtDateKey(new Date()); window.sessionLog[key] = (window.sessionLog[key] || 0) + deltaMs; window.saveSessionLog(); };
+window.getSessionStats = () => {
+    const today = window.fmtDateKey(new Date());
+    const todayMs = window.sessionLog[today] || 0;
+    let weekMs = 0;
+    for (let i = 0; i < 7; i++) { const d = new Date(); d.setDate(d.getDate() - i); weekMs += window.sessionLog[window.fmtDateKey(d)] || 0; }
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const hasTime = (window.sessionLog[window.fmtDateKey(d)] || 0) > 0;
+        if (hasTime) streak++; else if (i === 0) continue; else break;
+    }
+    return { todayMs, weekMs, streak };
+};
+window.fmtHoursMins = (ms) => { const totalMin = Math.round(ms / 60000); const h = Math.floor(totalMin / 60); const m = totalMin % 60; return h > 0 ? `${h}h ${m}m` : `${m}m`; };
+window.renderSessionStats = () => {
+    const stats = window.getSessionStats();
+    const t = document.getElementById('stat-today'); if (t) t.textContent = window.fmtHoursMins(stats.todayMs);
+    const w = document.getElementById('stat-week'); if (w) w.textContent = window.fmtHoursMins(stats.weekMs);
+    const s = document.getElementById('stat-streak'); if (s) s.textContent = stats.streak;
 };
 
 window.saveDataLocally = () => {
@@ -1092,6 +1166,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.currentCookbookGenre = genre; window.currentCookbookId = null;
         const buttons = document.getElementById('genre-menu')?.children || [];
         for(let btn of buttons) { if(btn.innerText === genre.toUpperCase()) btn.classList.add('active-genre'); else btn.classList.remove('active-genre'); }
+        const meta = window.getGenreMeta(genre);
+        const bpmReadout = document.getElementById('genre-bpm-readout'); if (bpmReadout) bpmReadout.textContent = `~${meta.bpm[0]}-${meta.bpm[1]} BPM`;
+        document.getElementById('genre-info-bar')?.classList.remove('hidden');
         const instMenu = document.getElementById('inst-menu'); if(instMenu) instMenu.innerHTML = ''; 
         const instruments = window.db.cookbook.filter(r => r.genre === genre);
         instruments.forEach((data, index) => {
@@ -1164,6 +1241,90 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     };
 
+    window.LYRIA_GENRE_META = {
+        'G-Funk / 90s West Coast': { bpm: [92, 98], mood: 'laid-back, sunny, cruising West Coast swagger', texture: 'warm analog synths, funk-driven groove' },
+        'Aftermath / Shady 2000s': { bpm: [85, 95], mood: 'moody, cinematic, aggressive polish', texture: 'dry and hard-hitting with minor-key tension' },
+        '80s Def Jam / Arena Rap': { bpm: [98, 110], mood: 'loud, brash, rock-fused arena energy', texture: 'distorted, gated reverb, larger-than-life' },
+        'Soul Assassins / Cypress Hill': { bpm: [88, 95], mood: 'grimy, hazy, hypnotic', texture: 'muffled, dusty, dissonant' },
+        'Detroit Horrorcore': { bpm: [80, 90], mood: 'dark, sinister, carnival-macabre', texture: 'distorted, pitched-down, eerie' },
+        'Early 2000s Southern Bounce': { bpm: [138, 148], mood: 'sparse, hyper-punchy, club energy', texture: 'dry 808s, zero reverb, minimalist' },
+        'Southern Soul / Dungeon Family': { bpm: [72, 95], mood: 'warm, soulful, gospel-tinged', texture: 'analog warmth, live/programmed hybrid' },
+        'Boom-Bap Kings': { bpm: [85, 95], mood: 'dusty, gritty, nostalgic head-nod groove', texture: 'sampled, bit-crushed, vinyl-warm' },
+        'Groove Innovators': { bpm: [85, 96], mood: 'loose, human, intoxicatingly off-kilter', texture: 'unquantized, wonky, warm' },
+        'Underground Vanguards': { bpm: [85, 100], mood: 'abrasive, industrial, cerebral, dense', texture: 'glitchy, aggressive, hyper-detailed' },
+        'The Futurists': { bpm: [70, 110], mood: 'futuristic, minimal, alien, bouncy', texture: 'clicky, plucky, synthetic' },
+        'Wu-Tang Clan / Shaolin Grit': { bpm: [85, 95], mood: 'grimy, cinematic, martial-arts mystique', texture: 'dusty, filtered, chopped' },
+        'Miami Bass / 2 Live Electro': { bpm: [125, 135], mood: 'high-energy, bass-heavy party vibe', texture: 'booming 808s, bright synths' },
+        'Old School Electro-Funk (82-87)': { bpm: [108, 118], mood: 'robotic, mechanical, retro-futuristic', texture: 'vocoded, cold, machine-groove' },
+        'Memphis Horrorcore / Three 6 Mafia': { bpm: [65, 75], mood: 'dark, druggy, menacing, horror-movie', texture: 'pitched-down, wobbly, VHS-grain' },
+        'Bay Area Mob Music': { bpm: [90, 100], mood: 'bouncy, rubbery, crew energy', texture: 'synth-bass driven, whistly hooks' },
+        'Native Tongues / Jazz-Rap Loops': { bpm: [85, 95], mood: 'warm, conversational, jazzy', texture: 'live-feel samples, mellow' },
+        '__default__': { bpm: [85, 95], mood: 'classic hip-hop energy', texture: 'boom-bap foundation' }
+    };
+
+    window.getGenreMeta = (genre) => window.LYRIA_GENRE_META[genre] || window.LYRIA_GENRE_META['__default__'];
+    window.getGenreBpmMid = (genre) => { const m = window.getGenreMeta(genre); return Math.round((m.bpm[0] + m.bpm[1]) / 2); };
+
+    window.extractGenreElements = (genre) => {
+        const byCategory = {};
+        (window.db.cookbook || []).filter((r) => r.genre === genre).forEach((r) => {
+            const parts = (r.inst || '').split(':');
+            const cat = (parts[0] || 'Other').trim();
+            if (!byCategory[cat]) byCategory[cat] = [];
+            byCategory[cat].push(r.desc || parts.slice(1).join(':').trim());
+        });
+        return byCategory;
+    };
+
+    window.buildLyriaPrompt = (genre, customNotes, bpmOverride) => {
+        const meta = window.getGenreMeta(genre);
+        const bpm = bpmOverride || window.getGenreBpmMid(genre);
+        const elements = window.extractGenreElements(genre);
+        const order = ['Beats', 'Bass', 'Synths', 'Synths/Samples', 'Keys', 'Guitars', 'Samples', 'Vox'];
+        const fragments = [];
+        order.forEach((cat) => {
+            const list = elements[cat];
+            if (list && list.length) {
+                const pick = list[Math.floor(Math.random() * list.length)];
+                if (pick) fragments.push(pick.replace(/\.$/, '').trim());
+            }
+        });
+        const shortGenre = genre.split('/')[0].trim();
+        let prompt = `An instrumental ${shortGenre} beat at ${bpm} BPM. ${meta.mood.charAt(0).toUpperCase() + meta.mood.slice(1)}. `;
+        if (fragments.length) prompt += fragments.map((f) => f.charAt(0).toUpperCase() + f.slice(1)).join('. ') + '. ';
+        prompt += `Production style: ${meta.texture}.`;
+        if (customNotes && customNotes.trim()) prompt += ` Additional direction: ${customNotes.trim()}.`;
+        return prompt;
+    };
+
+    window.populateLyriaGenreSelect = (preselect) => {
+        const sel = document.getElementById('lyria-genre-select'); if (!sel) return;
+        const genres = [...new Set((window.db.cookbook || []).map((r) => r.genre))].sort();
+        sel.innerHTML = genres.map((g) => `<option value="${g.replace(/"/g, '&quot;')}">${g}</option>`).join('');
+        if (preselect && genres.includes(preselect)) sel.value = preselect;
+        const bpmEl = document.getElementById('lyria-bpm'); if (bpmEl) bpmEl.value = window.getGenreBpmMid(sel.value);
+    };
+
+    window.openLyriaModal = (preselectGenre) => {
+        window.populateLyriaGenreSelect(preselectGenre);
+        document.getElementById('lyria-output-wrap')?.classList.add('hidden');
+        document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
+        const notesEl = document.getElementById('lyria-custom-notes'); if (notesEl) notesEl.value = '';
+        document.getElementById('lyria-modal')?.classList.replace('hidden', 'flex');
+    };
+    window.closeLyriaModal = () => document.getElementById('lyria-modal')?.classList.replace('flex', 'hidden');
+
+    window.runLyriaGenerate = () => {
+        const genre = document.getElementById('lyria-genre-select')?.value; if (!genre) return;
+        const bpm = parseInt(document.getElementById('lyria-bpm')?.value, 10) || undefined;
+        const notes = document.getElementById('lyria-custom-notes')?.value || '';
+        const prompt = window.buildLyriaPrompt(genre, notes, bpm);
+        const out = document.getElementById('lyria-output'); if (out) out.value = prompt;
+        document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
+        document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
+    };
+
+
     window.blendGenres = () => {
         const genres = [...new Set((window.db.cookbook || []).map(r => r.genre))];
         if (genres.length < 2) { alert('Add recipes in at least 2 different genres to blend combos.'); return; }
@@ -1226,6 +1387,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.switchTab = (tabId) => {
         if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); }
+        if (tabId === 'calc') { window.renderSessionStats?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
@@ -1350,7 +1512,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.renderMetroDots();
+    window.startSession = () => {
+        const recipes = window.db.cookbook || [];
+        if (recipes.length === 0) { alert('Add some cookbook recipes first, then Session Starter has something to pick from.'); return; }
+        const pick = recipes[Math.floor(Math.random() * recipes.length)];
+        const bpm = window.getGenreBpmMid(pick.genre);
+        const bpmEl = document.getElementById('metro-bpm'); if (bpmEl) bpmEl.value = bpm;
+        const newNote = { id: Date.now(), title: `Session — ${pick.genre}`, content: `// Session Starter — ${new Date().toLocaleDateString()}\n// Recipe: ${pick.genre} — ${pick.inst}\n\n[TODO] Load up the recipe chain\n[TODO] Track a rough idea\n[TODO] Save/export when done` };
+        window.db.multiNotes.push(newNote); window.currentNoteId = newNote.id; window.saveData(); window.renderNoteTabs(); window.setNotesFooterOpen(true);
+        if (!window.sessionState.running) window.toggleSessionTimer();
+        window.switchTab('cookbook'); window.selectGenre(pick.genre); setTimeout(() => window.selectInst(pick.id), 120);
+        setTimeout(() => alert(`Session started: ${pick.genre} @ ${bpm} BPM.\nRecipe loaded, fresh note ready, timer running.`), 150);
+    };
+    document.getElementById('btn-session-starter')?.addEventListener('click', () => window.startSession());
+
     document.getElementById('btn-metro-toggle')?.addEventListener('click', () => { window.metro.running ? window.stopMetronome() : window.startMetronome(); });
+
+
     document.getElementById('btn-metro-bpm-minus')?.addEventListener('click', () => { const el = document.getElementById('metro-bpm'); if (el) el.value = Math.max(30, parseInt(el.value, 10) - 1); });
     document.getElementById('btn-metro-bpm-plus')?.addEventListener('click', () => { const el = document.getElementById('metro-bpm'); if (el) el.value = Math.min(300, parseInt(el.value, 10) + 1); });
     document.getElementById('metro-beats')?.addEventListener('change', (e) => { window.metro.beatsPerMeasure = parseInt(e.target.value, 10); window.metro.currentBeat = 0; window.renderMetroDots(); });
@@ -1545,6 +1723,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-add-cookbook')?.addEventListener('click', () => window.toggleForm('form-cookbook')); document.getElementById('btn-cancel-cookbook')?.addEventListener('click', () => window.toggleForm('form-cookbook'));
     document.getElementById('btn-surprise-cookbook')?.addEventListener('click', () => window.surpriseCookbook());
     document.getElementById('btn-blend-genres')?.addEventListener('click', () => window.blendGenres());
+    document.getElementById('btn-genre-lyria')?.addEventListener('click', () => window.openLyriaModal(window.currentCookbookGenre));
+    document.getElementById('btn-open-lyria-tools')?.addEventListener('click', () => window.openLyriaModal());
+    document.getElementById('close-lyria-modal')?.addEventListener('click', () => window.closeLyriaModal());
+    document.getElementById('lyria-modal')?.addEventListener('click', (e) => { if (e.target.id === 'lyria-modal') window.closeLyriaModal(); });
+    document.getElementById('lyria-genre-select')?.addEventListener('change', (e) => { const bpmEl = document.getElementById('lyria-bpm'); if (bpmEl) bpmEl.value = window.getGenreBpmMid(e.target.value); });
+    document.getElementById('btn-lyria-generate')?.addEventListener('click', () => window.runLyriaGenerate());
+    document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
+    document.getElementById('btn-lyria-copy')?.addEventListener('click', () => { const out = document.getElementById('lyria-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
     document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());
@@ -1617,12 +1803,15 @@ window.cloneTone = (id) => {
     // HUD ANIMATIONS
     // Real session stopwatch — persisted across reloads, pausable via the REC/timecode control.
     const tcEl = document.getElementById('hud-timecode'); function fmt(n) { return String(n).padStart(2,'0'); }
-    let sessionSaveCounter = 0;
+    let sessionSaveCounter = 0; let lastLogTick = Date.now();
     setInterval(()=>{
         const ms = window.getSessionElapsedMs();
         const totalSec = Math.floor(ms/1000); const frame = Math.floor(((ms%1000)/1000)*30);
         if (tcEl) tcEl.textContent = `${fmt(Math.floor(totalSec/3600)%24)}:${fmt(Math.floor((totalSec%3600)/60))}:${fmt(totalSec%60)}:${fmt(frame)}`;
-        if (window.sessionState.running) { sessionSaveCounter++; if (sessionSaveCounter >= 150) { sessionSaveCounter = 0; window.sessionState.elapsedMs = ms; window.sessionState.startedAt = Date.now(); window.saveSessionState(); } }
+        if (window.sessionState.running) {
+            const now = Date.now(); window.logSessionTime(now - lastLogTick); lastLogTick = now;
+            sessionSaveCounter++; if (sessionSaveCounter >= 150) { sessionSaveCounter = 0; window.sessionState.elapsedMs = ms; window.sessionState.startedAt = Date.now(); window.saveSessionState(); }
+        } else { lastLogTick = Date.now(); }
     }, 1000/30);
     document.getElementById('btn-session-toggle')?.addEventListener('click', () => window.toggleSessionTimer());
     document.getElementById('btn-session-reset')?.addEventListener('click', (e) => { e.stopPropagation(); window.resetSessionTimer(); });

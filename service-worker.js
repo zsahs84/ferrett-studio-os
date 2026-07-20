@@ -1,7 +1,7 @@
 // FERRETT_STUDIO_OS service worker
 // Bump this version string any time index.html (or any cached asset) changes,
 // so returning clients pick up the new copy instead of a stale cache.
-const CACHE_VERSION = 'ferrett-os-v17';
+const CACHE_VERSION = 'ferrett-os-v18';
 
 const APP_SHELL = [
   './',
@@ -52,10 +52,12 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put('./index.html', copy));
+          caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() =>
+          caches.match(req).then((cached) => cached || caches.match('./index.html'))
+        )
     );
     return;
   }

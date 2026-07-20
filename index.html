@@ -170,6 +170,8 @@ main { background: rgba(5,8,7,0.72); }
       <span class="hidden sm:inline">SEARCH</span><kbd class="hidden sm:inline px-1 py-0.5 rounded bg-[#00E5FF15] border border-[#00E5FF30] text-[8px]">⌘K</kbd>
     </button>
     <button id="btn-open-shortcuts" class="hidden lg:flex items-center justify-center w-8 h-8 rounded border border-[#00FF8830] text-[#00FF88]/60 hover:text-[#00FF88] hover:border-[#00FF8860] transition-all cursor-pointer text-[11px] font-bold" title="Keyboard shortcuts (?)">?</button>
+    <button id="btn-toggle-focus" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF88FF40] bg-[#FF88FF]/8 text-[#FF88FF] hover:bg-[#FF88FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Now Playing — log what you're working on"><span>▶</span><span class="hidden sm:inline">FOCUS</span></button>
+    <button id="btn-open-colormap" class="flex items-center justify-center w-8 h-8 rounded border border-[#B18CFF40] text-[#B18CFF]/70 hover:text-[#B18CFF] hover:border-[#B18CFF80] transition-all cursor-pointer text-[13px]" title="Color key / tag color map">🔑</button>
     <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Toggle quiet HUD animations"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text" class="hidden sm:inline">LIVE</span></button>
     <button id="btn-cycle-theme" class="w-8 h-8 flex items-center justify-center rounded border border-[#E2E8F030] text-[#E2E8F0]/60 hover:text-white hover:border-[#E2E8F060] cursor-pointer text-[13px]" title="Cycle HUD color theme">🎨</button>
     <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync">
@@ -207,6 +209,13 @@ main { background: rgba(5,8,7,0.72); }
         <button id="btn-conflict-reload-theirs" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;" title="Discard local changes and reload the Drive copy">RELOAD THEIRS</button>
         <button id="btn-conflict-dismiss" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer">×</button>
     </div>
+</div>
+
+<div id="now-playing-bar" class="hidden shrink-0 bg-[rgba(255,136,255,0.05)] border-b border-[#FF88FF30] px-4 py-2 items-center gap-3 flex-wrap relative z-30">
+    <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/80 uppercase shrink-0 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#FF88FF] animate-pulse"></span> NOW PLAYING</span>
+    <input type="text" id="now-playing-input" placeholder="What are you working on right now?" class="flex-1 min-w-[160px] bg-black/40 border border-[#FF88FF30] rounded px-3 py-1.5 text-[12px] text-[#E2E8F0] placeholder-[#E2E8F0]/25 focus:outline-none focus:border-[#FF88FF70]">
+    <button id="btn-now-playing-log" class="btn-ferrett shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
+    <button id="btn-now-playing-close" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer shrink-0" title="Hide">×</button>
 </div>
 
 <div class="flex flex-1 min-h-0 overflow-hidden relative">
@@ -421,6 +430,8 @@ main { background: rgba(5,8,7,0.72); }
                 <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DAW</label><select id="tone-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div>
                 <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">NAM (AMP PROFILE)</label><input type="text" id="tone-nam" class="input-ferrett"></div>
                 <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">IR (CABINET)</label><input type="text" id="tone-ir" class="input-ferrett"></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">BPM (optional)</label><input type="text" id="tone-bpm" inputmode="numeric" placeholder="e.g. 92" class="input-ferrett"></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">KEY (optional)</label><input type="text" id="tone-key" placeholder="e.g. Am / F#" class="input-ferrett"></div>
             </div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">EQ / PEDAL NOTES</label><textarea id="tone-notes" class="input-ferrett h-20 resize-y"></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
@@ -675,6 +686,52 @@ main { background: rgba(5,8,7,0.72); }
         </div>
     </div>
 </div>
+
+<div id="colormap-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-3xl bg-[#0a0f0d] border border-[#B18CFF40] rounded-lg shadow-[0_0_40px_rgba(177,140,255,0.15)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#B18CFF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#B18CFF] uppercase">🔑 Tag Color Map &amp; Health</h3>
+            <button id="colormap-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div id="colormap-body" class="p-5 space-y-6 text-[11px]"></div>
+    </div>
+</div>
+
+<div id="export-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#FF88FF40] rounded-lg shadow-[0_0_40px_rgba(255,136,255,0.15)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#FF88FF20]">
+            <h3 id="export-title" class="text-[12px] font-bold tracking-widest text-[#FF88FF] uppercase truncate pr-4">📤 Export / Share</h3>
+            <button id="export-close" class="text-white/40 hover:text-white text-[20px] leading-none shrink-0">×</button>
+        </div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5">
+            <div class="min-w-0">
+                <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold uppercase block mb-2">Portable text</label>
+                <textarea id="export-text" readonly class="w-full h-56 bg-black/50 border border-[#FF88FF20] rounded p-3 text-[11px] text-[#E2E8F0] font-mono resize-y focus:outline-none"></textarea>
+                <div class="flex gap-2 mt-3 flex-wrap">
+                    <button id="export-copy" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">📋 COPY TEXT</button>
+                    <button id="export-download" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);">⬇ DOWNLOAD SHEET</button>
+                </div>
+            </div>
+            <div class="flex flex-col items-center justify-start">
+                <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold uppercase block mb-2 self-center">Scan to phone</label>
+                <div id="export-qr" class="bg-white p-2 rounded w-[176px] h-[176px] flex items-center justify-center"></div>
+                <p id="export-qr-note" class="text-[9px] text-[#E2E8F0]/40 mt-2 text-center max-w-[176px]"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vendored, offline QR encoder — QR Code Generator for JavaScript, (c) 2009 Kazuhiko Arase, MIT license. Embedded so QR export works with no network / CDN. -->
+<script id="vendor-qrcode">
+/**
+ * Minified by jsDelivr using Terser v5.37.0.
+ * Original file: /npm/qrcode-generator@1.4.4/qrcode.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));
+//# sourceMappingURL=/sm/26b4b0d0b1e283d6b3ec9857ac597d7a60c76ac17be1ef4c965f03086de426bb.map
+</script>
 
 <script>
 // =========================================================================
@@ -1239,11 +1296,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // clustered badly on the real category names in this app (4 of 11 genres and
     // 3 of 5 link categories all landed on the same pink slot). This one spreads
     // much more evenly across a richer 12-color palette.
-    // 18 neon hues stepped by the golden angle (~137.5°), so consecutive palette
-    // entries land far apart on the color wheel. This replaces the old 12-color
-    // list, which packed 5 of 12 slots into the cyan/green family and made
-    // freeform chips look same-y even without an outright hash collision.
-    const FALLBACK_PALETTE = ['#45ED99','#CA45ED','#DFED45','#45AEED','#ED457D','#4CED45','#6F45ED','#EDA045','#45EDD1','#ED45D8','#A7ED45','#4576ED','#ED4645','#45ED76','#A745ED','#EDD845','#45D0ED','#ED45A0'];
+    // 18 neon colors spread by hue-stepping plus alternating lightness/saturation
+    // bands, tuned so the minimum pairwise RGB distance across the whole set is
+    // ~45 (any subset stays >= that). This replaces the old 12-color list, which
+    // packed 5 of 12 slots into the cyan/green family and made freeform chips
+    // look same-y even without an outright hash collision. The 🔑 color-map
+    // panel flags any two chips that land closer than ~42 apart.
+    const FALLBACK_PALETTE = ['#EE694F','#82FB6A','#328AE2','#EE4FD3','#FBE36A','#32E28A','#694FEE','#FB6A82','#8AE232','#4FD3EE','#E36AFB','#E28A32','#4FEE69','#6A82FB','#E2328A','#D3EE4F','#6AFBE3','#8A32E2'];
     window.pillColor = (str) => { str = str || ''; let h = 5381; for (let i=0;i<str.length;i++) h = ((h*33) ^ str.charCodeAt(i)) >>> 0; return FALLBACK_PALETTE[h % FALLBACK_PALETTE.length]; };
 
     // Cookbook genres are freeform, so a plain hash can still collide (with 17
@@ -1371,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(disp) disp.innerHTML = `
             <div class="animate-fade-in relative group">
                 <div class="absolute top-0 right-0 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20 bg-[rgba(10,15,13,0.9)] px-2 py-1 rounded">
-                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button>${data.history && data.history.length ? `<button data-id="${data.id}" class="btn-history-cookbook text-[10px] font-bold text-[#FF88FF] hover:text-white">🕐 HISTORY</button>` : ''}<button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button><button data-id="${data.id}" class="btn-recipe-checklist text-[10px] font-bold text-[#00FF88] hover:text-white" title="Turn this recipe's chain into a notes checklist">✓ CHECKLIST</button><button data-id="${data.id}" class="btn-export-recipe text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this recipe">📤 SHARE</button>${data.history && data.history.length ? `<button data-id="${data.id}" class="btn-history-cookbook text-[10px] font-bold text-[#FF88FF] hover:text-white">🕐 HISTORY</button>` : ''}<button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
                 </div>
                 <div class="border-b border-[#00FF8820] pb-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-2 pr-20"><h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#00FF88] uppercase">${data.inst}</h2><span class="text-[9px] md:text-[10px] tracking-widest text-[#00E5FF] uppercase bg-[#00E5FF10] px-3 py-1.5 rounded border border-[#00E5FF20]">${data.genre}</span></div>
                 <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
@@ -2370,7 +2429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, reflink: document.getElementById('track-reflink')?.value || '', notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
 
     document.getElementById('btn-add-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('btn-cancel-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('search-tone')?.addEventListener('keyup', () => window.renderTones());
-    document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
+    document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, bpm: (document.getElementById('tone-bpm')?.value || '').trim(), key: (document.getElementById('tone-key')?.value || '').trim(), notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
 
     document.addEventListener('click', (e) => {
         const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
@@ -2380,7 +2439,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnDelTrack = e.target.closest('.btn-del-track'); if(btnDelTrack && confirm("Delete this track config?")) { window.db.tracks = window.db.tracks.filter(t => t.id !== parseInt(btnDelTrack.dataset.id, 10)); window.saveData(); window.renderTracks(); }
         const btnCloneTrack = e.target.closest('.btn-clone-track'); if(btnCloneTrack) window.cloneTrack(parseInt(btnCloneTrack.dataset.id, 10));
         const btnExportTrack = e.target.closest('.btn-export-track'); if(btnExportTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnExportTrack.dataset.id, 10)); if (track) window.exportTrackHandoff(track); }
-        const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-daw').value = tone.daw; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
+        const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-daw').value = tone.daw; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; { const bp=document.getElementById('tone-bpm'); if(bp) bp.value = tone.bpm || ''; const ky=document.getElementById('tone-key'); if(ky) ky.value = tone.key || ''; } document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
         const btnDelTone = e.target.closest('.btn-del-tone'); if(btnDelTone && confirm("Delete this tone?")) { const delId = parseInt(btnDelTone.dataset.id, 10); window.db.tones = window.db.tones.filter(t => t.id !== delId); window.saveData(); window.audioDbDelete(delId).then(() => window.scheduleAudioDriveSync()); window.renderTones(); window.renderStarredTones(); }
         const btnCloneCb = e.target.closest('.btn-clone-cookbook'); if(btnCloneCb) window.cloneCookbook(parseInt(btnCloneCb.dataset.id, 10)); 
         const btnPrintCb = e.target.closest('.btn-print-cookbook'); if(btnPrintCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnPrintCb.dataset.id, 10)); if (recipe) window.printRecipeSheet(recipe); }
@@ -2447,7 +2506,7 @@ ${imagesHtml ? `<h2>SCREENSHOTS</h2>${imagesHtml}` : ''}
     };
 
     window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-export-track text-[10px] font-bold text-[#FF88FF] hover:text-white">📤 EXPORT</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getEmbedHtml(t.reflink)}${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
-    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); const allCats = [...new Set(filtered.map(t => t.category))].sort(); window.renderTagBarGeneric('tone-tag-bar', allCats, window.currentToneTag, window.toneCategoryColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.category === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const catColor = window.toneCategoryColor(t.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><button data-tag="${t.category}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${catColor}; border-color:${catColor}40; background:${catColor}0A;" title="Filter by ${t.category}">${t.category}</button>${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${catColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
+    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'); const allCats = [...new Set(filtered.map(t => t.category))].sort(); window.renderTagBarGeneric('tone-tag-bar', allCats, window.currentToneTag, window.toneCategoryColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.category === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search) || (t.bpm||'').toLowerCase().includes(search) || (t.key||'').toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const catColor = window.toneCategoryColor(t.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-export-tone text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this tone">📤</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><button data-tag="${t.category}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${catColor}; border-color:${catColor}40; background:${catColor}0A;" title="Filter by ${t.category}">${t.category}</button>${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}${(t.bpm||t.key) ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border border-[#FFD60A40] text-[#FFD60A] bg-[#FFD60A0A]" title="Tempo / Key">${[t.bpm?`${t.bpm} BPM`:'', t.key?`♪ ${t.key}`:''].filter(Boolean).join(' · ')}</span>` : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${catColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
     window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.db.tones.filter(t => t.starred && (window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both')).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = window.toneCategoryColor(t.category); const catBg = catColor; list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${t.name.toUpperCase()}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${t.nam} + ${t.ir}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${t.notes}</p></div>`; }); };
 
     // Gesture: double-tap a tone card to instantly pin/unpin it (no need to open the edit form).
@@ -2887,6 +2946,222 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-open-shortcuts')?.addEventListener('click', () => { const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } });
     document.getElementById('shortcuts-modal')?.addEventListener('click', (e) => { if (e.target.id === 'shortcuts-modal') { e.currentTarget.classList.add('hidden'); e.currentTarget.classList.remove('flex'); } });
 });
+</script>
+
+<script>
+// =========================================================================
+// FERRETT ADD-ONS: Now Playing, Color Map + health, Recipe→Checklist,
+// Chain export (clipboard / download / QR). Self-contained; hooks the
+// existing window.* API and uses event delegation so it survives re-renders.
+// =========================================================================
+(function () {
+    const boot = () => {
+        // ---- shared modal helpers (match existing .hidden/.flex convention) ----
+        const openModal = (id) => { const m = document.getElementById(id); if (!m) return; m.classList.remove('hidden'); m.classList.add('flex'); };
+        const closeModal = (id) => { const m = document.getElementById(id); if (!m) return; m.classList.add('hidden'); m.classList.remove('flex'); };
+        const wireModalDismiss = (id, closeBtnId) => {
+            document.getElementById(closeBtnId)?.addEventListener('click', () => closeModal(id));
+            document.getElementById(id)?.addEventListener('click', (e) => { if (e.target.id === id) closeModal(id); });
+        };
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('colormap-modal'); closeModal('export-modal'); } });
+
+        // =====================================================================
+        // 1. NOW PLAYING scratch bar
+        // =====================================================================
+        const NP_TEXT_KEY = 'ferrett_now_playing_text_v1';
+        const NP_OPEN_KEY = 'ferrett_now_playing_open_v1';
+        const npBar = document.getElementById('now-playing-bar');
+        const npInput = document.getElementById('now-playing-input');
+        const setNpOpen = (open) => {
+            if (!npBar) return;
+            npBar.classList.toggle('hidden', !open);
+            npBar.classList.toggle('flex', open);
+            try { localStorage.setItem(NP_OPEN_KEY, open ? '1' : '0'); } catch (e) {}
+        };
+        if (npInput) {
+            try { npInput.value = localStorage.getItem(NP_TEXT_KEY) || ''; } catch (e) {}
+            npInput.addEventListener('input', () => { try { localStorage.setItem(NP_TEXT_KEY, npInput.value); } catch (e) {} });
+            npInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('btn-now-playing-log')?.click(); });
+        }
+        document.getElementById('btn-toggle-focus')?.addEventListener('click', () => {
+            const willOpen = npBar?.classList.contains('hidden');
+            setNpOpen(willOpen); if (willOpen) npInput?.focus();
+        });
+        document.getElementById('btn-now-playing-close')?.addEventListener('click', () => setNpOpen(false));
+        document.getElementById('btn-now-playing-log')?.addEventListener('click', () => {
+            const txt = (npInput?.value || '').trim(); if (!txt) { npInput?.focus(); return; }
+            const note = (window.db.multiNotes || []).find(n => n.id === window.currentNoteId) || (window.db.multiNotes || [])[0];
+            if (!note) { alert('No active note to log into.'); return; }
+            const now = new Date();
+            const stamp = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            note.content = (note.content ? note.content.replace(/\s*$/, '') + '\n' : '') + `> [${stamp}] ${txt}`;
+            window.currentNoteId = note.id;
+            window.saveData();
+            if (window.renderNoteTabs) window.renderNoteTabs();
+            if (window.setNotesFooterOpen) window.setNotesFooterOpen(true);
+            const btn = document.getElementById('btn-now-playing-log');
+            if (btn) { const o = btn.textContent; btn.textContent = '✓ LOGGED'; setTimeout(() => btn.textContent = o, 1400); }
+        });
+        try { if (localStorage.getItem(NP_OPEN_KEY) === '1') setNpOpen(true); } catch (e) {}
+
+        // =====================================================================
+        // 2. COLOR MAP + tag-health
+        // =====================================================================
+        const hexToRgb = (h) => { h = (h || '').replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+        const colorDist = (a, b) => { const x = hexToRgb(a), y = hexToRgb(b); return Math.round(Math.sqrt((x[0]-y[0])**2 + (x[1]-y[1])**2 + (x[2]-y[2])**2)); };
+        const uniq = (arr) => [...new Set(arr)];
+        const NEAR = 42; // RGB distance under which two chips read as "the same color"
+
+        const buildColorMap = () => {
+            const body = document.getElementById('colormap-body'); if (!body) return;
+            const panels = [
+                { label: 'Cookbook genres', cats: uniq((window.db.cookbook || []).map(r => r.genre)), fn: window.genreColor },
+                { label: 'Tone DB', cats: uniq(['CLEAN','CRUNCH','DISTORTION','BASS'].concat((window.db.tones || []).map(t => t.category))), fn: window.toneCategoryColor },
+                { label: 'Web Tools & Intel', cats: uniq((window.db.links || []).map(l => l.category)), fn: window.linkCategoryColor },
+                { label: 'Script Arsenal', cats: uniq((window.db.scripts || []).map(s => s.category)), fn: window.scriptCategoryColor },
+            ];
+            let html = '';
+            panels.forEach(p => {
+                const pairs = p.cats.map(c => ({ cat: c, color: p.fn ? p.fn(c) : '#888' }));
+                const distinct = uniq(pairs.map(x => x.color)).length;
+                // find near/exact collisions
+                const clashes = [];
+                for (let i = 0; i < pairs.length; i++) for (let j = i + 1; j < pairs.length; j++) {
+                    const d = colorDist(pairs[i].color, pairs[j].color);
+                    if (d < NEAR) clashes.push(`${pairs[i].cat} ≈ ${pairs[j].cat}${d === 0 ? ' (identical)' : ' (Δ' + d + ')'}`);
+                }
+                const healthy = clashes.length === 0;
+                const chips = pairs.map(x => `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest" style="color:${x.color};border-color:${x.color}55;background:${x.color}12;">${x.cat}</span>`).join(' ');
+                html += `<div>
+                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <span class="text-[10px] font-bold tracking-widest text-white/80 uppercase">${p.label} <span class="text-white/35">· ${pairs.length} tags</span></span>
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${healthy ? 'text-[#00FF88] border-[#00FF8840] bg-[#00FF8810]' : 'text-[#FFD60A] border-[#FFD60A40] bg-[#FFD60A10]'}">${healthy ? '✓ ALL DISTINCT' : '⚠ ' + clashes.length + ' SIMILAR'}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">${chips || '<span class="text-white/30 text-[10px] italic">no tags yet</span>'}</div>
+                    ${clashes.length ? `<div class="mt-2 text-[9px] text-[#FFD60A]/80 font-mono">${clashes.join(' · ')}</div>` : ''}
+                    <div class="mt-1 text-[9px] text-white/30">${distinct}/${pairs.length} unique colors</div>
+                </div>`;
+            });
+            html += `<div class="pt-4 border-t border-white/10 text-[9px] text-white/45 leading-relaxed">
+                <span class="text-white/70 font-bold tracking-widest uppercase">Color language</span><br>
+                <span style="color:#00E5FF">cyan</span> = AI / tech ·
+                <span style="color:#FFD60A">gold</span> = tone / amps ·
+                <span style="color:#FF6FCB">pink</span> = vocals / human ·
+                <span style="color:#B18CFF">violet</span> = rhythm / polish ·
+                <span style="color:#00FF88">green</span> = build / foundation ·
+                <span style="color:#7FA8D9">steel</span> = utility / export ·
+                <span style="color:#FF5C5C">red</span> = distortion / heat
+            </div>`;
+            body.innerHTML = html;
+        };
+        document.getElementById('btn-open-colormap')?.addEventListener('click', () => { buildColorMap(); openModal('colormap-modal'); });
+        wireModalDismiss('colormap-modal', 'colormap-close');
+
+        // =====================================================================
+        // 3. RECIPE -> session checklist
+        // =====================================================================
+        const chainSteps = (text) => {
+            if (!text) return [];
+            let segs = text.split('->').map(s => s.trim()).filter(Boolean);
+            if (segs.length < 2) segs = text.split(/(?<=[.;])\s+/).map(s => s.trim()).filter(Boolean);
+            return segs.map(s => s.replace(/\.$/, '').trim()).filter(Boolean);
+        };
+        const recipeToChecklist = (data) => {
+            const mode = window.currentMode;
+            const parts = [];
+            if (mode !== 'reaper') parts.push(['LUNA', data.luna]);
+            if (mode !== 'luna') parts.push(['REAPER', data.reaper]);
+            if (parts.length === 0) parts.push(['LUNA', data.luna], ['REAPER', data.reaper]);
+            let lines = [`// Checklist — ${data.inst} (${data.genre})`, ''];
+            parts.forEach(([tag, txt]) => {
+                const steps = chainSteps(txt);
+                if (steps.length) { lines.push(`// ${tag} chain`); steps.forEach(s => lines.push(`[TODO] ${s}`)); lines.push(''); }
+            });
+            if (data.notes) { lines.push('// Workflow notes'); lines.push(data.notes); }
+            const note = { id: Date.now(), title: `✓ ${data.inst}`.slice(0, 40), content: lines.join('\n') };
+            window.db.multiNotes.push(note);
+            window.currentNoteId = note.id;
+            window.saveData();
+            if (window.renderNoteTabs) window.renderNoteTabs();
+            if (window.setNotesFooterOpen) window.setNotesFooterOpen(true);
+        };
+
+        // =====================================================================
+        // 4. CHAIN EXPORT — portable text / download / QR
+        // =====================================================================
+        let lastExport = { title: 'export', text: '' };
+        const renderQR = (text) => {
+            const box = document.getElementById('export-qr'); const note = document.getElementById('export-qr-note');
+            if (!box) return; box.innerHTML = '';
+            if (typeof window.qrcode !== 'function') { box.innerHTML = '<span style="color:#900;font-size:10px;">QR unavailable</span>'; return; }
+            try {
+                const q = window.qrcode(0, 'L'); q.addData(text); q.make();
+                box.innerHTML = q.createSvgTag({ cellSize: 3, margin: 2, scalable: true });
+                const svg = box.querySelector('svg'); if (svg) { svg.setAttribute('width', '160'); svg.setAttribute('height', '160'); }
+                if (note) note.textContent = 'Point your phone camera here to read the chain.';
+            } catch (err) {
+                box.innerHTML = '<span style="color:#333;font-size:24px;">⌗</span>';
+                if (note) note.textContent = 'Too long for a QR code — use Copy or Download instead.';
+            }
+        };
+        const openExport = (title, text) => {
+            lastExport = { title, text };
+            const t = document.getElementById('export-title'); if (t) t.textContent = '📤 ' + title;
+            const ta = document.getElementById('export-text'); if (ta) ta.value = text;
+            renderQR(text);
+            openModal('export-modal');
+        };
+        const toneToText = (t) => [
+            `FERRETT TONE — ${t.name}`,
+            `Category: ${t.category || '—'}   DAW: ${t.daw || '—'}`,
+            (t.bpm || t.key) ? `Tempo/Key: ${[t.bpm ? t.bpm + ' BPM' : '', t.key ? 'Key ' + t.key : ''].filter(Boolean).join('   ')}` : null,
+            `NAM (amp): ${t.nam || 'None'}`,
+            `IR (cab): ${t.ir || 'None'}`,
+            '', 'Notes:', (t.notes || '(none)'),
+            '', '— via FERRETT_STUDIO_OS'
+        ].filter(x => x !== null).join('\n');
+        const recipeToText = (r) => [
+            `FERRETT RECIPE — ${r.inst}`,
+            `Genre: ${r.genre}`,
+            r.desc ? `"${r.desc}"` : null,
+            '', 'LUNA (UAD): ' + (r.luna || '—'),
+            '', 'REAPER (VST): ' + (r.reaper || '—'),
+            '', 'Notes: ' + (r.notes || '(none)'),
+            '', '— via FERRETT_STUDIO_OS'
+        ].filter(x => x !== null).join('\n');
+
+        document.getElementById('export-copy')?.addEventListener('click', () => {
+            const ta = document.getElementById('export-text'); if (!ta) return; ta.select();
+            const done = () => { const b = document.getElementById('export-copy'); if (b) { const o = b.textContent; b.textContent = '✓ COPIED'; setTimeout(() => b.textContent = o, 1400); } };
+            if (navigator.clipboard?.writeText) navigator.clipboard.writeText(ta.value).then(done).catch(() => { document.execCommand('copy'); done(); });
+            else { document.execCommand('copy'); done(); }
+        });
+        document.getElementById('export-download')?.addEventListener('click', () => {
+            const safe = (lastExport.title || 'export').replace(/[^a-z0-9]/gi, '_');
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lastExport.title}</title>
+<style>body{background:#0a0f0d;color:#e2e8f0;font-family:'Courier New',monospace;max-width:700px;margin:40px auto;padding:0 20px;line-height:1.6;}
+h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;font-size:13px;background:#000;padding:16px;border-radius:6px;border:1px solid #222;}</style></head>
+<body><h1>${lastExport.title}</h1><pre>${lastExport.text.replace(/</g, '&lt;')}</pre></body></html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = safe + '_handoff.html';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        });
+        wireModalDismiss('export-modal', 'export-close');
+
+        // ---- delegated clicks for dynamically-rendered card buttons ----
+        document.addEventListener('click', (e) => {
+            const cl = e.target.closest('.btn-recipe-checklist');
+            if (cl) { const r = (window.db.cookbook || []).find(x => x.id === parseInt(cl.dataset.id, 10)); if (r) recipeToChecklist(r); return; }
+            const er = e.target.closest('.btn-export-recipe');
+            if (er) { const r = (window.db.cookbook || []).find(x => x.id === parseInt(er.dataset.id, 10)); if (r) openExport(r.inst, recipeToText(r)); return; }
+            const et = e.target.closest('.btn-export-tone');
+            if (et) { const t = (window.db.tones || []).find(x => x.id === parseInt(et.dataset.id, 10)); if (t) openExport(t.name, toneToText(t)); return; }
+        });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
 </script>
 
 <script>

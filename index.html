@@ -327,11 +327,19 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><span class="text-[8px] font-mono tracking-widest text-white/35">ONE INTERFACE · 3 OUTPUTS</span></div>
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div>
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
 
+                <div class="flex flex-wrap items-center gap-2 -mb-1">
+                    <span class="text-[9px] font-bold tracking-widest text-white/45 uppercase mr-1">Active rig:</span>
+                    <button class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig="sansui">Creating / Mixing</button>
+                    <button class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig="phones">Tracking</button>
+                    <button class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig="bt">Bluetooth Mix</button>
+                    <span id="rig-preset-note" class="text-[9px] text-white/40 w-full sm:w-auto"></span>
+                </div>
+
                 <!-- OUTPUT A: Volt 176 BACK (TS L/R, device knob) -> Sansui -->
-                <div>
+                <div id="sf-path-sansui" class="rounded transition-all">
                     <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
                         <span class="text-[#00E5FF] font-bold">BACK — TS Out L/R · device MAIN knob = volume</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#00FF8840] text-[#00FF88] bg-[#00FF8810]">★ Best: creating &amp; mixing</span>
@@ -341,7 +349,7 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
 
                 <!-- OUTPUT B: Volt 176 FRONT headphone jack (own knob) -> monitors -->
-                <div>
+                <div id="sf-path-phones" class="rounded transition-all">
                     <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
                         <span class="text-[#00E5FF] font-bold">FRONT — Headphone Jack · its own volume knob</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#7FA8D940] text-[#7FA8D9] bg-[#7FA8D910]">Tracking / reference</span>
@@ -353,7 +361,7 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
 
                 <!-- OUTPUT C: Bluetooth Skullcandy JIB straight to the computer -->
-                <div>
+                <div id="sf-path-bt" class="rounded transition-all">
                     <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#B18CFF30] pb-2">
                         <span class="text-[#B18CFF] font-bold">Skullcandy JIB — Bluetooth (bypasses the Volt)</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#B18CFF40] text-[#B18CFF] bg-[#B18CFF10]">★★ Absolute best: mixing</span>
@@ -802,7 +810,28 @@ main { background: rgba(5,8,7,0.72); }
             <button id="cookmode-prev" class="btn-ferrett" style="border-color:#7FA8D950;color:#7FA8D9;">◄ PREV</button>
             <button id="cookmode-next" class="btn-ferrett-green" style="min-width:140px;">NEXT ►</button>
         </div>
+        <div class="mt-5">
+            <label class="btn-ferrett file-upload-btn inline-flex items-center gap-1 cursor-pointer" style="border-color:#FFD60A50;color:#FFD60A;" title="Snap a photo and attach it to this recipe"><span>📸 CAPTURE TO RECIPE</span><input type="file" id="cookmode-capture-input" accept="image/*" capture="environment" class="hidden"></label>
+            <span id="cookmode-capture-status" class="text-[10px] text-[#00FF88] ml-2"></span>
+        </div>
         <div id="cookmode-progress" class="w-full h-[3px] bg-white/10 rounded mt-8 overflow-hidden"><div id="cookmode-progress-bar" class="h-full bg-gradient-to-r from-[#00FF88] to-[#00E5FF] transition-all" style="width:0%"></div></div>
+    </div>
+</div>
+
+<div id="preexport-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-lg bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">✅ Pre-Export Reference Check</h3>
+            <button id="preexport-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <p class="text-[10px] text-[#E2E8F0]/50 mb-4">Walk the mix across every monitor path before you bounce.</p>
+            <div id="preexport-list" class="space-y-2"></div>
+            <div class="flex items-center justify-between mt-4">
+                <span id="preexport-progress" class="text-[10px] text-white/50 font-mono"></span>
+                <button id="preexport-reset" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">RESET</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -3287,7 +3316,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const src = mode === 'reaper' ? data.reaper : (mode === 'luna' ? data.luna : (data.reaper || data.luna));
             const steps = chainSteps(src);
             if (!steps.length) { alert('No chain steps to cook for this DAW mode.'); return; }
-            cook = { steps, i: 0 };
+            cook = { steps, i: 0, recipeId: data.id };
+            document.getElementById('cookmode-capture-status').textContent = '';
             document.getElementById('cookmode-tag').textContent = `${data.genre} · ${mode === 'luna' ? 'LUNA' : 'REAPER'} chain`;
             document.getElementById('cookmode-title').textContent = data.inst;
             renderCook(); openModal('cookmode-modal');
@@ -3547,7 +3577,70 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             window.renderTones.__filterWrapped = true;
         }
 
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('import-modal'); closeModal('recap-modal'); closeModal('cookmode-modal'); } });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('import-modal'); closeModal('recap-modal'); closeModal('cookmode-modal'); closeModal('abcompare-modal'); closeModal('frank-modal'); closeModal('preexport-modal'); } });
+
+        // =====================================================================
+        // 13. RIG RECALL PRESETS — highlight the active monitor path (+ latency guard)
+        // =====================================================================
+        const RIG_KEY = 'ferrett_active_rig_v1';
+        const rigMeta = {
+            sansui: { el: 'sf-path-sansui', color: '#00FF88', note: 'Creating / mixing — Volt back TS → Sansui Tape 1 (master on the Volt knob).' },
+            phones: { el: 'sf-path-phones', color: '#7FA8D9', note: 'Tracking — front headphone jack (Gammas / Xiberias). ⚠ Bluetooth is latency-unsafe for tracking.' },
+            bt: { el: 'bt', color: '#B18CFF', note: 'Bluetooth mix — Skullcandy JIB via REAPER AutoEQ. Mixing only (~150 ms).' }
+        };
+        const applyRig = (rig) => {
+            ['sf-path-sansui', 'sf-path-phones', 'sf-path-bt'].forEach(id => { const el = document.getElementById(id); if (el) { el.style.boxShadow = ''; el.style.opacity = '0.45'; } });
+            const m = rigMeta[rig]; if (!m) return;
+            const activeEl = document.getElementById(rig === 'bt' ? 'sf-path-bt' : m.el);
+            if (activeEl) { activeEl.style.opacity = '1'; activeEl.style.boxShadow = `inset 0 0 0 1px ${m.color}55, 0 0 16px ${m.color}22`; }
+            document.querySelectorAll('.rig-preset').forEach(b => { const on = b.dataset.rig === rig; b.style.color = on ? m.color : 'rgba(255,255,255,0.45)'; b.style.borderColor = on ? m.color : 'rgba(255,255,255,0.15)'; b.style.background = on ? m.color + '18' : 'transparent'; });
+            const note = document.getElementById('rig-preset-note'); if (note) { note.textContent = m.note; note.style.color = m.color; }
+        };
+        document.querySelectorAll('.rig-preset').forEach(b => b.addEventListener('click', () => { const r = b.dataset.rig; try { localStorage.setItem(RIG_KEY, r); } catch (e) {} applyRig(r); }));
+        try { const saved = localStorage.getItem(RIG_KEY); if (saved && rigMeta[saved]) applyRig(saved); } catch (e) {}
+
+        // =====================================================================
+        // 14. PRE-EXPORT MONITOR CHECKLIST (ephemeral)
+        // =====================================================================
+        const PRECHECK_ITEMS = [
+            'Mono-summed check — no phase cancellation',
+            'The Gammas — balance & low end',
+            'The Xiberias — detail / harshness pass',
+            'Sansui + room (Tape 1, flat @7) — tonal reference',
+            'Samsung Sound Bar — "commercial" translation',
+            'Skullcandy JIB (AutoEQ, true flat) — final mixing pass',
+            'Loudness / true-peak within target'
+        ];
+        const buildPrecheck = () => {
+            const list = document.getElementById('preexport-list'); if (!list) return;
+            list.innerHTML = PRECHECK_ITEMS.map((t, i) => `<label class="flex items-start gap-2 cursor-pointer text-[11px] text-white/80 hover:text-white"><input type="checkbox" class="pre-chk mt-0.5 accent-[#00E5FF]" data-i="${i}"><span>${t}</span></label>`).join('');
+            updatePrecheck();
+        };
+        const updatePrecheck = () => {
+            const boxes = [...document.querySelectorAll('.pre-chk')]; const done = boxes.filter(b => b.checked).length;
+            const p = document.getElementById('preexport-progress'); if (p) { p.textContent = `${done} / ${boxes.length} checked`; p.style.color = done === boxes.length && boxes.length ? '#00FF88' : 'rgba(255,255,255,0.5)'; }
+        };
+        document.getElementById('btn-preexport-check')?.addEventListener('click', () => { buildPrecheck(); openModal('preexport-modal'); });
+        document.getElementById('preexport-list')?.addEventListener('change', updatePrecheck);
+        document.getElementById('preexport-reset')?.addEventListener('click', () => { document.querySelectorAll('.pre-chk').forEach(b => b.checked = false); updatePrecheck(); });
+        wireModalDismiss('preexport-modal', 'preexport-close');
+
+        // =====================================================================
+        // 15. QUICK-CAPTURE from Cook mode — attach a photo to the recipe
+        // =====================================================================
+        document.getElementById('cookmode-capture-input')?.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0]; e.target.value = '';
+            const status = document.getElementById('cookmode-capture-status');
+            if (!file || cook.recipeId == null) return;
+            const recipe = (window.db.cookbook || []).find(r => r.id === cook.recipeId); if (!recipe) return;
+            try {
+                const b64 = await window.compressImage(file);
+                if (!recipe.images) recipe.images = [];
+                recipe.images.push(b64); window.saveData();
+                if (window.currentCookbookId === recipe.id && window.selectInst) window.selectInst(recipe.id);
+                if (status) { status.textContent = `✓ Photo attached (${recipe.images.length})`; setTimeout(() => { status.textContent = ''; }, 2000); }
+            } catch (err) { if (status) { status.style.color = '#FF8888'; status.textContent = '✗ Capture failed'; } }
+        });
 
         // ---- delegated clicks for dynamically-rendered card buttons ----
         document.addEventListener('click', (e) => {

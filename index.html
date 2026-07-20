@@ -172,6 +172,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="btn-open-shortcuts" class="hidden lg:flex items-center justify-center w-8 h-8 rounded border border-[#00FF8830] text-[#00FF88]/60 hover:text-[#00FF88] hover:border-[#00FF8860] transition-all cursor-pointer text-[11px] font-bold" title="Keyboard shortcuts (?)">?</button>
     <button id="btn-toggle-focus" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF88FF40] bg-[#FF88FF]/8 text-[#FF88FF] hover:bg-[#FF88FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Now Playing — log what you're working on"><span>▶</span><span class="hidden sm:inline">FOCUS</span></button>
     <button id="btn-open-colormap" class="flex items-center justify-center w-8 h-8 rounded border border-[#B18CFF40] text-[#B18CFF]/70 hover:text-[#B18CFF] hover:border-[#B18CFF80] transition-all cursor-pointer text-[13px]" title="Color key / tag color map">🔑</button>
+    <button id="btn-open-import" class="flex items-center justify-center w-8 h-8 rounded border border-[#00E5FF40] text-[#00E5FF]/70 hover:text-[#00E5FF] hover:border-[#00E5FF80] transition-all cursor-pointer text-[13px]" title="Import a shared tone / recipe payload">⇩</button>
     <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Toggle quiet HUD animations"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text" class="hidden sm:inline">LIVE</span></button>
     <button id="btn-cycle-theme" class="w-8 h-8 flex items-center justify-center rounded border border-[#E2E8F030] text-[#E2E8F0]/60 hover:text-white hover:border-[#E2E8F060] cursor-pointer text-[13px]" title="Cycle HUD color theme">🎨</button>
     <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync">
@@ -215,6 +216,7 @@ main { background: rgba(5,8,7,0.72); }
     <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/80 uppercase shrink-0 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#FF88FF] animate-pulse"></span> NOW PLAYING</span>
     <input type="text" id="now-playing-input" placeholder="What are you working on right now?" class="flex-1 min-w-[160px] bg-black/40 border border-[#FF88FF30] rounded px-3 py-1.5 text-[12px] text-[#E2E8F0] placeholder-[#E2E8F0]/25 focus:outline-none focus:border-[#FF88FF70]">
     <button id="btn-now-playing-log" class="btn-ferrett shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
+    <button id="btn-open-recap" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Session recap — time + everything you logged today">📋 RECAP</button>
     <button id="btn-now-playing-close" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer shrink-0" title="Hide">×</button>
 </div>
 
@@ -307,7 +309,7 @@ main { background: rgba(5,8,7,0.72); }
     </section>
 
     <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 max-w-7xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176</span></div>
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176 + 172</span></div>
 
         <div class="card border-[#00FF8830] mb-8">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
@@ -325,22 +327,56 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">AUDIO INTERFACE: VOLT 176 → SANSUI → BOSE 301</h3></div>
-            <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80">
-                <div class="text-[#00E5FF] font-bold mb-4 border-b border-[#00E5FF30] pb-2">Volt 176 Headphone Out 6.35mm TRS <span class="text-white/40 font-normal">(8V Max)</span></div>
-                <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">TRS to Dual RCA → Sansui Amp Aux/CD <span class="text-[#FF4444]">(NOT PHONO)</span></span></div></div>
-                <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">TRS to 3.5mm TRS → Samsung Soundbar Aux</span></div></div>
-                <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">TRS to 3.5mm → Siberia Wired Headphones</span></div></div>
-                <div class="flex gap-3"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Bluetooth → Skullcandy JIB True Wireless</span> (Via SoundSource AutoEQ)</div></div>
-                <div class="mt-6 p-4 rounded border border-[#FF444430] bg-[#FF444410]">
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176 + VOLT 172</h3><span class="text-[8px] font-mono tracking-widest text-white/35">OUTPUTS &amp; INPUTS</span></div>
+            <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
+
+                <!-- OUTPUT A: Volt 176 -> Sansui (creating / mixing) -->
+                <div>
+                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
+                        <span class="text-[#00E5FF] font-bold">Volt 176 — Out Knob = MASTER VOLUME</span>
+                        <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#00FF8840] text-[#00FF88] bg-[#00FF8810]">★ Best: creating &amp; mixing</span>
+                    </div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Unbalanced TS → RCA (2 cables) → Sansui <b class="text-[#FFD60A]">TAPE 1</b> RCA input</span></div></div>
+                    <div class="ml-8 mt-1 text-[10px] text-white/55">Sansui: <b class="text-white">flat</b> — Loudness OFF · Tone Defeat ON · Volume <b class="text-[#FFD60A]">@ 7</b>. Ride level from the Volt 176 Out knob (the real master).</div>
+                </div>
+
+                <!-- OUTPUT B: Volt 172 TRS -> monitors -->
+                <div>
+                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
+                        <span class="text-[#00E5FF] font-bold">Volt 172 — TRS Out</span>
+                        <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#7FA8D940] text-[#7FA8D9] bg-[#7FA8D910]">Tracking / reference</span>
+                    </div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">The Gammas</span> <span class="text-[#7AFFBF]/80">— best for tracking &amp; mixing</span></div></div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">The Xiberias</span> <span class="text-[#7AFFBF]/80">— best for tracking (better padding, less bleed)</span></div></div>
+                    <div class="flex gap-3"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Samsung Sound Bar</span> <span class="text-[#7AFFBF]/80">— alternative "commercial" reference point</span></div></div>
+                </div>
+
+                <!-- OUTPUT C: Bluetooth Skullcandy KIBs -->
+                <div>
+                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#B18CFF30] pb-2">
+                        <span class="text-[#B18CFF] font-bold">Skullcandy KIBs — Bluetooth</span>
+                        <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#B18CFF40] text-[#B18CFF] bg-[#B18CFF10]">★★ Absolute best: mixing</span>
+                    </div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#B18CFF]">└─►</span><div><span class="font-bold text-white">Bluetooth → AutoEQ curve applied</span> <span class="text-[#7AFFBF]/80">— true flat via AutoEQ</span></div></div>
+                    <div class="ml-8 mt-1 text-[10px] text-[#FF8888]/90">⚠ Do NOT use for tracking — ~150 ms Bluetooth latency.</div>
+                </div>
+
+                <!-- INPUTS -->
+                <div>
+                    <div class="text-[#FFD60A] font-bold mb-3 border-b border-[#FFD60A30] pb-2">Volt Inputs</div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#FFD60A]">◄─┤</span><div><span class="font-bold text-white">Mic → XLR</span> — <b class="text-[#FFD60A]">+48 V</b> phantom available if needed · <span class="text-[#FF8888]">INST switch OFF</span></div></div>
+                    <div class="flex gap-3"><span class="text-[#FFD60A]">◄─┤</span><div><span class="font-bold text-white">Instrument → 1/4" TS</span> · <span class="text-[#00FF88]">INST switch ON</span></div></div>
+                </div>
+
+                <div class="mt-2 p-4 rounded border border-[#FF444430] bg-[#FF444410]">
                     <h4 class="text-[#FF8888] font-bold text-[10px] tracking-widest mb-2">⚠ HARDWARE SAFETY PROTOCOLS</h4>
-                    <ul class="text-[10px] text-white/70 list-disc list-inside"><li><b class="text-white">HOT-SWAPPING:</b> Never swap headphone jack while Sansui volume is up.</li><li><b class="text-white">IMPEDANCE:</b> Keep Volt HP knob at <b class="text-[#FFD60A]">9 to 11 o'clock</b> for Line Level gear.</li></ul>
+                    <ul class="text-[10px] text-white/70 list-disc list-inside space-y-1"><li><b class="text-white">HOT-SWAPPING:</b> Never swap the Volt 176 → Sansui cable while Sansui volume is up.</li><li><b class="text-white">MASTER:</b> Level lives on the Volt 176 Out knob — leave Sansui parked at 7.</li><li><b class="text-white">TRACKING:</b> Skullcandy KIBs are mixing-only (BT delay) — monitor tracking on the Gammas / Xiberias.</li></ul>
                 </div>
             </div>
         </div>
         <h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88] mb-4 mt-10 border-b border-[#00FF8820] pb-2">SANSUI MONITOR LOGIC & EQ CURVES</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-            <div class="card border-[#00FF8830]"><h3 class="text-[#00FF88] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00FF8814] pb-1">FLAT // 60s REF</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Loudness OFF. Tone Defeat ON.</p><div class="mt-3 p-2 bg-[#00FF88]/10 rounded border border-[#00FF88]/20"><span class="text-[#00FF88] font-bold block mb-1">CALIBRATION</span>Pink Noise @ -14dBFS = 75dB SPL C-Weighted Slow at mix position.</div></div></div>
+            <div class="card border-[#00FF8830]"><h3 class="text-[#00FF88] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00FF8814] pb-1">FLAT // 60s REF</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Loudness OFF. Tone Defeat ON. Vol @ 7 — Volt 176 Out is master.</p><div class="mt-3 p-2 bg-[#00FF88]/10 rounded border border-[#00FF88]/20"><span class="text-[#00FF88] font-bold block mb-1">CALIBRATION</span>Pink Noise @ -14dBFS = 75dB SPL C-Weighted Slow at mix position.</div></div></div>
             <div class="card border-[#00E5FF30]"><h3 class="text-[#00E5FF] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00E5FF14] pb-1">FOCUS ROBOT // 20s</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Simulates phone/laptop midrange.</p><div class="mt-3 p-2 bg-[#00E5FF]/10 rounded border border-[#00E5FF]/20"><span class="text-[#00E5FF] font-bold block mb-1">JS REA-EQ CURVE</span>Mono ON. HPF@120Hz | LPF@8kHz<br>+2dB@1.2kHz | +1.5dB@2.5kHz</div></div></div>
             <div class="card border-[#FF444430]"><h3 class="text-[#FF8888] font-bold text-[12px] tracking-widest mb-2 border-b border-[#FF444414] pb-1">HYPE // 15s CONSUMER</h3><div class="text-[11px] text-[#FF8888]/80 font-mono"><p>Loudness ON. Bass +3, Treb +2.</p><div class="mt-3 p-2 bg-[#FF4444]/10 rounded border border-[#FF4444]/20"><span class="text-[#FF8888] font-bold block mb-1">JS REA-EQ CURVE</span>LowShelf+3.5dB@80Hz<br>HighShelf+2.0dB@10kHz</div></div></div>
         </div>
@@ -718,6 +754,54 @@ main { background: rgba(5,8,7,0.72); }
                 <p id="export-qr-note" class="text-[9px] text-[#E2E8F0]/40 mt-2 text-center max-w-[176px]"></p>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="import-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">⇩ Import shared payload</h3>
+            <button id="import-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <p class="text-[10px] text-[#E2E8F0]/50 mb-3">Paste a <b class="text-white">FERRETT TONE</b> or <b class="text-white">FERRETT RECIPE</b> block (from a 📤 export) to add it to your vault.</p>
+            <textarea id="import-text" class="w-full h-48 bg-black/50 border border-[#00E5FF20] rounded p-3 text-[11px] text-[#E2E8F0] font-mono resize-y focus:outline-none focus:border-[#00E5FF70]" placeholder="FERRETT TONE — ..."></textarea>
+            <div id="import-status" class="text-[10px] mt-2 min-h-[16px]"></div>
+            <div class="flex gap-2 mt-2">
+                <button id="import-go" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">＋ ADD TO VAULT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="recap-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#FFD60A40] rounded-lg shadow-[0_0_40px_rgba(255,214,10,0.12)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#FFD60A20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#FFD60A] uppercase">📋 Session recap</h3>
+            <button id="recap-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <div id="recap-body" class="text-[11px] text-[#E2E8F0]/85 font-mono whitespace-pre-wrap leading-relaxed"></div>
+            <div class="flex gap-2 mt-4">
+                <button id="recap-copy" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">📋 COPY</button>
+                <button id="recap-tonote" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);">＋ APPEND TO NOTE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="cookmode-modal" class="fixed inset-0 bg-[#050807]/97 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center p-6">
+    <button id="cookmode-close" class="absolute top-4 right-5 text-white/40 hover:text-white text-[26px] leading-none">×</button>
+    <div class="w-full max-w-2xl text-center">
+        <div id="cookmode-tag" class="text-[10px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase mb-2"></div>
+        <div id="cookmode-title" class="text-[15px] font-bold tracking-widest text-[#00FF88] uppercase mb-8"></div>
+        <div id="cookmode-step-num" class="text-[10px] tracking-widest text-white/40 mb-4"></div>
+        <div id="cookmode-step" class="text-[22px] md:text-[30px] font-bold text-white leading-snug min-h-[120px] flex items-center justify-center px-4"></div>
+        <div class="flex items-center justify-center gap-4 mt-10">
+            <button id="cookmode-prev" class="btn-ferrett" style="border-color:#7FA8D950;color:#7FA8D9;">◄ PREV</button>
+            <button id="cookmode-next" class="btn-ferrett-green" style="min-width:140px;">NEXT ►</button>
+        </div>
+        <div id="cookmode-progress" class="w-full h-[3px] bg-white/10 rounded mt-8 overflow-hidden"><div id="cookmode-progress-bar" class="h-full bg-gradient-to-r from-[#00FF88] to-[#00E5FF] transition-all" style="width:0%"></div></div>
     </div>
 </div>
 
@@ -1430,7 +1514,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(disp) disp.innerHTML = `
             <div class="animate-fade-in relative group">
                 <div class="absolute top-0 right-0 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20 bg-[rgba(10,15,13,0.9)] px-2 py-1 rounded">
-                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button><button data-id="${data.id}" class="btn-recipe-checklist text-[10px] font-bold text-[#00FF88] hover:text-white" title="Turn this recipe's chain into a notes checklist">✓ CHECKLIST</button><button data-id="${data.id}" class="btn-export-recipe text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this recipe">📤 SHARE</button>${data.history && data.history.length ? `<button data-id="${data.id}" class="btn-history-cookbook text-[10px] font-bold text-[#FF88FF] hover:text-white">🕐 HISTORY</button>` : ''}<button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+                    <button data-id="${data.id}" class="btn-edit-cookbook text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${data.id}" class="btn-clone-cookbook text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${data.id}" class="btn-print-cookbook text-[10px] font-bold text-[#A7DCC3] hover:text-white">🖨️ SHEET</button><button data-id="${data.id}" class="btn-recipe-cook text-[10px] font-bold text-[#00E5FF] hover:text-white" title="Step through this chain full-screen">▶ COOK</button><button data-id="${data.id}" class="btn-recipe-checklist text-[10px] font-bold text-[#00FF88] hover:text-white" title="Turn this recipe's chain into a notes checklist">✓ CHECKLIST</button><button data-id="${data.id}" class="btn-export-recipe text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this recipe">📤 SHARE</button>${data.history && data.history.length ? `<button data-id="${data.id}" class="btn-history-cookbook text-[10px] font-bold text-[#FF88FF] hover:text-white">🕐 HISTORY</button>` : ''}<button data-id="${data.id}" class="btn-del-cookbook text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
                 </div>
                 <div class="border-b border-[#00FF8820] pb-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-2 pr-20"><h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#00FF88] uppercase">${data.inst}</h2><span class="text-[9px] md:text-[10px] tracking-widest text-[#00E5FF] uppercase bg-[#00E5FF10] px-3 py-1.5 rounded border border-[#00E5FF20]">${data.genre}</span></div>
                 <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
@@ -3015,10 +3099,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const buildColorMap = () => {
             const body = document.getElementById('colormap-body'); if (!body) return;
             const panels = [
-                { label: 'Cookbook genres', cats: uniq((window.db.cookbook || []).map(r => r.genre)), fn: window.genreColor },
-                { label: 'Tone DB', cats: uniq(['CLEAN','CRUNCH','DISTORTION','BASS'].concat((window.db.tones || []).map(t => t.category))), fn: window.toneCategoryColor },
-                { label: 'Web Tools & Intel', cats: uniq((window.db.links || []).map(l => l.category)), fn: window.linkCategoryColor },
-                { label: 'Script Arsenal', cats: uniq((window.db.scripts || []).map(s => s.category)), fn: window.scriptCategoryColor },
+                { label: 'Cookbook genres', scope: 'cookbook', cats: uniq((window.db.cookbook || []).map(r => r.genre)), fn: window.genreColor },
+                { label: 'Tone DB', scope: 'tones', cats: uniq(['CLEAN','CRUNCH','DISTORTION','BASS'].concat((window.db.tones || []).map(t => t.category))), fn: window.toneCategoryColor },
+                { label: 'Web Tools & Intel', scope: 'links', cats: uniq((window.db.links || []).map(l => l.category)), fn: window.linkCategoryColor },
+                { label: 'Script Arsenal', scope: 'scripts', cats: uniq((window.db.scripts || []).map(s => s.category)), fn: window.scriptCategoryColor },
             ];
             let html = '';
             panels.forEach(p => {
@@ -3031,7 +3115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (d < NEAR) clashes.push(`${pairs[i].cat} ≈ ${pairs[j].cat}${d === 0 ? ' (identical)' : ' (Δ' + d + ')'}`);
                 }
                 const healthy = clashes.length === 0;
-                const chips = pairs.map(x => `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest" style="color:${x.color};border-color:${x.color}55;background:${x.color}12;">${x.cat}</span>`).join(' ');
+                const chips = pairs.map(x => `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest" style="color:${x.color};border-color:${x.color}55;background:${x.color}12;">${x.cat}<button class="cm-rename opacity-50 hover:opacity-100 cursor-pointer" data-scope="${p.scope}" data-cat="${encodeURIComponent(x.cat)}" title="Rename / merge this tag everywhere">✎</button></span>`).join(' ');
                 html += `<div>
                     <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                         <span class="text-[10px] font-bold tracking-widest text-white/80 uppercase">${p.label} <span class="text-white/35">· ${pairs.length} tags</span></span>
@@ -3150,8 +3234,187 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         });
         wireModalDismiss('export-modal', 'export-close');
 
+        // =====================================================================
+        // 5. COOK MODE — full-screen, one chain step at a time
+        // =====================================================================
+        let cook = { steps: [], i: 0 };
+        const renderCook = () => {
+            document.getElementById('cookmode-step').textContent = cook.steps[cook.i] || '';
+            document.getElementById('cookmode-step-num').textContent = `Step ${cook.i + 1} of ${cook.steps.length}`;
+            document.getElementById('cookmode-progress-bar').style.width = ((cook.i + 1) / cook.steps.length * 100) + '%';
+            document.getElementById('cookmode-next').textContent = cook.i >= cook.steps.length - 1 ? 'DONE ✓' : 'NEXT ►';
+            document.getElementById('cookmode-prev').style.visibility = cook.i === 0 ? 'hidden' : 'visible';
+        };
+        const openCook = (data) => {
+            const mode = window.currentMode;
+            const src = mode === 'reaper' ? data.reaper : (mode === 'luna' ? data.luna : (data.reaper || data.luna));
+            const steps = chainSteps(src);
+            if (!steps.length) { alert('No chain steps to cook for this DAW mode.'); return; }
+            cook = { steps, i: 0 };
+            document.getElementById('cookmode-tag').textContent = `${data.genre} · ${mode === 'luna' ? 'LUNA' : 'REAPER'} chain`;
+            document.getElementById('cookmode-title').textContent = data.inst;
+            renderCook(); openModal('cookmode-modal');
+        };
+        document.getElementById('cookmode-next')?.addEventListener('click', () => { if (cook.i >= cook.steps.length - 1) closeModal('cookmode-modal'); else { cook.i++; renderCook(); } });
+        document.getElementById('cookmode-prev')?.addEventListener('click', () => { if (cook.i > 0) { cook.i--; renderCook(); } });
+        wireModalDismiss('cookmode-modal', 'cookmode-close');
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('cookmode-modal')?.classList.contains('flex')) return;
+            if (e.key === 'ArrowRight') document.getElementById('cookmode-next')?.click();
+            else if (e.key === 'ArrowLeft') document.getElementById('cookmode-prev')?.click();
+        });
+
+        // =====================================================================
+        // 6. SESSION RECAP — today's studio time + everything you logged
+        // =====================================================================
+        const buildRecap = () => {
+            const now = new Date();
+            let timeStr = '—';
+            try {
+                const key = window.fmtDateKey ? window.fmtDateKey(now) : null;
+                const ms = (window.sessionLog && key) ? (window.sessionLog[key] || 0) : 0;
+                const m = Math.round(ms / 60000);
+                timeStr = m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+            } catch (e) {}
+            const logs = [];
+            (window.db.multiNotes || []).forEach(n => (n.content || '').split('\n').forEach(l => {
+                const m = l.match(/^>\s*\[(\d{1,2}:\d{2})\]\s*(.+)$/); if (m) logs.push(`  ${m[1]}  ${m[2]}`);
+            }));
+            return `SESSION RECAP — ${now.toLocaleDateString()}\nStudio time today: ${timeStr}\n\nLogged focus (${logs.length}):\n` +
+                (logs.length ? logs.join('\n') : '  (nothing logged yet — use the ▶ FOCUS bar)');
+        };
+        document.getElementById('btn-open-recap')?.addEventListener('click', () => { document.getElementById('recap-body').textContent = buildRecap(); openModal('recap-modal'); });
+        document.getElementById('recap-copy')?.addEventListener('click', () => {
+            const t = document.getElementById('recap-body').textContent;
+            const done = () => { const b = document.getElementById('recap-copy'); if (b) { const o = b.textContent; b.textContent = '✓ COPIED'; setTimeout(() => b.textContent = o, 1400); } };
+            if (navigator.clipboard?.writeText) navigator.clipboard.writeText(t).then(done).catch(done); else done();
+        });
+        document.getElementById('recap-tonote')?.addEventListener('click', () => {
+            const note = (window.db.multiNotes || []).find(n => n.id === window.currentNoteId) || (window.db.multiNotes || [])[0]; if (!note) return;
+            note.content = (note.content ? note.content.replace(/\s*$/, '') + '\n\n' : '') + document.getElementById('recap-body').textContent;
+            window.currentNoteId = note.id; window.saveData();
+            if (window.renderNoteTabs) window.renderNoteTabs(); if (window.setNotesFooterOpen) window.setNotesFooterOpen(true);
+            closeModal('recap-modal');
+        });
+        wireModalDismiss('recap-modal', 'recap-close');
+
+        // =====================================================================
+        // 7. IMPORT — paste a FERRETT TONE / RECIPE payload back into the vault
+        // =====================================================================
+        const parseImport = (text) => {
+            text = (text || '').trim();
+            const g = (re) => { const m = text.match(re); return m ? m[1].trim() : ''; };
+            if (/^FERRETT TONE/i.test(text)) {
+                const category = (g(/Category:\s*([^\n]+?)(?:\s{2,}DAW:|\n)/) || 'CLEAN').toUpperCase();
+                const daw = (g(/DAW:\s*(\w+)/) || 'both').toLowerCase();
+                const key = g(/Key\s+([^\n]+?)\s*$/m);
+                let notes = ''; const nm = text.match(/Notes:\s*\n?([\s\S]*?)\n\n[—-] via/); if (nm) notes = nm[1].trim();
+                const tone = {
+                    id: Date.now(), name: g(/FERRETT TONE\s*[—-]\s*(.+)/) || 'Imported Tone',
+                    category: ['CLEAN','CRUNCH','DISTORTION','BASS'].includes(category) ? category : 'CLEAN',
+                    daw: ['both','reaper','luna'].includes(daw) ? daw : 'both',
+                    nam: g(/NAM \(amp\):\s*([^\n]+)/), ir: g(/IR \(cab\):\s*([^\n]+)/),
+                    bpm: g(/(\d+)\s*BPM/), key: (key && !/None/i.test(key)) ? key : '',
+                    notes, starred: false, images: [], hasAudio: false
+                };
+                if (/None/i.test(tone.nam)) tone.nam = ''; if (/None/i.test(tone.ir)) tone.ir = '';
+                window.db.tones.unshift(tone); window.saveData();
+                if (window.renderTones) window.renderTones(); if (window.renderStarredTones) window.renderStarredTones();
+                return { ok: true, kind: 'tone', label: tone.name };
+            }
+            if (/^FERRETT RECIPE/i.test(text)) {
+                const descM = text.match(/\n"([\s\S]*?)"\n/);
+                const r = {
+                    id: Date.now(), genre: g(/Genre:\s*([^\n]+)/) || 'Imported',
+                    inst: g(/FERRETT RECIPE\s*[—-]\s*(.+)/) || 'Imported Recipe',
+                    desc: descM ? descM[1].trim() : '',
+                    luna: (g(/LUNA \(UAD\):\s*([\s\S]*?)\n\nREAPER/) || g(/LUNA \(UAD\):\s*([^\n]+)/)),
+                    reaper: (g(/REAPER \(VST\):\s*([\s\S]*?)\n\nNotes:/) || g(/REAPER \(VST\):\s*([^\n]+)/)),
+                    notes: (g(/Notes:\s*([\s\S]*?)\n\n[—-] via/) || ''), images: []
+                };
+                window.db.cookbook.push(r); window.saveData();
+                if (window.buildGenreColorMap) window.buildGenreColorMap();
+                if (window.renderCookbookMenu) window.renderCookbookMenu();
+                return { ok: true, kind: 'recipe', label: r.inst };
+            }
+            return { ok: false };
+        };
+        document.getElementById('btn-open-import')?.addEventListener('click', () => { const ta = document.getElementById('import-text'); if (ta) ta.value = ''; document.getElementById('import-status').textContent = ''; openModal('import-modal'); });
+        document.getElementById('import-go')?.addEventListener('click', () => {
+            const st = document.getElementById('import-status');
+            const res = parseImport(document.getElementById('import-text').value);
+            if (res.ok) { st.style.color = '#00FF88'; st.textContent = `✓ Added ${res.kind}: ${res.label}`; setTimeout(() => closeModal('import-modal'), 900); }
+            else { st.style.color = '#FF8888'; st.textContent = '✗ Not a recognized FERRETT TONE / RECIPE payload.'; }
+        });
+        wireModalDismiss('import-modal', 'import-close');
+
+        // =====================================================================
+        // 8. TAG RENAME / MERGE — from the color-map ✎ chips
+        // =====================================================================
+        const renameTag = (scope, oldVal, newVal) => {
+            const map = { cookbook: ['cookbook', 'genre'], tones: ['tones', 'category'], links: ['links', 'category'], scripts: ['scripts', 'category'] }[scope];
+            if (!map) return 0;
+            const [arrKey, field] = map; let n = 0;
+            (window.db[arrKey] || []).forEach(it => { if (it[field] === oldVal) { it[field] = newVal; n++; } });
+            if (n) {
+                window.saveData();
+                if (window.buildGenreColorMap) window.buildGenreColorMap();
+                ['renderTones', 'renderStarredTones', 'renderLinks', 'renderScripts', 'renderCookbookMenu'].forEach(fn => { if (window[fn]) try { window[fn](); } catch (e) {} });
+            }
+            return n;
+        };
+        document.getElementById('colormap-body')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.cm-rename'); if (!btn) return;
+            const scope = btn.dataset.scope; const oldVal = decodeURIComponent(btn.dataset.cat);
+            const nv = window.prompt(`Rename "${oldVal}" to…  (type an existing name to MERGE them)`, oldVal);
+            if (nv == null) return; const newVal = nv.trim(); if (!newVal || newVal === oldVal) return;
+            const n = renameTag(scope, oldVal, newVal);
+            buildColorMap();
+            if (n === 0) { const b = document.getElementById('colormap-body'); if (b) b.insertAdjacentHTML('afterbegin', '<div class="text-[9px] text-[#FFD60A] mb-2">No items used that tag.</div>'); }
+        });
+
+        // =====================================================================
+        // 9. TONE BPM / KEY SMART-FILTER
+        // =====================================================================
+        const toneListEl = document.getElementById('tone-list');
+        const applyToneFilter = () => {
+            const bpmV = parseInt(document.getElementById('tf-bpm')?.value, 10);
+            const tol = parseInt(document.getElementById('tf-tol')?.value, 10) || 0;
+            const keyV = (document.getElementById('tf-key')?.value || '').trim().toLowerCase();
+            document.querySelectorAll('#tone-list .card[data-tone-id]').forEach(card => {
+                const t = (window.db.tones || []).find(x => x.id === parseInt(card.dataset.toneId, 10)); if (!t) return;
+                let show = true;
+                if (!isNaN(bpmV)) { const tb = parseInt(t.bpm, 10); show = show && !isNaN(tb) && Math.abs(tb - bpmV) <= tol; }
+                if (keyV) show = show && (t.key || '').toLowerCase().includes(keyV);
+                card.style.display = show ? '' : 'none';
+            });
+        };
+        if (toneListEl && !document.getElementById('tone-smartfilter')) {
+            const bar = document.createElement('div');
+            bar.id = 'tone-smartfilter';
+            bar.className = 'flex flex-wrap items-center gap-2 mb-3 text-[10px]';
+            bar.innerHTML = `<span class="text-[#FFD60A]/70 font-bold tracking-widest uppercase">BPM/Key filter</span>
+                <input id="tf-bpm" type="number" inputmode="numeric" placeholder="BPM" class="w-20 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
+                <span class="text-white/40">±</span><input id="tf-tol" type="number" value="5" class="w-14 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
+                <input id="tf-key" type="text" placeholder="Key e.g. Am" class="w-28 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
+                <button id="tf-clear" class="px-2 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">CLEAR</button>`;
+            toneListEl.parentNode.insertBefore(bar, toneListEl);
+            bar.addEventListener('input', applyToneFilter);
+            document.getElementById('tf-clear').addEventListener('click', () => { ['tf-bpm', 'tf-key'].forEach(id => document.getElementById(id).value = ''); document.getElementById('tf-tol').value = '5'; applyToneFilter(); });
+        }
+        // renderTones rebuilds the card list, so re-apply the filter after each render
+        const _renderTones = window.renderTones;
+        if (typeof _renderTones === 'function' && !_renderTones.__filterWrapped) {
+            window.renderTones = function () { const r = _renderTones.apply(this, arguments); applyToneFilter(); return r; };
+            window.renderTones.__filterWrapped = true;
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('import-modal'); closeModal('recap-modal'); closeModal('cookmode-modal'); } });
+
         // ---- delegated clicks for dynamically-rendered card buttons ----
         document.addEventListener('click', (e) => {
+            const ck = e.target.closest('.btn-recipe-cook');
+            if (ck) { const r = (window.db.cookbook || []).find(x => x.id === parseInt(ck.dataset.id, 10)); if (r) openCook(r); return; }
             const cl = e.target.closest('.btn-recipe-checklist');
             if (cl) { const r = (window.db.cookbook || []).find(x => x.id === parseInt(cl.dataset.id, 10)); if (r) recipeToChecklist(r); return; }
             const er = e.target.closest('.btn-export-recipe');

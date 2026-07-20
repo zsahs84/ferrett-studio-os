@@ -1,7 +1,7 @@
 // FERRETT_STUDIO_OS service worker
 // Bump this version string any time index.html (or any cached asset) changes,
 // so returning clients pick up the new copy instead of a stale cache.
-const CACHE_VERSION = 'ferrett-os-v19';
+const CACHE_VERSION = 'ferrett-os-v20';
 
 const APP_SHELL = [
   './',

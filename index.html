@@ -173,6 +173,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="btn-toggle-focus" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF88FF40] bg-[#FF88FF]/8 text-[#FF88FF] hover:bg-[#FF88FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Now Playing — log what you're working on"><span>▶</span><span class="hidden sm:inline">FOCUS</span></button>
     <button id="btn-open-colormap" class="flex items-center justify-center w-8 h-8 rounded border border-[#B18CFF40] text-[#B18CFF]/70 hover:text-[#B18CFF] hover:border-[#B18CFF80] transition-all cursor-pointer text-[13px]" title="Color key / tag color map">🔑</button>
     <button id="btn-open-import" class="flex items-center justify-center w-8 h-8 rounded border border-[#00E5FF40] text-[#00E5FF]/70 hover:text-[#00E5FF] hover:border-[#00E5FF80] transition-all cursor-pointer text-[13px]" title="Import a shared tone / recipe payload">⇩</button>
+    <button id="btn-open-gearindex" class="flex items-center justify-center w-8 h-8 rounded border border-[#7AFFBF40] text-[#7AFFBF]/70 hover:text-[#7AFFBF] hover:border-[#7AFFBF80] transition-all cursor-pointer text-[13px]" title="Gear index — find every recipe/tone/track that uses a piece of gear">🧩</button>
     <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Toggle quiet HUD animations"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text" class="hidden sm:inline">LIVE</span></button>
     <button id="btn-cycle-theme" class="w-8 h-8 flex items-center justify-center rounded border border-[#E2E8F030] text-[#E2E8F0]/60 hover:text-white hover:border-[#E2E8F060] cursor-pointer text-[13px]" title="Cycle HUD color theme">🎨</button>
     <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync">
@@ -458,6 +459,7 @@ main { background: rgba(5,8,7,0.72); }
             <input type="hidden" id="track-id">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TRACK</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON TONE (optional)</label><select id="track-tone-ref" class="input-ferrett"><option value="">— none —</option></select></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON RECIPE (optional)</label><select id="track-recipe-ref" class="input-ferrett"><option value="">— none —</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REFERENCE LINK (YouTube / Spotify — shows an inline player)</label><input type="text" id="track-reflink" placeholder="https://..." class="input-ferrett"></div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">NOTES</label><textarea id="track-notes" class="input-ferrett h-20 resize-y"></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>📸 CAMERA</span><input type="file" id="track-camera-input" accept="image/*" capture="environment" class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="track"></div><p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear directly.</p></div>
@@ -852,6 +854,20 @@ main { background: rgba(5,8,7,0.72); }
                 <span id="preexport-progress" class="text-[10px] text-white/50 font-mono"></span>
                 <button id="preexport-reset" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">RESET</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="gearindex-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#7AFFBF40] rounded-lg shadow-[0_0_40px_rgba(122,255,191,0.12)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#7AFFBF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#7AFFBF] uppercase">🧩 Gear Index</h3>
+            <button id="gearindex-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <input type="text" id="gearindex-input" placeholder="Type a plugin / amp / IR…  e.g. 1176, API, V30" class="w-full bg-black/50 border border-[#7AFFBF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#7AFFBF70] mb-3">
+            <div id="gearindex-chips" class="flex flex-wrap gap-1.5 mb-4"></div>
+            <div id="gearindex-results" class="max-h-[45vh] overflow-y-auto space-y-1"></div>
         </div>
     </div>
 </div>
@@ -2649,7 +2665,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-save-link')?.addEventListener('click', () => { const idStr = document.getElementById('link-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const link = { id: id, title: document.getElementById('link-title').value || 'Unnamed Tool', url: document.getElementById('link-url').value || '#', category: document.getElementById('link-category').value, daw: document.getElementById('link-daw').value, notes: document.getElementById('link-notes').value }; if (!link.url.startsWith('http') && link.url !== '#') link.url = 'https://' + link.url; if (idStr) window.db.links = window.db.links.map(l => l.id === link.id ? link : l); else window.db.links.unshift(link); window.saveData(); window.toggleForm('form-link'); window.renderLinks(); });
 
     document.getElementById('btn-add-track')?.addEventListener('click', () => window.toggleForm('form-track')); document.getElementById('btn-cancel-track')?.addEventListener('click', () => window.toggleForm('form-track'));
-    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, reflink: document.getElementById('track-reflink')?.value || '', notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
+    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, toneRef: parseInt(document.getElementById('track-tone-ref')?.value, 10) || null, recipeRef: parseInt(document.getElementById('track-recipe-ref')?.value, 10) || null, reflink: document.getElementById('track-reflink')?.value || '', notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
 
     document.getElementById('btn-add-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('btn-cancel-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('search-tone')?.addEventListener('keyup', () => window.renderTones());
     document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, bpm: (document.getElementById('tone-bpm')?.value || '').trim(), key: (document.getElementById('tone-key')?.value || '').trim(), notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
@@ -2658,7 +2674,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; { const ef=document.getElementById('cookbook-effort'); if(ef) ef.value = recipe.effort || ''; } document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelCb = e.target.closest('.btn-del-cookbook'); if(btnDelCb && confirm("Delete this recipe?")) { window.db.cookbook = window.db.cookbook.filter(r => r.id !== parseInt(btnDelCb.dataset.id, 10)); window.saveData(); window.renderCookbookMenu(); }
         const btnCloneTone = e.target.closest('.btn-clone-tone'); if(btnCloneTone) window.cloneTone(parseInt(btnCloneTone.dataset.id, 10));
-        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; const rl = document.getElementById('track-reflink'); if (rl) rl.value = track.reflink || ''; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; if(window.populateTrackRefs) window.populateTrackRefs(); { const tr=document.getElementById('track-tone-ref'); if(tr) tr.value = track.toneRef || ''; const rr=document.getElementById('track-recipe-ref'); if(rr) rr.value = track.recipeRef || ''; } const rl = document.getElementById('track-reflink'); if (rl) rl.value = track.reflink || ''; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelTrack = e.target.closest('.btn-del-track'); if(btnDelTrack && confirm("Delete this track config?")) { window.db.tracks = window.db.tracks.filter(t => t.id !== parseInt(btnDelTrack.dataset.id, 10)); window.saveData(); window.renderTracks(); }
         const btnCloneTrack = e.target.closest('.btn-clone-track'); if(btnCloneTrack) window.cloneTrack(parseInt(btnCloneTrack.dataset.id, 10));
         const btnExportTrack = e.target.closest('.btn-export-track'); if(btnExportTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnExportTrack.dataset.id, 10)); if (track) window.exportTrackHandoff(track); }
@@ -3788,8 +3804,104 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         }
         try { if ((localStorage.getItem(window.HUD_THEME_KEY) || '') === 'auto') { window.__hudAuto = true; window.applyHudTheme('auto'); } } catch (e) {}
 
+        // =====================================================================
+        // 21. GEAR CROSS-LINKER — find every recipe/tone/track that uses a gear term
+        // =====================================================================
+        const gearCorpus = () => {
+            const items = [];
+            (window.db.cookbook || []).forEach(r => items.push({ scope: 'cookbook', id: r.id, title: r.inst, sub: r.genre, text: `${r.luna || ''} ${r.reaper || ''} ${r.notes || ''}` }));
+            (window.db.tones || []).forEach(t => items.push({ scope: 'tones', id: t.id, title: t.name, sub: t.category, text: `${t.nam || ''} ${t.ir || ''} ${t.notes || ''}` }));
+            (window.db.tracks || []).forEach(t => items.push({ scope: 'tracks', id: t.id, title: t.inst, sub: t.daw, text: `${t.plugins || ''} ${t.notes || ''}` }));
+            return items;
+        };
+        const gearJump = (scope, id) => {
+            closeModal('gearindex-modal');
+            if (scope === 'tones') window.switchTab('tones');
+            else if (scope === 'tracks') window.switchTab('tracks');
+            else if (scope === 'cookbook') { const r = (window.db.cookbook || []).find(x => x.id === id); if (r) { window.switchTab('cookbook'); window.selectGenre(r.genre); setTimeout(() => window.selectInst(id), 120); } }
+        };
+        window.__gearJump = gearJump;
+        const scopeColor = { cookbook: '#00FF88', tones: '#00E5FF', tracks: '#FFD60A' };
+        const renderGearResults = (q) => {
+            q = (q || '').trim().toLowerCase(); const res = document.getElementById('gearindex-results'); if (!res) return;
+            if (!q) { res.innerHTML = '<div class="text-white/30 text-[11px] italic p-2">Type or tap a gear name to see everywhere it\'s used.</div>'; return; }
+            const items = gearCorpus().filter(it => it.text.toLowerCase().includes(q));
+            if (!items.length) { res.innerHTML = `<div class="text-white/40 text-[11px] italic p-2">Nothing mentions "${q}".</div>`; return; }
+            res.innerHTML = items.map(it => `<button class="gx-jump w-full text-left flex items-center gap-2 px-3 py-2 rounded hover:bg-white/5 cursor-pointer" data-scope="${it.scope}" data-id="${it.id}"><span class="text-[8px] font-bold px-1.5 py-0.5 rounded uppercase shrink-0" style="color:${scopeColor[it.scope]};border:1px solid ${scopeColor[it.scope]}40;">${it.scope === 'cookbook' ? 'RECIPE' : it.scope.toUpperCase()}</span><span class="text-[11px] text-white font-bold truncate">${it.title}</span><span class="text-[9px] text-white/40 truncate">${it.sub || ''}</span></button>`).join('');
+        };
+        const renderGearChips = () => {
+            const corpus = gearCorpus().map(i => i.text).join(' ').toLowerCase();
+            const present = (window.PLUGIN_TOOLTIPS || []).map(([k]) => k).filter(k => corpus.includes(k.toLowerCase()));
+            const chips = document.getElementById('gearindex-chips'); if (!chips) return;
+            chips.innerHTML = present.slice(0, 24).map(k => `<button class="gx-chip text-[9px] font-bold px-2 py-0.5 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" data-term="${k.replace(/"/g, '')}">${k}</button>`).join('') || '<span class="text-white/30 text-[10px] italic">No known gear detected in your vault yet.</span>';
+        };
+        document.getElementById('btn-open-gearindex')?.addEventListener('click', () => { const i = document.getElementById('gearindex-input'); if (i) i.value = ''; renderGearChips(); renderGearResults(''); openModal('gearindex-modal'); });
+        document.getElementById('gearindex-input')?.addEventListener('input', (e) => renderGearResults(e.target.value));
+        document.getElementById('gearindex-chips')?.addEventListener('click', (e) => { const c = e.target.closest('.gx-chip'); if (!c) return; document.getElementById('gearindex-input').value = c.dataset.term; renderGearResults(c.dataset.term); });
+        wireModalDismiss('gearindex-modal', 'gearindex-close');
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal('gearindex-modal'); });
+
+        // =====================================================================
+        // 22. REAMP PAIRING + "USED IN" BACKLINKS (tone/recipe <-> track)
+        // =====================================================================
+        const toneNm = (id) => (window.db.tones || []).find(t => t.id === id)?.name;
+        const recipeNm = (id) => (window.db.cookbook || []).find(r => r.id === id)?.inst;
+        const tracksUsingTone = (id) => (window.db.tracks || []).filter(t => t.toneRef === id);
+        const tracksUsingRecipe = (id) => (window.db.tracks || []).filter(t => t.recipeRef === id);
+        window.populateTrackRefs = () => {
+            const ts = document.getElementById('track-tone-ref'), rs = document.getElementById('track-recipe-ref');
+            if (ts) ts.innerHTML = '<option value="">— none —</option>' + (window.db.tones || []).map(t => `<option value="${t.id}">${(t.name || 'Unnamed').replace(/</g, '')}</option>`).join('');
+            if (rs) rs.innerHTML = '<option value="">— none —</option>' + (window.db.cookbook || []).map(r => `<option value="${r.id}">${(r.genre + ' — ' + r.inst).replace(/</g, '')}</option>`).join('');
+        };
+        document.getElementById('btn-add-track')?.addEventListener('click', () => window.populateTrackRefs());
+        window.__injectTrackRefs = () => {
+            document.querySelectorAll('#track-list .card').forEach(card => {
+                if (card.querySelector('.track-refs')) return;
+                const eb = card.querySelector('.btn-edit-track'); if (!eb) return;
+                const t = (window.db.tracks || []).find(x => x.id === parseInt(eb.dataset.id, 10)); if (!t) return;
+                const chips = [];
+                if (t.toneRef && toneNm(t.toneRef)) chips.push(`<button class="gx-jump text-[8px] font-bold px-1.5 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] cursor-pointer" data-scope="tones" data-id="${t.toneRef}">🎸 ${toneNm(t.toneRef)}</button>`);
+                if (t.recipeRef && recipeNm(t.recipeRef)) chips.push(`<button class="gx-jump text-[8px] font-bold px-1.5 py-0.5 rounded border border-[#00FF8840] text-[#00FF88] cursor-pointer" data-scope="cookbook" data-id="${t.recipeRef}">📖 ${recipeNm(t.recipeRef)}</button>`);
+                if (chips.length) { const d = document.createElement('div'); d.className = 'track-refs flex flex-wrap gap-1.5 mt-2'; d.innerHTML = chips.join(''); card.appendChild(d); }
+            });
+        };
+        window.__injectToneBacklinks = () => {
+            document.querySelectorAll('#tone-list .card[data-tone-id]').forEach(card => {
+                if (card.querySelector('.tone-backlink')) return;
+                const used = tracksUsingTone(parseInt(card.dataset.toneId, 10)); if (!used.length) return;
+                const d = document.createElement('div'); d.className = 'tone-backlink mt-2 text-[9px] text-[#7FA8D9]';
+                d.innerHTML = '↳ used in ' + used.map(t => `<button class="gx-jump underline cursor-pointer" data-scope="tracks" data-id="${t.id}">${(t.inst || 'track').replace(/</g, '')}</button>`).join(', ');
+                card.appendChild(d);
+            });
+        };
+        ['renderTracks', 'renderTones'].forEach(fn => {
+            const orig = window[fn];
+            if (typeof orig === 'function' && !orig.__blWrapped) {
+                window[fn] = function () { const r = orig.apply(this, arguments); if (fn === 'renderTracks') window.__injectTrackRefs(); else window.__injectToneBacklinks(); return r; };
+                window[fn].__blWrapped = true;
+            }
+        });
+        const _selectInstBl = window.selectInst;
+        if (typeof _selectInstBl === 'function' && !_selectInstBl.__blWrapped) {
+            window.selectInst = function (id) {
+                const r = _selectInstBl.apply(this, arguments);
+                try {
+                    const used = tracksUsingRecipe(id); const disp = document.getElementById('recipe-display');
+                    if (used.length && disp && !disp.querySelector('.recipe-backlink')) {
+                        const d = document.createElement('div'); d.className = 'recipe-backlink mt-4 text-[10px] text-[#7FA8D9] border-t border-[#7FA8D920] pt-3';
+                        d.innerHTML = '↳ used in tracks: ' + used.map(t => `<button class="gx-jump underline cursor-pointer" data-scope="tracks" data-id="${t.id}">${(t.inst || 'track').replace(/</g, '')}</button>`).join(', ');
+                        (disp.querySelector('.animate-fade-in') || disp).appendChild(d);
+                    }
+                } catch (e) {}
+                return r;
+            };
+            window.selectInst.__blWrapped = true;
+        }
+
         // ---- delegated clicks for dynamically-rendered card buttons ----
         document.addEventListener('click', (e) => {
+            const gj = e.target.closest('.gx-jump');
+            if (gj) { window.__gearJump(gj.dataset.scope, parseInt(gj.dataset.id, 10)); return; }
             const tc = e.target.closest('.btn-tone-chain');
             if (tc) { const t = (window.db.tones || []).find(x => x.id === parseInt(tc.dataset.id, 10)); if (t) openToneChain(t); return; }
             const ck = e.target.closest('.btn-recipe-cook');

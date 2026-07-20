@@ -1239,8 +1239,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // clustered badly on the real category names in this app (4 of 11 genres and
     // 3 of 5 link categories all landed on the same pink slot). This one spreads
     // much more evenly across a richer 12-color palette.
-    const FALLBACK_PALETTE = ['#00FF88','#00E5FF','#FFD60A','#FF5C5C','#B18CFF','#7AFFBF','#FF6FCB','#FFA05C','#7FA8D9','#C9FF4B','#FF3DAE','#4BFFEA'];
+    // 18 neon hues stepped by the golden angle (~137.5°), so consecutive palette
+    // entries land far apart on the color wheel. This replaces the old 12-color
+    // list, which packed 5 of 12 slots into the cyan/green family and made
+    // freeform chips look same-y even without an outright hash collision.
+    const FALLBACK_PALETTE = ['#45ED99','#CA45ED','#DFED45','#45AEED','#ED457D','#4CED45','#6F45ED','#EDA045','#45EDD1','#ED45D8','#A7ED45','#4576ED','#ED4645','#45ED76','#A745ED','#EDD845','#45D0ED','#ED45A0'];
     window.pillColor = (str) => { str = str || ''; let h = 5381; for (let i=0;i<str.length;i++) h = ((h*33) ^ str.charCodeAt(i)) >>> 0; return FALLBACK_PALETTE[h % FALLBACK_PALETTE.length]; };
+
+    // Cookbook genres are freeform, so a plain hash can still collide (with 17
+    // genres it repeated some colors 3x and left others unused). Since the genre
+    // menu shows every genre at once, assign colors by position in the genre
+    // list instead: no two genres share a chip color until the 18-color palette
+    // is exhausted. Built once from the full list and reused by the menu, global
+    // search, and the command palette so a genre's color is identical everywhere.
+    window._genreColorMap = {};
+    window.buildGenreColorMap = () => {
+        const genres = [...new Set((window.db && window.db.cookbook ? window.db.cookbook : []).map(r => r.genre))];
+        const map = {};
+        genres.forEach((g, i) => { map[g] = FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]; });
+        window._genreColorMap = map;
+        return map;
+    };
+    window.genreColor = (g) => {
+        if (!window._genreColorMap || !(g in window._genreColorMap)) window.buildGenreColorMap();
+        return window._genreColorMap[g] || window.pillColor(g);
+    };
 
     // Fixed categories get hand-picked, semantically meaningful colors instead of
     // a hash, so the same color always means the same thing across the app:
@@ -1264,7 +1287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const LINK_CATEGORY_COLORS = {
         'AI & MIDI Extraction': '#00E5FF', // AI/tech -> cyan (matches AI STEM & MIDI)
         'Tones, Amps & IRs': '#FFD60A',    // tone/amps -> gold (matches INTERFACE & TONES)
-        'Mixing & Mastering': '#FFC24B',   // polish/premium -> amber
+        'Mixing & Mastering': '#B18CFF',   // polish/final stage -> violet (was amber, too close to the gold above)
         'Samples & Instruments': '#7AFFBF',// raw material -> mint
         'Audio Utilities': '#7FA8D9',      // utility -> steel blue (matches WORKFLOW & EXPORT)
     };
@@ -1305,8 +1328,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!genreMenu || !datalist || !window.db.cookbook || window.db.cookbook.length === 0) return;
         genreMenu.innerHTML = ''; datalist.innerHTML = '';
         const genres = [...new Set(window.db.cookbook.map(r => r.genre))];
+        window.buildGenreColorMap();
         genres.forEach(genre => {
-            const btn = document.createElement('button'); btn.className = 'btn-menu w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold text-[#00E5FF]/60 border border-transparent'; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
+            const gc = window.genreColor(genre);
+            const btn = document.createElement('button'); btn.className = 'btn-menu w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
             const option = document.createElement('option'); option.value = genre; datalist.appendChild(option);
         });
         if(genres.length > 0 && (!window.currentCookbookGenre || !genres.includes(window.currentCookbookGenre))) window.selectGenre(genres[0]);
@@ -2785,7 +2810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (window.db.tones || []).forEach(t => idx.push({ scope: 'tones', id: t.id, title: t.name, tag: t.category, sub: [t.nam, t.ir].filter(Boolean).join(' · '), text: `${t.name} ${t.category} ${t.nam || ''} ${t.ir || ''} ${t.notes || ''}`.toLowerCase(), color: window.toneCategoryColor(t.category) }));
         (window.db.links || []).forEach(l => idx.push({ scope: 'links', id: l.id, title: l.title, tag: l.category, sub: l.url, text: `${l.title} ${l.category} ${l.notes || ''} ${l.url || ''}`.toLowerCase(), color: window.linkCategoryColor(l.category) }));
         (window.db.scripts || []).forEach(s => idx.push({ scope: 'scripts', id: s.id, title: s.title, tag: s.category, sub: s.shortcut, text: `${s.title} ${s.category} ${s.func || ''}`.toLowerCase(), color: window.scriptCategoryColor(s.category) }));
-        (window.db.cookbook || []).forEach(r => idx.push({ scope: 'cookbook', id: r.id, title: r.inst, tag: r.genre, sub: r.genre, text: `${r.inst} ${r.genre} ${r.desc || ''} ${r.notes || ''}`.toLowerCase(), color: window.pillColor(r.genre) }));
+        (window.db.cookbook || []).forEach(r => idx.push({ scope: 'cookbook', id: r.id, title: r.inst, tag: r.genre, sub: r.genre, text: `${r.inst} ${r.genre} ${r.desc || ''} ${r.notes || ''}`.toLowerCase(), color: window.genreColor(r.genre) }));
         return idx;
     };
 
@@ -2811,7 +2836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renderCmdkTagBar = () => {
         const bar = document.getElementById('cmdk-tagbar'); if (!bar) return; bar.innerHTML = '';
         const groups = [
-            { scope: 'cookbook', label: 'RECIPE', items: [...new Set((window.db.cookbook || []).map(r => r.genre))], color: window.pillColor },
+            { scope: 'cookbook', label: 'RECIPE', items: [...new Set((window.db.cookbook || []).map(r => r.genre))], color: window.genreColor },
             { scope: 'tones', label: 'TONE', items: [...new Set((window.db.tones || []).map(t => t.category))], color: window.toneCategoryColor },
             { scope: 'links', label: 'LINK', items: [...new Set((window.db.links || []).map(l => l.category))], color: window.linkCategoryColor },
             { scope: 'scripts', label: 'SCRIPT', items: [...new Set((window.db.scripts || []).map(s => s.category))], color: window.scriptCategoryColor }

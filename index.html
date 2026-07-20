@@ -245,6 +245,10 @@ main { background: rgba(5,8,7,0.72); }
         <div class="mt-1 flex items-baseline gap-1"><span id="spl-value" class="spl-readout text-[18px] font-bold tracking-widest">82.4</span><span class="text-[10px] text-[#00FF88]/55">dB</span></div>
         <div class="w-full mt-2 h-[2px] bg-[#00FF8814] relative overflow-hidden rounded"><div id="spl-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#00FF88] via-[#00E5FF] to-[#FFD60A] transition-all duration-200" style="width:62%"></div></div>
         <div class="flex justify-between w-full mt-1 text-[7px] tracking-widest text-white/25"><span>60</span><span>85</span><span>105</span></div>
+        <div class="flex items-center gap-2 mt-2 w-full justify-center">
+          <button id="btn-spl-cal" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Play steady pink noise at your mix level, then calibrate. Warns when monitoring drifts.">⊕ CAL</button>
+          <span id="spl-drift" class="text-[10px] font-bold font-mono text-white/30">—</span>
+        </div>
       </div>
     </div>
   </nav>
@@ -317,7 +321,7 @@ main { background: rgba(5,8,7,0.72); }
 
         <div class="card border-[#00FF8830] mb-8">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4>
+                <div class="flex items-center gap-2 flex-wrap"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4><button id="patchbay-match-badge" class="hidden text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border cursor-pointer uppercase" title="Whether the drawn patchbay matches the default Volt 176 rig"></button></div>
                 <div class="flex gap-2">
                     <button id="btn-patchbay-add-device" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">+ DEVICE</button>
                     <button id="btn-patchbay-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" title="Load the default Volt 176 studio rig">⟳ LOAD RIG</button>
@@ -332,7 +336,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><div class="flex gap-2"><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><div class="flex gap-2 flex-wrap"><button id="btn-monitor-rr" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Round-robin A/B timer — prompts you to check the mix on each monitor">🔁 A/B Timer</button><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
 
                 <div class="flex flex-wrap items-center gap-2 -mb-1">
@@ -4135,6 +4139,81 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         if (typeof _rtStage === 'function' && !_rtStage.__stageWrapped) { window.renderTones = function () { const r = _rtStage.apply(this, arguments); if (stageViewOn) renderStageView(); return r; }; window.renderTones.__stageWrapped = true; }
 
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('refshelf-modal'); closeModal('selimport-modal'); } });
+
+        // =====================================================================
+        // 30. REFERENCE-LEVEL CALIBRATION — live-mic drift warning (piggybacks vuLive)
+        // =====================================================================
+        window.__splCal = { ref: null, cur: null };
+        const CAL_TOL = 3; // dB
+        const splDbNow = () => {
+            const vl = window.vuLive; if (!vl || !vl.active || !vl.analyser || !vl.buf) return null;
+            vl.analyser.getByteTimeDomainData(vl.buf);
+            let sum = 0; for (let i = 0; i < vl.buf.length; i++) { const v = (vl.buf[i] - 128) / 128; sum += v * v; }
+            const rms = Math.sqrt(sum / vl.buf.length);
+            return rms > 0.0001 ? 20 * Math.log10(rms) : -80;
+        };
+        let splSmooth = null;
+        const splCalTick = () => {
+            const db = splDbNow();
+            if (db != null) { splSmooth = splSmooth == null ? db : splSmooth * 0.85 + db * 0.15; window.__splCal.cur = splSmooth; }
+            const el = document.getElementById('spl-drift');
+            if (el) {
+                if (window.__splCal.ref == null) { el.textContent = window.vuLive?.active ? 'ready' : '—'; el.style.color = 'rgba(255,255,255,0.3)'; }
+                else if (splSmooth != null) { const drift = splSmooth - window.__splCal.ref; const over = Math.abs(drift) > CAL_TOL; el.textContent = `${drift >= 0 ? '+' : ''}${drift.toFixed(1)} dB`; el.style.color = over ? '#FF5C5C' : '#00FF88'; }
+            }
+            requestAnimationFrame(splCalTick);
+        };
+        document.getElementById('btn-spl-cal')?.addEventListener('click', async () => {
+            if (!window.vuLive?.active && window.startVuLive) { await window.startVuLive(); }
+            setTimeout(() => {
+                if (window.__splCal.cur != null && window.vuLive?.active) { window.__splCal.ref = window.__splCal.cur; const el = document.getElementById('spl-drift'); if (el) { el.textContent = '0.0 dB'; el.style.color = '#00FF88'; } }
+                else alert('Enable the mic (🎙️) and play steady pink noise at mix level, then calibrate.');
+            }, 700);
+        });
+        splCalTick();
+
+        // =====================================================================
+        // 31. PATCHBAY <-> RIG MISMATCH HIGHLIGHTER
+        // =====================================================================
+        const pbSignature = (pb) => {
+            const idToName = {}; (pb.devices || []).forEach(d => idToName[d.id] = (d.name || '').trim().toLowerCase());
+            const devs = Object.values(idToName).sort().join('|');
+            const conns = (pb.connections || []).map(c => `${idToName[c.from.deviceId] || '?'}>${idToName[c.to.deviceId] || '?'}`).sort().join(',');
+            return devs + '::' + conns;
+        };
+        const checkPatchbayMatch = () => {
+            const badge = document.getElementById('patchbay-match-badge'); if (!badge || !window.getDefaultPatchbay) return;
+            const pb = window.db.patchbay || { devices: [], connections: [] };
+            if ((pb.devices || []).length === 0) { badge.classList.add('hidden'); return; }
+            badge.classList.remove('hidden');
+            const match = pbSignature(pb) === pbSignature(window.getDefaultPatchbay());
+            if (match) { badge.textContent = '✓ matches rig'; badge.style.color = '#00FF88'; badge.style.borderColor = '#00FF8840'; badge.dataset.match = '1'; badge.title = 'Your patchbay matches the default Volt 176 rig.'; }
+            else { badge.textContent = '⚠ differs from rig — realign'; badge.style.color = '#FFD60A'; badge.style.borderColor = '#FFD60A40'; badge.dataset.match = '0'; badge.title = 'Click to re-load the default Volt 176 rig.'; }
+        };
+        document.getElementById('patchbay-match-badge')?.addEventListener('click', () => { if (document.getElementById('patchbay-match-badge').dataset.match === '0' && window.loadDefaultPatchbay) window.loadDefaultPatchbay(true); });
+        const _rpMatch = window.renderPatchbay;
+        if (typeof _rpMatch === 'function' && !_rpMatch.__matchWrapped) { window.renderPatchbay = function () { const r = _rpMatch.apply(this, arguments); checkPatchbayMatch(); return r; }; window.renderPatchbay.__matchWrapped = true; }
+        checkPatchbayMatch();
+
+        // =====================================================================
+        // 32. MONITOR ROUND-ROBIN TIMER — interval prompts to A/B across monitors
+        // =====================================================================
+        const MONITORS = ['Sansui / Bose 301', 'The Gammas', 'The Xiberias', 'Samsung Sound Bar', 'Skullcandy JIB (AutoEQ)'];
+        const RR_INTERVAL = 120000; // 2 minutes
+        let rrTimer = null, rrIdx = 0;
+        const showRRToast = (text) => {
+            let t = document.getElementById('rr-toast');
+            if (!t) { t = document.createElement('div'); t.id = 'rr-toast'; t.className = 'fixed left-1/2 bottom-8 -translate-x-1/2 z-[99998] px-4 py-2.5 rounded-lg border border-[#00E5FF50] bg-[#0a0f0d]/95 text-[#00E5FF] text-[12px] font-bold tracking-widest shadow-[0_0_30px_rgba(0,229,255,0.25)] transition-opacity duration-300'; document.body.appendChild(t); }
+            t.textContent = text; t.style.opacity = '1';
+            clearTimeout(t._hide); t._hide = setTimeout(() => { t.style.opacity = '0'; }, 6000);
+        };
+        const rrTick = () => { showRRToast(`🔁 A/B — now check on ${MONITORS[rrIdx % MONITORS.length]}`); rrIdx++; };
+        const setRR = (on) => {
+            const btn = document.getElementById('btn-monitor-rr');
+            if (on) { rrIdx = 0; rrTick(); rrTimer = setInterval(rrTick, RR_INTERVAL); if (btn) { btn.style.background = 'rgba(0,229,255,0.22)'; btn.textContent = '🔁 A/B ON'; } }
+            else { clearInterval(rrTimer); rrTimer = null; if (btn) { btn.style.background = ''; btn.textContent = '🔁 A/B Timer'; } const t = document.getElementById('rr-toast'); if (t) t.style.opacity = '0'; }
+        };
+        document.getElementById('btn-monitor-rr')?.addEventListener('click', () => setRR(!rrTimer));
 
         // ---- delegated clicks for dynamically-rendered card buttons ----
         document.addEventListener('click', (e) => {

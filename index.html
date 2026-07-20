@@ -453,7 +453,8 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tab-tracks" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">TRACK SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><button id="btn-add-track" class="btn-ferrett-green">+ ADD CONFIG</button></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">TRACK SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-track-board-toggle" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Toggle the status board (kanban) view">▦ BOARD</button><button id="btn-add-track" class="btn-ferrett-green shrink-0">+ ADD CONFIG</button></div></div>
+        <div id="track-board" class="hidden grid grid-cols-1 md:grid-cols-4 gap-3 mb-6"></div>
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW TRACK SETTING</h3>
             <input type="hidden" id="track-id">
@@ -3896,6 +3897,95 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 return r;
             };
             window.selectInst.__blWrapped = true;
+        }
+
+        // =====================================================================
+        // 23. TRACK STATUS BOARD (kanban)
+        // =====================================================================
+        const TRACK_STATUSES = [['idea', 'Idea', '#7FA8D9'], ['tracking', 'Tracking', '#FFD60A'], ['mixing', 'Mixing', '#00E5FF'], ['done', 'Done', '#00FF88']];
+        let trackBoardOn = false, dragTrackId = null;
+        const renderTrackBoard = () => {
+            const board = document.getElementById('track-board'); if (!board) return;
+            const tracks = (window.db.tracks || []).filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both');
+            board.innerHTML = TRACK_STATUSES.map(([key, label, color]) => {
+                const items = tracks.filter(t => (t.status || 'idea') === key);
+                return `<div class="track-col rounded border bg-black/30 p-2" data-status="${key}" style="border-color:${color}30;">
+                    <div class="text-[9px] font-bold tracking-widest uppercase mb-2 flex items-center justify-between" style="color:${color};">${label}<span class="opacity-50">${items.length}</span></div>
+                    <div class="space-y-2 min-h-[48px]">${items.map(t => `<div class="track-card-mini rounded border px-2 py-1.5 cursor-grab bg-[rgba(5,8,7,0.9)]" draggable="true" data-track-id="${t.id}" style="border-color:${color}40;"><div class="text-[10px] font-bold text-white truncate">${(t.inst || 'Untitled').replace(/</g, '')}</div><div class="text-[8px] text-white/40 truncate">${((t.plugins || '').replace(/</g, '')) || t.daw}</div></div>`).join('')}</div>
+                </div>`;
+            }).join('');
+        };
+        const setBoard = (on) => {
+            trackBoardOn = on;
+            document.getElementById('track-board')?.classList.toggle('hidden', !on);
+            document.getElementById('track-list')?.classList.toggle('hidden', on);
+            const btn = document.getElementById('btn-track-board-toggle'); if (btn) btn.style.background = on ? 'rgba(0,229,255,0.22)' : 'rgba(0,229,255,0.08)';
+            if (on) renderTrackBoard();
+        };
+        document.getElementById('btn-track-board-toggle')?.addEventListener('click', () => setBoard(!trackBoardOn));
+        const board = document.getElementById('track-board');
+        board?.addEventListener('dragstart', (e) => { const c = e.target.closest('.track-card-mini'); if (c) { dragTrackId = parseInt(c.dataset.trackId, 10); e.dataTransfer.effectAllowed = 'move'; c.style.opacity = '0.4'; } });
+        board?.addEventListener('dragend', (e) => { const c = e.target.closest('.track-card-mini'); if (c) c.style.opacity = ''; });
+        board?.addEventListener('dragover', (e) => { if (e.target.closest('.track-col')) e.preventDefault(); });
+        board?.addEventListener('drop', (e) => { const col = e.target.closest('.track-col'); if (!col || dragTrackId == null) return; e.preventDefault(); const t = (window.db.tracks || []).find(x => x.id === dragTrackId); if (t) { t.status = col.dataset.status; window.saveData(); renderTrackBoard(); } dragTrackId = null; });
+        const _rtBoard = window.renderTracks;
+        if (typeof _rtBoard === 'function' && !_rtBoard.__boardWrapped) { window.renderTracks = function () { const r = _rtBoard.apply(this, arguments); if (trackBoardOn) renderTrackBoard(); return r; }; window.renderTracks.__boardWrapped = true; }
+
+        // =====================================================================
+        // 24. RECIPE VERSIONING + DIFF (richer history modal)
+        // =====================================================================
+        window.openHistoryModal = (recipe) => {
+            const content = document.getElementById('history-modal-content');
+            if (!content) return;
+            const history = recipe.history || [];
+            if (history.length === 0) { content.innerHTML = `<div class="text-[10px] text-[#E2E8F0]/30 italic">No previous versions saved yet.</div>`; }
+            else {
+                const cur = { desc: recipe.desc, luna: recipe.luna, reaper: recipe.reaper, notes: recipe.notes };
+                const esc = (s) => (s || '').replace(/</g, '&lt;');
+                const row = (label, oldV, newV) => { const changed = (oldV || '') !== (newV || ''); if (!changed) return `<div class="text-[9px] text-white/25 mb-1">${label}: unchanged</div>`; return `<div class="mb-2"><div class="text-[8px] uppercase tracking-widest text-[#FFD60A] mb-0.5">${label} • changed</div><div class="text-[9px] font-mono text-[#FF8888]/80 whitespace-pre-wrap bg-[#FF444408] rounded px-1.5 py-1">− ${esc(oldV) || '(empty)'}</div><div class="text-[9px] font-mono text-[#00FF88]/90 whitespace-pre-wrap bg-[#00FF8808] rounded px-1.5 py-1 mt-0.5">+ ${esc(newV) || '(empty)'}</div></div>`; };
+                content.innerHTML = history.map((h, i) => {
+                    const same = (h.luna || '') === (cur.luna || '') && (h.reaper || '') === (cur.reaper || '') && (h.notes || '') === (cur.notes || '') && (h.desc || '') === (cur.desc || '');
+                    return `<div class="p-3 rounded border border-[#FF88FF20] bg-black/40 mb-3">
+                        <div class="flex items-center justify-between mb-2"><span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/70">${new Date(h.savedAt).toLocaleString()} → now</span><button data-recipe-id="${recipe.id}" data-history-idx="${i}" class="btn-restore-history text-[9px] font-bold px-2 py-1 rounded border border-[#00FF8850] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">↺ RESTORE</button></div>
+                        ${same ? '<div class="text-[9px] text-white/30 italic">Identical to current version.</div>' : row('LUNA', h.luna, cur.luna) + row('REAPER', h.reaper, cur.reaper) + row('Notes', h.notes, cur.notes) + row('Desc', h.desc, cur.desc)}
+                    </div>`;
+                }).join('');
+            }
+            const modal = document.getElementById('history-modal'); if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        };
+
+        // =====================================================================
+        // 25. COMMAND-BAR ACTIONS (⌘K)
+        // =====================================================================
+        const cmdkActions = [
+            { icon: '🍳', label: 'New recipe', keys: 'new recipe add cookbook', run: () => { window.switchTab('cookbook'); window.toggleForm('form-cookbook'); } },
+            { icon: '🎸', label: 'New tone', keys: 'new tone add guitar preset', run: () => { window.switchTab('tones'); window.toggleForm('form-tone'); } },
+            { icon: '🎚️', label: 'New track', keys: 'new track add config', run: () => { window.switchTab('tracks'); window.toggleForm('form-track'); } },
+            { icon: '▦', label: 'Track status board', keys: 'board kanban status tracks', run: () => { window.switchTab('tracks'); setBoard(true); } },
+            { icon: '✅', label: 'Pre-export check', keys: 'export check reference mix', run: () => { window.switchTab('hardware'); document.getElementById('btn-preexport-check')?.click(); } },
+            { icon: '🔌', label: 'Cable cheat-sheet', keys: 'cable connector impedance', run: () => openModal('cable-modal') },
+            { icon: '⟳', label: 'Load default rig', keys: 'rig patchbay default load', run: () => { window.switchTab('hardware'); window.loadDefaultPatchbay && window.loadDefaultPatchbay(true); } },
+            { icon: '🧩', label: 'Gear index', keys: 'gear index find plugin', run: () => document.getElementById('btn-open-gearindex')?.click() },
+            { icon: '🧟', label: 'Frankenstein builder', keys: 'frankenstein composite fuse', run: () => { window.switchTab('cookbook'); document.getElementById('btn-frankenstein')?.click(); } },
+            { icon: '🔑', label: 'Color map', keys: 'color map key tag health', run: () => document.getElementById('btn-open-colormap')?.click() },
+            { icon: '📋', label: 'Session recap', keys: 'recap session stats streak', run: () => document.getElementById('btn-open-recap')?.click() },
+            { icon: '⬇', label: 'Backup vault', keys: 'backup download vault', run: () => document.getElementById('btn-backup-vault')?.click() },
+        ];
+        const _renderCmdk = window.renderCmdkResults;
+        if (typeof _renderCmdk === 'function' && !_renderCmdk.__actionsWrapped) {
+            window.renderCmdkResults = function (query) {
+                _renderCmdk.apply(this, arguments);
+                const results = document.getElementById('cmdk-results'); if (!results) return;
+                const q = (query || '').trim().toLowerCase();
+                const acts = q ? cmdkActions.filter(a => (a.label + ' ' + a.keys).toLowerCase().includes(q)) : cmdkActions.slice(0, 5);
+                if (!acts.length) return;
+                if (q) { const ph = results.querySelector('div.text-center.italic'); if (ph) ph.remove(); }
+                const frag = document.createElement('div'); frag.className = 'mb-1 border-b border-white/5 pb-1';
+                frag.innerHTML = '<div class="text-[8px] font-bold tracking-widest text-[#B18CFF]/60 uppercase px-3 pt-1 pb-1">Actions</div>';
+                acts.forEach(a => { const row = document.createElement('div'); row.className = 'flex items-center gap-3 px-3 py-2 rounded hover:bg-white/5 cursor-pointer'; row.innerHTML = `<span class="text-[13px] shrink-0">${a.icon}</span><span class="text-[12px] text-white">${a.label}</span>`; row.addEventListener('click', () => { if (window.closeCmdk) window.closeCmdk(); a.run(); }); frag.appendChild(row); });
+                results.insertBefore(frag, results.firstChild);
+            };
+            window.renderCmdkResults.__actionsWrapped = true;
         }
 
         // ---- delegated clicks for dynamically-rendered card buttons ----

@@ -253,7 +253,7 @@ main { background: rgba(5,8,7,0.72); }
     <section id="tab-cookbook" class="middle-tab active p-4 md:p-8 min-h-[500px]">
         <div class="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 gap-4">
             <h2 class="text-[15px] font-bold tracking-widest text-[#00FF88]">THE ULTIMATE RECIPE BOOK</h2>
-            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-ferrett shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-import-recipes" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-ferrett-green shrink-0">+ ADD RECIPE</button></div>
+            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-ferrett shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-frankenstein" class="btn-ferrett shrink-0" style="border-color:#C9FF4B50;color:#C9FF4B;background:rgba(201,255,75,0.08);" title="Fuse components from different recipes into one composite">🧟 FRANKENSTEIN</button><button id="btn-import-recipes" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-ferrett-green shrink-0">+ ADD RECIPE</button></div>
         </div>
         
         <div id="genre-blend-card" class="card mb-6 hidden relative overflow-hidden" style="border-color:#FFD60A40;">
@@ -309,7 +309,7 @@ main { background: rgba(5,8,7,0.72); }
     </section>
 
     <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 max-w-7xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176 + 172</span></div>
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176</span></div>
 
         <div class="card border-[#00FF8830] mb-8">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
@@ -327,50 +327,51 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176 + VOLT 172</h3><span class="text-[8px] font-mono tracking-widest text-white/35">OUTPUTS &amp; INPUTS</span></div>
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><span class="text-[8px] font-mono tracking-widest text-white/35">ONE INTERFACE · 3 OUTPUTS</span></div>
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
 
-                <!-- OUTPUT A: Volt 176 -> Sansui (creating / mixing) -->
+                <!-- OUTPUT A: Volt 176 BACK (TS L/R, device knob) -> Sansui -->
                 <div>
                     <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
-                        <span class="text-[#00E5FF] font-bold">Volt 176 — Out Knob = MASTER VOLUME</span>
+                        <span class="text-[#00E5FF] font-bold">BACK — TS Out L/R · device MAIN knob = volume</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#00FF8840] text-[#00FF88] bg-[#00FF8810]">★ Best: creating &amp; mixing</span>
                     </div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Unbalanced TS → RCA (2 cables) → Sansui <b class="text-[#FFD60A]">TAPE 1</b> RCA input</span></div></div>
-                    <div class="ml-8 mt-1 text-[10px] text-white/55">Sansui: <b class="text-white">flat</b> — Loudness OFF · Tone Defeat ON · Volume <b class="text-[#FFD60A]">@ 7</b>. Ride level from the Volt 176 Out knob (the real master).</div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">2× TS (L + R) → RCA → Sansui <b class="text-[#FFD60A]">TAPE 1</b> input</span></div></div>
+                    <div class="ml-8 mt-1 text-[10px] text-white/55">Sansui: <b class="text-white">flat</b> — Loudness OFF · Tone Defeat ON · Volume <b class="text-[#FFD60A]">@ 7</b>. Ride level from the Volt 176 <b class="text-white">main (back-output) knob</b> — the real master.</div>
                 </div>
 
-                <!-- OUTPUT B: Volt 172 TRS -> monitors -->
+                <!-- OUTPUT B: Volt 176 FRONT headphone jack (own knob) -> monitors -->
                 <div>
                     <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
-                        <span class="text-[#00E5FF] font-bold">Volt 172 — TRS Out</span>
+                        <span class="text-[#00E5FF] font-bold">FRONT — Headphone Jack · its own volume knob</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#7FA8D940] text-[#7FA8D9] bg-[#7FA8D910]">Tracking / reference</span>
                     </div>
+                    <div class="ml-8 mb-2 text-[10px] text-white/45">One jack, swap between:</div>
                     <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">The Gammas</span> <span class="text-[#7AFFBF]/80">— best for tracking &amp; mixing</span></div></div>
                     <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">The Xiberias</span> <span class="text-[#7AFFBF]/80">— best for tracking (better padding, less bleed)</span></div></div>
                     <div class="flex gap-3"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Samsung Sound Bar</span> <span class="text-[#7AFFBF]/80">— alternative "commercial" reference point</span></div></div>
                 </div>
 
-                <!-- OUTPUT C: Bluetooth Skullcandy KIBs -->
+                <!-- OUTPUT C: Bluetooth Skullcandy JIB straight to the computer -->
                 <div>
                     <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#B18CFF30] pb-2">
-                        <span class="text-[#B18CFF] font-bold">Skullcandy KIBs — Bluetooth</span>
+                        <span class="text-[#B18CFF] font-bold">Skullcandy JIB — Bluetooth (bypasses the Volt)</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#B18CFF40] text-[#B18CFF] bg-[#B18CFF10]">★★ Absolute best: mixing</span>
                     </div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#B18CFF]">└─►</span><div><span class="font-bold text-white">Bluetooth → AutoEQ curve applied</span> <span class="text-[#7AFFBF]/80">— true flat via AutoEQ</span></div></div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#B18CFF]">└─►</span><div><span class="font-bold text-white">Bluetooth → computer</span> · monitor via <b class="text-white">REAPER Monitor-Out EQ</b> with AutoEQ values applied <span class="text-[#7AFFBF]/80">— true flat</span></div></div>
                     <div class="ml-8 mt-1 text-[10px] text-[#FF8888]/90">⚠ Do NOT use for tracking — ~150 ms Bluetooth latency.</div>
                 </div>
 
                 <!-- INPUTS -->
                 <div>
-                    <div class="text-[#FFD60A] font-bold mb-3 border-b border-[#FFD60A30] pb-2">Volt Inputs</div>
+                    <div class="text-[#FFD60A] font-bold mb-3 border-b border-[#FFD60A30] pb-2">Volt 176 Inputs</div>
                     <div class="flex gap-3 mb-2"><span class="text-[#FFD60A]">◄─┤</span><div><span class="font-bold text-white">Mic → XLR</span> — <b class="text-[#FFD60A]">+48 V</b> phantom available if needed · <span class="text-[#FF8888]">INST switch OFF</span></div></div>
                     <div class="flex gap-3"><span class="text-[#FFD60A]">◄─┤</span><div><span class="font-bold text-white">Instrument → 1/4" TS</span> · <span class="text-[#00FF88]">INST switch ON</span></div></div>
                 </div>
 
                 <div class="mt-2 p-4 rounded border border-[#FF444430] bg-[#FF444410]">
                     <h4 class="text-[#FF8888] font-bold text-[10px] tracking-widest mb-2">⚠ HARDWARE SAFETY PROTOCOLS</h4>
-                    <ul class="text-[10px] text-white/70 list-disc list-inside space-y-1"><li><b class="text-white">HOT-SWAPPING:</b> Never swap the Volt 176 → Sansui cable while Sansui volume is up.</li><li><b class="text-white">MASTER:</b> Level lives on the Volt 176 Out knob — leave Sansui parked at 7.</li><li><b class="text-white">TRACKING:</b> Skullcandy KIBs are mixing-only (BT delay) — monitor tracking on the Gammas / Xiberias.</li></ul>
+                    <ul class="text-[10px] text-white/70 list-disc list-inside space-y-1"><li><b class="text-white">HOT-SWAPPING:</b> Never swap the back TS → Sansui cable while Sansui volume is up.</li><li><b class="text-white">MASTER:</b> Sansui monitoring rides on the Volt back-output main knob — leave Sansui parked at 7. The front headphone jack has its own separate knob.</li><li><b class="text-white">TRACKING:</b> Skullcandy JIB is mixing-only (BT delay) — track on the Gammas / Xiberias off the front jack.</li></ul>
                 </div>
             </div>
         </div>
@@ -802,6 +803,42 @@ main { background: rgba(5,8,7,0.72); }
             <button id="cookmode-next" class="btn-ferrett-green" style="min-width:140px;">NEXT ►</button>
         </div>
         <div id="cookmode-progress" class="w-full h-[3px] bg-white/10 rounded mt-8 overflow-hidden"><div id="cookmode-progress-bar" class="h-full bg-gradient-to-r from-[#00FF88] to-[#00E5FF] transition-all" style="width:0%"></div></div>
+    </div>
+</div>
+
+<div id="abcompare-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">⚖ A/B Tone Compare</h3>
+            <button id="ab-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div><label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold uppercase block mb-1">A</label><select id="ab-a" class="input-ferrett text-[11px]"></select></div>
+                <div><label class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold uppercase block mb-1">B</label><select id="ab-b" class="input-ferrett text-[11px]"></select></div>
+            </div>
+            <div id="ab-diff" class="bg-black/40 rounded border border-white/10 p-3 overflow-x-auto"></div>
+            <p class="text-[9px] text-white/30 mt-2">Highlighted rows differ between A and B.</p>
+        </div>
+    </div>
+</div>
+
+<div id="frank-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#C9FF4B40] rounded-lg shadow-[0_0_40px_rgba(201,255,75,0.12)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#C9FF4B20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#C9FF4B] uppercase">🧟 Frankenstein Builder</h3>
+            <button id="frank-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <p class="text-[10px] text-[#E2E8F0]/50 mb-4">Pick components from any genres and fuse their chains into one composite recipe.</p>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div><label class="text-[9px] tracking-widest text-[#C9FF4B]/70 font-bold uppercase block mb-1">Name</label><input id="frank-name" type="text" placeholder="My Composite Beat" class="input-ferrett text-[11px]"></div>
+                <div><label class="text-[9px] tracking-widest text-[#C9FF4B]/70 font-bold uppercase block mb-1">Save under genre</label><input id="frank-genre" type="text" class="input-ferrett text-[11px]"></div>
+            </div>
+            <div id="frank-slots" class="space-y-2 mb-4"></div>
+            <div id="frank-status" class="text-[10px] mb-2 min-h-[16px]"></div>
+            <button id="frank-build" class="btn-ferrett" style="border-color:#C9FF4B60;color:#C9FF4B;background:rgba(201,255,75,0.08);">⚡ BUILD COMPOSITE</button>
+        </div>
     </div>
 </div>
 
@@ -3374,7 +3411,106 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         });
 
         // =====================================================================
-        // 9. TONE BPM / KEY SMART-FILTER
+        // 9. A/B TONE COMPARE
+        // =====================================================================
+        const toneOpts = () => (window.db.tones || []).map(t => `<option value="${t.id}">${(t.name || 'Unnamed').replace(/</g, '')}</option>`).join('');
+        const abRow = (label, a, b) => {
+            const diff = (a || '') !== (b || '');
+            return `<tr class="border-t border-white/5">
+                <td class="py-1.5 pr-3 text-[9px] uppercase tracking-widest text-white/40 align-top whitespace-nowrap">${label}</td>
+                <td class="py-1.5 pr-3 align-top ${diff ? 'text-[#00E5FF]' : 'text-white/60'}">${(a || '—')}</td>
+                <td class="py-1.5 align-top ${diff ? 'text-[#FFD60A]' : 'text-white/60'}">${(b || '—')}</td>
+            </tr>`;
+        };
+        const renderAB = () => {
+            const wrap = document.getElementById('ab-diff'); if (!wrap) return;
+            const a = (window.db.tones || []).find(t => t.id === parseInt(document.getElementById('ab-a').value, 10));
+            const b = (window.db.tones || []).find(t => t.id === parseInt(document.getElementById('ab-b').value, 10));
+            if (!a || !b) { wrap.innerHTML = '<div class="text-white/40 text-[11px] italic p-2">Pick two tones.</div>'; return; }
+            wrap.innerHTML = `<table class="w-full text-[11px] font-mono border-collapse">
+                <thead><tr><th class="text-left"></th><th class="text-left text-[#00E5FF] text-[10px] pb-2 pr-3">${a.name}</th><th class="text-left text-[#FFD60A] text-[10px] pb-2">${b.name}</th></tr></thead>
+                <tbody>${abRow('Category', a.category, b.category)}${abRow('DAW', a.daw, b.daw)}${abRow('BPM', a.bpm, b.bpm)}${abRow('Key', a.key, b.key)}${abRow('NAM', a.nam, b.nam)}${abRow('IR / Cab', a.ir, b.ir)}${abRow('Notes', a.notes, b.notes)}</tbody></table>`;
+        };
+        const openAB = (preA) => {
+            const tones = window.db.tones || [];
+            if (tones.length < 2) { alert('Add at least two tones to compare.'); return; }
+            const selA = document.getElementById('ab-a'), selB = document.getElementById('ab-b');
+            selA.innerHTML = toneOpts(); selB.innerHTML = toneOpts();
+            selA.value = (preA != null ? preA : tones[0].id);
+            selB.value = (tones.find(t => t.id !== parseInt(selA.value, 10)) || tones[0]).id;
+            renderAB(); openModal('abcompare-modal');
+        };
+        document.getElementById('ab-a')?.addEventListener('change', renderAB);
+        document.getElementById('ab-b')?.addEventListener('change', renderAB);
+        wireModalDismiss('abcompare-modal', 'ab-close');
+
+        // =====================================================================
+        // 10. FRANKENSTEIN — fuse components from multiple recipes into one
+        // =====================================================================
+        const recipeOpts = () => (window.db.cookbook || []).slice().sort((a, b) => (a.genre + a.inst).localeCompare(b.genre + b.inst)).map(r => `<option value="${r.id}">${r.genre} — ${r.inst}</option>`).join('');
+        const openFrank = () => {
+            const slots = document.getElementById('frank-slots'); const opts = recipeOpts();
+            slots.innerHTML = [0, 1, 2, 3].map(i => `<div class="flex items-center gap-2"><span class="text-[9px] text-white/40 w-4">${i + 1}</span><select class="frank-slot flex-1 input-ferrett text-[11px]"><option value="">— none —</option>${opts}</select></div>`).join('');
+            document.getElementById('frank-name').value = '';
+            document.getElementById('frank-genre').value = 'Frankenstein Lab';
+            document.getElementById('frank-status').textContent = '';
+            openModal('frank-modal');
+        };
+        document.getElementById('btn-frankenstein')?.addEventListener('click', openFrank);
+        document.getElementById('frank-build')?.addEventListener('click', () => {
+            const st = document.getElementById('frank-status');
+            const picks = [...document.querySelectorAll('.frank-slot')].map(s => s.value).filter(Boolean).map(id => (window.db.cookbook || []).find(r => r.id === parseInt(id, 10))).filter(Boolean);
+            if (picks.length < 2) { st.style.color = '#FF8888'; st.textContent = 'Pick at least two components.'; return; }
+            const name = (document.getElementById('frank-name').value || '').trim() || 'Frankenstein Beat';
+            const genre = (document.getElementById('frank-genre').value || '').trim() || 'Frankenstein Lab';
+            const sec = (field) => picks.map(r => `### ${r.inst}  [${r.genre}]\n${r[field] || '—'}`).join('\n\n');
+            const recipe = { id: Date.now(), genre, inst: name, desc: 'Composite of: ' + picks.map(r => r.inst).join(' + '), luna: sec('luna'), reaper: sec('reaper'), notes: sec('notes'), images: [] };
+            window.db.cookbook.push(recipe); window.saveData();
+            if (window.buildGenreColorMap) window.buildGenreColorMap();
+            if (window.renderCookbookMenu) window.renderCookbookMenu();
+            if (window.switchTab) window.switchTab('cookbook');
+            if (window.selectGenre) window.selectGenre(genre);
+            st.style.color = '#00FF88'; st.textContent = `✓ Built "${name}" under ${genre}`;
+            setTimeout(() => closeModal('frank-modal'), 900);
+        });
+        wireModalDismiss('frank-modal', 'frank-close');
+
+        // =====================================================================
+        // 11. WAVEFORM THUMBNAILS for tones with a reference clip
+        // =====================================================================
+        const wfCache = {}; let wfCtx = null;
+        const getPeaks = async (id) => {
+            if (wfCache[id]) return wfCache[id];
+            try {
+                const b64 = await window.audioDbGet(id); if (!b64) return null;
+                const buf = await (await fetch(b64)).arrayBuffer();
+                wfCtx = wfCtx || new (window.AudioContext || window.webkitAudioContext)();
+                const audio = await wfCtx.decodeAudioData(buf.slice(0));
+                const ch = audio.getChannelData(0); const N = 100; const block = Math.max(1, Math.floor(ch.length / N)); const peaks = [];
+                for (let i = 0; i < N; i++) { let m = 0; for (let j = 0; j < block; j++) { const v = Math.abs(ch[i * block + j] || 0); if (v > m) m = v; } peaks.push(m); }
+                const max = Math.max(...peaks, 0.0001); const norm = peaks.map(p => p / max);
+                wfCache[id] = norm; return norm;
+            } catch (e) { return null; }
+        };
+        const drawWave = (canvas, peaks, color) => {
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = canvas.height; ctx.clearRect(0, 0, W, H);
+            const bw = W / peaks.length; ctx.fillStyle = color;
+            peaks.forEach((p, i) => { const h = Math.max(1, p * (H - 2)); ctx.fillRect(i * bw, (H - h) / 2, Math.max(1, bw - 1), h); });
+        };
+        window.__drawToneWaveforms = () => {
+            document.querySelectorAll('#tone-list .card[data-tone-id]').forEach(card => {
+                const id = parseInt(card.dataset.toneId, 10); const t = (window.db.tones || []).find(x => x.id === id);
+                if (!t || !t.hasAudio) return;
+                const slot = document.getElementById('tone-audio-slot-' + id); if (!slot || slot.querySelector('canvas.wf')) return;
+                const cv = document.createElement('canvas'); cv.className = 'wf'; cv.width = 300; cv.height = 34; cv.style.width = '100%'; cv.style.height = '26px'; cv.style.opacity = '0.85'; cv.style.marginBottom = '4px';
+                slot.prepend(cv);
+                const color = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF');
+                getPeaks(id).then(p => { if (p) drawWave(cv, p, color); else cv.remove(); });
+            });
+        };
+
+        // =====================================================================
+        // 12. TONE BPM / KEY SMART-FILTER
         // =====================================================================
         const toneListEl = document.getElementById('tone-list');
         const applyToneFilter = () => {
@@ -3397,15 +3533,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 <input id="tf-bpm" type="number" inputmode="numeric" placeholder="BPM" class="w-20 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
                 <span class="text-white/40">±</span><input id="tf-tol" type="number" value="5" class="w-14 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
                 <input id="tf-key" type="text" placeholder="Key e.g. Am" class="w-28 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
-                <button id="tf-clear" class="px-2 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">CLEAR</button>`;
+                <button id="tf-clear" class="px-2 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">CLEAR</button>
+                <button id="tf-ab" class="px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF]/80 hover:text-[#00E5FF] hover:border-[#00E5FF80] cursor-pointer font-bold tracking-widest" title="Compare two tones side by side">⚖ A/B</button>`;
             toneListEl.parentNode.insertBefore(bar, toneListEl);
             bar.addEventListener('input', applyToneFilter);
             document.getElementById('tf-clear').addEventListener('click', () => { ['tf-bpm', 'tf-key'].forEach(id => document.getElementById(id).value = ''); document.getElementById('tf-tol').value = '5'; applyToneFilter(); });
+            document.getElementById('tf-ab').addEventListener('click', () => openAB());
         }
         // renderTones rebuilds the card list, so re-apply the filter after each render
         const _renderTones = window.renderTones;
         if (typeof _renderTones === 'function' && !_renderTones.__filterWrapped) {
-            window.renderTones = function () { const r = _renderTones.apply(this, arguments); applyToneFilter(); return r; };
+            window.renderTones = function () { const r = _renderTones.apply(this, arguments); applyToneFilter(); if (window.__drawToneWaveforms) window.__drawToneWaveforms(); return r; };
             window.renderTones.__filterWrapped = true;
         }
 

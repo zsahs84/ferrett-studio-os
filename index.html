@@ -316,6 +316,7 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4>
                 <div class="flex gap-2">
                     <button id="btn-patchbay-add-device" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">+ DEVICE</button>
+                    <button id="btn-patchbay-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" title="Load the default Volt 176 studio rig">⟳ LOAD RIG</button>
                     <button id="btn-patchbay-clear" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">CLEAR ALL</button>
                 </div>
             </div>
@@ -327,7 +328,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div>
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><div class="flex gap-2"><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
 
                 <div class="flex flex-wrap items-center gap-2 -mb-1">
@@ -344,7 +345,7 @@ main { background: rgba(5,8,7,0.72); }
                         <span class="text-[#00E5FF] font-bold">BACK — TS Out L/R · device MAIN knob = volume</span>
                         <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#00FF8840] text-[#00FF88] bg-[#00FF8810]">★ Best: creating &amp; mixing</span>
                     </div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">2× TS (L + R) → RCA → Sansui <b class="text-[#FFD60A]">TAPE 1</b> input</span></div></div>
+                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">2× TS (L + R) → RCA → Sansui <b class="text-[#FFD60A]">TAPE 1</b> → Bose 301 speakers</span></div></div>
                     <div class="ml-8 mt-1 text-[10px] text-white/55">Sansui: <b class="text-white">flat</b> — Loudness OFF · Tone Defeat ON · Volume <b class="text-[#FFD60A]">@ 7</b>. Ride level from the Volt 176 <b class="text-white">main (back-output) knob</b> — the real master.</div>
                 </div>
 
@@ -815,6 +816,24 @@ main { background: rgba(5,8,7,0.72); }
             <span id="cookmode-capture-status" class="text-[10px] text-[#00FF88] ml-2"></span>
         </div>
         <div id="cookmode-progress" class="w-full h-[3px] bg-white/10 rounded mt-8 overflow-hidden"><div id="cookmode-progress-bar" class="h-full bg-gradient-to-r from-[#00FF88] to-[#00E5FF] transition-all" style="width:0%"></div></div>
+    </div>
+</div>
+
+<div id="cable-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#FFD60A40] rounded-lg shadow-[0_0_40px_rgba(255,214,10,0.12)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#FFD60A20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#FFD60A] uppercase">🔌 Cable &amp; Connector Cheat-Sheet</h3>
+            <button id="cable-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-white/80 font-mono leading-relaxed">
+            <div class="p-3 rounded border border-white/10 bg-black/40"><div class="text-[#00E5FF] font-bold tracking-widest mb-2 text-[10px] uppercase">TS — ¼" Mono</div>Unbalanced. Tip + Sleeve. Instruments &amp; short unbalanced runs. On the Volt: <b class="text-white">back main outs</b> &amp; the instrument input.</div>
+            <div class="p-3 rounded border border-white/10 bg-black/40"><div class="text-[#00FF88] font-bold tracking-widest mb-2 text-[10px] uppercase">TRS — ¼" Balanced</div>Tip + Ring + Sleeve. Balanced mono (long runs, hum-free) <i>or</i> stereo on headphones. Not interchangeable with TS in balanced gear.</div>
+            <div class="p-3 rounded border border-white/10 bg-black/40"><div class="text-[#FF6FCB] font-bold tracking-widest mb-2 text-[10px] uppercase">XLR — Mic</div>Balanced, locking. Carries <b class="text-[#FFD60A]">+48 V phantom</b> for condensers. Volt: <b class="text-white">INST switch OFF</b> for mic/line.</div>
+            <div class="p-3 rounded border border-white/10 bg-black/40"><div class="text-[#B18CFF] font-bold tracking-widest mb-2 text-[10px] uppercase">RCA — Consumer</div>Unbalanced, ~-10 dBV. Hi-fi gear (your Sansui Tape 1). ¼" TS → RCA adapters take the Volt out to the amp.</div>
+            <div class="p-3 rounded border border-[#FF444430] bg-[#FF444410] md:col-span-2"><div class="text-[#FF8888] font-bold tracking-widest mb-2 text-[10px] uppercase">Rules of thumb</div>
+                <ul class="list-disc list-inside space-y-1"><li><b class="text-white">Phantom:</b> only for condensers/active DI. Turn it OFF for ribbons &amp; guitars. Mute before toggling.</li><li><b class="text-white">INST switch:</b> ON = Hi-Z ¼" instrument · OFF = line/mic level.</li><li><b class="text-white">Levels:</b> +4 dBu (pro/balanced) is ~12 dB hotter than -10 dBV (consumer/RCA) — expect a jump.</li><li><b class="text-white">Hum:</b> prefer balanced (XLR/TRS) for anything over a few feet; keep audio away from power bricks.</li></ul>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1863,10 +1882,47 @@ document.addEventListener('DOMContentLoaded', () => {
         window.savePatchbay(); window.renderPatchbay();
     };
 
+    // Default studio rig — DAW -> Volt 176 -> Sansui (Tape 1) -> Bose 301, plus the
+    // Volt headphone fan-out (Gamma / Xiberia / Samsung) and the wireless DAW -> JIB path.
+    // Fresh objects each call so dragging never mutates the template.
+    window.getDefaultPatchbay = () => ({
+        devices: [
+            { id: 90001, name: 'DAW (Reaper/Luna)', x: 30,  y: 60 },
+            { id: 90002, name: 'Volt 176',          x: 250, y: 240 },
+            { id: 90003, name: 'Sansui — Tape 1',   x: 500, y: 60 },
+            { id: 90004, name: 'Bose 301 Speakers', x: 740, y: 60 },
+            { id: 90005, name: 'The Gammas',         x: 500, y: 190 },
+            { id: 90006, name: 'The Xiberias',       x: 500, y: 300 },
+            { id: 90007, name: 'Samsung Sound Bar',  x: 500, y: 410 },
+            { id: 90008, name: 'Skullcandy JIB (BT)',x: 500, y: 540 },
+        ],
+        connections: [
+            { from: { deviceId: 90001, side: 'right' }, to: { deviceId: 90002, side: 'left' } }, // DAW out -> Volt in
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90003, side: 'left' } }, // Volt TS out -> Sansui Tape 1
+            { from: { deviceId: 90003, side: 'right' }, to: { deviceId: 90004, side: 'left' } }, // Sansui -> Bose 301
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90005, side: 'left' } }, // Volt HP -> Gammas
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90006, side: 'left' } }, // Volt HP -> Xiberias
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90007, side: 'left' } }, // Volt HP -> Samsung
+            { from: { deviceId: 90001, side: 'right' }, to: { deviceId: 90008, side: 'left' } }, // DAW monitor out -> wireless -> JIB
+        ]
+    });
+
+    window.loadDefaultPatchbay = (force) => {
+        const hasData = (window.db.patchbay.devices || []).length > 0;
+        if (hasData && !force) return false;
+        if (hasData && force && !confirm('Replace the current patchbay with the default Volt 176 rig?')) return false;
+        window.db.patchbay = window.getDefaultPatchbay();
+        window.savePatchbay(); window.renderPatchbay();
+        return true;
+    };
+
     (() => {
         const canvas = document.getElementById('patchbay-canvas');
         document.getElementById('btn-patchbay-add-device')?.addEventListener('click', () => window.addPatchbayDevice());
+        document.getElementById('btn-patchbay-default')?.addEventListener('click', () => window.loadDefaultPatchbay(true));
         document.getElementById('btn-patchbay-clear')?.addEventListener('click', () => { if (confirm('Clear the entire patchbay diagram?')) { window.db.patchbay = { devices: [], connections: [] }; window.savePatchbay(); window.renderPatchbay(); } });
+        // Seed the default rig once for an empty patchbay (first run / never populated).
+        try { if ((window.db.patchbay.devices || []).length === 0 && !localStorage.getItem('ferrett_patchbay_seeded_v1')) { window.loadDefaultPatchbay(false); localStorage.setItem('ferrett_patchbay_seeded_v1', '1'); } } catch (e) {}
 
         canvas?.addEventListener('click', (e) => {
             const delBtn = e.target.closest('.patchbay-del-device'); if (delBtn) { window.deletePatchbayDevice(parseInt(delBtn.dataset.deviceId, 10)); return; }
@@ -3181,7 +3237,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (d < NEAR) clashes.push(`${pairs[i].cat} ≈ ${pairs[j].cat}${d === 0 ? ' (identical)' : ' (Δ' + d + ')'}`);
                 }
                 const healthy = clashes.length === 0;
-                const chips = pairs.map(x => `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest" style="color:${x.color};border-color:${x.color}55;background:${x.color}12;">${x.cat}<button class="cm-rename opacity-50 hover:opacity-100 cursor-pointer" data-scope="${p.scope}" data-cat="${encodeURIComponent(x.cat)}" title="Rename / merge this tag everywhere">✎</button></span>`).join(' ');
+                const countMap = { cookbook: ['cookbook', 'genre'], tones: ['tones', 'category'], links: ['links', 'category'], scripts: ['scripts', 'category'] }[p.scope];
+                const countFor = (cat) => { if (!countMap) return 0; const [ak, f] = countMap; return (window.db[ak] || []).filter(it => it[f] === cat).length; };
+                const chips = pairs.map(x => { const n = countFor(x.cat); return `<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-widest ${n === 0 ? 'opacity-45' : ''}" style="color:${x.color};border-color:${x.color}55;background:${x.color}12;">${x.cat}<span class="opacity-50 normal-case">×${n}</span><button class="cm-rename opacity-50 hover:opacity-100 cursor-pointer" data-scope="${p.scope}" data-cat="${encodeURIComponent(x.cat)}" title="Rename / merge this tag everywhere">✎</button></span>`; }).join(' ');
                 html += `<div>
                     <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                         <span class="text-[10px] font-bold tracking-widest text-white/80 uppercase">${p.label} <span class="text-white/35">· ${pairs.length} tags</span></span>
@@ -3334,21 +3392,28 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // =====================================================================
         // 6. SESSION RECAP — today's studio time + everything you logged
         // =====================================================================
+        const fmtMin = (ms) => { const m = Math.round((ms || 0) / 60000); return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`; };
+        const dayKey = (d) => (window.fmtDateKey ? window.fmtDateKey(d) : d.toISOString().slice(0, 10));
         const buildRecap = () => {
             const now = new Date();
-            let timeStr = '—';
-            try {
-                const key = window.fmtDateKey ? window.fmtDateKey(now) : null;
-                const ms = (window.sessionLog && key) ? (window.sessionLog[key] || 0) : 0;
-                const m = Math.round(ms / 60000);
-                timeStr = m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
-            } catch (e) {}
+            const log = window.sessionLog || {};
+            const todayMs = log[dayKey(now)] || 0;
+            // week total + streak of consecutive days with any logged time
+            let weekMs = 0, streak = 0, streakBroken = false;
+            for (let i = 0; i < 7; i++) { const d = new Date(now); d.setDate(now.getDate() - i); weekMs += (log[dayKey(d)] || 0); }
+            for (let i = 0; i < 400 && !streakBroken; i++) { const d = new Date(now); d.setDate(now.getDate() - i); if ((log[dayKey(d)] || 0) > 0) streak++; else if (i > 0) streakBroken = true; else streakBroken = false; }
+            // focus logs
             const logs = [];
-            (window.db.multiNotes || []).forEach(n => (n.content || '').split('\n').forEach(l => {
-                const m = l.match(/^>\s*\[(\d{1,2}:\d{2})\]\s*(.+)$/); if (m) logs.push(`  ${m[1]}  ${m[2]}`);
-            }));
-            return `SESSION RECAP — ${now.toLocaleDateString()}\nStudio time today: ${timeStr}\n\nLogged focus (${logs.length}):\n` +
-                (logs.length ? logs.join('\n') : '  (nothing logged yet — use the ▶ FOCUS bar)');
+            (window.db.multiNotes || []).forEach(n => (n.content || '').split('\n').forEach(l => { const m = l.match(/^>\s*\[(\d{1,2}:\d{2})\]\s*(.+)$/); if (m) logs.push(`  ${m[1]}  ${m[2]}`); }));
+            // flashbacks — items created ~1/3/6/12 months ago (id is a ms timestamp)
+            const flash = [];
+            const scan = (arr, label, nameKey) => (arr || []).forEach(it => { if (typeof it.id !== 'number' || it.id < 1e12) return; const days = Math.round((now - it.id) / 86400000); [[30, '~1 month'], [90, '~3 months'], [180, '~6 months'], [365, '~1 year']].forEach(([n, w]) => { if (Math.abs(days - n) <= 1) flash.push(`  ${w} ago — ${label}: ${it[nameKey] || 'Untitled'}`); }); });
+            scan(window.db.cookbook, 'Recipe', 'inst'); scan(window.db.tones, 'Tone', 'name'); scan(window.db.tracks, 'Track', 'inst'); scan(window.db.multiNotes, 'Note', 'title');
+            return `SESSION RECAP — ${now.toLocaleDateString()}\n` +
+                `Today: ${fmtMin(todayMs)}   ·   This week: ${fmtMin(weekMs)}   ·   Streak: ${streak} day${streak === 1 ? '' : 's'} 🔥\n` +
+                `Vault: ${(window.db.cookbook || []).length} recipes · ${(window.db.tones || []).length} tones · ${(window.db.tracks || []).length} tracks\n\n` +
+                `Logged focus (${logs.length}):\n` + (logs.length ? logs.join('\n') : '  (nothing logged yet — use the ▶ FOCUS bar)') +
+                (flash.length ? `\n\nFlashbacks:\n${flash.join('\n')}` : '');
         };
         document.getElementById('btn-open-recap')?.addEventListener('click', () => { document.getElementById('recap-body').textContent = buildRecap(); openModal('recap-modal'); });
         document.getElementById('recap-copy')?.addEventListener('click', () => {
@@ -3641,6 +3706,32 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 if (status) { status.textContent = `✓ Photo attached (${recipe.images.length})`; setTimeout(() => { status.textContent = ''; }, 2000); }
             } catch (err) { if (status) { status.style.color = '#FF8888'; status.textContent = '✗ Capture failed'; } }
         });
+
+        // =====================================================================
+        // 16. CABLE / IMPEDANCE CHEAT-SHEET
+        // =====================================================================
+        document.getElementById('btn-cable-sheet')?.addEventListener('click', () => openModal('cable-modal'));
+        wireModalDismiss('cable-modal', 'cable-close');
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal('cable-modal'); });
+
+        // =====================================================================
+        // 17. SMART BACKUP REMINDER — nudge after N changes since last backup
+        // =====================================================================
+        const BK_KEY = 'ferrett_changes_since_backup_v1'; const BK_THRESHOLD = 30;
+        const bkBtn = document.getElementById('btn-backup-vault');
+        const updateBkNudge = () => {
+            if (!bkBtn) return; let n = 0; try { n = parseInt(localStorage.getItem(BK_KEY) || '0', 10); } catch (e) {}
+            let dot = bkBtn.querySelector('.bk-dot');
+            if (n >= BK_THRESHOLD) { if (!dot) { dot = document.createElement('span'); dot.className = 'bk-dot absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#FFD60A] animate-pulse'; bkBtn.style.position = 'relative'; bkBtn.appendChild(dot); } bkBtn.title = `${n} changes since your last backup — worth downloading one.`; }
+            else if (dot) { dot.remove(); bkBtn.title = 'Download a local JSON backup of your entire vault'; }
+        };
+        const _saveDataBk = window.saveData;
+        if (typeof _saveDataBk === 'function' && !_saveDataBk.__bkWrapped) {
+            window.saveData = function () { const r = _saveDataBk.apply(this, arguments); try { const n = (parseInt(localStorage.getItem(BK_KEY) || '0', 10) || 0) + 1; localStorage.setItem(BK_KEY, String(n)); updateBkNudge(); } catch (e) {} return r; };
+            window.saveData.__bkWrapped = true;
+        }
+        bkBtn?.addEventListener('click', () => { try { localStorage.setItem(BK_KEY, '0'); } catch (e) {} updateBkNudge(); });
+        updateBkNudge();
 
         // ---- delegated clicks for dynamically-rendered card buttons ----
         document.addEventListener('click', (e) => {

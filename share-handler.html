@@ -29,11 +29,12 @@
   const url = getParam('url');
   const DB_KEY = 'ferrett_os_db_v22.4';
 
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const detailsEl = document.getElementById('details');
   let html = '';
-  if (title) html += `<div class="field"><b>TITLE</b>${title}</div>`;
-  if (text) html += `<div class="field"><b>TEXT</b>${text}</div>`;
-  if (url) html += `<div class="field"><b>URL</b>${url}</div>`;
+  if (title) html += `<div class="field"><b>TITLE</b>${esc(title)}</div>`;
+  if (text) html += `<div class="field"><b>TEXT</b>${esc(text)}</div>`;
+  if (url) html += `<div class="field"><b>URL</b>${esc(url)}</div>`;
   detailsEl.innerHTML = html || '<p style="color:#FF8888">Nothing was shared.</p>';
 
   try {

@@ -2668,11 +2668,32 @@ window.renderScripts = () => {
                 </div>
                 <div class="mb-3"><button data-tag="${s.category}" class="btn-tag-script text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${s.category}">${s.category}</button></div>
                 <p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${s.func}</p>
-                ${s.url ? `<a href="${s.url}" download="${s.title}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">DOWNLOAD ↓</a>` : ''}
+                ${s.url ? `<button type="button" class="btn-download-script mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold cursor-pointer" data-url="${s.url}" data-title="${s.title}">DOWNLOAD ↓</button>` : ''}
             </div>
         `;
     });
 };
+
+// download attribute is ignored cross-origin (raw.githubusercontent.com), so fetch as a
+// blob and save that instead - falls back to opening the raw file if the fetch fails
+window.downloadScriptFile = async (url, title) => {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objUrl; a.download = title;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(objUrl);
+    } catch (e) {
+        window.open(url, '_blank');
+    }
+};
+document.getElementById('script-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-download-script');
+    if (btn) window.downloadScriptFile(btn.dataset.url, btn.dataset.title);
+});
 
 // 3. Hook into the existing UI Refresher
 const originalRefresh = window.refreshAllUI;

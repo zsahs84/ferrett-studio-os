@@ -280,6 +280,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REAPER (NATIVE/VST) CHAIN</label><textarea id="cookbook-reaper" class="input-ferrett h-24 resize-y"></textarea></div>
             </div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">WORKFLOW & ROUTING NOTES</label><textarea id="cookbook-notes" class="input-ferrett h-16 resize-y"></textarea></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#FFD60A]/70 block mb-1">💡 WHY IT WORKS (optional — the reasoning)</label><textarea id="cookbook-why" class="input-ferrett h-16 resize-y" placeholder="Why this chain achieves the sound — for future-you."></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">RECIPE SCREENSHOTS</label>
                 <div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn"><span>+ UPLOAD IMAGES</span><input type="file" id="cookbook-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn"><span>📸 CAMERA</span><input type="file" id="cookbook-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
@@ -292,7 +293,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
             <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
                 <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide" id="genre-menu"></div></div>
-                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex items-center justify-between gap-2 flex-wrap"><span id="genre-bpm-readout" class="text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span><button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button></div>
+                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex items-center justify-between gap-2 flex-wrap"><span id="genre-bpm-readout" class="text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span><div class="flex gap-2 flex-wrap"><button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)">📦 PACK</button><button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button><button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button></div></div>
                 <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
             </div>
             <div class="w-full md:w-[65%] p-6 md:p-8 bg-[rgba(10,15,13,0.8)] overflow-y-auto max-h-[800px] relative" id="recipe-display">
@@ -453,7 +454,7 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tab-tracks" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">TRACK SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-track-board-toggle" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Toggle the status board (kanban) view">▦ BOARD</button><button id="btn-add-track" class="btn-ferrett-green shrink-0">+ ADD CONFIG</button></div></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">TRACK SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-ferrett shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-track-board-toggle" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Toggle the status board (kanban) view">▦ BOARD</button><button id="btn-add-track" class="btn-ferrett-green shrink-0">+ ADD CONFIG</button></div></div>
         <div id="track-board" class="hidden grid grid-cols-1 md:grid-cols-4 gap-3 mb-6"></div>
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW TRACK SETTING</h3>
@@ -470,7 +471,8 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tab-tones" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><button id="btn-add-tone" class="btn-ferrett">+ ADD TONE</button></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><div class="flex gap-2"><button id="btn-tone-stages" class="btn-ferrett shrink-0" style="border-color:#FFA05C50;color:#FFA05C;background:rgba(255,160,92,0.08);" title="View tones as a gain-stage ladder">⚡ STAGES</button><button id="btn-add-tone" class="btn-ferrett shrink-0">+ ADD TONE</button></div></div>
+        <div id="tone-stage-view" class="hidden space-y-4 mb-6"></div>
         <input type="text" id="search-tone" class="input-ferrett w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search custom library...">
         <div id="form-tone" class="card mb-6 hidden border-[#00E5FF40]">
             <h3 id="tone-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TONE COMBO</h3>
@@ -855,6 +857,45 @@ main { background: rgba(5,8,7,0.72); }
                 <span id="preexport-progress" class="text-[10px] text-white/50 font-mono"></span>
                 <button id="preexport-reset" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">RESET</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="refshelf-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#B18CFF40] rounded-lg shadow-[0_0_40px_rgba(177,140,255,0.12)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#B18CFF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#B18CFF] uppercase">★ Reference Shelf</h3>
+            <button id="refshelf-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <p class="text-[10px] text-[#E2E8F0]/50 mb-3">Commercial songs you mix against — with their loudness and what you're listening for.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                <input id="refshelf-title" type="text" placeholder="Title — Artist" class="bg-black/50 border border-[#B18CFF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#B18CFF70]">
+                <input id="refshelf-link" type="text" placeholder="Link (optional)" class="bg-black/50 border border-[#B18CFF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#B18CFF70]">
+                <input id="refshelf-lufs" type="text" placeholder="LUFS / notes on loudness" class="bg-black/50 border border-[#B18CFF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#B18CFF70]">
+                <input id="refshelf-note" type="text" placeholder="What to listen for" class="bg-black/50 border border-[#B18CFF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#B18CFF70]">
+            </div>
+            <button id="refshelf-add" class="btn-ferrett mb-4" style="border-color:#B18CFF60;color:#B18CFF;background:rgba(177,140,255,0.08);">＋ ADD REFERENCE</button>
+            <div id="refshelf-list" class="space-y-2 max-h-[40vh] overflow-y-auto"></div>
+        </div>
+    </div>
+</div>
+
+<div id="selimport-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
+            <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">📦 Import Pack — pick what to merge</h3>
+            <button id="selimport-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+        <div class="p-5">
+            <div class="flex items-center gap-3 mb-3 text-[10px]">
+                <button id="selimport-all" class="px-2 py-1 rounded border border-white/15 text-white/60 hover:text-white cursor-pointer">ALL</button>
+                <button id="selimport-none" class="px-2 py-1 rounded border border-white/15 text-white/60 hover:text-white cursor-pointer">NONE</button>
+                <button id="selimport-new" class="px-2 py-1 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">NEW ONLY</button>
+                <span id="selimport-count" class="text-white/40 ml-auto"></span>
+            </div>
+            <div id="selimport-list" class="space-y-1 max-h-[45vh] overflow-y-auto mb-4"></div>
+            <button id="selimport-go" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">⬇ MERGE SELECTED</button>
         </div>
     </div>
 </div>
@@ -1642,6 +1683,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="show-luna bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00E5FF30]"><h4 class="text-[#00E5FF] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00E5FF14] pb-2 flex items-center gap-2"><span class="bg-[#00E5FF] w-1.5 h-1.5 rounded-full"></span> LUNA (UAD DSP) CHAIN</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.luna}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.luna, '#00E5FF')}</div></div>
                     <div class="show-reaper bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> REAPER (NATIVE/VST)</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.reaper, '#00FF88')}</div></div>
                     <div class="bg-[rgba(10,15,13,0.9)] p-5 rounded border border-[#E2E8F010]"><h4 class="text-[#E2E8F0]/50 text-[10px] font-bold tracking-widest uppercase mb-3">WORKFLOW & ROUTING NOTES</h4><p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${data.notes}</p></div>
+                    ${data.why ? `<div class="bg-[rgba(255,214,10,0.05)] p-5 rounded border border-[#FFD60A25]"><h4 class="text-[#FFD60A] text-[10px] font-bold tracking-widest uppercase mb-3">💡 Why it works</h4><p class="text-[11px] md:text-[12px] text-[#FFE9A6]/85 leading-relaxed font-mono whitespace-pre-wrap">${data.why}</p></div>` : ''}
                     ${imagesHtml}
                 </div>
             </div>
@@ -2660,7 +2702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());
     document.getElementById('btn-close-blend')?.addEventListener('click', () => document.getElementById('genre-blend-card')?.classList.add('hidden'));
-    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', effort: document.getElementById('cookbook-effort')?.value || '', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, images: [...window.tempCookbookImages] }; if (idStr) { const old = window.db.cookbook.find(r => r.id === recipe.id); if (old) { const snapshot = { desc: old.desc, luna: old.luna, reaper: old.reaper, notes: old.notes, savedAt: Date.now() }; recipe.history = [snapshot, ...(old.history || [])].slice(0, 3); } window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); } else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
+    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', effort: document.getElementById('cookbook-effort')?.value || '', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, why: document.getElementById('cookbook-why')?.value || '', images: [...window.tempCookbookImages] }; if (idStr) { const old = window.db.cookbook.find(r => r.id === recipe.id); if (old) { const snapshot = { desc: old.desc, luna: old.luna, reaper: old.reaper, notes: old.notes, savedAt: Date.now() }; recipe.history = [snapshot, ...(old.history || [])].slice(0, 3); } window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); } else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
 
     document.getElementById('btn-add-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('btn-cancel-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('search-link')?.addEventListener('keyup', () => window.renderLinks());
     document.getElementById('btn-save-link')?.addEventListener('click', () => { const idStr = document.getElementById('link-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const link = { id: id, title: document.getElementById('link-title').value || 'Unnamed Tool', url: document.getElementById('link-url').value || '#', category: document.getElementById('link-category').value, daw: document.getElementById('link-daw').value, notes: document.getElementById('link-notes').value }; if (!link.url.startsWith('http') && link.url !== '#') link.url = 'https://' + link.url; if (idStr) window.db.links = window.db.links.map(l => l.id === link.id ? link : l); else window.db.links.unshift(link); window.saveData(); window.toggleForm('form-link'); window.renderLinks(); });
@@ -2672,7 +2714,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, bpm: (document.getElementById('tone-bpm')?.value || '').trim(), key: (document.getElementById('tone-key')?.value || '').trim(), notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
 
     document.addEventListener('click', (e) => {
-        const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; { const ef=document.getElementById('cookbook-effort'); if(ef) ef.value = recipe.effort || ''; } document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; { const ef=document.getElementById('cookbook-effort'); if(ef) ef.value = recipe.effort || ''; } document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; { const wy=document.getElementById('cookbook-why'); if(wy) wy.value = recipe.why || ''; } const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelCb = e.target.closest('.btn-del-cookbook'); if(btnDelCb && confirm("Delete this recipe?")) { window.db.cookbook = window.db.cookbook.filter(r => r.id !== parseInt(btnDelCb.dataset.id, 10)); window.saveData(); window.renderCookbookMenu(); }
         const btnCloneTone = e.target.closest('.btn-clone-tone'); if(btnCloneTone) window.cloneTone(parseInt(btnCloneTone.dataset.id, 10));
         const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; if(window.populateTrackRefs) window.populateTrackRefs(); { const tr=document.getElementById('track-tone-ref'); if(tr) tr.value = track.toneRef || ''; const rr=document.getElementById('track-recipe-ref'); if(rr) rr.value = track.recipeRef || ''; } const rl = document.getElementById('track-reflink'); if (rl) rl.value = track.reflink || ''; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
@@ -3987,6 +4029,112 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             };
             window.renderCmdkResults.__actionsWrapped = true;
         }
+
+        // =====================================================================
+        // 26. GENRE EXPORT — recipe pack (.json) + cookbook chapter (.md)
+        // =====================================================================
+        const downloadFile = (filename, text, mime) => { const blob = new Blob([text], { type: mime || 'text/plain' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 2000); };
+        const safeName = (s) => (s || 'genre').replace(/[^a-z0-9]/gi, '_');
+        const currentGenreRecipes = () => (window.db.cookbook || []).filter(r => r.genre === window.currentCookbookGenre);
+        document.getElementById('btn-genre-pack')?.addEventListener('click', () => {
+            const recs = currentGenreRecipes(); if (!recs.length) { alert('No recipes in this genre.'); return; }
+            const pack = recs.map(r => ({ genre: r.genre, inst: r.inst, effort: r.effort || '', desc: r.desc, luna: r.luna, reaper: r.reaper, notes: r.notes, why: r.why || '' }));
+            downloadFile(safeName(window.currentCookbookGenre) + '_pack.json', JSON.stringify(pack, null, 2), 'application/json');
+        });
+        document.getElementById('btn-genre-chapter')?.addEventListener('click', () => {
+            const g = window.currentCookbookGenre; const recs = currentGenreRecipes(); if (!recs.length) { alert('No recipes in this genre.'); return; }
+            let md = `# ${g}\n\n`;
+            recs.forEach(r => { md += `## ${r.inst}${r.effort ? `  _(${r.effort})_` : ''}\n\n`; if (r.desc) md += `> ${r.desc}\n\n`; md += `**LUNA:** ${r.luna || '—'}\n\n**REAPER:** ${r.reaper || '—'}\n\n`; if (r.notes) md += `**Notes:** ${r.notes}\n\n`; if (r.why) md += `**Why it works:** ${r.why}\n\n`; md += `---\n\n`; });
+            md += `_Exported from FERRETT_STUDIO_OS_\n`;
+            downloadFile(safeName(g) + '_chapter.md', md, 'text/markdown');
+        });
+
+        // =====================================================================
+        // 27. SELECTIVE IMPORT MERGE — preview + tick which pack recipes to merge
+        // =====================================================================
+        let pendingPack = [];
+        const keyOf = (r) => `${(r.genre || '').trim().toLowerCase()}|${(r.inst || '').trim().toLowerCase()}`;
+        window.importRecipePack = (file) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                let incoming; try { incoming = JSON.parse(ev.target.result); } catch (e) { alert('That file is not valid JSON.'); return; }
+                const list = Array.isArray(incoming) ? incoming : (Array.isArray(incoming.cookbook) ? incoming.cookbook : null);
+                if (!list) { alert('Expected a JSON array of recipes (or a {"cookbook":[...]} object).'); return; }
+                const valid = list.filter(r => r.genre && r.inst);
+                if (!valid.length) { alert('No valid recipes found in that file.'); return; }
+                const existingKeys = new Set((window.db.cookbook || []).map(keyOf));
+                pendingPack = valid.map(r => ({ r, dup: existingKeys.has(keyOf(r)) }));
+                renderSelImport(); openModal('selimport-modal');
+            };
+            reader.readAsText(file);
+        };
+        const updateSelCount = () => { const n = document.querySelectorAll('.sel-chk:checked').length; const el = document.getElementById('selimport-count'); if (el) el.textContent = `${n} of ${pendingPack.length} selected`; };
+        const renderSelImport = () => {
+            const list = document.getElementById('selimport-list'); if (!list) return;
+            list.innerHTML = pendingPack.map((p, i) => `<label class="flex items-start gap-2 px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer"><input type="checkbox" class="sel-chk mt-0.5 accent-[#00E5FF]" data-i="${i}" ${p.dup ? '' : 'checked'}><div class="min-w-0"><div class="text-[11px] text-white truncate">${(p.r.inst || '').replace(/</g, '')} ${p.dup ? '<span class="text-[#FFD60A] text-[9px]">• already exists</span>' : '<span class="text-[#00FF88] text-[9px]">• new</span>'}</div><div class="text-[9px] text-white/40 truncate">${(p.r.genre || '').replace(/</g, '')}</div></div></label>`).join('');
+            updateSelCount();
+        };
+        document.getElementById('selimport-list')?.addEventListener('change', updateSelCount);
+        document.getElementById('selimport-all')?.addEventListener('click', () => { document.querySelectorAll('.sel-chk').forEach(c => c.checked = true); updateSelCount(); });
+        document.getElementById('selimport-none')?.addEventListener('click', () => { document.querySelectorAll('.sel-chk').forEach(c => c.checked = false); updateSelCount(); });
+        document.getElementById('selimport-new')?.addEventListener('click', () => { document.querySelectorAll('.sel-chk').forEach(c => { c.checked = !pendingPack[parseInt(c.dataset.i, 10)].dup; }); updateSelCount(); });
+        document.getElementById('selimport-go')?.addEventListener('click', () => {
+            const chosen = [...document.querySelectorAll('.sel-chk:checked')].map(c => pendingPack[parseInt(c.dataset.i, 10)].r);
+            if (!chosen.length) { closeModal('selimport-modal'); return; }
+            const existing = window.db.cookbook || []; const byKey = new Map(existing.map(r => [keyOf(r), r]));
+            let nextId = existing.reduce((m, r) => Math.max(m, r.id || 0), 200) + 1; let added = 0, updated = 0;
+            chosen.forEach(r => { const m = byKey.get(keyOf(r)); if (m) { m.desc = r.desc || m.desc; m.luna = r.luna || m.luna; m.reaper = r.reaper || m.reaper; m.notes = r.notes || m.notes; if (r.why) m.why = r.why; if (r.effort) m.effort = r.effort; updated++; } else { window.db.cookbook.push({ id: nextId++, genre: r.genre, inst: r.inst, effort: r.effort || '', desc: r.desc || '', luna: r.luna || '', reaper: r.reaper || '', notes: r.notes || '', why: r.why || '', images: [] }); added++; } });
+            window.saveData(); if (window.buildGenreColorMap) window.buildGenreColorMap(); if (window.renderCookbookMenu) window.renderCookbookMenu();
+            closeModal('selimport-modal'); alert(`Merged: ${added} added, ${updated} updated.`);
+        });
+        wireModalDismiss('selimport-modal', 'selimport-close');
+
+        // =====================================================================
+        // 28. REFERENCE-TRACK SHELF
+        // =====================================================================
+        window.db.refShelf = window.db.refShelf || [];
+        const renderRefShelf = () => {
+            const list = document.getElementById('refshelf-list'); if (!list) return;
+            const items = window.db.refShelf || [];
+            list.innerHTML = items.length ? items.map(r => `<div class="p-2.5 rounded border border-[#B18CFF20] bg-black/40 flex items-start justify-between gap-2"><div class="min-w-0"><div class="text-[11px] font-bold text-white truncate">${(r.title || 'Untitled').replace(/</g, '')}</div>${r.lufs ? `<div class="text-[9px] text-[#FFD60A]/80">${r.lufs.replace(/</g, '')}</div>` : ''}${r.note ? `<div class="text-[9px] text-white/50">${r.note.replace(/</g, '')}</div>` : ''}${r.link ? `<a href="${r.link}" target="_blank" rel="noopener" class="text-[9px] text-[#00E5FF] underline">open ↗</a>` : ''}</div><button class="ref-del text-[#FF8888] text-[13px] shrink-0" data-id="${r.id}">×</button></div>`).join('') : '<div class="text-white/30 text-[10px] italic">No references yet.</div>';
+        };
+        document.getElementById('btn-ref-shelf')?.addEventListener('click', () => { renderRefShelf(); openModal('refshelf-modal'); });
+        document.getElementById('refshelf-add')?.addEventListener('click', () => {
+            const title = (document.getElementById('refshelf-title').value || '').trim(); if (!title) { document.getElementById('refshelf-title').focus(); return; }
+            window.db.refShelf.unshift({ id: Date.now(), title, link: (document.getElementById('refshelf-link').value || '').trim(), lufs: (document.getElementById('refshelf-lufs').value || '').trim(), note: (document.getElementById('refshelf-note').value || '').trim() });
+            ['refshelf-title', 'refshelf-link', 'refshelf-lufs', 'refshelf-note'].forEach(id => document.getElementById(id).value = '');
+            window.saveData(); renderRefShelf();
+        });
+        document.getElementById('refshelf-list')?.addEventListener('click', (e) => { const d = e.target.closest('.ref-del'); if (!d) return; window.db.refShelf = (window.db.refShelf || []).filter(x => x.id !== parseInt(d.dataset.id, 10)); window.saveData(); renderRefShelf(); });
+        wireModalDismiss('refshelf-modal', 'refshelf-close');
+
+        // =====================================================================
+        // 29. GAIN-STAGE VIEW (tones as clean -> crunch -> distortion ladder)
+        // =====================================================================
+        let stageViewOn = false;
+        const STAGE_ORDER = [['CLEAN', '#00E5FF'], ['CRUNCH', '#FFA05C'], ['DISTORTION', '#FF5C5C'], ['BASS', '#FFD60A']];
+        const renderStageView = () => {
+            const wrap = document.getElementById('tone-stage-view'); if (!wrap) return;
+            const tones = (window.db.tones || []).filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both');
+            wrap.innerHTML = STAGE_ORDER.map(([cat, color]) => {
+                const items = tones.filter(t => (t.category || 'CLEAN') === cat);
+                return `<div class="rounded border p-3 bg-black/30" style="border-color:${color}30;"><div class="text-[10px] font-bold tracking-widest uppercase mb-2 flex items-center gap-2" style="color:${color};"><span class="w-2 h-2 rounded-full" style="background:${color};"></span>${cat} <span class="opacity-50">· ${items.length}</span></div><div class="flex flex-wrap gap-2">${items.length ? items.map(t => `<span class="text-[10px] px-2 py-1 rounded border" style="color:${color};border-color:${color}40;background:${color}0A;" title="${(t.nam || '')}${t.ir ? ' / ' + t.ir : ''}">${(t.name || 'Unnamed').replace(/</g, '')}${t.bpm ? ` · ${t.bpm}` : ''}${t.key ? ` ${t.key.replace(/</g, '')}` : ''}</span>`).join('') : '<span class="text-white/25 text-[10px] italic">none</span>'}</div></div>`;
+            }).join('');
+        };
+        const setStageView = (on) => {
+            stageViewOn = on;
+            document.getElementById('tone-stage-view')?.classList.toggle('hidden', !on);
+            document.getElementById('tone-list')?.classList.toggle('hidden', on);
+            document.getElementById('tone-tag-bar')?.classList.toggle('hidden', on);
+            document.getElementById('tone-smartfilter')?.classList.toggle('hidden', on);
+            const btn = document.getElementById('btn-tone-stages'); if (btn) btn.style.background = on ? 'rgba(255,160,92,0.22)' : 'rgba(255,160,92,0.08)';
+            if (on) renderStageView();
+        };
+        document.getElementById('btn-tone-stages')?.addEventListener('click', () => setStageView(!stageViewOn));
+        const _rtStage = window.renderTones;
+        if (typeof _rtStage === 'function' && !_rtStage.__stageWrapped) { window.renderTones = function () { const r = _rtStage.apply(this, arguments); if (stageViewOn) renderStageView(); return r; }; window.renderTones.__stageWrapped = true; }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('refshelf-modal'); closeModal('selimport-modal'); } });
 
         // ---- delegated clicks for dynamically-rendered card buttons ----
         document.addEventListener('click', (e) => {

@@ -357,6 +357,10 @@ main { background: rgba(5,8,7,0.72); }
                     <input type="text" id="script-shortcut" class="input-ferrett" placeholder="e.g., Ctrl+Shift+F">
                 </div>
             </div>
+            <div class="mb-4">
+                <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">RAW DOWNLOAD URL (optional)</label>
+                <input type="text" id="script-url" class="input-ferrett" placeholder="e.g., https://raw.githubusercontent.com/you/repo/main/Script.lua">
+            </div>
             <div class="mb-5">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FUNCTION & LOGIC</label>
                 <textarea id="script-func" class="input-ferrett h-20 resize-y" placeholder="What does this script do?"></textarea>
@@ -1244,12 +1248,16 @@ document.addEventListener('DOMContentLoaded', () => {
     //   green = foundation/build, steel-blue = utility/export, mint = raw material/samples,
     //   amber = mastering/polish, orange = crunch (midpoint warmth), red = distortion/heat.
     const SCRIPT_CATEGORY_COLORS = {
-        'AI STEM & MIDI': '#00E5FF',      // AI/extraction -> cyan
-        'PROJECT BUILDER': '#00FF88',      // foundation/build -> green
-        'VOCAL CHAIN': '#FF6FCB',          // vocals/human -> pink
-        'POCKET & MIDI': '#B18CFF',        // rhythm/groove -> violet
-        'INTERFACE & TONES': '#FFD60A',    // tone/amps -> gold
-        'WORKFLOW & EXPORT': '#7FA8D9',    // utility/export -> steel blue
+        'AI STEM & MIDI': '#00E5FF',        // AI/extraction -> cyan
+        'PROJECT BUILDER': '#00FF88',        // foundation/build -> green
+        'VOCAL CHAIN': '#FF6FCB',            // vocals/human -> pink
+        'POCKET & MIDI': '#B18CFF',          // rhythm/groove -> violet
+        'INTERFACE & TONES': '#FFD60A',      // tone/amps -> gold
+        'WORKFLOW & EXPORT': '#7FA8D9',      // utility/export -> steel blue
+        'SAMPLING & MIDI GEN': '#C9FF4B',    // generative/creative -> lime
+        'TRASH & FX': '#FF5C5C',             // heat/distortion -> red
+        'STEM WORKFLOW & QA': '#7AFFBF',     // checking/clean -> mint
+        'REFERENCE & UTILITY': '#FFA05C',    // informational -> orange
     };
     window.scriptCategoryColor = (cat) => SCRIPT_CATEGORY_COLORS[cat] || window.pillColor(cat);
 
@@ -2552,19 +2560,75 @@ window.cloneTone = (id) => {
 // THE SCRIPT ARSENAL MODULE PATCH
 // =========================================================================
 
+const RAW_BASE = "https://raw.githubusercontent.com/zsahs84/ferrett-audio-tools/main/";
 const defaultScripts = [
-    { id: 401, title: "UVR_4Pass_Trigger.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+U", func: "Select item → temp ~/tmp/run_uvr_4pass_*.command → chmod +x → open Terminal → launches 4-pass python script." },
-    { id: 402, title: "UVR_4Pass_ULTIMATE.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "P1 MDX Inst_HQ_3 split → P2 De-Echo vocals → P3 BS-Roformer re-isolate lead → P4 De-Verb drums. Outputs to Stems/UVR/." },
-    { id: 403, title: "Fadr_MIDI_Extract_v6.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+F", func: "Auto-glue 41588 → Python nohup → gfx chooser (Kontakt/Vital) → poll fadr_status → insert MIDI at source." },
-    { id: 404, title: "Fadr_Chord_Mapper.lua", category: "AI STEM & MIDI", shortcut: "Alt+C", func: "Finds CSV in fadr.com/midi, parses fadr_start_t + item_start_pos → markers + MIDI on Synth Bus." },
-    { id: 405, title: "Autoproject_setup_master.lua", category: "PROJECT BUILDER", shortcut: "Ctrl+Shift+A", func: "Recursive search UVR/Fadr stems, builds FX Returns (Galaxy Tape/Plate), Main Vox Bus, Synth, Guitar, Bass, Drum Bus. Generates Master Chain (Kotelnikov+S73+Limiter)." },
-    { id: 406, title: "Flow_Vocal_Pro_v2.lua", category: "VOCAL CHAIN", shortcut: "Ctrl+Shift+V", func: "Lead Vox PRO chain: ReaEQ HPF80 -4dB@250 -3dB@3.5k +2dB air, Nova dyn 1k, ReaComp 3:1, Sat Knob 30%, Graillon2 30%, OTT 15%." },
-    { id: 407, title: "Double_Tracker_ADT.lua", category: "VOCAL CHAIN", shortcut: "Ctrl+D", func: "Select lead → new track, -12ms nudge, ReaPitch -6c + kHs Chorus = Abbey Road ADT width." },
-    { id: 408, title: "ghost_stalk_velocity.lua", category: "POCKET & MIDI", shortcut: "Ctrl+Shift+G", func: "Randomizes MIDI velocity: Kick36 (110-122), Snare38 (100-115), Ghost (12-28), Closed Hat (45-75)." },
-    { id: 409, title: "pocket_nudge.lua", category: "POCKET & MIDI", shortcut: "Alt+P", func: "BASS/808 nudged -5ms early, DRUM/KICK/SNARE nudged +4ms late. Dilla/Voodoo pocketing." },
-    { id: 410, title: "Load_Mega_Tone_Menu.lua", category: "INTERFACE & TONES", shortcut: "Ctrl+T", func: "Reads ~/Music/NAM_Rig/presets.txt Type|Style|Name|amp|ir|fx, cascading menu >Type>Style>Name, loads Gateway once + 1176+Nova+Clipper." },
-    { id: 411, title: "Flow_OneClick_Render_v2.lua", category: "WORKFLOW & EXPORT", shortcut: "Ctrl+Alt+R", func: "Auto-names Song_Vocals/Inst/Mix_YYYYMMDD from project name, solos VOX/INST/MIX BUS, renders using most recent 42230, unsolos." },
-    { id: 412, title: "Export_Stems_Collab.lua", category: "WORKFLOW & EXPORT", shortcut: "Ctrl+Alt+E", func: "Renders all non-folder tracks 24-bit +2-bar tail → Stems/Export_YYYYMMDD/Song_Track_YYYYMMDD.wav." }
+    { id: 401, title: "Split-Audio.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+U", func: "Triggers the UVR extraction pipeline from REAPER: writes a temp .command file next to auto_uvr.py and opens it in Terminal for a visible progress log.", url: RAW_BASE + "Split-Audio.lua" },
+    { id: 402, title: "auto_uvr.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "The separation engine. GUI picker for Vocals-only / Instrumental+Drums / Full pipeline. BS-Roformer vocals, MDX-Net instrumental, Demucs 6-stem split, MDX23C drum-piece separation, DeEcho-DeReverb cleanup - chained automatically, writes to Stems/UVR/.", url: RAW_BASE + "auto_uvr.py" },
+    { id: 403, title: "Fadr_MIDI_Extract_v6_LastUsed.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+F", func: "Auto-glues the selection, uploads to Fadr's cloud API, polls for MIDI extraction, and loads the result into a VSTi you pick from a custom GUI menu (Kontakt, Vital, Surge XT, NAM, etc).", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Fadr_MIDI_Extract_v6_LastUsed.lua" },
+    { id: 404, title: "Fadr_Chord_Mapper.lua", category: "AI STEM & MIDI", shortcut: "Alt+C", func: "Finds a Fadr chord-detection CSV near the selected audio, parses ~25 chord qualities, and writes exact time-anchored MIDI chords + markers to a dedicated muted 'Chords/Textures' track.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Fadr_Chord_Mapper.lua" },
+    { id: 405, title: "fadr_cloud.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "Backend for Fadr MIDI extraction: S3 upload, task polling, downloading the resulting MIDI. Called by Fadr_MIDI_Extract_v6_LastUsed.lua, not run directly.", url: RAW_BASE + "fadr_cloud.py" },
+    { id: 406, title: "Ferrett_FadrPlus_Organizer.lua", category: "AI STEM & MIDI", shortcut: "Action List", func: "Creates 5 empty tracks (fadr_drums/bass/keys/vocals/other) for manually dragging in a Fadr+ stem export.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Ferrett_FadrPlus_Organizer.lua" },
+    { id: 407, title: "Ferrett_GoogleFlow_Importer.lua", category: "AI STEM & MIDI", shortcut: "Action List", func: "Imports a Google Flow AI-generated song and builds a 4-track triage folder (Flow Stems / Rerecord / MIDI Replace / Keep Audio) to sort the AI output into.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Ferrett_GoogleFlow_Importer.lua" },
+
+    { id: 410, title: "Autoproject_setup_master.lua", category: "PROJECT BUILDER", shortcut: "Ctrl+Shift+A", func: "Recursively scans the song folder for every UVR/Fadr stem, builds the full routed session (vox/synth/bass/guitar/drum buses + FX chains), mutes the original master, archives unmatched Fadr stems.", url: RAW_BASE + "Lua/Project_Setup/Autoproject_setup_master.lua" },
+    { id: 411, title: "BeatBlocks.lua", category: "PROJECT BUILDER", shortcut: "Action List", func: "Takes a time-selected 4/8-bar loop and duplicates it into a full arrangement (Intro-Verse-Hook-Verse-Hook-Outro) with color-coded region markers, muting drums in the intro/outro for a beat-drop.", url: RAW_BASE + "Lua/Project_Setup/BeatBlocks.lua" },
+    { id: 412, title: "Ferrett_Arrangement_Template.lua", category: "PROJECT BUILDER", shortcut: "Action List", func: "Sets project tempo to 86 BPM and drops markers for a fixed basement hip-hop structure. Markers only, no audio - lays out an empty map before tracking.", url: RAW_BASE + "Lua/Project_Setup/Ferrett_Arrangement_Template.lua" },
+    { id: 413, title: "Ferrett_Bass_Bus_Builder.lua", category: "PROJECT BUILDER", shortcut: "Action List", func: "5-string bass bus chain: tuner, SVT-VR, dynamic EQ sidechained to the kick, 1176, sub-harmonic drive, high-pass.", url: RAW_BASE + "Lua/Bus_Builders/Ferrett_Bass_Bus_Builder.lua" },
+    { id: 414, title: "Ferrett_Drum_Bus_Builder.lua", category: "PROJECT BUILDER", shortcut: "Action List", func: "Drum bus chain: transient shaper, tape saturation, bus compression, clipper.", url: RAW_BASE + "Lua/Bus_Builders/Ferrett_Drum_Bus_Builder.lua" },
+    { id: 415, title: "Ferrett_Synth_Stack_Builder.lua", category: "PROJECT BUILDER", shortcut: "Action List", func: "Builds a 5-layer synth chorus stack (Sub/Body/Air/Movement/Glue) inside a folder track with bus glue.", url: RAW_BASE + "Lua/Bus_Builders/Ferrett_Synth_Stack_Builder.lua" },
+
+    { id: 420, title: "VocalBooth.lua", category: "VOCAL CHAIN", shortcut: "Action List", func: "One-key full vocal SESSION builder: armed/monitoring Lead Vox with a starter chain, panned Double L/R tracks, an Adlib track, and Verb/Delay send buses grouped into a VOCALS folder.", url: RAW_BASE + "Lua/Vocal_Chains/VocalBooth.lua" },
+    { id: 421, title: "Flow_Vocal_Pro_v2.lua", category: "VOCAL CHAIN", shortcut: "Ctrl+Shift+V", func: "Cheap-mic/bad-room fix chain: EQ correction, dynamic EQ, compression, de-essing, saturation, pitch correction, parallel width.", url: RAW_BASE + "Lua/Vocal_Chains/Flow_Vocal_Pro_v2.lua" },
+    { id: 422, title: "Ferrett_Vocal_Chain_Chorus.lua", category: "VOCAL CHAIN", shortcut: "Action List", func: "Melodic-chorus-wide vocal chain for a produced room/good mic.", url: RAW_BASE + "Lua/Vocal_Chains/Ferrett_Vocal_Chain_Chorus.lua" },
+    { id: 423, title: "Ferrett_Vocal_Chain_Rap.lua", category: "VOCAL CHAIN", shortcut: "Action List", func: "Percussive-rap-tight vocal chain for a produced room/good mic.", url: RAW_BASE + "Lua/Vocal_Chains/Ferrett_Vocal_Chain_Rap.lua" },
+    { id: 424, title: "Ferrett_Vocal_Blues_Grit.lua", category: "VOCAL CHAIN", shortcut: "Action List", func: "Sung blues-chorus chain: drive, compression, saturation, room reverb, hall reverb, de-ess.", url: RAW_BASE + "Lua/Vocal_Chains/Ferrett_Vocal_Blues_Grit.lua" },
+    { id: 425, title: "Ferrett_Owned_Comp_Rap.lua", category: "VOCAL CHAIN", shortcut: "Action List", func: "Compression-only module for a rap vocal chain, built strictly from owned gear.", url: RAW_BASE + "Lua/Vocal_Chains/Ferrett_Owned_Comp_Rap.lua" },
+    { id: 426, title: "Ferrett_Owned_EQ_RapVox.lua", category: "VOCAL CHAIN", shortcut: "Action List", func: "EQ-only module for a rap vocal chain, built strictly from owned gear.", url: RAW_BASE + "Lua/Vocal_Chains/Ferrett_Owned_EQ_RapVox.lua" },
+
+    { id: 430, title: "Ferrett_GhostNote_Purge.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "Bulk-deletes AI-hallucinated MIDI notes shorter than 1/32nd.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_GhostNote_Purge.lua" },
+    { id: 431, title: "Ferrett_Legato_Fix.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "Forces a small gap between overlapping notes so monophonic synths actually retrigger.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_Legato_Fix.lua" },
+    { id: 432, title: "Ferrett_CC_Cleanup.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "Deletes hallucinated pitch-bend and mod-wheel CC1 data.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_CC_Cleanup.lua" },
+    { id: 433, title: "Ferrett_Bass_Range_Fix.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "Moves notes below E1 up an octave and protects the keyswitch zone.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_Bass_Range_Fix.lua" },
+    { id: 434, title: "Ferrett_Velocity_Stalk_Fix.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "Detects flat AI-printed velocity (>80% identical) and rebuilds musical dynamics with downbeat emphasis.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_Velocity_Stalk_Fix.lua" },
+    { id: 435, title: "Ferrett_Drum_Humanize_Pocket.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "Humanizes timing/velocity, keeps kick/snare tight and ghosts loose, nudges drums 4 ticks late for pocket.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_Drum_Humanize_Pocket.lua" },
+    { id: 436, title: "Ferrett_Basement_Clean_Macro.lua", category: "POCKET & MIDI", shortcut: "Action List", func: "One-click chain of Ghost Purge + Legato Fix + CC Cleanup + Bass Range Fix + Velocity Stalk Fix.", url: RAW_BASE + "Lua/MIDI_Cleanup/Ferrett_Basement_Clean_Macro.lua" },
+
+    { id: 440, title: "Load_Mega_Tone_Menu.lua", category: "INTERFACE & TONES", shortcut: "Ctrl+T", func: "Reads a real preset database (presets.txt), builds a nested right-click tone menu, loads Gateway + a standard mix chain + the preset's FX. Validates malformed/duplicate rows on load.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Load_Mega_Tone_Menu.lua" },
+    { id: 441, title: "Ferrett_Gateway_Bass_5String_Pocket.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "5-string bass tone via Gateway (loads real NAM captures + IR together). Owned/Gateway is a deliberate pair, not a duplicate - pick Gateway for the captured amp tone.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Gateway_Bass_5String_Pocket.lua" },
+    { id: 442, title: "Ferrett_Owned_Bass_5String_Pocket.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "5-string bass tone via the owned Ampeg SVTVR Classic plugin + ReaVerb IR directly - zero-latency tracking alternative to the Gateway/NAM version.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Owned_Bass_5String_Pocket.lua" },
+    { id: 443, title: "Ferrett_Gateway_Guitar_Blues_Edge.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Blues-edge guitar tone via Gateway (real NAM capture + IR).", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Gateway_Guitar_Blues_Edge.lua" },
+    { id: 444, title: "Ferrett_Owned_Guitar_Blues_Edge.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Blues-edge guitar tone via owned amp-sim plugins - zero-latency alternative to the Gateway version.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Owned_Guitar_Blues_Edge.lua" },
+    { id: 445, title: "Ferrett_Gateway_Guitar_Distorted_Rhythm_Wall.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Distorted rhythm wall guitar tone via Gateway, with quad tracking (2 tracks, hard-panned L/R) built in.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Gateway_Guitar_Distorted_Rhythm_Wall.lua" },
+    { id: 446, title: "Ferrett_Owned_Guitar_Distorted_Wall.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Distorted rhythm wall guitar tone via owned amp-sim plugins, quad tracking built in.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Owned_Guitar_Distorted_Wall.lua" },
+    { id: 447, title: "Ferrett_Gateway_Guitar_PalmMute_Harmony.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Palm-mute harmony guitar tone via Gateway, locked to sit under the bass.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Gateway_Guitar_PalmMute_Harmony.lua" },
+    { id: 448, title: "Ferrett_Gateway_ToneMatrix_150_Owned.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "150 tone pairings built from your actual owned NAM captures and IR collection, loaded via Gateway.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Gateway_ToneMatrix_150_Owned.lua" },
+    { id: 449, title: "Ferrett_ToneMatrix_Expanded_150.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "150 procedurally-generated amp/cab/mic pairings for bass and guitar, loaded via plugin + manual ReaVerb IR.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_ToneMatrix_Expanded_150.lua" },
+    { id: 450, title: "Ferrett_Bass_Blues_Slide.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Bass tone chain for slide/ghost-pop technique.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Bass_Blues_Slide.lua" },
+    { id: 451, title: "Ferrett_Keys_Rhodes_Basement.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Warbly basement Rhodes chain.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Keys_Rhodes_Basement.lua" },
+    { id: 452, title: "Ferrett_Drum_Vinyl_Crunch.lua", category: "INTERFACE & TONES", shortcut: "Action List", func: "Vinyl-crunch drum kit chain.", url: RAW_BASE + "Lua/Guitar_Bass_Tone/Ferrett_Drum_Vinyl_Crunch.lua" },
+
+    { id: 460, title: "Flow_OneClick_Render_v2.lua", category: "WORKFLOW & EXPORT", shortcut: "Ctrl+Alt+R", func: "Solos and renders VOX/INST/MIX buses to dated filenames, reports exactly which buses rendered vs were skipped.", url: RAW_BASE + "Lua/Rendering_QA/Flow_OneClick_Render_v2.lua" },
+    { id: 461, title: "Render_Amps_To_Audio.lua", category: "WORKFLOW & EXPORT", shortcut: "Action List", func: "Renders every 'AMP - *' track to a stem and disables live amp-sim FX on the original (freeze workflow for CPU relief).", url: RAW_BASE + "Lua/Rendering_QA/Render_Amps_To_Audio.lua" },
+
+    { id: 470, title: "HipHop_ChopSuite.lua", category: "SAMPLING & MIDI GEN", shortcut: "Action List", func: "Fully automated sample chopper: splits the selected item at transients, moves each chop to its own colored/named track, applies pitch-down and a starting lo-fi EQ.", url: RAW_BASE + "Lua/Sampling_and_MIDI_Generation/HipHop_ChopSuite.lua" },
+    { id: 471, title: "Ferrett_Sample_Chop_Template.lua", category: "SAMPLING & MIDI GEN", shortcut: "Action List", func: "Builds 16 empty MIDI trigger pads (C1-D#2) for a ReaSamplOmatic5000 play-live chop kit - a different workflow from ChopSuite's auto-slicing.", url: RAW_BASE + "Lua/Sampling_and_MIDI_Generation/Ferrett_Sample_Chop_Template.lua" },
+    { id: 472, title: "Ferrett_MIDI_From_Audio_Melody.lua", category: "SAMPLING & MIDI GEN", shortcut: "Action List", func: "Adds ReaTune to a take for humming/synth-line-to-MIDI conversion.", url: RAW_BASE + "Lua/Sampling_and_MIDI_Generation/Ferrett_MIDI_From_Audio_Melody.lua" },
+
+    { id: 480, title: "DustMachine.lua", category: "TRASH & FX", shortcut: "Action List", func: "Two modes: applies a lo-fi dust chain to the selected track, or writes an actual programmed pitch-drop envelope for a tape-stop transition on the selected item.", url: RAW_BASE + "Lua/Trash_and_Echo_FX/DustMachine.lua" },
+    { id: 481, title: "Ferrett_Effects_Throw_Builder.lua", category: "TRASH & FX", shortcut: "Action List", func: "Builds a dub/tape-stop FX-throw bus (Supermassive, Galaxy Tape Echo, ReaDelay, ReaPitch).", url: RAW_BASE + "Lua/Trash_and_Echo_FX/Ferrett_Effects_Throw_Builder.lua" },
+    { id: 482, title: "Ferrett_Owned_TapeEcho_8Presets.lua", category: "TRASH & FX", shortcut: "Action List", func: "8-preset echo menu (Slap/Dub Throw/Plate+Echo/LoFi Warble/Ping Pong/Megaphone/Blues Call/Chamber), owned gear only.", url: RAW_BASE + "Lua/Trash_and_Echo_FX/Ferrett_Owned_TapeEcho_8Presets.lua" },
+    { id: 483, title: "Ferrett_Owned_Trash_Morph_Container.lua", category: "TRASH & FX", shortcut: "Action List", func: "One-knob 'mild to megaphone' morph using an FX Container with owned plugins, with a graceful fallback if containers aren't supported.", url: RAW_BASE + "Lua/Trash_and_Echo_FX/Ferrett_Owned_Trash_Morph_Container.lua" },
+    { id: 484, title: "Ferrett_Owned_TrashVocal_6Stages_Gateway.lua", category: "TRASH & FX", shortcut: "Action List", func: "One popup menu covering all 6 trash-vocal stages (Mild Tape to Beastie Megaphone), owned gear only.", url: RAW_BASE + "Lua/Trash_and_Echo_FX/Ferrett_Owned_TrashVocal_6Stages_Gateway.lua" },
+
+    { id: 490, title: "Ferrett_Stem_Triage_Tagger.lua", category: "STEM WORKFLOW & QA", shortcut: "Action List", func: "Quick popup to tag a track KEEP/RERECORD/MIDI/TRASH, auto-mutes anything tagged TRASH.", url: RAW_BASE + "Lua/Stem_Workflow_QA/Ferrett_Stem_Triage_Tagger.lua" },
+    { id: 491, title: "Ferrett_Synth_Keep_vs_Replace.lua", category: "STEM WORKFLOW & QA", shortcut: "Action List", func: "Popup for 3 synth-fix scenarios: mono pad widening, out-of-key lead to MIDI, thin chorus to a full stack.", url: RAW_BASE + "Lua/Stem_Workflow_QA/Ferrett_Synth_Keep_vs_Replace.lua" },
+    { id: 492, title: "Ferrett_Mixed_Bag_Finalizer.lua", category: "STEM WORKFLOW & QA", shortcut: "Action List", func: "Pre-mix QA scan: flags [TRASH]-tagged tracks that aren't muted, shows a headphone-check reminder.", url: RAW_BASE + "Lua/Stem_Workflow_QA/Ferrett_Mixed_Bag_Finalizer.lua" },
+    { id: 493, title: "Ferrett_Drum_Keep_Augment.lua", category: "STEM WORKFLOW & QA", shortcut: "Action List", func: "Adds a parallel crush send without replacing the original drums.", url: RAW_BASE + "Lua/Stem_Workflow_QA/Ferrett_Drum_Keep_Augment.lua" },
+    { id: 494, title: "Ferrett_Drum_Full_MIDI_Replace.lua", category: "STEM WORKFLOW & QA", shortcut: "Action List", func: "Track setup for fully replacing messy AI drums with SSD5 MIDI.", url: RAW_BASE + "Lua/Stem_Workflow_QA/Ferrett_Drum_Full_MIDI_Replace.lua" },
+    { id: 495, title: "Ferrett_Bass_Rerecord_Helper.lua", category: "STEM WORKFLOW & QA", shortcut: "Action List", func: "Creates a DI guide track with a tuner for re-recording AI bass with a real 5-string.", url: RAW_BASE + "Lua/Stem_Workflow_QA/Ferrett_Bass_Rerecord_Helper.lua" },
+
+    { id: 500, title: "lyrics.lua", category: "REFERENCE & UTILITY", shortcut: "Action List", func: "Floating lyrics-prompter window driven by project markers, with a dimmed next-line preview synced to the playhead.", url: RAW_BASE + "Lua/Reference_Tools/lyrics.lua" },
+    { id: 501, title: "Ferrett_Cookbook_Recipe_Finder.lua", category: "REFERENCE & UTILITY", shortcut: "Action List", func: "Asks what elements you have on hand (bass, guitar, vox type, drums, etc.) and suggests genre-appropriate arrangement combos.", url: RAW_BASE + "Lua/Reference_Tools/Ferrett_Cookbook_Recipe_Finder.lua" },
 ];
 
 // 1. Initialize the Array if it doesn't exist
@@ -2597,7 +2661,8 @@ window.renderScripts = () => {
                     <code class="px-1.5 py-0.5 bg-[#00E5FF15] border border-[#00E5FF30] rounded text-[#00E5FF] text-[9px] font-mono whitespace-nowrap shrink-0">${s.shortcut}</code>
                 </div>
                 <div class="mb-3"><button data-tag="${s.category}" class="btn-tag-script text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${s.category}">${s.category}</button></div>
-                <p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1">${s.func}</p>
+                <p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${s.func}</p>
+                ${s.url ? `<a href="${s.url}" download="${s.title}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">DOWNLOAD ↓</a>` : ''}
             </div>
         `;
     });
@@ -2628,7 +2693,8 @@ document.addEventListener('DOMContentLoaded', () => {
             title: document.getElementById('script-title').value || 'Unnamed_Script.lua',
             category: document.getElementById('script-category').value || 'UNCATEGORIZED',
             shortcut: document.getElementById('script-shortcut').value || 'None',
-            func: document.getElementById('script-func').value
+            func: document.getElementById('script-func').value,
+            url: document.getElementById('script-url').value || ''
         };
         
         if (idStr) window.db.scripts = window.db.scripts.map(s => s.id === scriptData.id ? scriptData : s); 
@@ -2650,6 +2716,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('script-category').value = scriptData.category;
                 document.getElementById('script-shortcut').value = scriptData.shortcut;
                 document.getElementById('script-func').value = scriptData.func;
+                document.getElementById('script-url').value = scriptData.url || '';
                 
                 const titleEl = document.getElementById('script-form-title');
                 if (titleEl) titleEl.innerText = 'EDIT SCRIPT';

@@ -2629,6 +2629,12 @@ const defaultScripts = [
 
     { id: 500, title: "lyrics.lua", category: "REFERENCE & UTILITY", shortcut: "Action List", func: "Floating lyrics-prompter window driven by project markers, with a dimmed next-line preview synced to the playhead.", url: RAW_BASE + "Lua/Reference_Tools/lyrics.lua" },
     { id: 501, title: "Ferrett_Cookbook_Recipe_Finder.lua", category: "REFERENCE & UTILITY", shortcut: "Action List", func: "Asks what elements you have on hand (bass, guitar, vox type, drums, etc.) and suggests genre-appropriate arrangement combos.", url: RAW_BASE + "Lua/Reference_Tools/Ferrett_Cookbook_Recipe_Finder.lua" },
+
+    { id: 502, title: "run_uvr_pipeline.command", category: "AI STEM & MIDI", shortcut: "Double-click", func: "Double-clickable Terminal launcher for auto_uvr.py - drop a WAV on it or pick one via a native file picker rooted at Music Projects/, then runs the full separation pipeline with a visible progress log.", url: RAW_BASE + "run_uvr_pipeline.command" },
+    { id: 503, title: "unpack.sh", category: "REFERENCE & UTILITY", shortcut: "Terminal", func: "Batch-unzips NAM amp packs sitting in the current folder into ~/Music/NAM_Rig/Amps/<name>/, one folder per zip.", url: RAW_BASE + "Shell_Scripts/unpack.sh" },
+    { id: 504, title: "unzip_nam_ir_library.zsh", category: "REFERENCE & UTILITY", shortcut: "Terminal", func: "Watches ~/Downloads for NAM zips and auto-sorts them into NAM_Rig/Amps vs /IRs by filename, stripping __MACOSX junk.", url: RAW_BASE + "Shell_Scripts/unzip_nam_ir_library.zsh" },
+    { id: 505, title: "NAM_Re-Amp.RTrackTemplate", category: "PROJECT BUILDER", shortcut: "Template", func: "REAPER track template for re-amping a DI through NAM captures.", url: RAW_BASE + "Track_Templates/NAM_Re-Amp.RTrackTemplate" },
+    { id: 506, title: "BASS_5STR_Basement.RTrackTemplate", category: "PROJECT BUILDER", shortcut: "Template", func: "REAPER track template for the 5-string bass basement tone chain.", url: RAW_BASE + "Track_Templates/BASS_5STR_Basement.RTrackTemplate" },
 ];
 
 // 1. Initialize the Array if it doesn't exist

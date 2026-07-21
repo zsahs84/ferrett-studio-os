@@ -1458,7 +1458,12 @@ main { background: rgba(5,8,7,0.72); }
             <div id="lyria-output-wrap" class="hidden">
                 <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">GENERATED PROMPT</label>
                 <textarea id="lyria-output" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-32 resize-none focus:outline-none" readonly></textarea>
-                <button id="btn-lyria-copy" type="button" class="btn-ferrett mt-2 w-full">📋 COPY TO CLIPBOARD</button>
+                <div class="flex gap-2 mt-2">
+                    <button id="btn-lyria-copy" type="button" class="btn-ferrett flex-1">📋 COPY TO CLIPBOARD</button>
+                    <button id="btn-lyria-ai" type="button" class="btn-ferrett flex-1" style="border-color:#00E5FF80;color:#00E5FF" title="Send this draft to your AI co-pilot to tighten it into a Lyria-optimized prompt — keeps your real gear/technique details, cuts filler">✨ AI ENHANCE</button>
+                </div>
+                <p class="text-[9px] text-[#E2E8F0]/35 mt-2">The draft above is built from your own recipe data (free, offline). <b class="text-[#00E5FF]/60">AI Enhance</b> sends it to your Groq co-pilot to tighten it into Lyria/MusicFX's preferred style — needs the AI co-pilot set up (⚙ in Lyrics Lab or Studio Lab).</p>
+                <div id="lyria-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-1"></div>
             </div>
         </div>
     </div>
@@ -2891,6 +2896,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('lyria-output-wrap')?.classList.add('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
         const notesEl = document.getElementById('lyria-custom-notes'); if (notesEl) notesEl.value = '';
+        const aiNote = document.getElementById('lyria-ai-note'); if (aiNote) aiNote.textContent = '';
         document.getElementById('lyria-modal')?.classList.replace('hidden', 'flex');
     };
     window.closeLyriaModal = () => document.getElementById('lyria-modal')?.classList.replace('flex', 'hidden');
@@ -2903,6 +2909,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const out = document.getElementById('lyria-output'); if (out) out.value = prompt;
         document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
+        const note = document.getElementById('lyria-ai-note'); if (note) note.textContent = '';
+    };
+
+    // Sends the free/offline draft above (built from real recipe data) to the
+    // user's own AI co-pilot to tighten it into Lyria/MusicFX's preferred
+    // style, without throwing away the specific gear/technique details.
+    window.runLyriaAIEnhance = async () => {
+        const out = document.getElementById('lyria-output'); const draft = out?.value || ''; if (!draft.trim()) return;
+        const note = document.getElementById('lyria-ai-note'); const btn = document.getElementById('btn-lyria-ai');
+        let cfg = {}; try { cfg = JSON.parse(localStorage.getItem('ferrett_os_ai_v1') || '{}'); } catch (e) {}
+        if (!(cfg.mode === 'groq' ? cfg.groqKey : (cfg.url && cfg.token))) { if (window.__openAiModal) window.__openAiModal(); return; }
+        if (!window.ferrettAI) { if (note) note.textContent = 'AI co-pilot not loaded.'; return; }
+        if (btn) { btn.disabled = true; btn.textContent = '…thinking'; }
+        if (note) note.textContent = '';
+        try {
+            const sys = 'You write vivid, concise instrumental music-generation prompts for Google Lyria / MusicFX. Rewrite the given draft into ONE dense paragraph (max ~50 words) of genre, instrumentation, production and mood descriptors. Keep every specific gear/technique detail from the draft — they matter — but tighten the prose and cut filler words. No lyrics, no quotes, no preamble, no headers.';
+            const enhanced = await window.ferrettAI(sys, draft, { creative: true });
+            if (out) out.value = enhanced.trim();
+        } catch (e) {
+            if (note) { note.textContent = '⚠ ' + e.message; }
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '✨ AI ENHANCE'; }
+        }
     };
 
 
@@ -3449,6 +3478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-lyria-generate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-copy')?.addEventListener('click', () => { const out = document.getElementById('lyria-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    document.getElementById('btn-lyria-ai')?.addEventListener('click', () => window.runLyriaAIEnhance());
     document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());

@@ -183,6 +183,10 @@ main { background: rgba(5,8,7,0.72); }
       <svg id="drive-icon-up" class="w-3.5 h-3.5 hidden drop-shadow-[0_0_8px_#00FF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/></svg>
       <span id="drive-status-text" class="hidden sm:inline text-[9px] font-bold tracking-widest uppercase mt-[1px]">INTEL COMMS DOWN</span>
     </button>
+    <button id="drive-sync-badge" type="button" class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded border transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Local vs. cloud sync status — click to sync now">
+      <span id="drive-sync-dot" class="w-1.5 h-1.5 rounded-full shrink-0"></span>
+      <span id="drive-sync-label" class="hidden sm:inline"></span>
+    </button>
     <div class="flex gap-1">
       <button id="btn-open-vault-modal" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FFD60A40] bg-[#FFD60A]/8 text-[#FFD60A] hover:bg-[#FFD60A]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="View local storage usage">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
@@ -1839,6 +1843,28 @@ try {
 window.currentNoteId = window.db.multiNotes[0].id;
 window.dbTimeout = null;
 
+// === DRIVE SYNC STATUS BADGE (local-vs-cloud indicator, since the actual upload is debounced/async) ===
+window.driveSyncState = 'synced'; // 'synced' | 'unsynced' | 'syncing' | 'conflict' | 'error'
+window.renderDriveSyncBadge = () => {
+    const btn = document.getElementById('drive-sync-badge'); const dot = document.getElementById('drive-sync-dot'); const label = document.getElementById('drive-sync-label');
+    if (!btn || !dot || !label) return;
+    if (!window.isDriveConnected) { btn.classList.add('hidden'); btn.classList.remove('flex'); return; }
+    btn.classList.remove('hidden'); btn.classList.add('flex');
+    const styles = {
+        synced:   { border: 'border-[#00FF8850]', bg: 'bg-[#00FF88]/10', text: 'text-[#00FF88]', dot: 'bg-[#00FF88]', pulse: false, label: '✓ SYNCED', title: 'Local matches cloud.' },
+        unsynced: { border: 'border-[#FFD60A50]', bg: 'bg-[#FFD60A]/10', text: 'text-[#FFD60A]', dot: 'bg-[#FFD60A]', pulse: false, label: '⚠ NOT SYNCED', title: 'Local changes haven\'t reached Drive yet. Click to sync now.' },
+        syncing:  { border: 'border-[#00E5FF50]', bg: 'bg-[#00E5FF]/10', text: 'text-[#00E5FF]', dot: 'bg-[#00E5FF]', pulse: true,  label: '⏳ SYNCING…', title: 'Uploading to Drive…' },
+        conflict: { border: 'border-[#FF888850]', bg: 'bg-[#FF8888]/10', text: 'text-[#FF8888]', dot: 'bg-[#FF8888]', pulse: true,  label: '⚠ CONFLICT', title: 'Drive has newer changes than last known. Resolve in the banner above.' },
+        error:    { border: 'border-[#FF888850]', bg: 'bg-[#FF8888]/10', text: 'text-[#FF8888]', dot: 'bg-[#FF8888]', pulse: false, label: '⚠ SYNC FAILED', title: 'Last sync attempt failed. Click to retry.' },
+    };
+    const s = styles[window.driveSyncState] || styles.synced;
+    btn.className = `flex items-center gap-1.5 px-2.5 py-1.5 rounded border transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase ${s.border} ${s.bg} ${s.text}`;
+    dot.className = `w-1.5 h-1.5 rounded-full shrink-0 ${s.dot} ${s.pulse ? 'animate-pulse' : ''}`;
+    label.textContent = s.label;
+    btn.title = s.title;
+};
+window.setDriveSyncState = (state) => { window.driveSyncState = state; window.renderDriveSyncBadge(); };
+
 // === SESSION STOPWATCH (persisted, pausable — drives the header REC timecode) ===
 window.SESSION_KEY = 'ferrett_os_session_v1';
 window.loadSessionState = () => {
@@ -1904,12 +1930,13 @@ window.saveDataLocally = () => {
     try { window.localStorage.setItem('ferrett_os_db_v22.4', JSON.stringify(window.db)); const status = document.getElementById('save-status'); if(status) { status.classList.remove('opacity-0'); clearTimeout(window.saveTimeout); window.saveTimeout = setTimeout(() => status.classList.add('opacity-0'), 1500); } } catch(e) { }
 };
 
-window.saveData = () => { window.saveDataLocally(); if (window.isDriveConnected) { clearTimeout(window.dbTimeout); window.dbTimeout = setTimeout(() => { window.uploadToDrive(window.db); }, 2000); } };
+window.saveData = () => { window.saveDataLocally(); if (window.isDriveConnected) { window.setDriveSyncState('unsynced'); clearTimeout(window.dbTimeout); window.dbTimeout = setTimeout(() => { window.uploadToDrive(window.db); }, 2000); } };
 
 window.setDriveStatus = function(connected) { 
     window.isDriveConnected = connected; const btn = document.getElementById('drive-auth-btn'); const txt = document.getElementById('drive-status-text'); const iconDown = document.getElementById('drive-icon-down'); const iconUp = document.getElementById('drive-icon-up'); 
-    if (connected) { btn?.classList.replace('border-[#FF2A2A]', 'border-[#00FF88]'); btn?.classList.replace('bg-[#FF2A2A]/10', 'bg-[#00FF88]/10'); btn?.classList.replace('text-[#FF2A2A]', 'text-[#00FF88]'); btn?.classList.replace('hover:bg-[#FF2A2A]/20', 'hover:bg-[#00FF88]/20'); if(txt) txt.innerText = 'INTEL COMM LINK EST'; iconDown?.classList.add('hidden'); iconUp?.classList.remove('hidden'); } 
-    else { btn?.classList.replace('border-[#00FF88]', 'border-[#FF2A2A]'); btn?.classList.replace('bg-[#00FF88]/10', 'bg-[#FF2A2A]/10'); btn?.classList.replace('text-[#00FF88]', 'text-[#FF2A2A]'); btn?.classList.replace('hover:bg-[#00FF88]/20', 'hover:bg-[#FF2A2A]/20'); if(txt) txt.innerText = 'INTEL COMMS DOWN'; iconUp?.classList.add('hidden'); iconDown?.classList.remove('hidden'); } 
+    if (connected) { btn?.classList.replace('border-[#FF2A2A]', 'border-[#00FF88]'); btn?.classList.replace('bg-[#FF2A2A]/10', 'bg-[#00FF88]/10'); btn?.classList.replace('text-[#FF2A2A]', 'text-[#00FF88]'); btn?.classList.replace('hover:bg-[#FF2A2A]/20', 'hover:bg-[#00FF88]/20'); if(txt) txt.innerText = 'INTEL COMM LINK EST'; iconDown?.classList.add('hidden'); iconUp?.classList.remove('hidden'); }
+    else { btn?.classList.replace('border-[#00FF88]', 'border-[#FF2A2A]'); btn?.classList.replace('bg-[#00FF88]/10', 'bg-[#FF2A2A]/10'); btn?.classList.replace('text-[#00FF88]', 'text-[#FF2A2A]'); btn?.classList.replace('hover:bg-[#00FF88]/20', 'hover:bg-[#FF2A2A]/20'); if(txt) txt.innerText = 'INTEL COMMS DOWN'; iconUp?.classList.add('hidden'); iconDown?.classList.remove('hidden'); }
+    window.renderDriveSyncBadge?.();
 }
 
 // === DRIVE SYNC CONFLICT CHECK ===
@@ -1923,9 +1950,10 @@ window.pendingSyncDbData = null;
 window.showConflictBanner = () => { document.getElementById('drive-conflict-banner')?.classList.remove('hidden'); document.getElementById('drive-conflict-banner')?.classList.add('flex'); };
 window.hideConflictBanner = () => { document.getElementById('drive-conflict-banner')?.classList.add('hidden'); document.getElementById('drive-conflict-banner')?.classList.remove('flex'); };
 
-window.findOrPullDriveFile = async function() { 
-    try { 
-        let res = await gapi.client.drive.files.list({ q: `name='${DRIVE_FILE_NAME}' and trashed=false`, spaces: 'drive', fields: 'files(id, modifiedTime)' }); 
+window.findOrPullDriveFile = async function() {
+    window.setDriveSyncState('syncing');
+    try {
+        let res = await gapi.client.drive.files.list({ q: `name='${DRIVE_FILE_NAME}' and trashed=false`, spaces: 'drive', fields: 'files(id, modifiedTime)' });
         if (res.result.files && res.result.files.length > 0) { 
             window.driveFileId = res.result.files[0].id; 
             window.driveSyncMeta.lastKnownModifiedTime = res.result.files[0].modifiedTime; window.saveDriveSyncMeta();
@@ -1955,26 +1983,31 @@ window.findOrPullDriveFile = async function() {
                 if (cloudClips) { for (const [clipId, b64] of Object.entries(cloudClips)) { const numId = parseInt(clipId, 10); await window.audioDbSet(isNaN(numId) ? clipId : numId, b64); } }
             }
         } catch (err) {}
-    } catch (err) {} 
+        window.setDriveSyncState('synced');
+    } catch (err) { window.setDriveSyncState('error'); }
 }
 
 window.uploadToDriveRaw = async function(dbData) {
     if (!window.isDriveConnected) return;
+    window.setDriveSyncState('syncing');
     try {
-        const file = new Blob([JSON.stringify(dbData)], {type: 'application/json'}); const form = new FormData(); form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' })); form.append('file', file); const token = gapi.client.getToken().access_token; let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime'; let method = 'POST'; if (window.driveFileId) { url = `https://www.googleapis.com/upload/drive/v3/files/${window.driveFileId}?uploadType=multipart&fields=id,modifiedTime`; method = 'PATCH'; } let res = await fetch(url, { method: method, headers: { 'Authorization': 'Bearer ' + token }, body: form }); let jsonRes = await res.json(); if (!window.driveFileId) window.driveFileId = jsonRes.id; 
+        const file = new Blob([JSON.stringify(dbData)], {type: 'application/json'}); const form = new FormData(); form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' })); form.append('file', file); const token = gapi.client.getToken().access_token; let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime'; let method = 'POST'; if (window.driveFileId) { url = `https://www.googleapis.com/upload/drive/v3/files/${window.driveFileId}?uploadType=multipart&fields=id,modifiedTime`; method = 'PATCH'; } let res = await fetch(url, { method: method, headers: { 'Authorization': 'Bearer ' + token }, body: form }); let jsonRes = await res.json(); if (!window.driveFileId) window.driveFileId = jsonRes.id;
         if (jsonRes.modifiedTime) { window.driveSyncMeta.lastKnownModifiedTime = jsonRes.modifiedTime; window.saveDriveSyncMeta(); }
         window.pendingSyncDbData = null; window.hideConflictBanner();
-    } catch (err) {} 
+        window.setDriveSyncState('synced');
+    } catch (err) { window.setDriveSyncState('error'); }
 }
 
 window.uploadToDrive = async function(dbData) {
     if (!window.isDriveConnected) return;
+    window.setDriveSyncState('syncing');
     if (window.driveFileId && window.driveSyncMeta.lastKnownModifiedTime) {
         try {
             const meta = await gapi.client.drive.files.get({ fileId: window.driveFileId, fields: 'modifiedTime' });
             if (meta.result && meta.result.modifiedTime && meta.result.modifiedTime !== window.driveSyncMeta.lastKnownModifiedTime) {
                 window.pendingSyncDbData = dbData;
                 window.showConflictBanner();
+                window.setDriveSyncState('conflict');
                 return; // hold off overwriting until the person picks a side
             }
         } catch (err) {}
@@ -2242,6 +2275,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('close-chain-modal')?.addEventListener('click', () => document.getElementById('chain-modal')?.classList.replace('flex', 'hidden'));
     document.getElementById('drive-auth-btn')?.addEventListener('click', () => { if (!window.isDriveConnected && window.tokenClient) { window.tokenClient.requestAccessToken({prompt: 'consent'}); } else if (!window.tokenClient) { alert("Google Auth script is blocked or still loading. Check your AdBlocker."); } });
+    document.getElementById('drive-sync-badge')?.addEventListener('click', () => {
+        if (window.driveSyncState === 'unsynced' || window.driveSyncState === 'error') { clearTimeout(window.dbTimeout); window.uploadToDrive(window.db); }
+        else if (window.driveSyncState === 'conflict') { document.getElementById('drive-conflict-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    });
+    window.addEventListener('beforeunload', (e) => {
+        if (window.isDriveConnected && (window.driveSyncState === 'unsynced' || window.driveSyncState === 'syncing' || window.driveSyncState === 'error')) { e.preventDefault(); e.returnValue = ''; }
+    });
     document.getElementById('btn-backup-vault')?.addEventListener('click', () => window.downloadVaultBackup());
     document.getElementById('btn-restore-vault')?.addEventListener('click', () => document.getElementById('restore-vault-input')?.click());
     document.getElementById('restore-vault-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.restoreVaultFromFile(file); e.target.value = ''; });

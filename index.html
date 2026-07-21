@@ -2457,7 +2457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.buildGenreColorMap();
         genres.forEach(genre => {
             const gc = window.genreColor(genre);
-            const btn = document.createElement('button'); btn.className = 'btn-menu w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
+            const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
             const option = document.createElement('option'); option.value = genre; datalist.appendChild(option);
         });
         if(genres.length > 0 && (!window.currentCookbookGenre || !genres.includes(window.currentCookbookGenre))) window.selectGenre(genres[0]);
@@ -2476,7 +2476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const instMenu = document.getElementById('inst-menu'); if(instMenu) instMenu.innerHTML = ''; 
         const instruments = window.db.cookbook.filter(r => r.genre === genre);
         instruments.forEach((data, index) => {
-            const btn = document.createElement('button'); btn.className = 'btn-menu w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold text-[#00FF88]/60 border border-transparent'; btn.innerText = data.inst; btn.dataset.id = data.id; btn.addEventListener('click', () => window.selectInst(data.id)); if(instMenu) instMenu.appendChild(btn);
+            const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold text-[#00FF88]/60 border border-transparent'; btn.innerText = data.inst; btn.dataset.id = data.id; btn.addEventListener('click', () => window.selectInst(data.id)); if(instMenu) instMenu.appendChild(btn);
             if (index === 0) setTimeout(() => window.selectInst(data.id), 50);
         });
     };

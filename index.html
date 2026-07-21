@@ -237,6 +237,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-tones" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Tone DB [Tags/Img]</button>
     <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator & Tools</button>
     <button id="nav-lab" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Lab // X-Tools</button>
+    <button id="nav-lyrics" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Lyrics Lab // Cut-Up</button>
     <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Notes Vault</button>
 
     <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
@@ -800,6 +801,50 @@ main { background: rgba(5,8,7,0.72); }
             <div id="lab-cold-out" class="space-y-2 max-h-[220px] overflow-y-auto"></div>
         </div>
 
+        <!-- BEAT SKETCH — step sequencer (drummer) -->
+        <div class="card border-[#00FF8830] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-[#00FF8820] pb-2">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🥁 BEAT SKETCH — 16-STEP SEQUENCER</h4>
+                <div class="flex items-center gap-2">
+                    <button id="btn-beat-play" type="button" class="btn-ferrett-green px-4 py-1.5">▶ PLAY</button>
+                    <button id="btn-beat-clear" type="button" class="btn-ferrett px-3 py-1.5">CLEAR</button>
+                    <input type="number" id="beat-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[13px] font-bold text-[#00FF88] w-16 py-1 focus:outline-none">
+                    <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Synthesized drums, all in-browser. Sketch a groove, then rebuild it for real. Presets get you started.</p>
+            <div class="flex flex-wrap gap-2 mb-4" id="beat-presets"></div>
+            <div id="beat-grid" class="space-y-1.5 overflow-x-auto"></div>
+        </div>
+
+        <!-- CHORD PROGRESSION BOOK (guitar / bass / keys) -->
+        <div class="card border-[#00E5FF30] mb-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🎹 CHORD PROGRESSION BOOK</h4>
+            <div class="grid grid-cols-2 gap-3 mb-4 max-w-md">
+                <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">KEY</label><select id="prog-key" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">TONALITY</label><select id="prog-tonality" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="major">Major</option><option value="minor">Minor</option></select></div>
+            </div>
+            <div id="prog-list" class="space-y-2"></div>
+        </div>
+
+        <!-- GUITAR / BASS CHORD DIAGRAMS -->
+        <div class="card border-[#FFD60A30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-[#FFD60A20] pb-2">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 CHORD DIAGRAM LIBRARY</h4>
+                <div class="flex gap-2" id="chord-inst-toggle">
+                    <button data-inst="guitar" class="chord-inst btn-ferrett px-3 py-1 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.12)">GUITAR</button>
+                    <button data-inst="bass" class="chord-inst btn-ferrett px-3 py-1 text-[10px]">BASS</button>
+                </div>
+            </div>
+            <div id="chord-diagrams" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+        </div>
+
+        <!-- SONG STRUCTURE TEMPLATES (reference) -->
+        <div class="card border-[#B18CFF30] mb-6">
+            <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-4 border-b border-[#B18CFF20] pb-2">🧱 SONG STRUCTURE TEMPLATES</h4>
+            <div id="struct-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
         <!-- Exporters -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
             <div class="card border-[#00FF8830]">
@@ -824,6 +869,45 @@ main { background: rgba(5,8,7,0.72); }
             </div>
         </div>
 
+    </section>
+
+    <section id="tab-lyrics" class="middle-tab p-4 md:p-8 max-w-4xl border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#FF88FF20] pb-2 mb-5"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#FF88FF]">LYRICS LAB // CUT-UP ENGINE</h2><span class="text-[9px] text-[#FF88FF]/40 tracking-widest hidden sm:block">DRAG · SHUFFLE · SPLICE</span></div>
+
+        <!-- sheet tabs -->
+        <div class="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-hide">
+            <div id="lyr-sheet-tabs" class="flex items-center gap-1.5"></div>
+            <button id="btn-lyr-new-sheet" type="button" class="shrink-0 text-[10px] font-bold tracking-widest bg-[#FF88FF15] border border-[#FF88FF30] hover:bg-[#FF88FF30] text-[#FF88FF] px-3 py-1.5 rounded transition-colors">+ SHEET</button>
+        </div>
+
+        <input type="text" id="lyr-title" class="bg-transparent border-b border-[#FF88FF40] text-[#FF88FF] font-bold text-[15px] mb-4 px-2 py-1.5 focus:outline-none w-full" placeholder="Name this song…">
+
+        <!-- toolbar -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+            <button id="btn-lyr-cutup" type="button" class="btn-ferrett px-4 py-2" style="border-color:#FF88FF80;color:#FF88FF;background:rgba(255,136,255,0.12)" title="Bowie/Cobain cut-up — randomize line order">✂️ CUT-UP SHUFFLE</button>
+            <button id="btn-lyr-cutup-sec" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Shuffle only within each section">SHUFFLE IN SECTION</button>
+            <button id="btn-lyr-undo" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Undo last shuffle/edit">↶ UNDO</button>
+            <button id="btn-lyr-add-line" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">+ LINE</button>
+            <label class="flex items-center gap-1.5 text-[9px] text-[#FF88FF]/70 tracking-widest cursor-pointer ml-1"><input type="checkbox" id="lyr-show-syl" class="accent-[#FF88FF]" checked> SYLLABLES</label>
+            <div class="flex-1"></div>
+            <button id="btn-lyr-export" type="button" class="btn-ferrett px-3 py-2 text-[10px]">↓ .TXT</button>
+            <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Track DB as a new stub">→ TRACK</button>
+        </div>
+
+        <!-- line editor -->
+        <div id="lyr-lines" class="space-y-1 mb-2"></div>
+        <div id="lyr-meta" class="text-[9px] text-[#FF88FF]/50 font-mono tracking-widest mb-6"></div>
+
+        <!-- rhyme / word bank -->
+        <div class="card border-[#B18CFF30]">
+            <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🔤 SLANT-RHYME FINDER</h4>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type a word (or tap one in your lyrics) — get near-rhymes from a built-in bank plus words already in your sheets.</p>
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="lyr-rhyme-in" placeholder="word to rhyme…" class="flex-1 bg-black/50 border border-[#B18CFF]/30 rounded text-[12px] text-[#E2E8F0]/90 px-3 py-2 focus:outline-none">
+                <button id="btn-lyr-rhyme" type="button" class="btn-ferrett px-4 py-2" style="border-color:#B18CFF80;color:#B18CFF">FIND</button>
+            </div>
+            <div id="lyr-rhyme-out" class="flex flex-wrap gap-1.5"></div>
+        </div>
     </section>
 
   </div>
@@ -2503,9 +2587,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.switchTab = (tabId) => {
         if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); }
-        if (tabId !== 'lab') { window.stopTestTone?.(); }
+        if (tabId !== 'lab') { window.stopTestTone?.(); window.stopBeatSketch?.(); }
         if (tabId === 'calc') { window.renderSessionStats?.(); }
         if (tabId === 'lab') { window.refreshLab?.(); }
+        if (tabId === 'lyrics') { window.refreshLyrics?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
@@ -2526,7 +2611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
-    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc', 'lab'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc', 'lab', 'lyrics'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
 
     // Notes is a persistent footer under every tab, not a switchable tab — just expand/collapse it.
     window.NOTES_FOOTER_KEY = 'ferrett_os_notes_footer_open_v1';
@@ -4918,6 +5003,257 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('gigbag-modal') && !$('gigbag-modal').classList.contains('hidden')){ $('gigbag-modal').classList.add('hidden'); $('gigbag-modal').classList.remove('flex'); } });
     // first paint of dynamic panels
     window.refreshLab();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<!-- ============================ LYRICS LAB + PLAYER TOOLS ============================ -->
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+  function syllables(word){
+    word=word.toLowerCase().replace(/[^a-z]/g,''); if(!word) return 0; if(word.length<=3) return 1;
+    word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');
+    const m=word.match(/[aeiouy]{1,2}/g); return m?m.length:1;
+  }
+
+  // ==================== LYRICS LAB ====================
+  const LYR_KEY='ferrett_os_lyrics_v1';
+  const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'OUTRO':['◆','#FF5A5A'] };
+  let lyrState=null, lyrUndo=[];
+  function loadLyr(){ try{ const r=localStorage.getItem(LYR_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+  function saveLyr(){ try{ localStorage.setItem(LYR_KEY, JSON.stringify(lyrState)); }catch(e){} }
+  function initLyrState(){
+    lyrState=loadLyr();
+    if(!lyrState || !lyrState.sheets || !lyrState.sheets.length){
+      lyrState={ activeId:1, sheets:[{ id:1, title:'Untitled', lines:[{text:'',tag:''}] }] };
+      saveLyr();
+    }
+  }
+  const activeSheet=()=> lyrState.sheets.find(s=>s.id===lyrState.activeId) || lyrState.sheets[0];
+  function pushUndo(){ try{ lyrUndo.push(JSON.stringify(activeSheet().lines)); if(lyrUndo.length>25) lyrUndo.shift(); }catch(e){} }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+  function renderSheetTabs(){
+    const wrap=$('lyr-sheet-tabs'); if(!wrap) return;
+    wrap.innerHTML=lyrState.sheets.map(s=>{ const on=s.id===lyrState.activeId; return `<button class="lyr-tab shrink-0 text-[10px] font-bold tracking-widest px-3 py-1.5 rounded border transition-colors ${on?'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]':'border-[#FF88FF20] text-[#FF88FF]/50 hover:text-[#FF88FF]'}" data-id="${s.id}">${(s.title||'Untitled').slice(0,18)}${lyrState.sheets.length>1?` <span class="lyr-tab-x text-white/30 hover:text-[#FF5A5A] ml-1" data-del="${s.id}">×</span>`:''}</button>`; }).join('');
+    wrap.querySelectorAll('.lyr-tab').forEach(b=>b.addEventListener('click',(e)=>{ if(e.target.classList.contains('lyr-tab-x')) return; lyrState.activeId=parseInt(b.dataset.id,10); lyrUndo=[]; saveLyr(); renderLyr(); }));
+    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; saveLyr(); renderLyr(); }));
+  }
+  function renderLines(){
+    const box=$('lyr-lines'); if(!box) return; const sheet=activeSheet(); const showSyl=$('lyr-show-syl')?.checked;
+    box.innerHTML=sheet.lines.map((ln,i)=>{
+      const tc=(TAGS[ln.tag]||TAGS[''])[1];
+      const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
+      return `<div class="lyr-row flex items-center gap-1.5 group" data-i="${i}">`+
+        `<span class="lyr-handle cursor-grab text-white/20 hover:text-[#FF88FF] text-[13px] select-none shrink-0" draggable="true" title="Drag to reorder">⠿</span>`+
+        `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
+        `<input type="text" class="lyr-text flex-1 bg-transparent border-b border-white/10 focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
+        (showSyl?`<span class="text-[9px] font-mono text-[#FF88FF]/60 w-6 text-right shrink-0">${syl||''}</span>`:'')+
+        `<button class="lyr-del text-white/20 hover:text-[#FF5A5A] text-[13px] shrink-0 opacity-0 group-hover:opacity-100" data-i="${i}" title="Delete line">×</button>`+
+        `</div>`;
+    }).join('');
+    // text edit
+    box.querySelectorAll('.lyr-text').forEach(inp=>{
+      inp.addEventListener('input',()=>{ activeSheet().lines[+inp.dataset.i].text=inp.value; saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.parentElement.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
+      inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const i=+inp.dataset.i; activeSheet().lines.splice(i+1,0,{text:'',tag:activeSheet().lines[i].tag}); saveLyr(); renderLines(); const nx=box.querySelector(`.lyr-text[data-i="${i+1}"]`); nx&&nx.focus(); } });
+      inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
+    });
+    box.querySelectorAll('.lyr-tag').forEach(sel=> sel.addEventListener('change',()=>{ activeSheet().lines[+sel.dataset.i].tag=sel.value; saveLyr(); renderLines(); }));
+    box.querySelectorAll('.lyr-del').forEach(b=> b.addEventListener('click',()=>{ pushUndo(); const s=activeSheet(); s.lines.splice(+b.dataset.i,1); if(!s.lines.length) s.lines.push({text:'',tag:''}); saveLyr(); renderLines(); updateLyrMeta(); }));
+    wireDnD();
+    updateLyrMeta();
+  }
+  function wireDnD(){
+    const box=$('lyr-lines'); let dragI=null;
+    box.querySelectorAll('.lyr-handle').forEach(h=>{
+      h.addEventListener('dragstart',(e)=>{ dragI=+h.closest('.lyr-row').dataset.i; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',String(dragI));}catch(err){} });
+    });
+    box.querySelectorAll('.lyr-row').forEach(row=>{
+      row.addEventListener('dragover',(e)=>{ e.preventDefault(); row.style.borderTop='2px solid #FF88FF'; });
+      row.addEventListener('dragleave',()=>{ row.style.borderTop=''; });
+      row.addEventListener('drop',(e)=>{ e.preventDefault(); row.style.borderTop=''; const to=+row.dataset.i; if(dragI===null||dragI===to) return; pushUndo(); const lines=activeSheet().lines; const [m]=lines.splice(dragI,1); lines.splice(to,0,m); saveLyr(); renderLines(); dragI=null; });
+    });
+  }
+  function updateLyrMeta(){
+    const s=activeSheet(); const nonEmpty=s.lines.filter(l=>l.text.trim());
+    const totSyl=nonEmpty.reduce((sum,l)=>sum+l.text.trim().split(/\s+/).filter(Boolean).reduce((a,w)=>a+syllables(w),0),0);
+    const avg=nonEmpty.length?(totSyl/nonEmpty.length).toFixed(1):'0';
+    const m=$('lyr-meta'); if(m) m.textContent=`${nonEmpty.length} LINES · ${totSyl} SYLLABLES · ${avg} AVG/LINE`;
+  }
+  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); }
+
+  // ---- built-in rhyme bank ----
+  const RHYME_BANK='time rhyme climb prime mind find grind line shine sign design fire desire higher wire light night fight right sight tight bright flight sky high fly try eye cry die lie why day way say play stay away pray grey fade made way pain rain chain brain gain train plane game name flame fame blame shame ground sound found around down town crown clown gold cold bold soul road load code mode flow low grow show know glow slow snow soul roll control goal whole heart start apart part smart dark spark heavy ready steady heart hard guard hold gold fold told sold cold night alright tonight world word heard bird hurt work dirt love above enough tough rough stuff stay pay away today gun run fun done son one gone alone zone throne home roam dome smoke broke woke hope dope rope scope real feel deal steel steal wheel money honey funny sunny run done street beat heat sweet complete defeat repeat mine fine wine divine live give real deal fear tear near clear year hear dream team scheme cream king ring thing bring sing wing swing sting'.split(' ');
+  function rkey(w){ w=w.toLowerCase().replace(/[^a-z]/g,''); w=w.replace(/([^aeiou])e$/,'$1'); return { s2:w.slice(-2), s3:w.slice(-3), w }; }
+  function findRhymes(){
+    const inp=$('lyr-rhyme-in'), out=$('lyr-rhyme-out'); if(!out) return;
+    const target=(inp.value||'').trim(); if(!target){ out.innerHTML='<span class="text-[10px] text-white/25 italic">Type a word…</span>'; return; }
+    const tk=rkey(target);
+    const corpus=new Set(RHYME_BANK);
+    lyrState.sheets.forEach(s=>s.lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>2) corpus.add(w); })));
+    const strong=[], slant=[];
+    corpus.forEach(w=>{ if(w===tk.w) return; const k=rkey(w); if(k.s3===tk.s3 && tk.s3.length===3) strong.push(w); else if(k.s2===tk.s2) slant.push(w); });
+    const uniq=(a)=>[...new Set(a)].sort((x,y)=>x.length-y.length).slice(0,24);
+    const chips=(arr,col)=>uniq(arr).map(w=>`<button class="lyr-rchip text-[10px] font-mono px-2 py-1 rounded border cursor-pointer" style="color:${col};border-color:${col}40;background:${col}0A" data-w="${w}">${w}</button>`).join('');
+    let html='';
+    if(strong.length) html+=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mb-1">RHYMES</div>`+chips(strong,'#FF88FF');
+    if(slant.length) html+=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mt-2 mb-1">SLANT / NEAR</div>`+chips(slant,'#B18CFF');
+    out.innerHTML=html||'<span class="text-[10px] text-white/25 italic">No matches in the bank — try a shorter or more common word.</span>';
+    out.querySelectorAll('.lyr-rchip').forEach(c=>c.addEventListener('click',()=>{ inp.value=c.dataset.w; findRhymes(); }));
+  }
+
+  function lyrCutup(sectionOnly){
+    pushUndo(); const s=activeSheet();
+    if(sectionOnly){
+      const groups={}; s.lines.forEach((l,i)=>{ (groups[l.tag]=groups[l.tag]||[]).push(l); });
+      Object.keys(groups).forEach(k=>shuffle(groups[k]));
+      const order=[...new Set(s.lines.map(l=>l.tag))]; const rebuilt=[]; order.forEach(t=>{ groups[t].forEach(l=>rebuilt.push(l)); });
+      s.lines=rebuilt;
+    } else { shuffle(s.lines); }
+    saveLyr(); renderLines();
+    const b=$('lyr-lines'); if(b){ b.style.transition='none'; b.style.opacity='0.3'; requestAnimationFrame(()=>{ b.style.transition='opacity .3s'; b.style.opacity='1'; }); }
+  }
+  function lyrExport(){
+    const s=activeSheet(); const txt=s.lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).join('\n');
+    const blob=new Blob([`${s.title||'Untitled'}\n\n${txt}`],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(s.title||'lyrics').replace(/[^a-z0-9]+/gi,'_')+'.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+  }
+  function lyrToTrack(){
+    const s=activeSheet(); const body=s.lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n');
+    window.db.tracks=window.db.tracks||[]; window.db.tracks.unshift({ id:Date.now(), inst:'♪ '+(s.title||'Lyrics'), daw:'both', plugins:'', toneRef:null, recipeRef:null, reflink:'', notes:'LYRICS —\n'+body, images:[] });
+    window.saveData?.(); window.renderTracks?.();
+    const b=$('btn-lyr-totrack'); if(b){ const o=b.textContent; b.textContent='✓ SENT'; setTimeout(()=>b.textContent=o,1400); }
+  }
+  window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
+
+  // ==================== BEAT SKETCH — step sequencer ====================
+  const BEAT_KEY='ferrett_os_beat_v1';
+  const KITS=['KICK','SNARE','HAT','OHAT','CLAP','TOM'];
+  const BEAT_PRESETS={
+    'Boom Bap':{KICK:[0,10],SNARE:[4,12],HAT:'x8',OHAT:[],CLAP:[],TOM:[]},
+    'Trap':{KICK:[0,6,10],SNARE:[8],HAT:'x16',OHAT:[],CLAP:[8],TOM:[]},
+    'Four-Floor':{KICK:[0,4,8,12],SNARE:[],HAT:[2,6,10,14],OHAT:[],CLAP:[4,12],TOM:[]},
+    'Half-Time':{KICK:[0,10],SNARE:[8],HAT:'x8',OHAT:[14],CLAP:[],TOM:[]}
+  };
+  let beatPattern=null, beatAC=null, beatPlaying=false, beatStep=0, beatNextTime=0, beatTimer=null, beatBpm=90;
+  function blankPattern(){ const p={}; KITS.forEach(k=>p[k]=new Array(16).fill(false)); return p; }
+  function loadBeat(){ try{ const r=localStorage.getItem(BEAT_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+  function saveBeat(){ try{ localStorage.setItem(BEAT_KEY, JSON.stringify(beatPattern)); }catch(e){} }
+  function applyPreset(name){ const pr=BEAT_PRESETS[name]; beatPattern=blankPattern(); KITS.forEach(k=>{ let v=pr[k]; if(v==='x8') v=[0,2,4,6,8,10,12,14]; else if(v==='x16') v=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; (v||[]).forEach(i=>{ if(i>=0&&i<16) beatPattern[k][i]=true; }); }); saveBeat(); renderBeatGrid(); }
+  function renderBeatPresets(){ const w=$('beat-presets'); if(!w) return; w.innerHTML=Object.keys(BEAT_PRESETS).map(n=>`<button class="beat-preset btn-ferrett px-3 py-1 text-[10px]" data-p="${n}">${n}</button>`).join(''); w.querySelectorAll('.beat-preset').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.p))); }
+  function renderBeatGrid(){
+    const g=$('beat-grid'); if(!g) return; if(!beatPattern) beatPattern=loadBeat()||blankPattern();
+    g.innerHTML=KITS.map(k=>`<div class="flex items-center gap-1"><span class="text-[8px] font-bold tracking-widest text-[#00FF88]/70 w-9 shrink-0">${k}</span><div class="flex gap-1">${beatPattern[k].map((on,i)=>`<button class="beat-cell w-5 h-5 md:w-6 md:h-6 rounded-sm border transition-colors ${on?'bg-[#00FF88] border-[#00FF88]':'bg-black/40 border-white/10 hover:border-[#00FF88]/50'} ${i%4===0?'ml-1':''}" data-k="${k}" data-i="${i}"></button>`).join('')}</div></div>`).join('');
+    g.querySelectorAll('.beat-cell').forEach(c=>c.addEventListener('click',()=>{ beatPattern[c.dataset.k][+c.dataset.i]=!beatPattern[c.dataset.k][+c.dataset.i]; saveBeat(); renderBeatGrid(); }));
+  }
+  function beatEnsureAC(){ if(!beatAC){ try{ beatAC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(beatAC.state==='suspended') beatAC.resume(); return beatAC; }
+  function noiseBurst(ac,t,dur,hp,gainv){ const len=ac.sampleRate*dur, buf=ac.createBuffer(1,len,ac.sampleRate), d=buf.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1; const src=ac.createBufferSource(); src.buffer=buf; const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; const g=ac.createGain(); g.gain.setValueAtTime(gainv,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); src.stop(t+dur); }
+  function playDrum(k,t){ const ac=beatAC; if(!ac) return;
+    if(k==='KICK'){ const o=ac.createOscillator(),g=ac.createGain(); o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(50,t+0.12); g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.32); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.34); }
+    else if(k==='SNARE'){ noiseBurst(ac,t,0.18,1200,0.5); const o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=190; g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.14); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.16); }
+    else if(k==='HAT'){ noiseBurst(ac,t,0.045,7000,0.35); }
+    else if(k==='OHAT'){ noiseBurst(ac,t,0.28,6500,0.3); }
+    else if(k==='CLAP'){ [0,0.012,0.024].forEach(o=>noiseBurst(ac,t+o,0.12,1500,0.35)); }
+    else if(k==='TOM'){ const o=ac.createOscillator(),g=ac.createGain(); o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(90,t+0.2); g.gain.setValueAtTime(0.6,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.32); }
+  }
+  function beatSchedule(){
+    const ac=beatAC; const stepDur=(60/beatBpm)/4;
+    while(beatNextTime < ac.currentTime+0.1){
+      const step=beatStep, t=beatNextTime;
+      KITS.forEach(k=>{ if(beatPattern[k][step]) playDrum(k,t); });
+      const delay=(t-ac.currentTime)*1000;
+      setTimeout(()=>{ document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>{ if(+c.dataset.i===step) c.classList.add('ring-2','ring-[#FFD60A]'); else c.classList.remove('ring-2','ring-[#FFD60A]'); }); }, Math.max(0,delay));
+      beatNextTime+=stepDur; beatStep=(beatStep+1)%16;
+    }
+    beatTimer=setTimeout(beatSchedule,25);
+  }
+  window.stopBeatSketch=()=>{ beatPlaying=false; if(beatTimer){ clearTimeout(beatTimer); beatTimer=null; } document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>c.classList.remove('ring-2','ring-[#FFD60A]')); const b=$('btn-beat-play'); if(b){ b.textContent='▶ PLAY'; b.classList.add('btn-ferrett-green'); } };
+  function toggleBeat(){ if(beatPlaying){ window.stopBeatSketch(); return; } const ac=beatEnsureAC(); if(!ac) return; beatPlaying=true; beatStep=0; beatNextTime=ac.currentTime+0.05; const b=$('btn-beat-play'); if(b) b.textContent='■ STOP'; beatSchedule(); }
+
+  // ==================== CHORD PROGRESSION BOOK ====================
+  const SC_MAJ=[0,2,4,5,7,9,11], SC_MIN=[0,2,3,5,7,8,10];
+  const Q_MAJ=['','m','m','','','m','dim'], Q_MIN=['m','dim','','m','m','',''];
+  const PROG_MAJ=[['I–V–vi–IV','the "Axis" — half of all pop',[1,5,6,4]],['I–IV–V','blues / rock backbone',[1,4,5]],['ii–V–I','jazz cadence',[2,5,1]],['I–vi–IV–V','50s doo-wop',[1,6,4,5]],['vi–IV–I–V','emo / anthemic',[6,4,1,5]],['I–V–vi–iii–IV–I–IV–V','Pachelbel / Canon',[1,5,6,3,4,1,4,5]]];
+  const PROG_MIN=[['i–VI–III–VII','Andalusian-flavored',[1,6,3,7]],['i–iv–v','natural minor blues',[1,4,5]],['i–VII–VI–VII','driving rock loop',[1,7,6,7]],['i–VI–VII','epic / cinematic',[1,6,7]],['ii°–v–i','minor jazz cadence',[2,5,1]],['i–iv–VII–III','melancholy pop',[1,4,7,3]]];
+  function chordAt(rootIdx,tonality,deg){ const sc=tonality==='major'?SC_MAJ:SC_MIN, q=tonality==='major'?Q_MAJ:Q_MIN; const i=(deg-1)%7; return NOTES[(rootIdx+sc[i])%12]+q[i]; }
+  function buildProg(){
+    const key=$('prog-key'), ton=$('prog-tonality'), list=$('prog-list'); if(!list) return;
+    const ri=NOTES.indexOf(key.value), tonality=ton.value, progs=tonality==='major'?PROG_MAJ:PROG_MIN;
+    list.innerHTML=progs.map(p=>{ const chords=p[2].map(d=>chordAt(ri,tonality,d)); return `<div class="p-3 rounded border border-[#00E5FF20] bg-black/25"><div class="flex items-center justify-between mb-1"><span class="text-[11px] font-bold text-[#00E5FF]">${p[0]}</span><span class="text-[8px] text-white/35 italic">${p[1]}</span></div><div class="flex flex-wrap gap-1.5">${chords.map(c=>`<span class="text-[13px] font-bold font-mono text-white bg-[#00E5FF]/10 border border-[#00E5FF]/25 rounded px-2 py-0.5">${c}</span>`).join('<span class="text-[#00E5FF]/30 self-center">→</span>')}</div></div>`; }).join('');
+  }
+
+  // ==================== GUITAR / BASS CHORD DIAGRAMS ====================
+  // frets low→high string; -1=mute, 0=open, n=fret
+  const CHORDS_GTR={ 'C':[-1,3,2,0,1,0],'A':[-1,0,2,2,2,0],'G':[3,2,0,0,0,3],'E':[0,2,2,1,0,0],'D':[-1,-1,0,2,3,2],'Am':[-1,0,2,2,1,0],'Em':[0,2,2,0,0,0],'Dm':[-1,-1,0,2,3,1],'F':[1,3,3,2,1,1],'Bm':[-1,2,4,4,3,2],'E7':[0,2,0,1,0,0],'A7':[-1,0,2,0,2,0],'D7':[-1,-1,0,2,1,2],'G7':[3,2,0,0,0,1],'Cadd9':[-1,3,2,0,3,0],'Bb':[-1,1,3,3,3,1] };
+  const CHORDS_BASS={ 'E':[0,2,2,-1],'A':[-1,0,2,2],'D':[-1,-1,0,2],'G':[3,2,0,0],'C':[-1,3,2,0],'F':[1,3,3,-1],'B':[-1,2,4,4],'Am':[-1,0,2,2],'Em':[0,2,2,-1] };
+  function fretSVG(name,frets){
+    const S=frets.length, cols=S-1, W=64, H=78, padX=8, padY=16, fretRows=4;
+    const gw=(W-2*padX)/cols, gh=(H-padY-8)/fretRows;
+    let els='';
+    for(let r=0;r<=fretRows;r++){ const y=padY+r*gh; els+=`<line x1="${padX}" y1="${y}" x2="${W-padX}" y2="${y}" stroke="#FFD60A${r===0?'':'30'}" stroke-width="${r===0?2:1}"/>`; }
+    for(let c=0;c<S;c++){ const x=padX+c*gw; els+=`<line x1="${x}" y1="${padY}" x2="${x}" y2="${padY+fretRows*gh}" stroke="#FFD60A30" stroke-width="1"/>`; }
+    frets.forEach((f,c)=>{ const x=padX+c*gw; if(f===-1) els+=`<text x="${x}" y="${padY-4}" text-anchor="middle" fill="#FF5A5A" font-size="8">✕</text>`; else if(f===0) els+=`<circle cx="${x}" cy="${padY-6}" r="3" fill="none" stroke="#00FF88" stroke-width="1.2"/>`; else { const y=padY+(f-0.5)*gh; els+=`<circle cx="${x}" cy="${y}" r="4.5" fill="#FFD60A"/>`; } });
+    return `<svg viewBox="0 0 ${W} ${H}" class="w-full"><text x="${W/2}" y="${H-1}" text-anchor="middle" fill="#FFD60A" font-size="10" font-weight="bold">${name}</text>${els}</svg>`;
+  }
+  let chordInst='guitar';
+  function buildChords(){
+    const wrap=$('chord-diagrams'); if(!wrap) return; const lib=chordInst==='guitar'?CHORDS_GTR:CHORDS_BASS;
+    wrap.innerHTML=Object.keys(lib).map(n=>`<div class="p-1.5 rounded border border-[#FFD60A15] bg-black/25">${fretSVG(n,lib[n])}</div>`).join('');
+  }
+
+  // ==================== SONG STRUCTURE TEMPLATES ====================
+  const STRUCTS=[
+    ['Modern Pop','Intro 4 · Verse 8 · Pre-Chorus 4 · Chorus 8 · Verse 8 · Pre 4 · Chorus 8 · Bridge 8 · Chorus ×2','#FF88FF'],
+    ['Hip-Hop / Rap','Intro 4 · Hook 8 · Verse 16 · Hook 8 · Verse 16 · Hook 8 · Verse 12 · Outro 4','#00FF88'],
+    ['12-Bar Blues','I (4) · IV (2) · I (2) · V (1) · IV (1) · I (2) — repeat','#FFD60A'],
+    ['EDM / Dance','Intro · Build · DROP · Breakdown · Build · DROP · Outro','#00E5FF'],
+    ['AABA (Standard)','A (8) · A (8) · B/Bridge (8) · A (8) = 32-bar form','#B18CFF'],
+    ['Verse-Chorus Rock','Intro · Verse · Chorus · Verse · Chorus · Solo · Chorus · Outro','#FF5A5A']
+  ];
+  function buildStructs(){ const w=$('struct-list'); if(!w) return; w.innerHTML=STRUCTS.map(s=>`<div class="p-3 rounded border bg-black/25" style="border-color:${s[2]}25"><div class="text-[11px] font-bold tracking-widest mb-1" style="color:${s[2]}">${s[0]}</div><div class="text-[10px] text-[#E2E8F0]/60 font-mono leading-relaxed">${s[1]}</div></div>`).join(''); }
+
+  // ==================== INIT ====================
+  function init(){
+    // lyrics
+    if($('tab-lyrics')){
+      initLyrState();
+      $('btn-lyr-new-sheet')?.addEventListener('click',()=>{ const id=Date.now(); lyrState.sheets.push({id,title:'Untitled',lines:[{text:'',tag:''}]}); lyrState.activeId=id; lyrUndo=[]; saveLyr(); renderLyr(); $('lyr-title')?.focus(); });
+      $('lyr-title')?.addEventListener('input',()=>{ activeSheet().title=$('lyr-title').value; saveLyr(); renderSheetTabs(); });
+      $('btn-lyr-cutup')?.addEventListener('click',()=>lyrCutup(false));
+      $('btn-lyr-cutup-sec')?.addEventListener('click',()=>lyrCutup(true));
+      $('btn-lyr-undo')?.addEventListener('click',()=>{ if(!lyrUndo.length) return; activeSheet().lines=JSON.parse(lyrUndo.pop()); saveLyr(); renderLines(); });
+      $('btn-lyr-add-line')?.addEventListener('click',()=>{ activeSheet().lines.push({text:'',tag:''}); saveLyr(); renderLines(); const box=$('lyr-lines'); const last=box.querySelector('.lyr-text:last-of-type'); last&&last.focus(); });
+      $('lyr-show-syl')?.addEventListener('change',renderLines);
+      $('btn-lyr-export')?.addEventListener('click',lyrExport);
+      $('btn-lyr-totrack')?.addEventListener('click',lyrToTrack);
+      $('btn-lyr-rhyme')?.addEventListener('click',findRhymes);
+      $('lyr-rhyme-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') findRhymes(); });
+      renderLyr();
+    }
+    // beat
+    if($('beat-grid')){
+      renderBeatPresets(); renderBeatGrid();
+      $('btn-beat-play')?.addEventListener('click',toggleBeat);
+      $('btn-beat-clear')?.addEventListener('click',()=>{ window.stopBeatSketch(); beatPattern=blankPattern(); saveBeat(); renderBeatGrid(); });
+      $('beat-bpm')?.addEventListener('input',(e)=>{ beatBpm=Math.max(40,Math.min(220,+e.target.value||90)); });
+      beatBpm=+($('beat-bpm')?.value||90);
+    }
+    // chord book
+    if($('prog-key')){
+      $('prog-key').innerHTML=NOTES.map(n=>`<option${n==='C'?' selected':''}>${n}</option>`).join('');
+      ['prog-key','prog-tonality'].forEach(id=>$(id)?.addEventListener('change',buildProg));
+      buildProg();
+    }
+    // chord diagrams
+    if($('chord-diagrams')){
+      document.querySelectorAll('.chord-inst').forEach(b=>b.addEventListener('click',()=>{ chordInst=b.dataset.inst; document.querySelectorAll('.chord-inst').forEach(x=>x.style.background=''); b.style.background='rgba(255,214,10,0.12)'; buildChords(); }));
+      buildChords();
+    }
+    // structures
+    buildStructs();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

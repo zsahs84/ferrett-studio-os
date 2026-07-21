@@ -3021,7 +3021,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
         const activeBtn = document.getElementById(`nav-${tabId}`);
-        if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); if (['tones', 'links', 'calc'].includes(tabId)) activeBtn.classList.add('active-nav-cyan'); else activeBtn.classList.add('active-nav-green'); }
+        if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); activeBtn.classList.add('active-nav-green'); }
     };
 
     window.toggleForm = (formId) => {
@@ -3045,7 +3045,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = document.getElementById('notes-footer-body'); const chevron = document.getElementById('notes-footer-chevron'); const navBtn = document.getElementById('nav-notes');
         if (body) body.classList.toggle('hidden', !open);
         if (chevron) chevron.style.transform = open ? 'rotate(180deg)' : '';
-        if (navBtn) { if (open) { navBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); navBtn.classList.add('active-nav-cyan'); } else { navBtn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); navBtn.classList.remove('active-nav-cyan'); } }
+        if (navBtn) { if (open) { navBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); navBtn.classList.add('active-nav-green'); } else { navBtn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); navBtn.classList.remove('active-nav-green'); } }
         try { window.localStorage.setItem(window.NOTES_FOOTER_KEY, open ? '1' : '0'); } catch (e) {}
     };
     window.toggleNotesFooter = () => { const body = document.getElementById('notes-footer-body'); window.setNotesFooterOpen(body ? body.classList.contains('hidden') : true); };
@@ -4428,40 +4428,39 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         };
 
         // =====================================================================
-        // 12. TONE BPM / KEY SMART-FILTER
+        // 12. TONE TYPE FILTER (+ A/B compare)
+        //   A tone is a NAM+IR pairing described by type + notes ("clean thick
+        //   SRV lead"), so we match by type + free text — not tempo.
         // =====================================================================
         const toneListEl = document.getElementById('tone-list');
-        const applyToneFilter = () => {
-            const bpmV = parseInt(document.getElementById('tf-bpm')?.value, 10);
-            const tol = parseInt(document.getElementById('tf-tol')?.value, 10) || 0;
-            const keyV = (document.getElementById('tf-key')?.value || '').trim().toLowerCase();
-            document.querySelectorAll('#tone-list .card[data-tone-id]').forEach(card => {
-                const t = (window.db.tones || []).find(x => x.id === parseInt(card.dataset.toneId, 10)); if (!t) return;
-                let show = true;
-                if (!isNaN(bpmV)) { const tb = parseInt(t.bpm, 10); show = show && !isNaN(tb) && Math.abs(tb - bpmV) <= tol; }
-                if (keyV) show = show && (t.key || '').toLowerCase().includes(keyV);
-                card.style.display = show ? '' : 'none';
-            });
+        const TONE_TYPES = ['CLEAN', 'CRUNCH', 'DISTORTION', 'BASS'];
+        const syncToneTypeDropdown = () => {
+            const sel = document.getElementById('tf-type'); if (!sel) return;
+            const cats = [...new Set((window.db.tones || []).map(t => t.category).filter(Boolean))];
+            TONE_TYPES.forEach(c => { if (!cats.includes(c)) cats.push(c); });
+            cats.sort();
+            const cur = window.currentToneTag || 'ALL';
+            sel.innerHTML = '<option value="ALL">ALL TYPES</option>' + cats.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
+            sel.value = (cur === 'ALL' || cats.includes(cur)) ? cur : 'ALL';
         };
         if (toneListEl && !document.getElementById('tone-smartfilter')) {
             const bar = document.createElement('div');
             bar.id = 'tone-smartfilter';
             bar.className = 'flex flex-wrap items-center gap-2 mb-3 text-[10px]';
-            bar.innerHTML = `<span class="text-[#FFD60A]/70 font-bold tracking-widest uppercase">BPM/Key filter</span>
-                <input id="tf-bpm" type="number" inputmode="numeric" placeholder="BPM" class="w-20 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
-                <span class="text-white/40">±</span><input id="tf-tol" type="number" value="5" class="w-14 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
-                <input id="tf-key" type="text" placeholder="Key e.g. Am" class="w-28 bg-black/50 border border-[#FFD60A30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#FFD60A70]">
-                <button id="tf-clear" class="px-2 py-1 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">CLEAR</button>
-                <button id="tf-ab" class="px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF]/80 hover:text-[#00E5FF] hover:border-[#00E5FF80] cursor-pointer font-bold tracking-widest" title="Compare two tones side by side">⚖ A/B</button>`;
+            bar.innerHTML = `<span class="text-[#00E5FF]/70 font-bold tracking-widest uppercase">Type</span>
+                <select id="tf-type" class="bg-black/50 border border-[#00E5FF30] rounded px-2 py-1 text-[#E2E8F0] focus:outline-none focus:border-[#00E5FF70] cursor-pointer"></select>
+                <span class="text-white/35 hidden sm:inline">— or use the search box above (name / NAM / IR / notes)</span>
+                <button id="tf-ab" class="px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF]/80 hover:text-[#00E5FF] hover:border-[#00E5FF80] cursor-pointer font-bold tracking-widest ml-auto" title="Compare two tones side by side">⚖ A/B</button>`;
             toneListEl.parentNode.insertBefore(bar, toneListEl);
-            bar.addEventListener('input', applyToneFilter);
-            document.getElementById('tf-clear').addEventListener('click', () => { ['tf-bpm', 'tf-key'].forEach(id => document.getElementById(id).value = ''); document.getElementById('tf-tol').value = '5'; applyToneFilter(); });
+            document.getElementById('tf-type').addEventListener('change', (e) => { if (window.setToneTag) window.setToneTag(e.target.value); else { window.currentToneTag = e.target.value; window.renderTones(); } });
             document.getElementById('tf-ab').addEventListener('click', () => openAB());
+            syncToneTypeDropdown();
         }
-        // renderTones rebuilds the card list, so re-apply the filter after each render
+        // renderTones rebuilds the card list (and its tag pills), so keep the
+        // type dropdown selection + waveforms in sync after each render.
         const _renderTones = window.renderTones;
         if (typeof _renderTones === 'function' && !_renderTones.__filterWrapped) {
-            window.renderTones = function () { const r = _renderTones.apply(this, arguments); applyToneFilter(); if (window.__drawToneWaveforms) window.__drawToneWaveforms(); return r; };
+            window.renderTones = function () { const r = _renderTones.apply(this, arguments); syncToneTypeDropdown(); if (window.__drawToneWaveforms) window.__drawToneWaveforms(); return r; };
             window.renderTones.__filterWrapped = true;
         }
 

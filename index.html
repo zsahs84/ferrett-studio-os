@@ -236,6 +236,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-tracks" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Track DB [Images]</button>
     <button id="nav-tones" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Tone DB [Tags/Img]</button>
     <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator & Tools</button>
+    <button id="nav-lab" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Lab // X-Tools</button>
     <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Notes Vault</button>
 
     <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
@@ -608,6 +609,235 @@ main { background: rgba(5,8,7,0.72); }
         </div>
     </section>
 
+    <section id="tab-lab" class="middle-tab p-4 md:p-8 max-w-6xl border-b border-[#B18CFF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#B18CFF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#B18CFF]">STUDIO LAB // EXPERIMENTAL X-TOOLS</h2><span class="text-[9px] text-[#B18CFF]/40 tracking-widest hidden sm:block">22 TOYS · ALL OFFLINE</span></div>
+
+        <!-- ROW: creative catalysts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#FFD60A40]" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(177,140,255,0.04));">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎲 SHUFFLE A CHALLENGE</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Random recipe + tempo + key + a creative constraint. Break the blank-page freeze.</p>
+                <div id="lab-challenge-out" class="hidden mb-4 p-3 rounded border border-[#FFD60A25] bg-black/40 space-y-2"></div>
+                <button id="btn-lab-challenge" type="button" class="btn-ferrett-green px-6 py-2" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1);">ROLL THE DICE</button>
+            </div>
+            <div class="card border-[#B18CFF40]" style="background:linear-gradient(135deg,rgba(177,140,255,0.07),rgba(0,229,255,0.03));">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🃏 VIBE ROULETTE</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Oblique-strategy cards for producers. Pull one when you're stuck.</p>
+                <div id="lab-vibe-card" class="mb-4 p-4 rounded border border-[#B18CFF25] bg-black/40 text-center text-[13px] text-[#E2E8F0]/85 italic min-h-[64px] flex items-center justify-center">Pull a card…</div>
+                <button id="btn-lab-vibe" type="button" class="btn-ferrett px-6 py-2" style="border-color:#B18CFF80;color:#B18CFF;background:rgba(177,140,255,0.1);">PULL A CARD</button>
+            </div>
+        </div>
+
+        <!-- ROW: tone generator + break timer -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔊 TEST-TONE & NOISE LAB</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Room / monitor checks, tuning drones, ear training. Watch your levels.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button data-tone="sine" class="lab-tone-src btn-ferrett px-3 py-1.5">SINE</button>
+                    <button data-tone="white" class="lab-tone-src btn-ferrett px-3 py-1.5">WHITE</button>
+                    <button data-tone="pink" class="lab-tone-src btn-ferrett px-3 py-1.5">PINK</button>
+                    <button data-tone="sweep" class="lab-tone-src btn-ferrett px-3 py-1.5">SWEEP 20→20k</button>
+                </div>
+                <div class="flex items-center gap-3 mb-3">
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-10">FREQ</label>
+                    <input type="range" id="lab-tone-freq" min="20" max="12000" value="440" class="flex-1 accent-[#00E5FF]">
+                    <span id="lab-tone-freq-val" class="text-[11px] font-mono text-[#00E5FF] w-16 text-right">440 Hz</span>
+                </div>
+                <div class="flex items-center gap-3 mb-4">
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-10">VOL</label>
+                    <input type="range" id="lab-tone-vol" min="0" max="60" value="18" class="flex-1 accent-[#00E5FF]">
+                    <span id="lab-tone-vol-val" class="text-[11px] font-mono text-[#00E5FF] w-16 text-right">18%</span>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button data-ref="440" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">A 440</button>
+                    <button data-ref="82.41" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">Low E 82</button>
+                    <button data-ref="110" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">A 110</button>
+                    <button data-ref="60" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">60 Hz hum</button>
+                    <button data-ref="1000" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">1 kHz</button>
+                </div>
+                <button id="btn-lab-tone-toggle" type="button" class="btn-ferrett-green px-6 py-2">▶ PLAY</button>
+            </div>
+            <div class="card border-[#FF5A5A40]">
+                <h4 class="text-[11px] text-[#FF5A5A] font-bold tracking-widest mb-3 border-b border-[#FF5A5A20] pb-2">👂 EAR-FATIGUE / BREAK TIMER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Pomodoro for your ears. Mixing decisions rot after ~45 min at volume. Chimes when it's time to rest.</p>
+                <div class="text-center mb-4">
+                    <div id="lab-break-clock" class="text-[46px] font-bold text-[#FF5A5A] font-mono leading-none">45:00</div>
+                    <div id="lab-break-state" class="text-[9px] text-[#FF5A5A]/50 tracking-widest mt-1">READY</div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+                    <button data-mins="45" class="lab-break-preset btn-ferrett px-2 py-1 text-[10px]">45 MIN</button>
+                    <button data-mins="25" class="lab-break-preset btn-ferrett px-2 py-1 text-[10px]">25 MIN</button>
+                    <button data-mins="60" class="lab-break-preset btn-ferrett px-2 py-1 text-[10px]">60 MIN</button>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-lab-break-toggle" type="button" class="btn-ferrett-green px-5 py-2 flex-1">▶ START</button>
+                    <button id="btn-lab-break-reset" type="button" class="btn-ferrett px-4 py-2">RESET</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW: idea catcher + voice memos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">⚡ IDEA CATCHER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Tap the tempo of an idea, name it, and spawn a track-DB stub before it escapes.</p>
+                <div class="flex items-center gap-4 mb-4">
+                    <button id="btn-lab-idea-tap" type="button" class="w-24 h-24 rounded-full bg-[#00FF88]/10 border-2 border-[#00FF88]/50 text-[#00FF88] hover:bg-[#00FF88] hover:text-black transition-all text-[15px] font-bold tracking-[0.2em] active:scale-95 shrink-0">TAP</button>
+                    <div class="flex-1">
+                        <div class="flex items-baseline gap-2 mb-2"><span id="lab-idea-bpm" class="text-[34px] font-bold text-[#00FF88] font-mono leading-none">—</span><span class="text-[11px] text-[#00FF88]/50 font-bold">BPM</span></div>
+                        <input type="text" id="lab-idea-name" placeholder="idea name…" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none mb-2">
+                        <select id="lab-idea-key" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[11px] px-2 py-1.5 focus:outline-none"></select>
+                    </div>
+                </div>
+                <button id="btn-lab-idea-save" type="button" class="btn-ferrett-green px-6 py-2">→ SPAWN TRACK STUB</button>
+            </div>
+            <div class="card border-[#FF88FF40]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎙️ VOICE-MEMO SCRATCHPAD</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Hum / beatbox an idea straight into the vault (IndexedDB, offline). Never texted to your phone again.</p>
+                <div class="flex gap-2 mb-4">
+                    <button id="btn-lab-memo-rec" type="button" class="btn-ferrett-green px-5 py-2 flex-1">● RECORD</button>
+                    <span id="lab-memo-status" class="text-[10px] font-mono text-[#FF88FF]/70 self-center"></span>
+                </div>
+                <div id="lab-memo-list" class="space-y-2 max-h-[180px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- ROW: circle of fifths + scale helper -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">◎ CIRCLE OF FIFTHS</h4>
+                <div class="flex justify-center mb-2"><svg id="lab-cof-svg" viewBox="0 0 260 260" class="w-full max-w-[260px]"></svg></div>
+                <div id="lab-cof-info" class="text-center text-[11px] text-[#E2E8F0]/70 font-mono min-h-[40px]"></div>
+            </div>
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎼 SCALE & MODE HELPER</h4>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">ROOT</label><select id="lab-scale-root" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                    <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">SCALE</label><select id="lab-scale-type" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                </div>
+                <div id="lab-scale-notes" class="flex flex-wrap gap-2 mb-3"></div>
+                <div id="lab-scale-chords" class="text-[10px] text-[#E2E8F0]/55 font-mono leading-relaxed"></div>
+            </div>
+        </div>
+
+        <!-- ROW: reverb recommender + mic/spl calc -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#FF88FF30]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">TEMPO (BPM)</label><input type="number" id="lab-rev-bpm" value="90" min="40" max="220" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-center text-[#FF88FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                    <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">VERB TYPE</label><select id="lab-rev-type" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-[#FF88FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="vocal">Vocal Plate</option><option value="room">Drum Room</option><option value="hall">Lush Hall</option><option value="slap">Slapback</option></select></div>
+                </div>
+                <div id="lab-rev-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-2"></div>
+            </div>
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎤 MIC 3:1 & SPL FALLOFF</h4>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SOURCE↔MIC (in)</label><input type="number" id="lab-mic-dist" value="6" min="1" max="120" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                    <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SPL @ MIC (dB)</label><input type="number" id="lab-mic-spl" value="94" min="40" max="140" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                </div>
+                <div id="lab-mic-out" class="font-mono text-[11px] text-[#E2E8F0]/80 space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- ROW: file size calc + syllable counter -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">💾 FILE-SIZE & RECORD-TIME</h4>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">RATE</label><select id="lab-fs-rate" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="44100">44.1k</option><option value="48000" selected>48k</option><option value="88200">88.2k</option><option value="96000">96k</option><option value="192000">192k</option></select></div>
+                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">BITS</label><select id="lab-fs-bits" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="16">16</option><option value="24" selected>24</option><option value="32">32f</option></select></div>
+                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CH</label><select id="lab-fs-ch" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="1">Mono</option><option value="2" selected>Stereo</option><option value="8">8-trk</option><option value="16">16-trk</option></select></div>
+                </div>
+                <div class="mb-3"><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MINUTES</label><input type="number" id="lab-fs-mins" value="4" min="1" max="600" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-center text-[#00E5FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                <div id="lab-fs-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-1"></div>
+            </div>
+            <div class="card border-[#B18CFF30]">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🅰️ BAR / SYLLABLE COUNTER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Paste bars — get syllables per line + total. Keep your flow even.</p>
+                <textarea id="lab-syl-in" rows="4" class="w-full bg-black/50 border border-[#B18CFF]/25 rounded p-2 text-[12px] font-mono text-[#E2E8F0]/90 focus:outline-none resize-none mb-3" placeholder="drop your bars here…"></textarea>
+                <div id="lab-syl-out" class="text-[10px] font-mono text-[#E2E8F0]/70 space-y-1 max-h-[140px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- Loudness targets + EQ collision (reference) -->
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">🎯 LOUDNESS TARGETS (LUFS) — WHERE TO LAND YOUR MASTER</h4>
+            <div id="lab-lufs-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+            <p class="text-[9px] text-[#E2E8F0]/35 mt-4 leading-relaxed">Streaming normalizes to a target — mastering hotter than the target just gets turned down (and often sounds worse). True-peak ceiling of −1 dBTP keeps lossy codecs from clipping.</p>
+        </div>
+        <div class="card border-[#FFD60A30] mb-6">
+            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">📊 FREQUENCY COLLISION MAP — WHO OWNS WHAT</h4>
+            <div id="lab-eq-grid" class="space-y-2"></div>
+            <p class="text-[9px] text-[#E2E8F0]/35 mt-4">Two instruments fighting for the same band = mud. Carve one, boost the other. Bars show each source's core range across 20 Hz → 20 kHz.</p>
+        </div>
+
+        <!-- Session heatmap + achievements -->
+        <div class="card border-[#00E5FF30] mb-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🗓️ STUDIO ACTIVITY HEATMAP — LAST 26 WEEKS</h4>
+            <div id="lab-heatmap" class="overflow-x-auto"></div>
+        </div>
+        <div class="card border-[#FFD60A30] mb-6">
+            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">🏆 ACHIEVEMENTS</h4>
+            <div id="lab-achievements" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+        </div>
+
+        <!-- Studio graph -->
+        <div class="card border-[#B18CFF30] mb-6">
+            <div class="flex items-center justify-between mb-4 border-b border-[#B18CFF20] pb-2">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🕸️ STUDIO GRAPH — WHAT FEEDS WHAT</h4>
+                <button id="btn-lab-graph-refresh" type="button" class="btn-ferrett px-3 py-1 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF;">REDRAW</button>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Every track wired to the tone and recipe it references. Tap a node to jump to it.</p>
+            <div class="overflow-x-auto"><svg id="lab-graph-svg" viewBox="0 0 620 420" class="w-full min-w-[520px]" style="background:radial-gradient(circle at 50% 40%,rgba(177,140,255,0.05),transparent 70%);"></svg></div>
+        </div>
+
+        <!-- Cold storage report -->
+        <div class="card border-[#00E5FF30] mb-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🧊 COLD STORAGE — WHAT'S GONE STALE</h4>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Recipes / tones / tracks you created 90+ days ago and may have forgotten. Time to revisit or retire.</p>
+            <div id="lab-cold-out" class="space-y-2 max-h-[220px] overflow-y-auto"></div>
+        </div>
+
+        <!-- Exporters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎚️ REAPER TRACK TEMPLATE</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Turn a saved tone into a real <span class="text-[#00FF88]/70">.RTrackTemplate</span> — drop it straight onto a REAPER track.</p>
+                <select id="lab-rtt-tone" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[11px] px-2 py-1.5 focus:outline-none mb-3"></select>
+                <button id="btn-lab-rtt" type="button" class="btn-ferrett-green px-5 py-2 w-full">↓ EXPORT TEMPLATE</button>
+            </div>
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🎒 GIG-BAG BUNDLE</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Pick a subset and export a shareable pack (same format as your recipe packs).</p>
+                <button id="btn-lab-gigbag" type="button" class="btn-ferrett px-5 py-2 w-full" style="border-color:#00E5FF80;color:#00E5FF;">BUILD A BUNDLE…</button>
+            </div>
+            <div class="card border-[#FF5A5A40]">
+                <h4 class="text-[11px] text-[#FF5A5A] font-bold tracking-widest mb-3 border-b border-[#FF5A5A20] pb-2">🔐 ENCRYPTED BACKUP</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Passphrase-encrypt (AES-GCM) your whole vault so a backup file is safe to store anywhere.</p>
+                <div class="flex flex-col gap-2">
+                    <button id="btn-lab-enc-export" type="button" class="btn-ferrett-green px-4 py-2" style="border-color:#FF5A5A80;color:#FF5A5A;background:rgba(255,90,90,0.1);">↓ ENCRYPT & SAVE</button>
+                    <button id="btn-lab-enc-import" type="button" class="btn-ferrett px-4 py-2" style="border-color:#FF5A5A80;color:#FF5A5A;">↑ DECRYPT & RESTORE</button>
+                    <input type="file" id="lab-enc-file" accept=".fenc,.json" class="hidden">
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+  </div>
+
+  <!-- GIG BAG MODAL -->
+  <div id="gigbag-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-[#00E5FF20]"><h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF]">🎒 BUILD A GIG-BAG BUNDLE</h3><button id="gigbag-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button></div>
+      <div class="p-5 max-h-[60vh] overflow-y-auto space-y-4" id="gigbag-body"></div>
+      <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-[#00E5FF20]">
+        <span id="gigbag-count" class="text-[10px] text-[#00E5FF]/50 font-mono">0 items selected</span>
+        <button id="gigbag-export" class="btn-ferrett-green px-6 py-2">↓ EXPORT BUNDLE</button>
+      </div>
+    </div>
   </div>
 
   <div id="notes-footer" class="shrink-0 border-t-2 border-[#00E5FF30] bg-[#050807] relative z-20">
@@ -2273,7 +2503,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.switchTab = (tabId) => {
         if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); }
+        if (tabId !== 'lab') { window.stopTestTone?.(); }
         if (tabId === 'calc') { window.renderSessionStats?.(); }
+        if (tabId === 'lab') { window.refreshLab?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
@@ -2294,7 +2526,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
-    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc', 'lab'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
 
     // Notes is a persistent footer under every tab, not a switchable tab — just expand/collapse it.
     window.NOTES_FOOTER_KEY = 'ferrett_os_notes_footer_open_v1';
@@ -4232,6 +4464,462 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         });
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
+
+<!-- ============================ STUDIO LAB // X-TOOLS ============================ -->
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const jump = (scope, id) => { if (window.cmdkJumpToItem) window.cmdkJumpToItem(scope, id); else window.switchTab?.(scope === 'cookbook' ? 'cookbook' : scope); };
+
+  // ---------- 1. SHUFFLE A CHALLENGE ----------
+  const CHALLENGE_CONSTRAINTS = [
+    'No reverb allowed — depth from delay + volume only.',
+    'Mono. Everything center. Earn your width later.',
+    'One synth, one drum bus, nothing else.',
+    'Finish the loop in 25 minutes or it ships as-is.',
+    'Sample the first sound you make in the room.',
+    'Sidechain everything to the kick — even the vocal.',
+    'Write the hook before the beat.',
+    'No presets. Dial every sound from init.',
+    'Cut the arrangement in half, then again.',
+    'Pitch the whole thing down a 4th when you\'re done.',
+    'Only use gear that\'s already in your patchbay.',
+    'Swing it +15% and commit.',
+    'End on a chord that isn\'t the root.'
+  ];
+  function rollChallenge(){
+    const out = $('lab-challenge-out'); if (!out) return;
+    const cb = window.db.cookbook || [];
+    const recipe = cb.length ? cb[Math.floor(Math.random()*cb.length)] : null;
+    const bpm = 70 + Math.floor(Math.random()*90);
+    const key = NOTES[Math.floor(Math.random()*12)] + (Math.random()<0.55 ? ' minor' : ' major');
+    const con = CHALLENGE_CONSTRAINTS[Math.floor(Math.random()*CHALLENGE_CONSTRAINTS.length)];
+    out.classList.remove('hidden');
+    out.innerHTML =
+      `<div class="flex items-center justify-between"><span class="text-[9px] text-[#FFD60A]/60 tracking-widest">RECIPE</span>${recipe?`<button class="text-[11px] text-[#00FF88] font-bold hover:underline cursor-pointer text-right" data-jc="${recipe.id}">${recipe.inst||recipe.genre}</button>`:'<span class="text-[11px] text-white/40">— add recipes first —</span>'}</div>`+
+      `<div class="flex items-center justify-between"><span class="text-[9px] text-[#FFD60A]/60 tracking-widest">TEMPO</span><span class="text-[13px] font-mono font-bold text-[#00E5FF]">${bpm} BPM</span></div>`+
+      `<div class="flex items-center justify-between"><span class="text-[9px] text-[#FFD60A]/60 tracking-widest">KEY</span><span class="text-[13px] font-mono font-bold text-[#B18CFF]">${key}</span></div>`+
+      `<div class="pt-2 border-t border-[#FFD60A15]"><span class="text-[9px] text-[#FFD60A]/60 tracking-widest block mb-1">CONSTRAINT</span><span class="text-[12px] text-[#E2E8F0]/85 italic">${con}</span></div>`;
+    out.querySelector('[data-jc]')?.addEventListener('click', (e)=> jump('cookbook', parseInt(e.currentTarget.dataset.jc,10)));
+  }
+
+  // ---------- 2. VIBE ROULETTE ----------
+  const VIBE_DECK = [
+    'Mute your best element. Rebuild around the hole.',
+    'What would the demo version do? Do that.',
+    'Add a mistake and keep it.',
+    'Halve the tempo in your head — re-vibe it.',
+    'Record the room, not the instrument.',
+    'The intro is 8 bars too long.',
+    'Make the quietest thing the loudest.',
+    'Steal the groove, not the sound.',
+    'One take. No editing. Whatever happens, happens.',
+    'Turn it off and hum what you remember. That\'s the song.',
+    'Reverse something.',
+    'Play it wrong on purpose.',
+    'Less notes. Way less.',
+    'What\'s the drum doing? Make it do less.',
+    'Bring the vocal up 3 dB past comfortable.',
+    'Resample the master back into the beat.',
+    'Change one instrument to a completely wrong one.',
+    'The bridge is the chorus pitched down.',
+    'Commit the effect. Print it. No undo.',
+    'End the session on the loop you like least — fix it tomorrow.'
+  ];
+  function pullVibe(){
+    const el = $('lab-vibe-card'); if (!el) return;
+    el.style.opacity = '0.2';
+    setTimeout(()=>{ el.textContent = '“' + VIBE_DECK[Math.floor(Math.random()*VIBE_DECK.length)] + '”'; el.style.opacity = '1'; }, 140);
+  }
+
+  // ---------- 3. TEST-TONE & NOISE LAB ----------
+  let labAC=null, labNode=null, labGain=null, labType='sine', labPlaying=false;
+  const ensureAC = () => { if(!labAC){ try{ labAC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(labAC.state==='suspended') labAC.resume(); return labAC; };
+  const volFrac = () => { const v = $('lab-tone-vol'); return v ? (+v.value/100)*0.5 : 0.09; };
+  const setToneBtn = (on) => { const b=$('btn-lab-tone-toggle'); if(b){ b.textContent = on ? '■ STOP' : '▶ PLAY'; b.classList.toggle('btn-ferrett', !on); b.classList.toggle('btn-ferrett-green', on); } };
+  window.stopTestTone = () => {
+    labPlaying = false;
+    if(labNode){ try{labNode.onended=null;}catch(e){} try{labNode.stop&&labNode.stop();}catch(e){} try{labNode.disconnect();}catch(e){} labNode=null; }
+    if(labGain){ try{labGain.disconnect();}catch(e){} labGain=null; }
+    setToneBtn(false);
+  };
+  function makeNoiseBuffer(ac, pink){
+    const len = ac.sampleRate*2, buf = ac.createBuffer(1,len,ac.sampleRate), d = buf.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<len;i++){ const w=Math.random()*2-1;
+      if(pink){ b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759; b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856; b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980; d[i]=(b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926; }
+      else d[i]=w;
+    }
+    return buf;
+  }
+  function startTone(){
+    const ac=ensureAC(); if(!ac) return;
+    window.stopTestTone(); labPlaying=true;
+    labGain=ac.createGain(); labGain.gain.value=volFrac(); labGain.connect(ac.destination);
+    if(labType==='sine'){ const o=ac.createOscillator(); o.type='sine'; o.frequency.value=+($('lab-tone-freq').value); o.connect(labGain); o.start(); labNode=o; }
+    else if(labType==='sweep'){ const o=ac.createOscillator(); o.type='sine'; const t=ac.currentTime; o.frequency.setValueAtTime(20,t); o.frequency.exponentialRampToValueAtTime(20000,t+8); o.connect(labGain); o.start(); o.stop(t+8.05); o.onended=()=>{ if(labPlaying && labType==='sweep') startTone(); }; labNode=o; }
+    else { const src=ac.createBufferSource(); src.buffer=makeNoiseBuffer(ac, labType==='pink'); src.loop=true; src.connect(labGain); src.start(); labNode=src; }
+    setToneBtn(true);
+  }
+
+  // ---------- 4. EAR-FATIGUE / BREAK TIMER ----------
+  let breakTotal=45*60, breakLeft=45*60, breakTimer=null;
+  const fmtClock = (s)=>{ const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); };
+  function chime(){ const ac=ensureAC(); if(!ac) return; [880,660,880].forEach((f,i)=>{ const o=ac.createOscillator(), g=ac.createGain(); o.frequency.value=f; o.connect(g); g.connect(ac.destination); const t=ac.currentTime+i*0.28; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.26); o.start(t); o.stop(t+0.28); }); }
+  function paintBreak(){ const c=$('lab-break-clock'); if(c) c.textContent=fmtClock(breakLeft); }
+  function stopBreak(reset){ if(breakTimer){ clearInterval(breakTimer); breakTimer=null; } if(reset){ breakLeft=breakTotal; paintBreak(); const s=$('lab-break-state'); if(s){s.textContent='READY'; s.style.color='';} } const b=$('btn-lab-break-toggle'); if(b) b.textContent='▶ START'; }
+  function toggleBreak(){
+    const b=$('btn-lab-break-toggle'), st=$('lab-break-state');
+    if(breakTimer){ stopBreak(false); if(st) st.textContent='PAUSED'; return; }
+    if(breakLeft<=0){ breakLeft=breakTotal; paintBreak(); }
+    if(st){ st.textContent='MIXING — EARS ON THE CLOCK'; st.style.color=''; }
+    if(b) b.textContent='❚❚ PAUSE';
+    breakTimer=setInterval(()=>{ breakLeft--; paintBreak(); if(breakLeft<=0){ clearInterval(breakTimer); breakTimer=null; chime(); const s=$('lab-break-state'); if(s){ s.textContent='⏸ REST YOUR EARS — 5 MIN'; s.style.color='#FF5A5A'; } if(b) b.textContent='▶ START'; } }, 1000);
+  }
+
+  // ---------- 5. IDEA CATCHER (tap → track) ----------
+  let ideaTaps=[];
+  function ideaTap(){
+    const now=performance.now();
+    if(ideaTaps.length && now-ideaTaps[ideaTaps.length-1]>2000) ideaTaps=[];
+    ideaTaps.push(now); if(ideaTaps.length>6) ideaTaps.shift();
+    if(ideaTaps.length>=2){ let sum=0; for(let i=1;i<ideaTaps.length;i++) sum+=ideaTaps[i]-ideaTaps[i-1]; const bpm=Math.round(60000/(sum/(ideaTaps.length-1))); const el=$('lab-idea-bpm'); if(el) el.textContent=Math.max(30,Math.min(300,bpm)); }
+  }
+  function spawnTrackStub(){
+    const bpmEl=$('lab-idea-bpm'); const bpm=bpmEl?bpmEl.textContent:'—';
+    const name=($('lab-idea-name')?.value||'').trim()||'Untitled idea';
+    const key=$('lab-idea-key')?.value||'';
+    const track={ id:Date.now(), inst:name, daw:'both', plugins:'', toneRef:null, recipeRef:null, reflink:'', notes:`Caught in Idea Catcher — ${bpm} BPM${key?' · '+key:''}. [TODO] flesh this out.`, images:[] };
+    window.db.tracks = window.db.tracks || []; window.db.tracks.unshift(track);
+    window.saveData?.(); window.renderTracks?.();
+    const bmEl=$('lab-idea-name'); if(bmEl) bmEl.value='';
+    const s=$('btn-lab-idea-save'); if(s){ const o=s.textContent; s.textContent='✓ SAVED TO TRACK DB'; setTimeout(()=>{ s.textContent=o; }, 1400); }
+  }
+
+  // ---------- 6. VOICE-MEMO SCRATCHPAD ----------
+  const MEMO_KEY='ferrett_os_memos_v1';
+  const loadMemos=()=>{ try{ const r=localStorage.getItem(MEMO_KEY); if(r) return JSON.parse(r); }catch(e){} return []; };
+  const saveMemos=(m)=>{ try{ localStorage.setItem(MEMO_KEY, JSON.stringify(m)); }catch(e){} };
+  let memoRec=null, memoChunks=[], memoStart=0, memoTick=null;
+  async function toggleMemoRec(){
+    const btn=$('btn-lab-memo-rec'), stat=$('lab-memo-status');
+    if(memoRec && memoRec.state==='recording'){ memoRec.stop(); return; }
+    if(!navigator.mediaDevices?.getUserMedia){ if(stat) stat.textContent='no mic api'; return; }
+    let stream; try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ if(stat) stat.textContent='mic denied'; return; }
+    memoChunks=[]; try{ memoRec=new MediaRecorder(stream); }catch(e){ if(stat) stat.textContent='rec unsupported'; stream.getTracks().forEach(t=>t.stop()); return; }
+    memoRec.ondataavailable=(e)=>{ if(e.data.size) memoChunks.push(e.data); };
+    memoRec.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop()); clearInterval(memoTick);
+      const blob=new Blob(memoChunks,{type:memoRec.mimeType||'audio/webm'});
+      const dur=Math.round((performance.now()-memoStart)/1000);
+      const reader=new FileReader();
+      reader.onload=async()=>{ const id='memo_'+Date.now(); await window.audioDbSet?.(id, reader.result); const memos=loadMemos(); memos.unshift({id, name:'Memo '+new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}), dur}); saveMemos(memos); renderMemos(); };
+      reader.readAsDataURL(blob);
+      if(btn){ btn.textContent='● RECORD'; btn.classList.remove('animate-pulse'); } if(stat) stat.textContent='';
+    };
+    memoStart=performance.now(); memoRec.start();
+    if(btn){ btn.textContent='■ STOP'; btn.classList.add('animate-pulse'); }
+    memoTick=setInterval(()=>{ if(stat) stat.textContent='● '+fmtClock(Math.round((performance.now()-memoStart)/1000)); }, 250);
+  }
+  async function renderMemos(){
+    const wrap=$('lab-memo-list'); if(!wrap) return; const memos=loadMemos();
+    if(!memos.length){ wrap.innerHTML='<div class="text-[10px] text-white/25 italic text-center py-3">No memos yet.</div>'; return; }
+    wrap.innerHTML=memos.map(m=>`<div class="flex items-center gap-2 p-2 rounded border border-[#FF88FF20] bg-black/30"><button class="lab-memo-play text-[#FF88FF] text-[14px] shrink-0" data-id="${m.id}" title="Play">▶</button><div class="flex-1 min-w-0"><div class="text-[10px] text-[#E2E8F0]/80 truncate">${m.name}</div><div class="text-[8px] text-[#FF88FF]/40 font-mono">${fmtClock(m.dur||0)}</div></div><button class="lab-memo-del text-white/30 hover:text-[#FF5A5A] text-[13px] shrink-0" data-id="${m.id}" title="Delete">🗑</button></div>`).join('');
+    wrap.querySelectorAll('.lab-memo-play').forEach(b=>b.addEventListener('click', async()=>{ const b64=await window.audioDbGet?.(b.dataset.id); if(b64){ const a=new Audio(b64); a.play(); } }));
+    wrap.querySelectorAll('.lab-memo-del').forEach(b=>b.addEventListener('click', async()=>{ if(!confirm('Delete this memo?')) return; await window.audioDbDelete?.(b.dataset.id); saveMemos(loadMemos().filter(x=>x.id!==b.dataset.id)); renderMemos(); }));
+  }
+
+  // ---------- 7. CIRCLE OF FIFTHS ----------
+  const COF=['C','G','D','A','E','B','F#','C#','G#','D#','A#','F']; // clockwise fifths
+  const COF_ACC=['0','1♯','2♯','3♯','4♯','5♯','6♯','5♭','4♭','3♭','2♭','1♭'];
+  const REL_MINOR=['Am','Em','Bm','F#m','C#m','G#m','D#m','A#m','Fm','Cm','Gm','Dm'];
+  function buildCOF(){
+    const svg=$('lab-cof-svg'); if(!svg) return; const cx=130, cy=130, rO=118, rI=74;
+    let html='';
+    for(let i=0;i<12;i++){
+      const a=(i/12)*Math.PI*2 - Math.PI/2;
+      const x=cx+Math.cos(a)*96, y=cy+Math.sin(a)*96;
+      html+=`<g class="lab-cof-seg" data-i="${i}" style="cursor:pointer">`+
+        `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="rgba(0,229,255,0.06)" stroke="#00E5FF40" stroke-width="1"/>`+
+        `<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="#00E5FF" font-size="13" font-weight="bold">${COF[i]}</text></g>`;
+    }
+    svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${rO}" fill="none" stroke="#00E5FF18"/><circle cx="${cx}" cy="${cy}" r="${rI}" fill="none" stroke="#00E5FF12"/>`+html;
+    svg.querySelectorAll('.lab-cof-seg').forEach(g=>g.addEventListener('click',()=>selectCOF(parseInt(g.dataset.i,10))));
+    selectCOF(0);
+  }
+  function selectCOF(i){
+    const svg=$('lab-cof-svg'); if(svg) svg.querySelectorAll('.lab-cof-seg circle').forEach((c,idx)=>{ c.setAttribute('fill', idx===i?'#00E5FF':'rgba(0,229,255,0.06)'); }); if(svg) svg.querySelectorAll('.lab-cof-seg text').forEach((t,idx)=> t.setAttribute('fill', idx===i?'#050807':'#00E5FF'));
+    const info=$('lab-cof-info'); if(info) info.innerHTML=`<span class="text-[#00E5FF] font-bold text-[15px]">${COF[i]} major</span> · rel. minor <span class="text-[#B18CFF] font-bold">${REL_MINOR[i]}</span><br><span class="text-white/50">key sig ${COF_ACC[i]} · IV ${COF[(i+11)%12]} · V ${COF[(i+1)%12]}</span>`;
+  }
+
+  // ---------- 8. SCALE & MODE HELPER ----------
+  const SCALES={ 'Major (Ionian)':[0,2,4,5,7,9,11],'Natural Minor':[0,2,3,5,7,8,10],'Dorian':[0,2,3,5,7,9,10],'Phrygian':[0,1,3,5,7,8,10],'Mixolydian':[0,2,4,5,7,9,10],'Harmonic Minor':[0,2,3,5,7,8,11],'Minor Pentatonic':[0,3,5,7,10],'Major Pentatonic':[0,2,4,7,9],'Blues':[0,3,5,6,7,10] };
+  const MAJ_Q=['','m','m','','','m','°'], MIN_Q=['m','°','','m','m','',''];
+  function buildScale(){
+    const root=$('lab-scale-root'), type=$('lab-scale-type'); if(!root||!type) return;
+    const r=NOTES.indexOf(root.value), ivs=SCALES[type.value]||SCALES['Major (Ionian)'];
+    const notes=ivs.map(iv=>NOTES[(r+iv)%12]);
+    const nEl=$('lab-scale-notes'); if(nEl) nEl.innerHTML=notes.map((n,i)=>`<span class="px-2.5 py-1 rounded border border-[#00FF8840] bg-[#00FF88]/10 text-[#00FF88] text-[12px] font-bold font-mono">${n}<sub class="text-[8px] text-[#00FF88]/50 ml-0.5">${i+1}</sub></span>`).join('');
+    const cEl=$('lab-scale-chords');
+    if(cEl){
+      if(ivs.length===7){ const q = type.value.toLowerCase().includes('minor')||['Dorian','Phrygian'].includes(type.value) ? MIN_Q : MAJ_Q; cEl.innerHTML='<span class="text-[#00FF88]/50">Diatonic triads:</span> '+notes.map((n,i)=>n+q[i]).join(' · '); }
+      else cEl.innerHTML='<span class="text-[#00FF88]/50">'+ivs.length+'-note scale — great for melodies & solos over the root.</span>';
+    }
+  }
+
+  // ---------- 9. REVERB & PRE-DELAY RECOMMENDER ----------
+  function buildReverb(){
+    const bpmEl=$('lab-rev-bpm'), tEl=$('lab-rev-type'), out=$('lab-rev-out'); if(!out) return;
+    const bpm=Math.max(40,Math.min(220,+bpmEl.value||90)), q=60000/bpm, type=tEl.value;
+    const rows=[];
+    const pre18=Math.round(q/2), pre116=Math.round(q/4), pre132=Math.round(q/8);
+    let decay, predelay, note;
+    if(type==='vocal'){ decay=(q*2/1000).toFixed(2); predelay=pre18; note='Plate 1.6–2.2s. Pre-delay to the 1/8 keeps words intelligible.'; }
+    else if(type==='room'){ decay=(q/1000).toFixed(2); predelay=pre132; note='Tight room ≈ 1 beat decay. Short pre-delay glues to the kit.'; }
+    else if(type==='hall'){ decay=(q*4/1000).toFixed(2); predelay=pre116; note='Long tail (2 bars). Duck it under the vocal with sidechain.'; }
+    else { decay='0.00'; predelay=pre116; note='Slapback = single 1/16-dotted echo, ~15% mix, no tail.'; }
+    out.innerHTML=`<div class="flex justify-between"><span class="text-white/40">Pre-delay (1/8)</span><span class="text-[#FF88FF] font-bold">${predelay} ms</span></div>`+
+      `<div class="flex justify-between"><span class="text-white/40">Decay / RT60</span><span class="text-[#FF88FF] font-bold">${decay==='0.00'?'—':decay+' s'}</span></div>`+
+      `<div class="flex justify-between"><span class="text-white/40">Tail = 1 bar</span><span class="text-[#00E5FF] font-bold">${(q*4/1000).toFixed(2)} s</span></div>`+
+      `<div class="text-[10px] text-[#E2E8F0]/50 pt-2 border-t border-[#FF88FF15] italic">${note}</div>`;
+  }
+
+  // ---------- 10. MIC 3:1 & SPL FALLOFF ----------
+  function buildMic(){
+    const d=Math.max(0.1,+$('lab-mic-dist').value||6), spl=+$('lab-mic-spl').value||94, out=$('lab-mic-out'); if(!out) return;
+    const second=(d*3).toFixed(1);
+    const at2x=(spl-6).toFixed(1), at4x=(spl-12).toFixed(1);
+    out.innerHTML=`<div class="flex justify-between"><span class="text-white/40">3:1 — 2nd mic ≥</span><span class="text-[#FFD60A] font-bold">${second} in away</span></div>`+
+      `<div class="flex justify-between"><span class="text-white/40">Double the distance</span><span class="text-[#00E5FF] font-bold">${at2x} dB SPL</span></div>`+
+      `<div class="flex justify-between"><span class="text-white/40">4× the distance</span><span class="text-[#00E5FF] font-bold">${at4x} dB SPL</span></div>`+
+      `<div class="text-[10px] text-[#E2E8F0]/50 pt-2 border-t border-[#FFD60A15] italic">Inverse-square law: −6 dB per doubling. 3:1 rule keeps bleed ≥9 dB down so phase stays clean.</div>`;
+  }
+
+  // ---------- 11. FILE-SIZE & RECORD-TIME ----------
+  function buildFileSize(){
+    const rate=+$('lab-fs-rate').value, bits=+$('lab-fs-bits').value, ch=+$('lab-fs-ch').value, mins=Math.max(1,+$('lab-fs-mins').value||4), out=$('lab-fs-out'); if(!out) return;
+    const bytesPerSec=rate*(bits/8)*ch;
+    const mb=(bytesPerSec*mins*60)/1048576;
+    const perMinMB=(bytesPerSec*60)/1048576;
+    const fitIn1GB=Math.floor(1073741824/(bytesPerSec*60));
+    out.innerHTML=`<div class="flex justify-between"><span class="text-white/40">This take (${mins} min)</span><span class="text-[#00E5FF] font-bold">${mb>1024?(mb/1024).toFixed(2)+' GB':mb.toFixed(1)+' MB'}</span></div>`+
+      `<div class="flex justify-between"><span class="text-white/40">Per minute</span><span class="text-[#00FF88] font-bold">${perMinMB.toFixed(1)} MB</span></div>`+
+      `<div class="flex justify-between"><span class="text-white/40">Fits in 1 GB</span><span class="text-[#FFD60A] font-bold">${fitIn1GB} min</span></div>`;
+  }
+
+  // ---------- 12. SYLLABLE / BAR COUNTER ----------
+  function syllables(word){
+    word=word.toLowerCase().replace(/[^a-z]/g,''); if(!word) return 0;
+    if(word.length<=3) return 1;
+    word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');
+    const m=word.match(/[aeiouy]{1,2}/g);
+    return m?m.length:1;
+  }
+  function buildSyllables(){
+    const ta=$('lab-syl-in'), out=$('lab-syl-out'); if(!out) return;
+    const lines=(ta.value||'').split('\n');
+    let total=0, rows='';
+    lines.forEach((ln)=>{ const words=ln.trim().split(/\s+/).filter(Boolean); const c=words.reduce((s,w)=>s+syllables(w),0); total+=c; if(ln.trim()){ const bar=Math.min(c,20); rows+=`<div class="flex items-center gap-2"><span class="text-[#B18CFF] font-bold w-6 text-right">${c}</span><span class="inline-block h-1.5 rounded-full bg-[#B18CFF]/60" style="width:${bar*6}px"></span><span class="text-white/40 truncate flex-1">${ln.trim().slice(0,42)}</span></div>`; } });
+    out.innerHTML=(rows||'<span class="text-white/25 italic">Type some bars…</span>')+(total?`<div class="pt-2 mt-1 border-t border-[#B18CFF15] text-[#B18CFF]">Total: <b>${total}</b> syllables · ${lines.filter(l=>l.trim()).length} bars</div>`:'');
+  }
+
+  // ---------- 13. LOUDNESS TARGETS ----------
+  const LUFS=[['Spotify','−14','−1 dBTP','loud tracks get turned down'],['Apple Music','−16','−1 dBTP','the quietest target — mix with headroom'],['YouTube','−14','−1 dBTP','matches Spotify'],['Amazon Music','−14','−2 dBTP',''],['Tidal','−14','−1 dBTP',''],['SoundCloud','−9 to −8','−1 dBTP','no normalization — go hot'],['Club / DJ','−6 peak','0 dBFS','loud & punchy for PA'],['CD Master','−9','−0.3 dBTP','no target, taste-driven']];
+  function buildLUFS(){ const g=$('lab-lufs-grid'); if(!g) return; g.innerHTML=LUFS.map(r=>`<div class="p-3 rounded border border-[#00FF8820] bg-black/30"><div class="text-[10px] text-[#00FF88] font-bold tracking-widest">${r[0]}</div><div class="text-[24px] font-bold text-white leading-tight">${r[1]}<span class="text-[10px] text-white/40 ml-1">LUFS</span></div><div class="text-[9px] text-[#00E5FF]/60 font-mono">TP ${r[2]}</div>${r[3]?`<div class="text-[8px] text-white/30 mt-1">${r[3]}</div>`:''}</div>`).join(''); }
+
+  // ---------- 14. FREQUENCY COLLISION MAP ----------
+  const EQ=[['Sub Bass',20,90,'#B18CFF'],['808 / Kick',30,120,'#00FF88'],['Bass Gtr',60,700,'#00E5FF'],['Snare',150,4000,'#FFD60A'],['Vocal',120,8000,'#FF88FF'],['Piano/Keys',60,6000,'#00E5FF'],['Guitar',80,5000,'#00FF88'],['Hi-hats',300,16000,'#FFD60A'],['Air/Cymbals',6000,20000,'#FF88FF']];
+  const logPos=(hz)=>{ const min=Math.log10(20), max=Math.log10(20000); return ((Math.log10(hz)-min)/(max-min))*100; };
+  function buildEQ(){ const g=$('lab-eq-grid'); if(!g) return; g.innerHTML='<div class="flex text-[8px] text-white/30 font-mono pl-[92px] justify-between"><span>20</span><span>100</span><span>1k</span><span>10k</span><span>20k</span></div>'+EQ.map(r=>{ const l=logPos(r[1]), w=logPos(r[2])-l; return `<div class="flex items-center gap-2"><span class="text-[9px] text-white/60 font-bold w-[84px] text-right shrink-0">${r[0]}</span><div class="relative flex-1 h-4 rounded bg-black/40 border border-white/5"><div class="absolute h-full rounded" style="left:${l}%;width:${w}%;background:${r[3]}55;border:1px solid ${r[3]}"></div></div></div>`; }).join(''); }
+
+  // ---------- 15. ACTIVITY HEATMAP ----------
+  function buildHeatmap(){
+    const wrap=$('lab-heatmap'); if(!wrap) return; const log=window.sessionLog||{}; const days=182; const cells=[];
+    let max=1; for(const k in log) max=Math.max(max, log[k]);
+    const today=new Date(); today.setHours(0,0,0,0);
+    for(let i=days-1;i>=0;i--){ const d=new Date(today); d.setDate(d.getDate()-i); const key=window.fmtDateKey?window.fmtDateKey(d):d.toISOString().slice(0,10); const ms=log[key]||0; cells.push({d, ms}); }
+    // arrange into weeks (columns)
+    const cols=[]; let col=[]; cells.forEach((c)=>{ col.push(c); if(c.d.getDay()===6){ cols.push(col); col=[]; } }); if(col.length) cols.push(col);
+    const lvl=(ms)=> ms<=0?0 : ms<max*0.25?1 : ms<max*0.5?2 : ms<max*0.75?3 : 4;
+    const shades=['rgba(0,229,255,0.06)','rgba(0,229,255,0.25)','rgba(0,229,255,0.45)','rgba(0,229,255,0.7)','rgba(0,229,255,1)'];
+    let svg=`<div style="display:flex;gap:3px">`;
+    cols.forEach(cl=>{ svg+='<div style="display:flex;flex-direction:column;gap:3px">'; for(let r=0;r<7;r++){ const cell=cl.find(x=>x.d.getDay()===r); if(!cell){ svg+='<div style="width:11px;height:11px"></div>'; continue; } const mins=Math.round(cell.ms/60000); svg+=`<div title="${cell.d.toDateString()} — ${mins} min" style="width:11px;height:11px;border-radius:2px;background:${shades[lvl(cell.ms)]}"></div>`; } svg+='</div>'; });
+    svg+='</div><div class="flex items-center gap-1 mt-2 text-[8px] text-white/30"><span>less</span>'+shades.map(s=>`<span style="width:11px;height:11px;border-radius:2px;background:${s};display:inline-block"></span>`).join('')+'<span>more</span></div>';
+    wrap.innerHTML=svg;
+  }
+
+  // ---------- 16. ACHIEVEMENTS ----------
+  function buildAchievements(){
+    const wrap=$('lab-achievements'); if(!wrap) return;
+    const cb=(window.db.cookbook||[]).length, tn=(window.db.tones||[]).length, tk=(window.db.tracks||[]).length;
+    const stats=window.getSessionStats?window.getSessionStats():{streak:0,weekMs:0}; const streak=stats.streak||0;
+    let totalMs=0; const log=window.sessionLog||{}; for(const k in log) totalMs+=log[k]; const hrs=totalMs/3600000;
+    const memos=(function(){ try{ return JSON.parse(localStorage.getItem(MEMO_KEY)||'[]').length; }catch(e){ return 0; } })();
+    const A=[
+      ['📖','Recipe Chef', cb>=10, `${cb}/10 recipes`],
+      ['🎸','Tone Hoarder', tn>=10, `${tn}/10 tones`],
+      ['🎚️','Track Machine', tk>=5, `${tk}/5 tracks`],
+      ['🔥','On Fire', streak>=3, `${streak}/3 day streak`],
+      ['⏱️','Studio Rat', hrs>=10, `${hrs.toFixed(1)}/10 hrs`],
+      ['🎙️','Idea Vault', memos>=3, `${memos}/3 memos`],
+      ['💯','Century Club', cb>=100, `${cb}/100 recipes`],
+      ['🏴‍☠️','Marathon', streak>=7, `${streak}/7 day streak`]
+    ];
+    wrap.innerHTML=A.map(a=>`<div class="p-3 rounded border ${a[2]?'border-[#FFD60A50] bg-[#FFD60A]/8':'border-white/8 bg-black/20'} text-center"><div class="text-[24px] ${a[2]?'':'grayscale opacity-30'}">${a[0]}</div><div class="text-[9px] font-bold tracking-widest mt-1 ${a[2]?'text-[#FFD60A]':'text-white/30'}">${a[1]}</div><div class="text-[8px] mt-0.5 ${a[2]?'text-[#FFD60A]/60':'text-white/25'} font-mono">${a[2]?'✓ UNLOCKED':a[3]}</div></div>`).join('');
+  }
+
+  // ---------- 17. STUDIO GRAPH ----------
+  function buildGraph(){
+    const svg=$('lab-graph-svg'); if(!svg) return;
+    const tracks=(window.db.tracks||[]).filter(t=>t.toneRef||t.recipeRef);
+    if(!tracks.length){ svg.innerHTML=`<text x="310" y="210" text-anchor="middle" fill="#B18CFF80" font-size="12">Link tracks to tones/recipes in the Track DB to see the graph.</text>`; return; }
+    const tones={}, recipes={};
+    tracks.forEach(t=>{ if(t.toneRef){ const o=(window.db.tones||[]).find(x=>x.id===t.toneRef); if(o) tones[o.id]=o.name; } if(t.recipeRef){ const r=(window.db.cookbook||[]).find(x=>x.id===t.recipeRef); if(r) recipes[r.id]=r.inst||r.genre; } });
+    const H=420, pad=40; const place=(arr,x)=>arr.map((v,i)=>({ ...v, x, y: pad + (arr.length===1? (H-2*pad)/2 : i*(H-2*pad)/(arr.length-1)) }));
+    const tN=place(tracks.map(t=>({id:t.id,label:t.inst,scope:'tracks'})),310);
+    const oN=place(Object.keys(tones).map(id=>({id:+id,label:tones[id],scope:'tones'})),110);
+    const rN=place(Object.keys(recipes).map(id=>({id:+id,label:recipes[id],scope:'cookbook'})),510);
+    const find=(a,id)=>a.find(n=>n.id===id);
+    let edges='';
+    tracks.forEach(t=>{ const from=find(tN,t.id); if(t.toneRef){ const to=find(oN,t.toneRef); if(to) edges+=`<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#00E5FF35" stroke-width="1.5"/>`; } if(t.recipeRef){ const to=find(rN,t.recipeRef); if(to) edges+=`<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#00FF8835" stroke-width="1.5"/>`; } });
+    const nodeSVG=(n,color)=>`<g class="lab-gnode" data-scope="${n.scope}" data-id="${n.id}" style="cursor:pointer"><circle cx="${n.x}" cy="${n.y}" r="7" fill="${color}" stroke="#050807" stroke-width="2"/><text x="${n.x + (n.x<200?-12:n.x>420?12:0)}" y="${n.y+3}" text-anchor="${n.x<200?'end':n.x>420?'start':'middle'}" fill="${color}" font-size="9">${(n.label||'').slice(0,16)}</text></g>`;
+    svg.innerHTML=edges + oN.map(n=>nodeSVG(n,'#00E5FF')).join('') + rN.map(n=>nodeSVG(n,'#FFD60A')).join('') + tN.map(n=>nodeSVG(n,'#00FF88')).join('');
+    svg.querySelectorAll('.lab-gnode').forEach(g=>g.addEventListener('click',()=>jump(g.dataset.scope, parseInt(g.dataset.id,10))));
+  }
+
+  // ---------- 18. COLD STORAGE ----------
+  function buildCold(){
+    const out=$('lab-cold-out'); if(!out) return; const now=Date.now(); const cutoff=90*86400000; const items=[];
+    const scan=(arr,scope,label,color)=>{ (arr||[]).forEach(x=>{ if(typeof x.id==='number' && x.id>1e12 && (now-x.id)>cutoff){ items.push({scope,id:x.id,label:label(x),days:Math.floor((now-x.id)/86400000),color}); } }); };
+    scan(window.db.cookbook,'cookbook',x=>x.inst||x.genre,'#00FF88');
+    scan(window.db.tones,'tones',x=>x.name,'#00E5FF');
+    scan(window.db.tracks,'tracks',x=>x.inst,'#FFD60A');
+    items.sort((a,b)=>b.days-a.days);
+    if(!items.length){ out.innerHTML='<div class="text-[10px] text-white/25 italic text-center py-3">Nothing stale — everything\'s under 90 days old. 🧊</div>'; return; }
+    out.innerHTML=items.map(i=>`<button class="w-full flex items-center justify-between gap-2 p-2 rounded border border-white/8 bg-black/25 hover:border-[#00E5FF40] text-left cursor-pointer lab-cold-jump" data-scope="${i.scope}" data-id="${i.id}"><span class="text-[11px] truncate" style="color:${i.color}">${i.label}</span><span class="text-[9px] text-white/35 font-mono shrink-0">${i.days}d cold</span></button>`).join('');
+    out.querySelectorAll('.lab-cold-jump').forEach(b=>b.addEventListener('click',()=>jump(b.dataset.scope, parseInt(b.dataset.id,10))));
+  }
+
+  // ---------- 19. REAPER TRACK TEMPLATE ----------
+  const guid=()=>{ const h='0123456789ABCDEF'; let s='{'; for(let i=0;i<32;i++){ s+=h[Math.floor(Math.random()*16)]; if([8,12,16,20].includes(i+1)) s+='-'; } return s+'}'; };
+  function fillRttSelect(){ const s=$('lab-rtt-tone'); if(!s) return; const tones=window.db.tones||[]; s.innerHTML=tones.length?tones.map(t=>`<option value="${t.id}">${t.name}</option>`).join(''):'<option value="">— no tones saved —</option>'; }
+  function exportRtt(){
+    const id=parseInt($('lab-rtt-tone').value,10); const t=(window.db.tones||[]).find(x=>x.id===id); if(!t){ alert('Add a tone first.'); return; }
+    const nm=(t.name||'Tone').replace(/"/g,"'");
+    const meta=[t.daw?('DAW:'+t.daw):'', t.nam?('NAM:'+t.nam):'', t.ir?('IR:'+t.ir):''].filter(Boolean).join(' | ');
+    const chunk=`<TRACK\nNAME "FERRETT · ${nm}${meta?' · '+meta:''}"\nPEAKCOL 33575679\nBEAT -1\nAUTOMODE 0\nVOLPAN 1 0 -1 -1 1\nMUTESOLO 0 0 0\nIPHASE 0\nPLAYOFFS 0 1\nISBUS 0 0\nBUSCOMP 0 0 0 0 0\nSHOWINMIX 1 0.6667 0.5 1 0.5 0 -1 0\nFREEMODE 0\nREC 0 0 1 0 0 0 0 0\nVU 2\nTRACKHEIGHT 0 0 0 0 0 0\nINQ 0 0 0 0.5 100 0 0 100\nNCHAN 2\nFX 1\nTRACKID ${guid()}\nPERF 0\n>\n`;
+    const blob=new Blob([chunk],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(t.name||'tone').replace(/[^a-z0-9]+/gi,'_')+'.RTrackTemplate'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+
+  // ---------- 20. GIG-BAG BUNDLE ----------
+  const gbSel={ cookbook:new Set(), tones:new Set(), links:new Set() };
+  function openGigbag(){
+    gbSel.cookbook.clear(); gbSel.tones.clear(); gbSel.links.clear();
+    const body=$('gigbag-body'); if(!body) return;
+    const sect=(title,arr,scope,label,color)=>`<div><div class="text-[10px] font-bold tracking-widest mb-2" style="color:${color}">${title}</div><div class="space-y-1">${(arr||[]).map(x=>`<label class="flex items-center gap-2 text-[11px] text-white/70 cursor-pointer p-1.5 rounded hover:bg-white/5"><input type="checkbox" class="gb-check accent-[${color}]" data-scope="${scope}" data-id="${x.id}"> ${label(x)}</label>`).join('')||'<div class="text-[10px] text-white/25 italic">none</div>'}</div></div>`;
+    body.innerHTML=sect('RECIPES',window.db.cookbook,'cookbook',x=>x.inst||x.genre,'#00FF88')+sect('TONES',window.db.tones,'tones',x=>x.name,'#00E5FF')+sect('LINKS',window.db.links,'links',x=>x.title,'#FFD60A');
+    body.querySelectorAll('.gb-check').forEach(c=>c.addEventListener('change',()=>{ const set=gbSel[c.dataset.scope]; const id=parseInt(c.dataset.id,10); if(c.checked) set.add(id); else set.delete(id); const n=gbSel.cookbook.size+gbSel.tones.size+gbSel.links.size; const cnt=$('gigbag-count'); if(cnt) cnt.textContent=n+' item'+(n===1?'':'s')+' selected'; }));
+    const m=$('gigbag-modal'); m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function exportGigbag(){
+    const pack={ ferrett_pack:true, kind:'gig-bag', created:new Date().toISOString(),
+      cookbook:(window.db.cookbook||[]).filter(x=>gbSel.cookbook.has(x.id)),
+      tones:(window.db.tones||[]).filter(x=>gbSel.tones.has(x.id)),
+      links:(window.db.links||[]).filter(x=>gbSel.links.has(x.id)) };
+    if(!pack.cookbook.length && !pack.tones.length && !pack.links.length){ alert('Select at least one item.'); return; }
+    const blob=new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ferrett-gigbag-'+Date.now()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    $('gigbag-modal').classList.add('hidden'); $('gigbag-modal').classList.remove('flex');
+  }
+
+  // ---------- 21. ENCRYPTED BACKUP ----------
+  const b64enc=(buf)=>btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const b64dec=(str)=>Uint8Array.from(atob(str),c=>c.charCodeAt(0));
+  async function deriveKey(pass,salt){ const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']); return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); }
+  async function encExport(){
+    if(!crypto?.subtle){ alert('WebCrypto unavailable (needs HTTPS or localhost).'); return; }
+    const pass=prompt('Set a passphrase for this encrypted backup:'); if(!pass) return;
+    const salt=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+    const key=await deriveKey(pass,salt);
+    const data=new TextEncoder().encode(JSON.stringify(window.db));
+    const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,data);
+    const out={ fenc:1, salt:b64enc(salt), iv:b64enc(iv), data:b64enc(ct) };
+    const blob=new Blob([JSON.stringify(out)],{type:'application/octet-stream'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ferrett-vault-'+new Date().toISOString().slice(0,10)+'.fenc'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+  function encImport(){ $('lab-enc-file').click(); }
+  async function encImportFile(ev){
+    const file=ev.target.files[0]; ev.target.value=''; if(!file) return;
+    let parsed; try{ parsed=JSON.parse(await file.text()); }catch(e){ alert('Not a valid backup file.'); return; }
+    if(!parsed.fenc){ alert('That is not a FERRETT encrypted (.fenc) file.'); return; }
+    const pass=prompt('Passphrase to decrypt:'); if(!pass) return;
+    try{
+      const key=await deriveKey(pass,b64dec(parsed.salt));
+      const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
+      const restored=JSON.parse(new TextDecoder().decode(pt));
+      if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
+      ['cookbook','tones','tracks','links','patchbay','scripts','refShelf','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
+    }catch(e){ alert('Wrong passphrase or corrupted file.'); }
+  }
+
+  // ---------- init selects ----------
+  function fillNoteSelects(){
+    const keySel=$('lab-idea-key'), rootSel=$('lab-scale-root');
+    const keyOpts=['— key —'].concat(NOTES.flatMap(n=>[n+' major', n+' minor']));
+    if(keySel) keySel.innerHTML=keyOpts.map(o=>`<option>${o}</option>`).join('');
+    if(rootSel) rootSel.innerHTML=NOTES.map(n=>`<option${n==='C'?' selected':''}>${n}</option>`).join('');
+    const typeSel=$('lab-scale-type'); if(typeSel) typeSel.innerHTML=Object.keys(SCALES).map(s=>`<option>${s}</option>`).join('');
+  }
+
+  // ---------- refresh dynamic panels when tab opens ----------
+  window.refreshLab = () => { fillRttSelect(); renderMemos(); buildHeatmap(); buildAchievements(); buildGraph(); buildCold(); };
+
+  function init(){
+    if(!$('tab-lab')) return;
+    fillNoteSelects();
+    // static builders
+    buildCOF(); buildScale(); buildReverb(); buildMic(); buildFileSize(); buildSyllables(); buildLUFS(); buildEQ();
+    // creative
+    $('btn-lab-challenge')?.addEventListener('click', rollChallenge);
+    $('btn-lab-vibe')?.addEventListener('click', pullVibe);
+    // tone
+    document.querySelectorAll('.lab-tone-src').forEach(b=>b.addEventListener('click',()=>{ labType=b.dataset.tone; document.querySelectorAll('.lab-tone-src').forEach(x=>x.classList.remove('btn-ferrett-green')); document.querySelectorAll('.lab-tone-src').forEach(x=>x.classList.add('btn-ferrett')); b.classList.remove('btn-ferrett'); b.classList.add('btn-ferrett-green'); if(labPlaying) startTone(); }));
+    document.querySelectorAll('.lab-ref-pitch').forEach(b=>b.addEventListener('click',()=>{ labType='sine'; const f=$('lab-tone-freq'); f.value=b.dataset.ref; $('lab-tone-freq-val').textContent=Math.round(+b.dataset.ref)+' Hz'; if(!labPlaying) startTone(); else if(labNode&&labNode.frequency) labNode.frequency.value=+b.dataset.ref; }));
+    $('lab-tone-freq')?.addEventListener('input',(e)=>{ $('lab-tone-freq-val').textContent=e.target.value+' Hz'; if(labPlaying && labType==='sine' && labNode?.frequency) labNode.frequency.value=+e.target.value; });
+    $('lab-tone-vol')?.addEventListener('input',(e)=>{ $('lab-tone-vol-val').textContent=e.target.value+'%'; if(labGain) labGain.gain.value=volFrac(); });
+    $('btn-lab-tone-toggle')?.addEventListener('click',()=>{ if(labPlaying) window.stopTestTone(); else startTone(); });
+    // break timer
+    document.querySelectorAll('.lab-break-preset').forEach(b=>b.addEventListener('click',()=>{ breakTotal=(+b.dataset.mins)*60; stopBreak(true); }));
+    $('btn-lab-break-toggle')?.addEventListener('click', toggleBreak);
+    $('btn-lab-break-reset')?.addEventListener('click',()=>stopBreak(true));
+    // idea catcher
+    $('btn-lab-idea-tap')?.addEventListener('click', ideaTap);
+    $('btn-lab-idea-save')?.addEventListener('click', spawnTrackStub);
+    // memos
+    $('btn-lab-memo-rec')?.addEventListener('click', toggleMemoRec);
+    // scale/reverb/mic/filesize/syllables live inputs
+    ['lab-scale-root','lab-scale-type'].forEach(id=>$(id)?.addEventListener('change', buildScale));
+    ['lab-rev-bpm','lab-rev-type'].forEach(id=>$(id)?.addEventListener('input', buildReverb));
+    ['lab-mic-dist','lab-mic-spl'].forEach(id=>$(id)?.addEventListener('input', buildMic));
+    ['lab-fs-rate','lab-fs-bits','lab-fs-ch','lab-fs-mins'].forEach(id=>$(id)?.addEventListener('input', buildFileSize));
+    $('lab-syl-in')?.addEventListener('input', buildSyllables);
+    // graph
+    $('btn-lab-graph-refresh')?.addEventListener('click', buildGraph);
+    // exporters
+    $('btn-lab-rtt')?.addEventListener('click', exportRtt);
+    $('btn-lab-gigbag')?.addEventListener('click', openGigbag);
+    $('gigbag-close')?.addEventListener('click',()=>{ $('gigbag-modal').classList.add('hidden'); $('gigbag-modal').classList.remove('flex'); });
+    $('gigbag-export')?.addEventListener('click', exportGigbag);
+    $('btn-lab-enc-export')?.addEventListener('click', encExport);
+    $('btn-lab-enc-import')?.addEventListener('click', encImport);
+    $('lab-enc-file')?.addEventListener('change', encImportFile);
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('gigbag-modal') && !$('gigbag-modal').classList.contains('hidden')){ $('gigbag-modal').classList.add('hidden'); $('gigbag-modal').classList.remove('flex'); } });
+    // first paint of dynamic panels
+    window.refreshLab();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 

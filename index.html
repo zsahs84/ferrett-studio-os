@@ -807,6 +807,7 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🥁 BEAT SKETCH — 16-STEP SEQUENCER</h4>
                 <div class="flex items-center gap-2">
                     <button id="btn-beat-play" type="button" class="btn-ferrett-green px-4 py-1.5">▶ PLAY</button>
+                    <button id="btn-beat-midi" type="button" class="btn-ferrett px-3 py-1.5" title="Export as a MIDI drum clip">↓ MIDI</button>
                     <button id="btn-beat-clear" type="button" class="btn-ferrett px-3 py-1.5">CLEAR</button>
                     <input type="number" id="beat-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[13px] font-bold text-[#00FF88] w-16 py-1 focus:outline-none">
                     <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
@@ -844,6 +845,23 @@ main { background: rgba(5,8,7,0.72); }
             <div id="chord-diagrams" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
         </div>
 
+        <!-- TRANSPOSE & CAPO -->
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 TRANSPOSE & CAPO</h4>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords (e.g. <span class="font-mono text-[#00FF88]/70">C G Am F</span>). Slide to transpose; the capo helper finds an easier shape in the same sounding key.</p>
+            <input type="text" id="tr-chords" value="C G Am F" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SHIFT</span>
+                <input type="range" id="tr-amt" min="-12" max="12" value="0" class="flex-1 accent-[#00FF88]">
+                <span id="tr-amt-val" class="text-[11px] font-mono text-[#00FF88] w-16 text-right">0 st</span>
+            </div>
+            <div id="tr-out" class="text-[15px] font-mono font-bold text-white mb-4 min-h-[24px]"></div>
+            <div class="grid grid-cols-2 gap-3 items-end border-t border-[#00FF8815] pt-3">
+                <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">EASIER SHAPES OF</label><select id="tr-capo-shape" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                <div id="tr-capo-out" class="text-[11px] font-mono text-[#00FF88]/90"></div>
+            </div>
+        </div>
+
         <!-- SONG STRUCTURE TEMPLATES (reference) -->
         <div class="card border-[#B18CFF30] mb-6">
             <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-4 border-b border-[#B18CFF20] pb-2">🧱 SONG STRUCTURE TEMPLATES</h4>
@@ -864,6 +882,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap gap-2 mb-3">
                 <button id="btn-kb-rec" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
                 <button id="btn-kb-play" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
+                <button id="btn-kb-midi" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI">↓ MIDI</button>
                 <button id="btn-kb-clear" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CLEAR</button>
                 <span id="kb-status" class="text-[10px] font-mono text-[#00E5FF]/60 self-center"></span>
             </div>
@@ -897,7 +916,10 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
             <div id="arr-list" class="space-y-1.5 mb-3"></div>
             <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
-            <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
+                <button id="btn-arr-markers" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
+            </div>
         </div>
 
         <!-- SETLIST BUILDER + NAME GENERATOR -->
@@ -5387,16 +5409,53 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   window.stopBeatSketch=()=>{ beatPlaying=false; if(beatTimer){ clearTimeout(beatTimer); beatTimer=null; } document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>c.classList.remove('ring-2','ring-[#FF88FF]')); const b=$('btn-beat-play'); if(b){ b.textContent='▶ PLAY'; b.classList.add('btn-ferrett-green'); } };
   function toggleBeat(){ if(beatPlaying){ window.stopBeatSketch(); return; } const ac=beatEnsureAC(); if(!ac) return; beatPlaying=true; beatStep=0; beatNextTime=ac.currentTime+0.05; const b=$('btn-beat-play'); if(b) b.textContent='■ STOP'; beatSchedule(); }
 
+  // ---- shared MIDI encoder (type-0) ----
+  // notes: [{pitch,start,dur,vel,ch}] in ticks. Exposed for the melody/chord tools too.
+  window.buildMidiFile = function(notes, opts){
+    opts=opts||{}; const division=opts.division||480, bpm=opts.bpm||120;
+    const vlq=(v)=>{ const b=[v&0x7f]; v=Math.floor(v/128); while(v>0){ b.unshift((v&0x7f)|0x80); v=Math.floor(v/128); } return b; };
+    const evts=[];
+    notes.forEach(n=>{ const ch=(n.ch||0)&0x0f; evts.push({t:Math.max(0,Math.round(n.start)), s:[0x90|ch, n.pitch&0x7f, (n.vel||100)&0x7f]}); evts.push({t:Math.max(0,Math.round(n.start+n.dur)), s:[0x80|ch, n.pitch&0x7f, 0]}); });
+    evts.sort((a,b)=> a.t-b.t || ((a.s[0]&0xf0)-(b.s[0]&0xf0)) );
+    const trk=[]; const mpq=Math.round(60000000/bpm);
+    trk.push(0x00,0xFF,0x51,0x03,(mpq>>16)&0xff,(mpq>>8)&0xff,mpq&0xff);
+    let last=0; evts.forEach(e=>{ vlq(e.t-last).forEach(x=>trk.push(x)); last=e.t; e.s.forEach(x=>trk.push(x&0xff)); });
+    trk.push(0x00,0xFF,0x2F,0x00);
+    const len=trk.length;
+    const bytes=[0x4D,0x54,0x68,0x64,0,0,0,6,0,0,0,1,(division>>8)&0xff,division&0xff, 0x4D,0x54,0x72,0x6B,(len>>24)&0xff,(len>>16)&0xff,(len>>8)&0xff,len&0xff].concat(trk);
+    return new Uint8Array(bytes);
+  };
+  window.downloadMidi = function(notes, opts, filename){
+    const data=window.buildMidiFile(notes, opts); const blob=new Blob([data],{type:'audio/midi'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(filename||'ferrett')+'.mid'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+  };
+  const GM_DRUM={ KICK:36, SNARE:38, HAT:42, OHAT:46, CLAP:39, TOM:45 };
+  function beatToMidi(){
+    if(!beatPattern){ beatPattern=loadBeat()||blankPattern(); }
+    const div=480, sixteenth=div/4; const notes=[];
+    KITS.forEach(k=>{ beatPattern[k].forEach((v,i)=>{ if(v) notes.push({pitch:GM_DRUM[k], start:i*sixteenth, dur:sixteenth*0.9, vel: v===2?115:80, ch:9}); }); });
+    if(!notes.length){ alert('Add some hits first.'); return; }
+    window.downloadMidi(notes, {division:div, bpm:beatBpm||90}, 'ferrett-beat-'+(beatBpm||90)+'bpm');
+  }
+
   // ==================== CHORD PROGRESSION BOOK ====================
   const SC_MAJ=[0,2,4,5,7,9,11], SC_MIN=[0,2,3,5,7,8,10];
   const Q_MAJ=['','m','m','','','m','dim'], Q_MIN=['m','dim','','m','m','',''];
   const PROG_MAJ=[['I–V–vi–IV','the "Axis" — half of all pop',[1,5,6,4]],['I–IV–V','blues / rock backbone',[1,4,5]],['ii–V–I','jazz cadence',[2,5,1]],['I–vi–IV–V','50s doo-wop',[1,6,4,5]],['vi–IV–I–V','emo / anthemic',[6,4,1,5]],['I–V–vi–iii–IV–I–IV–V','Pachelbel / Canon',[1,5,6,3,4,1,4,5]]];
   const PROG_MIN=[['i–VI–III–VII','Andalusian-flavored',[1,6,3,7]],['i–iv–v','natural minor blues',[1,4,5]],['i–VII–VI–VII','driving rock loop',[1,7,6,7]],['i–VI–VII','epic / cinematic',[1,6,7]],['ii°–v–i','minor jazz cadence',[2,5,1]],['i–iv–VII–III','melancholy pop',[1,4,7,3]]];
   function chordAt(rootIdx,tonality,deg){ const sc=tonality==='major'?SC_MAJ:SC_MIN, q=tonality==='major'?Q_MAJ:Q_MIN; const i=(deg-1)%7; return NOTES[(rootIdx+sc[i])%12]+q[i]; }
+  // triad MIDI pitches for a scale degree, voiced around C4
+  function triadMidi(rootIdx,tonality,deg){ const sc=tonality==='major'?SC_MAJ:SC_MIN; const base=60+rootIdx; const idx=(deg-1)%7; const off=(n)=>{ const oct=Math.floor(n/7); return sc[((n%7)+7)%7]+12*oct; }; return [off(idx), off(idx+2), off(idx+4)].map(s=>base+s); }
+  function progToMidi(degs){
+    const ri=NOTES.indexOf($('prog-key').value), tonality=$('prog-tonality').value, div=480, bar=div*4;
+    const notes=[]; degs.forEach((d,i)=>{ triadMidi(ri,tonality,d).forEach(p=>notes.push({pitch:p, start:i*bar, dur:bar*0.95, vel:88, ch:0})); });
+    window.downloadMidi(notes, {division:div, bpm:90}, 'ferrett-chords-'+$('prog-key').value+tonality);
+  }
   function buildProg(){
     const key=$('prog-key'), ton=$('prog-tonality'), list=$('prog-list'); if(!list) return;
     const ri=NOTES.indexOf(key.value), tonality=ton.value, progs=tonality==='major'?PROG_MAJ:PROG_MIN;
-    list.innerHTML=progs.map(p=>{ const chords=p[2].map(d=>chordAt(ri,tonality,d)); return `<div class="p-3 rounded border border-[#00E5FF20] bg-black/25"><div class="flex items-center justify-between mb-1"><span class="text-[11px] font-bold text-[#00E5FF]">${p[0]}</span><span class="text-[8px] text-white/35 italic">${p[1]}</span></div><div class="flex flex-wrap gap-1.5">${chords.map(c=>`<span class="text-[13px] font-bold font-mono text-white bg-[#00E5FF]/10 border border-[#00E5FF]/25 rounded px-2 py-0.5">${c}</span>`).join('<span class="text-[#00E5FF]/30 self-center">→</span>')}</div></div>`; }).join('');
+    list.innerHTML=progs.map((p,pi)=>{ const chords=p[2].map(d=>chordAt(ri,tonality,d)); return `<div class="p-3 rounded border border-[#00E5FF20] bg-black/25"><div class="flex items-center justify-between mb-1 gap-2"><span class="text-[11px] font-bold text-[#00E5FF]">${p[0]}</span><div class="flex items-center gap-2"><span class="text-[8px] text-white/35 italic">${p[1]}</span><button class="prog-midi text-[8px] font-bold px-1.5 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" data-p="${pi}" title="Export as MIDI">↓MIDI</button></div></div><div class="flex flex-wrap gap-1.5">${chords.map(c=>`<span class="text-[13px] font-bold font-mono text-white bg-[#00E5FF]/10 border border-[#00E5FF]/25 rounded px-2 py-0.5">${c}</span>`).join('<span class="text-[#00E5FF]/30 self-center">→</span>')}</div></div>`; }).join('');
+    list.querySelectorAll('.prog-midi').forEach(b=>b.addEventListener('click',()=>progToMidi(progs[+b.dataset.p][2])));
   }
 
   // ==================== GUITAR / BASS CHORD DIAGRAMS ====================
@@ -5468,6 +5527,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if($('beat-grid')){
       renderBeatPresets(); renderBeatGrid(); renderSnapSlots();
       $('btn-beat-play')?.addEventListener('click',toggleBeat);
+      $('btn-beat-midi')?.addEventListener('click',beatToMidi);
       $('btn-beat-clear')?.addEventListener('click',()=>{ window.stopBeatSketch(); beatPattern=blankPattern(); saveBeat(); renderBeatGrid(); });
       $('beat-bpm')?.addEventListener('input',(e)=>{ beatBpm=Math.max(40,Math.min(220,+e.target.value||90)); });
       $('beat-swing')?.addEventListener('input',(e)=>{ beatSwing=+e.target.value; const v=$('beat-swing-val'); if(v) v.textContent=beatSwing+'%'; });
@@ -5623,6 +5683,44 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
   }
 
+  // ==================== MELODY -> MIDI ====================
+  function kbToMidi(){
+    if(!kbTake.length){ $('kb-status').textContent='record a lick first'; return; }
+    const bpm=120, div=480, tickPerMs=(bpm/60)*div/1000;
+    const notes=kbTake.map(n=>({pitch:n.midi, start:n.t*tickPerMs, dur:0.4*(bpm/60)*div, vel:96, ch:0}));
+    if(window.downloadMidi) window.downloadMidi(notes, {division:div, bpm}, 'ferrett-melody');
+    $('kb-status').textContent='exported MIDI';
+  }
+
+  // ==================== ARRANGEMENT -> DAW MARKERS (CSV) ====================
+  function arrToMarkers(){
+    if(!arrData||!arrData.sections.length){ alert('Build an arrangement first.'); return; }
+    const bpm=Math.max(40,Math.min(220,+($('arr-bpm')?.value||arrData.bpm||90))), secPerBar=4*(60/bpm);
+    const tc=(s)=>{ const m=Math.floor(s/60), sec=(s%60); return m+':'+sec.toFixed(3).padStart(6,'0'); };
+    let t=0; const rows=['#,Name,Start,End,Length'];
+    arrData.sections.forEach((s,i)=>{ const dur=s.bars*secPerBar; rows.push(`R${i+1},${s.name},${tc(t)},${tc(t+dur)},${tc(dur)}`); t+=dur; });
+    const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ferrett-arrangement-'+bpm+'bpm.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+  }
+
+  // ==================== TRANSPOSE & CAPO ====================
+  const FLAT2SHARP={ 'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#' };
+  function parseChord(tok){ const m=tok.match(/^([A-Ga-g])([#b]?)(.*)$/); if(!m) return null; let root=m[1].toUpperCase()+(m[2]||''); if(FLAT2SHARP[root]) root=FLAT2SHARP[root]; const pc=NOTES.indexOf(root); if(pc<0) return null; return {pc, suffix:m[3]||''}; }
+  function transposeChords(str, amt){
+    return str.trim().split(/\s+/).map(tok=>{ const c=parseChord(tok); if(!c) return tok; return NOTES[((c.pc+amt)%12+12)%12]+c.suffix; }).join(' ');
+  }
+  function buildTranspose(){
+    const amt=+($('tr-amt')?.value||0); const av=$('tr-amt-val'); if(av) av.textContent=(amt>0?'+':'')+amt+' st';
+    const out=$('tr-out'); if(out) out.textContent=transposeChords($('tr-chords').value, amt);
+  }
+  function buildCapo(){
+    const shapeKey=$('tr-capo-shape')?.value; const first=parseChord(($('tr-chords').value.trim().split(/\s+/)[0])||''); const cout=$('tr-capo-out'); if(!cout) return;
+    if(!first){ cout.textContent='—'; return; }
+    const soundingPc=((first.pc + (+($('tr-amt')?.value||0)))%12+12)%12; // what the (transposed) progression sounds like, rooted on first chord
+    const shapePc=NOTES.indexOf(shapeKey);
+    const capo=((soundingPc-shapePc)%12+12)%12;
+    cout.innerHTML = capo===0 ? `Play <b>${shapeKey}</b> shapes open — already matches.` : `Capo <b>fret ${capo}</b>, play <b>${shapeKey}</b> shapes → sounds in <b>${NOTES[soundingPc]}</b>.`;
+  }
+
   // ==================== INIT ====================
   function fillSel(sel,opts,def){ if(!sel) return; sel.innerHTML=opts.map(o=>`<option${o===def?' selected':''}>${o}</option>`).join(''); }
   function init(){
@@ -5634,6 +5732,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('kb-wave')?.addEventListener('change',(e)=>kbWave=e.target.value);
       $('btn-kb-rec')?.addEventListener('click',kbToggleRec);
       $('btn-kb-play')?.addEventListener('click',kbPlayback);
+      $('btn-kb-midi')?.addEventListener('click',kbToMidi);
       $('btn-kb-clear')?.addEventListener('click',()=>{ kbTake=[]; $('kb-status').textContent='cleared'; });
       document.addEventListener('keydown',kbKeydown); document.addEventListener('keyup',kbKeyup);
     }
@@ -5649,7 +5748,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if($('arr-list')){
       const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-ferrett px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
       $('arr-bpm')?.addEventListener('input',renderArr);
+      $('btn-arr-markers')?.addEventListener('click',arrToMarkers);
       renderArr();
+    }
+    // transpose & capo
+    if($('tr-chords')){
+      fillSel($('tr-capo-shape'),['C','A','G','E','D'],'G');
+      const upd=()=>{ buildTranspose(); buildCapo(); };
+      $('tr-chords')?.addEventListener('input',upd);
+      $('tr-amt')?.addEventListener('input',upd);
+      $('tr-capo-shape')?.addEventListener('change',buildCapo);
+      upd();
     }
     // setlist
     if($('set-list')){

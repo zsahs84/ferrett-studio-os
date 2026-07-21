@@ -224,7 +224,7 @@ main { background: rgba(5,8,7,0.72); }
     <input type="text" id="now-playing-input" placeholder="What are you working on right now?" class="flex-1 min-w-[160px] bg-black/40 border border-[#FF88FF30] rounded px-3 py-1.5 text-[12px] text-[#E2E8F0] placeholder-[#E2E8F0]/25 focus:outline-none focus:border-[#FF88FF70]">
     <button id="btn-now-playing-log" class="btn-ferrett shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
     <button id="btn-open-recap" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Session recap — time + everything you logged today">📋 RECAP</button>
-    <button id="btn-now-playing-track" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Spin this focus into a new Track DB entry">＋ TRACK</button>
+    <button id="btn-now-playing-track" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Spin this focus into a new Channel Settings entry">＋ TRACK</button>
     <button id="btn-now-playing-close" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer shrink-0" title="Hide">×</button>
 </div>
 
@@ -239,7 +239,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-guitars" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🎸 Top Guitar/Bass Presets</button>
     <button id="nav-hardware" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🔌 Hardware, Routing & Logic</button>
     <button id="nav-links" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🔗 Web Tools & Intel</button>
-    <button id="nav-tracks" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🎚️ Track DB [Images]</button>
+    <button id="nav-tracks" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🎚️ Channel Settings</button>
     <button id="nav-tones" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🎛️ Tone DB [Tags/Img]</button>
     <button id="nav-toolbox" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🧰 Toolbox</button>
     <button id="nav-lyrics" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🎤 Lyrics Lab // Cut-Up</button>
@@ -472,12 +472,11 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tab-tracks" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">TRACK SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-ferrett shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-track-board-toggle" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Toggle the status board (kanban) view">▦ BOARD</button><button id="btn-add-track" class="btn-ferrett-green shrink-0">+ ADD CONFIG</button></div></div>
-        <div id="track-board" class="hidden grid grid-cols-1 md:grid-cols-4 gap-3 mb-6"></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">CHANNEL SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-ferrett shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-add-track" class="btn-ferrett-green shrink-0">+ ADD CONFIG</button></div></div>
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
-            <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW TRACK SETTING</h3>
+            <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW CHANNEL SETTING</h3>
             <input type="hidden" id="track-id">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TRACK</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / CHANNEL</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON TONE (optional)</label><select id="track-tone-ref" class="input-ferrett"><option value="">— none —</option></select></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON RECIPE (optional)</label><select id="track-recipe-ref" class="input-ferrett"><option value="">— none —</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REFERENCE LINK (YouTube / Spotify — shows an inline player)</label><input type="text" id="track-reflink" placeholder="https://..." class="input-ferrett"></div>
@@ -873,6 +872,18 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tbx-panel-arrange" class="tbx-panel hidden space-y-6 mb-6">
+        <div class="card border-[#00E5FF30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#00E5FF20] pb-2">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🗂️ SONG BOARD</h4>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Where each song actually is right now — drag a card to the next stage as it moves. Just a title and a note, nothing to do with Channel Settings.</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <input type="text" id="songboard-title" placeholder="song title…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="songboard-note" placeholder="note (optional)…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <button id="btn-songboard-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
+            </div>
+            <div id="songboard-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
+        </div>
         <div class="card border-[#B18CFF30] mb-6">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#B18CFF20] pb-2">
                 <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎬 ARRANGEMENT TIMELINE</h4>
@@ -899,7 +910,7 @@ main { background: rgba(5,8,7,0.72); }
                     <input type="text" id="set-len" placeholder="3:30" class="w-16 bg-black/50 border border-[#00FF88]/25 rounded text-center text-[12px] text-[#00FF88] px-2 py-1.5 focus:outline-none">
                     <button id="btn-set-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD</button>
                 </div>
-                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Track DB</option></select>
+                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Channel Settings</option></select>
                 <div id="set-list" class="space-y-1 mb-2"></div>
                 <div id="set-total" class="text-[11px] font-mono text-[#00FF88] font-bold"></div>
             </div>
@@ -999,7 +1010,7 @@ main { background: rgba(5,8,7,0.72); }
                         <select id="lab-idea-key" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[11px] px-2 py-1.5 focus:outline-none"></select>
                     </div>
                 </div>
-                <button id="btn-lab-idea-save" type="button" class="btn-ferrett-green px-6 py-2">→ SPAWN TRACK STUB</button>
+                <button id="btn-lab-idea-save" type="button" class="btn-ferrett-green px-6 py-2">→ SPAWN CHANNEL STUB</button>
             </div>
             <div class="card border-[#FF88FF40]">
                 <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎙️ VOICE-MEMO SCRATCHPAD</h4>
@@ -1197,7 +1208,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex-1"></div>
             <button id="btn-lyr-export" type="button" class="btn-ferrett px-3 py-2 text-[10px]">↓ .TXT</button>
             <button id="btn-lyr-print" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
-            <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Track DB as a new stub">→ TRACK</button>
+            <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Channel Settings as a new stub">→ TRACK</button>
         </div>
 
         <!-- view mode + analysis toolbar -->
@@ -1728,6 +1739,7 @@ const defaultDb = {
     patchbay: { devices: [], connections: [] },
     patchbayUserDefault: null,
     patchbaySaved: [],
+    songBoard: [],
     multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// FERRETT OS: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
     tracks: [],
     cookbook: [
@@ -1836,6 +1848,7 @@ try {
         if (parsed.patchbaySaved) window.db.patchbaySaved = parsed.patchbaySaved;
         if (parsed.scripts) window.db.scripts = parsed.scripts;
         if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
+        if (parsed.songBoard) window.db.songBoard = parsed.songBoard;
     }
     window.storageAvailable = true;
 } catch(e) {}
@@ -1970,6 +1983,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.patchbaySaved) window.db.patchbaySaved = cloudDb.patchbaySaved;
                 if (cloudDb.scripts) window.db.scripts = cloudDb.scripts;
                 if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
+                if (cloudDb.songBoard) window.db.songBoard = cloudDb.songBoard;
                 window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
         } 
@@ -2062,6 +2076,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.patchbaySaved) window.db.patchbaySaved = incoming.patchbaySaved;
         if (incoming.scripts) window.db.scripts = incoming.scripts;
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
+        if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
         if (window.refreshAllUI) window.refreshAllUI();
@@ -3165,7 +3180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById(formId); if(!form) return; form.classList.toggle('hidden');
         if(!form.classList.contains('hidden')) {
             form.querySelectorAll('input:not([type=hidden]), textarea, select').forEach(i => { if(i.type === 'checkbox') i.checked = false; else if(i.tagName === 'SELECT') i.selectedIndex = 0; else i.value = ''; });
-            if(formId === 'form-track') { document.getElementById('track-form-title').innerText = 'NEW TRACK SETTING'; window.tempTrackImages = []; window.renderImagePreviews('track-image-preview-container', [], 'track'); }
+            if(formId === 'form-track') { document.getElementById('track-form-title').innerText = 'NEW CHANNEL SETTING'; window.tempTrackImages = []; window.renderImagePreviews('track-image-preview-container', [], 'track'); }
             if(formId === 'form-tone') { document.getElementById('tone-form-title').innerText = 'NEW TONE COMBO'; window.tempToneImages = []; window.renderImagePreviews('tone-image-preview-container', [], 'tone'); window.stopToneRecording(); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); }
             if(formId === 'form-cookbook') { document.getElementById('cookbook-form-title').innerText = 'NEW RECIPE'; window.tempCookbookImages = []; window.renderImagePreviews('cookbook-image-preview-container', [], 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); }
             if(formId === 'form-link') { const t = document.getElementById('link-form-title'); if(t) t.innerText = 'NEW TOOL LINK'; }
@@ -4806,38 +4821,6 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         }
 
         // =====================================================================
-        // 23. TRACK STATUS BOARD (kanban)
-        // =====================================================================
-        const TRACK_STATUSES = [['idea', 'Idea', '#7FA8D9'], ['tracking', 'Tracking', '#FFD60A'], ['mixing', 'Mixing', '#00E5FF'], ['done', 'Done', '#00FF88']];
-        let trackBoardOn = false, dragTrackId = null;
-        const renderTrackBoard = () => {
-            const board = document.getElementById('track-board'); if (!board) return;
-            const tracks = window.dawSort((window.db.tracks || []).filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'));
-            board.innerHTML = TRACK_STATUSES.map(([key, label, color]) => {
-                const items = tracks.filter(t => (t.status || 'idea') === key);
-                return `<div class="track-col rounded border bg-black/30 p-2" data-status="${key}" style="border-color:${color}30;">
-                    <div class="text-[9px] font-bold tracking-widest uppercase mb-2 flex items-center justify-between" style="color:${color};">${label}<span class="opacity-50">${items.length}</span></div>
-                    <div class="space-y-2 min-h-[48px]">${items.map(t => `<div class="track-card-mini rounded border px-2 py-1.5 cursor-grab bg-[rgba(5,8,7,0.9)]" draggable="true" data-track-id="${t.id}" style="border-color:${color}40;"><div class="text-[10px] font-bold text-white truncate">${(t.inst || 'Untitled').replace(/</g, '')}</div><div class="text-[8px] text-white/40 truncate">${((t.plugins || '').replace(/</g, '')) || t.daw}</div></div>`).join('')}</div>
-                </div>`;
-            }).join('');
-        };
-        const setBoard = (on) => {
-            trackBoardOn = on;
-            document.getElementById('track-board')?.classList.toggle('hidden', !on);
-            document.getElementById('track-list')?.classList.toggle('hidden', on);
-            const btn = document.getElementById('btn-track-board-toggle'); if (btn) btn.style.background = on ? 'rgba(0,229,255,0.22)' : 'rgba(0,229,255,0.08)';
-            if (on) renderTrackBoard();
-        };
-        document.getElementById('btn-track-board-toggle')?.addEventListener('click', () => setBoard(!trackBoardOn));
-        const board = document.getElementById('track-board');
-        board?.addEventListener('dragstart', (e) => { const c = e.target.closest('.track-card-mini'); if (c) { dragTrackId = parseInt(c.dataset.trackId, 10); e.dataTransfer.effectAllowed = 'move'; c.style.opacity = '0.4'; } });
-        board?.addEventListener('dragend', (e) => { const c = e.target.closest('.track-card-mini'); if (c) c.style.opacity = ''; });
-        board?.addEventListener('dragover', (e) => { if (e.target.closest('.track-col')) e.preventDefault(); });
-        board?.addEventListener('drop', (e) => { const col = e.target.closest('.track-col'); if (!col || dragTrackId == null) return; e.preventDefault(); const t = (window.db.tracks || []).find(x => x.id === dragTrackId); if (t) { t.status = col.dataset.status; window.saveData(); renderTrackBoard(); } dragTrackId = null; });
-        const _rtBoard = window.renderTracks;
-        if (typeof _rtBoard === 'function' && !_rtBoard.__boardWrapped) { window.renderTracks = function () { const r = _rtBoard.apply(this, arguments); if (trackBoardOn) renderTrackBoard(); return r; }; window.renderTracks.__boardWrapped = true; }
-
-        // =====================================================================
         // 24. RECIPE VERSIONING + DIFF (richer history modal)
         // =====================================================================
         window.openHistoryModal = (recipe) => {
@@ -4866,8 +4849,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const cmdkActions = [
             { icon: '🍳', label: 'New recipe', keys: 'new recipe add cookbook', run: () => { window.switchTab('cookbook'); window.toggleForm('form-cookbook'); } },
             { icon: '🎸', label: 'New tone', keys: 'new tone add guitar preset', run: () => { window.switchTab('tones'); window.toggleForm('form-tone'); } },
-            { icon: '🎚️', label: 'New track', keys: 'new track add config', run: () => { window.switchTab('tracks'); window.toggleForm('form-track'); } },
-            { icon: '▦', label: 'Track status board', keys: 'board kanban status tracks', run: () => { window.switchTab('tracks'); setBoard(true); } },
+            { icon: '🎚️', label: 'New channel setting', keys: 'new track channel add config', run: () => { window.switchTab('tracks'); window.toggleForm('form-track'); } },
+            { icon: '🗂️', label: 'Song board', keys: 'board kanban status songs tracks', run: () => { window.switchTab('toolbox'); window.setToolboxSub && window.setToolboxSub('arrange'); } },
             { icon: '✅', label: 'Pre-export check', keys: 'export check reference mix', run: () => { window.switchTab('hardware'); document.getElementById('btn-preexport-check')?.click(); } },
             { icon: '🔌', label: 'Cable cheat-sheet', keys: 'cable connector impedance', run: () => openModal('cable-modal') },
             { icon: '⟳', label: 'Load default rig', keys: 'rig patchbay default load', run: () => { window.switchTab('hardware'); window.loadDefaultPatchbay && window.loadDefaultPatchbay(true); } },
@@ -5224,7 +5207,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     window.db.tracks = window.db.tracks || []; window.db.tracks.unshift(track);
     window.saveData?.(); window.renderTracks?.();
     const bmEl=$('lab-idea-name'); if(bmEl) bmEl.value='';
-    const s=$('btn-lab-idea-save'); if(s){ const o=s.textContent; s.textContent='✓ SAVED TO TRACK DB'; setTimeout(()=>{ s.textContent=o; }, 1400); }
+    const s=$('btn-lab-idea-save'); if(s){ const o=s.textContent; s.textContent='✓ SAVED TO CHANNEL SETTINGS'; setTimeout(()=>{ s.textContent=o; }, 1400); }
   }
 
   // ---------- 6. VOICE-MEMO SCRATCHPAD ----------
@@ -5389,7 +5372,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const A=[
       ['📖','Recipe Chef', cb>=10, `${cb}/10 recipes`],
       ['🎸','Tone Hoarder', tn>=10, `${tn}/10 tones`],
-      ['🎚️','Track Machine', tk>=5, `${tk}/5 tracks`],
+      ['🎚️','Channel Machine', tk>=5, `${tk}/5 channels`],
       ['🔥','On Fire', streak>=3, `${streak}/3 day streak`],
       ['⏱️','Studio Rat', hrs>=10, `${hrs.toFixed(1)}/10 hrs`],
       ['🎙️','Idea Vault', memos>=3, `${memos}/3 memos`],
@@ -5403,7 +5386,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function buildGraph(){
     const svg=$('lab-graph-svg'); if(!svg) return;
     const tracks=(window.db.tracks||[]).filter(t=>t.toneRef||t.recipeRef);
-    if(!tracks.length){ svg.innerHTML=`<text x="310" y="210" text-anchor="middle" fill="#B18CFF80" font-size="12">Link tracks to tones/recipes in the Track DB to see the graph.</text>`; return; }
+    if(!tracks.length){ svg.innerHTML=`<text x="310" y="210" text-anchor="middle" fill="#B18CFF80" font-size="12">Link tracks to tones/recipes in Channel Settings to see the graph.</text>`; return; }
     const tones={}, recipes={};
     tracks.forEach(t=>{ if(t.toneRef){ const o=(window.db.tones||[]).find(x=>x.id===t.toneRef); if(o) tones[o.id]=o.name; } if(t.recipeRef){ const r=(window.db.cookbook||[]).find(x=>x.id===t.recipeRef); if(r) recipes[r.id]=r.inst||r.genre; } });
     const H=420, pad=40; const place=(arr,x)=>arr.map((v,i)=>({ ...v, x, y: pad + (arr.length===1? (H-2*pad)/2 : i*(H-2*pad)/(arr.length-1)) }));
@@ -5487,7 +5470,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
       const restored=JSON.parse(new TextDecoder().decode(pt));
       if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
-      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
       window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
     }catch(e){ alert('Wrong passphrase or corrupted file.'); }
   }
@@ -6030,6 +6013,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     svg.querySelectorAll('.fb-note').forEach(g=>g.addEventListener('click',()=>{ const a=ac(); if(a) voice(midiFreq(+g.dataset.midi),a.currentTime,0.7,'sawtooth'); g.style.opacity='0.5'; setTimeout(()=>g.style.opacity='1',150); }));
   }
 
+  // ==================== SONG BOARD (kanban of song titles + a note — separate from Channel Settings) ====================
+  const SONG_STATUSES=[['lyrics','Just Lyrics','#B18CFF'],['beat','Just a Beat','#FFA05C'],['tracking','Tracking','#FFD60A'],['mixing','Mixing','#00E5FF'],['done','Done','#00FF88']];
+  let dragSongId=null;
+  function renderSongBoard(){
+    const board=$('songboard-board'); if(!board) return;
+    window.db.songBoard = window.db.songBoard || [];
+    const songs=window.db.songBoard;
+    board.innerHTML=SONG_STATUSES.map(([key,label,color])=>{
+      const items=songs.filter(s=>(s.status||'lyrics')===key);
+      return `<div class="song-col rounded border bg-black/30 p-2" data-status="${key}" style="border-color:${color}30;">
+        <div class="text-[9px] font-bold tracking-widest uppercase mb-2 flex items-center justify-between" style="color:${color};">${label}<span class="opacity-50">${items.length}</span></div>
+        <div class="space-y-2 min-h-[48px]">${items.map(s=>`<div class="song-card-mini rounded border px-2 py-1.5 cursor-grab bg-[rgba(5,8,7,0.9)] relative group" draggable="true" data-song-id="${s.id}" style="border-color:${color}40;"><button data-song-id="${s.id}" class="btn-del-song absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#FF2A2A] text-white text-[9px] font-bold items-center justify-center cursor-pointer hidden group-hover:flex">×</button><div class="text-[10px] font-bold text-white truncate pr-3">${(s.title||'Untitled').replace(/</g,'')}</div>${s.note ? `<div class="text-[8px] text-white/40 truncate">${s.note.replace(/</g,'')}</div>` : ''}</div>`).join('')}</div>
+      </div>`;
+    }).join('');
+  }
+  window.renderSongBoard = renderSongBoard;
+
   // ==================== ARRANGEMENT TIMELINE ====================
   const ARR_KEY='ferrett_os_arrange_v1';
   const ARR_TYPES=[['Intro',4,'#7AFFBF'],['Verse',16,'#00E5FF'],['Pre',4,'#FFD60A'],['Chorus',8,'#FF88FF'],['Hook',8,'#FF88FF'],['Bridge',8,'#B18CFF'],['Solo',8,'#FFD60A'],['Drop',8,'#00FF88'],['Outro',4,'#FF5A5A']];
@@ -6070,7 +6070,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     list.querySelectorAll('.set-dn').forEach(b=>b.addEventListener('click',()=>{ const i=+b.dataset.i; if(i<setData.length-1){ [setData[i+1],setData[i]]=[setData[i],setData[i+1]]; saveSet(); renderSet(); } }));
     saveSet();
   }
-  function populateSetlistTracks(){ const sel=$('set-from-track'); if(!sel) return; const tracks=(window.db&&window.db.tracks)||[]; sel.innerHTML='<option value="">…or pull from Track DB</option>'+tracks.map(t=>`<option value="${(t.inst||'Track').replace(/"/g,'')}">${(t.inst||'Track').slice(0,40)}</option>`).join(''); }
+  function populateSetlistTracks(){ const sel=$('set-from-track'); if(!sel) return; const tracks=(window.db&&window.db.tracks)||[]; sel.innerHTML='<option value="">…or pull from Channel Settings</option>'+tracks.map(t=>`<option value="${(t.inst||'Track').replace(/"/g,'')}">${(t.inst||'Track').slice(0,40)}</option>`).join(''); }
 
   // ==================== NAME GENERATOR ====================
   const N_ADJ='Neon Velvet Broken Golden Electric Midnight Silent Crimson Hollow Wild Frozen Sacred Lonely Savage Crooked Radiant Phantom Restless Feral Molten'.split(' ');
@@ -6170,6 +6170,24 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('fb-inst-bass')?.addEventListener('click',()=>{ fbInst='bass'; $('fb-inst-bass').classList.add('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-bass').classList.remove('text-[#FFD60A]/50'); $('fb-inst-gtr').classList.remove('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-gtr').classList.add('text-[#FFD60A]/50'); buildFretboard(); });
       $('btn-reset-fb')?.addEventListener('click',()=>{ $('fb-root').value='E'; $('fb-scale').value='Min Pent'; $('fb-inst-gtr').click(); buildFretboard(); });
     }
+    // song board
+    if($('songboard-board')){
+      renderSongBoard();
+      $('btn-songboard-add')?.addEventListener('click',()=>{
+        const t=$('songboard-title'), n=$('songboard-note'); const title=(t.value||'').trim(); if(!title){ t.focus(); return; }
+        window.db.songBoard = window.db.songBoard || [];
+        window.db.songBoard.push({ id:Date.now(), title, note:(n.value||'').trim(), status:'lyrics' });
+        t.value=''; n.value='';
+        window.saveData(); renderSongBoard();
+      });
+      $('songboard-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-songboard-add')?.click(); });
+      const sboard=$('songboard-board');
+      sboard.addEventListener('click',(e)=>{ const del=e.target.closest('.btn-del-song'); if(!del) return; const id=parseInt(del.dataset.songId,10); window.db.songBoard=(window.db.songBoard||[]).filter(s=>s.id!==id); window.saveData(); renderSongBoard(); });
+      sboard.addEventListener('dragstart',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c){ dragSongId=parseInt(c.dataset.songId,10); e.dataTransfer.effectAllowed='move'; c.style.opacity='0.4'; } });
+      sboard.addEventListener('dragend',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c) c.style.opacity=''; });
+      sboard.addEventListener('dragover',(e)=>{ if(e.target.closest('.song-col')) e.preventDefault(); });
+      sboard.addEventListener('drop',(e)=>{ const col=e.target.closest('.song-col'); if(!col||dragSongId==null) return; e.preventDefault(); const s=(window.db.songBoard||[]).find(x=>x.id===dragSongId); if(s){ s.status=col.dataset.status; window.saveData(); renderSongBoard(); } dragSongId=null; });
+    }
     // arrangement
     if($('arr-list')){
       const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-ferrett px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
@@ -6200,7 +6218,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-lyr-freq')?.addEventListener('click',lyrFreq);
     $('btn-lyr-print')?.addEventListener('click',lyrPrint);
     // chain into lab refresh so the setlist track list stays current
-    const prev=window.refreshLab; window.refreshLab=function(){ try{ prev&&prev(); }catch(e){} populateSetlistTracks(); };
+    const prev=window.refreshLab; window.refreshLab=function(){ try{ prev&&prev(); }catch(e){} populateSetlistTracks(); renderSongBoard(); };
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

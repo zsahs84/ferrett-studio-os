@@ -1830,6 +1830,8 @@ try {
         if (parsed.patchbay) window.db.patchbay = parsed.patchbay;
         if (parsed.patchbayUserDefault) window.db.patchbayUserDefault = parsed.patchbayUserDefault;
         if (parsed.patchbaySaved) window.db.patchbaySaved = parsed.patchbaySaved;
+        if (parsed.scripts) window.db.scripts = parsed.scripts;
+        if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
     }
     window.storageAvailable = true;
 } catch(e) {}
@@ -1938,6 +1940,8 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.patchbay) window.db.patchbay = cloudDb.patchbay;
                 if (cloudDb.patchbayUserDefault) window.db.patchbayUserDefault = cloudDb.patchbayUserDefault;
                 if (cloudDb.patchbaySaved) window.db.patchbaySaved = cloudDb.patchbaySaved;
+                if (cloudDb.scripts) window.db.scripts = cloudDb.scripts;
+                if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
                 window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
         } 
@@ -2023,6 +2027,8 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.patchbay) window.db.patchbay = incoming.patchbay;
         if (incoming.patchbayUserDefault) window.db.patchbayUserDefault = incoming.patchbayUserDefault;
         if (incoming.patchbaySaved) window.db.patchbaySaved = incoming.patchbaySaved;
+        if (incoming.scripts) window.db.scripts = incoming.scripts;
+        if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
         if (window.refreshAllUI) window.refreshAllUI();

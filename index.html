@@ -812,7 +812,11 @@ main { background: rgba(5,8,7,0.72); }
                     <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
                 </div>
             </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Synthesized drums, all in-browser. Sketch a groove, then rebuild it for real. Presets get you started.</p>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Synthesized drums, all in-browser. Click a cell once for a hit, again for an <span class="text-[#FFD60A]">accent</span>. Presets get you started.</p>
+            <div class="flex flex-wrap items-center gap-4 mb-4">
+                <div class="flex items-center gap-2 flex-1 min-w-[180px]"><span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SWING</span><input type="range" id="beat-swing" min="0" max="65" value="0" class="flex-1 accent-[#00FF88]"><span id="beat-swing-val" class="text-[10px] font-mono text-[#00FF88] w-9 text-right">0%</span></div>
+                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-ferrett px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-ferrett px-2 py-1 text-[10px]" title="Delete snapshot">🗑</button></div>
+            </div>
             <div class="flex flex-wrap gap-2 mb-4" id="beat-presets"></div>
             <div id="beat-grid" class="space-y-1.5 overflow-x-auto"></div>
         </div>
@@ -836,6 +840,7 @@ main { background: rgba(5,8,7,0.72); }
                     <button data-inst="bass" class="chord-inst btn-ferrett px-3 py-1 text-[10px]">BASS</button>
                 </div>
             </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔊 Tap any chord to hear it strummed.</p>
             <div id="chord-diagrams" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
         </div>
 
@@ -894,16 +899,36 @@ main { background: rgba(5,8,7,0.72); }
             <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Track DB as a new stub">→ TRACK</button>
         </div>
 
-        <!-- line editor -->
+        <!-- view mode + analysis toolbar -->
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+            <div class="flex rounded overflow-hidden border border-[#FF88FF40]">
+                <button id="btn-lyr-mode-edit" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest bg-[#FF88FF]/20 text-[#FF88FF]">EDIT</button>
+                <button id="btn-lyr-mode-analyze" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#FF88FF]/50">ANALYZE</button>
+            </div>
+            <div id="lyr-analyze-tools" class="hidden flex-wrap items-center gap-2">
+                <button id="btn-lyr-read" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">🔊 READ ALOUD</button>
+                <div class="flex items-center gap-1.5"><span class="text-[8px] text-[#00E5FF]/60 tracking-widest">RATE</span><input type="range" id="lyr-read-rate" min="60" max="140" value="95" class="w-16 accent-[#00E5FF]"></div>
+                <button id="btn-lyr-spark" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line">✨ SPARK</button>
+                <span id="lyr-spark-out" class="text-[11px] text-[#FFD60A] font-bold italic"></span>
+            </div>
+        </div>
+
+        <!-- line editor (EDIT mode) -->
         <div id="lyr-lines" class="space-y-1 mb-2"></div>
+        <!-- analysis view (ANALYZE mode) -->
+        <div id="lyr-analyze" class="hidden mb-3"></div>
         <div id="lyr-meta" class="text-[9px] text-[#FF88FF]/50 font-mono tracking-widest mb-6"></div>
 
         <!-- rhyme / word bank -->
         <div class="card border-[#B18CFF30]">
-            <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🔤 SLANT-RHYME FINDER</h4>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type a word (or tap one in your lyrics) — get near-rhymes from a built-in bank plus words already in your sheets.</p>
+            <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🔤 RHYME & WORD FINDER</h4>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type a word (or double-click one in your lyrics). Switch between near-rhymes and synonyms.</p>
+            <div class="flex rounded overflow-hidden border border-[#B18CFF40] mb-3 w-max">
+                <button id="btn-lyr-mode-rhyme" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest bg-[#B18CFF]/20 text-[#B18CFF]">RHYMES</button>
+                <button id="btn-lyr-mode-syn" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#B18CFF]/50">SYNONYMS</button>
+            </div>
             <div class="flex gap-2 mb-3">
-                <input type="text" id="lyr-rhyme-in" placeholder="word to rhyme…" class="flex-1 bg-black/50 border border-[#B18CFF]/30 rounded text-[12px] text-[#E2E8F0]/90 px-3 py-2 focus:outline-none">
+                <input type="text" id="lyr-rhyme-in" placeholder="word…" class="flex-1 bg-black/50 border border-[#B18CFF]/30 rounded text-[12px] text-[#E2E8F0]/90 px-3 py-2 focus:outline-none">
                 <button id="btn-lyr-rhyme" type="button" class="btn-ferrett px-4 py-2" style="border-color:#B18CFF80;color:#B18CFF">FIND</button>
             </div>
             <div id="lyr-rhyme-out" class="flex flex-wrap gap-1.5"></div>
@@ -5084,14 +5109,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const avg=nonEmpty.length?(totSyl/nonEmpty.length).toFixed(1):'0';
     const m=$('lyr-meta'); if(m) m.textContent=`${nonEmpty.length} LINES · ${totSyl} SYLLABLES · ${avg} AVG/LINE`;
   }
-  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); }
+  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); }
 
   // ---- built-in rhyme bank ----
   const RHYME_BANK='time rhyme climb prime mind find grind line shine sign design fire desire higher wire light night fight right sight tight bright flight sky high fly try eye cry die lie why day way say play stay away pray grey fade made way pain rain chain brain gain train plane game name flame fame blame shame ground sound found around down town crown clown gold cold bold soul road load code mode flow low grow show know glow slow snow soul roll control goal whole heart start apart part smart dark spark heavy ready steady heart hard guard hold gold fold told sold cold night alright tonight world word heard bird hurt work dirt love above enough tough rough stuff stay pay away today gun run fun done son one gone alone zone throne home roam dome smoke broke woke hope dope rope scope real feel deal steel steal wheel money honey funny sunny run done street beat heat sweet complete defeat repeat mine fine wine divine live give real deal fear tear near clear year hear dream team scheme cream king ring thing bring sing wing swing sting'.split(' ');
   function rkey(w){ w=w.toLowerCase().replace(/[^a-z]/g,''); w=w.replace(/([^aeiou])e$/,'$1'); return { s2:w.slice(-2), s3:w.slice(-3), w }; }
+  // compact songwriter thesaurus
+  const THESAURUS={ love:['adore','cherish','crave','worship','desire'], hate:['loathe','despise','resent','detest'], happy:['elated','bright','alive','golden','high'], sad:['hollow','broken','heavy','blue','low'], run:['bolt','sprint','flee','race','dash'], fast:['quick','swift','rapid','breakneck'], slow:['lazy','heavy','crawling','dragging'], night:['dark','midnight','shadow','dusk','black'], light:['glow','shine','flame','spark','beam'], fire:['flame','blaze','burn','ember','spark'], dream:['vision','fantasy','trance','mirage'], fall:['crash','tumble','plummet','sink','drop'], rise:['climb','soar','ascend','lift','swell'], fight:['battle','clash','struggle','war','brawl'], home:['haven','shelter','roots','refuge'], road:['path','highway','route','trail','way'], cold:['frozen','icy','bitter','numb'], strong:['fierce','mighty','solid','iron','tough'], lost:['gone','adrift','stranded','missing'], real:['true','honest','raw','genuine'], pain:['ache','hurt','sting','sorrow','wound'], free:['loose','unchained','wild','open'], time:['moment','hour','era','forever','season'], heart:['soul','chest','core','pulse'], king:['ruler','lord','boss','champion'], gold:['riches','treasure','shine','fortune'] };
+  let lyrFindMode='rhyme';
   function findRhymes(){
     const inp=$('lyr-rhyme-in'), out=$('lyr-rhyme-out'); if(!out) return;
     const target=(inp.value||'').trim(); if(!target){ out.innerHTML='<span class="text-[10px] text-white/25 italic">Type a word…</span>'; return; }
+    const wire=()=>out.querySelectorAll('.lyr-rchip').forEach(c=>c.addEventListener('click',()=>{ inp.value=c.dataset.w; findRhymes(); }));
+    if(lyrFindMode==='syn'){
+      const syns=THESAURUS[target.toLowerCase().replace(/[^a-z]/g,'')];
+      if(!syns){ out.innerHTML='<span class="text-[10px] text-white/25 italic">Not in the songwriter thesaurus — try love, fire, night, run, sad, strong…</span>'; return; }
+      out.innerHTML=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mb-1">SYNONYMS</div>`+syns.map(w=>`<button class="lyr-rchip text-[10px] font-mono px-2 py-1 rounded border cursor-pointer" style="color:#00E5FF;border-color:#00E5FF40;background:#00E5FF0A" data-w="${w}">${w}</button>`).join(''); wire(); return;
+    }
     const tk=rkey(target);
     const corpus=new Set(RHYME_BANK);
     lyrState.sheets.forEach(s=>s.lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>2) corpus.add(w); })));
@@ -5103,7 +5137,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if(strong.length) html+=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mb-1">RHYMES</div>`+chips(strong,'#FF88FF');
     if(slant.length) html+=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mt-2 mb-1">SLANT / NEAR</div>`+chips(slant,'#B18CFF');
     out.innerHTML=html||'<span class="text-[10px] text-white/25 italic">No matches in the bank — try a shorter or more common word.</span>';
-    out.querySelectorAll('.lyr-rchip').forEach(c=>c.addEventListener('click',()=>{ inp.value=c.dataset.w; findRhymes(); }));
+    wire();
   }
 
   function lyrCutup(sectionOnly){
@@ -5129,6 +5163,89 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
 
+  // ---- ANALYZE MODE: rhyme scheme, internal rhymes, contour ----
+  let lyrMode='edit';
+  const SCHEME_COLORS=['#FF88FF','#00E5FF','#FFD60A','#00FF88','#B18CFF','#FF5A5A','#7AFFBF','#FF9F45'];
+  const sylOfLine=(t)=> t.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0);
+  const lastWord=(t)=>{ const m=t.trim().toLowerCase().match(/[a-z']+(?=[^a-z']*$)/); return m?m[0].replace(/[^a-z]/g,''):''; };
+  function buildAnalyze(){
+    const box=$('lyr-analyze'); if(!box) return; const sheet=activeSheet();
+    const lines=sheet.lines.filter(l=>l.text.trim());
+    if(!lines.length){ box.innerHTML='<div class="text-[11px] text-white/30 italic py-4">Write some lines, then analyze.</div>'; return; }
+    // end-rhyme scheme: group end words by rhyme key
+    const endKeys=lines.map(l=>{ const lw=lastWord(l.text); return lw? rkey(lw).s2 : null; });
+    const letterFor={}; let next=0; const schemeLetters=endKeys.map(k=>{ if(!k) return '·'; if(!(k in letterFor)){ letterFor[k]=next++; } return String.fromCharCode(65+ (letterFor[k]%26)); });
+    // count only rhyme groups with 2+ members for coloring
+    const keyCount={}; endKeys.forEach(k=>{ if(k) keyCount[k]=(keyCount[k]||0)+1; });
+    const colorForKey={}; let ci=0; Object.keys(keyCount).forEach(k=>{ if(keyCount[k]>=2){ colorForKey[k]=SCHEME_COLORS[ci++ % SCHEME_COLORS.length]; } });
+    // internal rhymes: rhyme keys appearing 2+ times among all words (exclude single)
+    const wordKeyCount={}; lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>2){ const k=rkey(w).s3; if(k.length===3) wordKeyCount[k]=(wordKeyCount[k]||0)+1; } }));
+    const intColor={}; let ii=0; Object.keys(wordKeyCount).forEach(k=>{ if(wordKeyCount[k]>=3){ intColor[k]=SCHEME_COLORS[(SCHEME_COLORS.length-1- (ii++)) % SCHEME_COLORS.length]; } });
+    const showInternal=$('lyr-show-internal')?.checked;
+    const rows=lines.map((l,idx)=>{
+      const key=endKeys[idx]; const endCol=key&&colorForKey[key]?colorForKey[key]:null;
+      const words=l.text.split(/(\s+)/);
+      let lastRealIdx=-1; words.forEach((w,wi)=>{ if(w.trim()) lastRealIdx=wi; });
+      const rendered=words.map((w,wi)=>{
+        if(!w.trim()) return w;
+        const clean=w.toLowerCase().replace(/[^a-z]/g,'');
+        const isEnd=wi===lastRealIdx;
+        if(isEnd && endCol) return `<span style="color:${endCol};font-weight:700;border-bottom:2px solid ${endCol}">${w}</span>`;
+        if(showInternal){ const k=clean.length>2?rkey(clean).s3:''; if(k.length===3 && intColor[k] && !isEnd) return `<span style="color:${intColor[k]}">${w}</span>`; }
+        return w;
+      }).join('');
+      const tagc=(TAGS[l.tag]||TAGS[''])[1];
+      return `<div class="flex items-baseline gap-2 py-0.5">`+
+        `<span class="text-[10px] font-bold font-mono w-4 text-center shrink-0" style="color:${endCol||'rgba(255,255,255,0.25)'}">${schemeLetters[idx]}</span>`+
+        (l.tag?`<span class="text-[8px] font-bold shrink-0" style="color:${tagc}">${l.tag[0]}</span>`:'<span class="w-2 shrink-0"></span>')+
+        `<span class="text-[13px] text-[#E2E8F0]/90 flex-1 leading-relaxed">${rendered}</span>`+
+        `<span class="text-[9px] font-mono text-[#FF88FF]/50 w-6 text-right shrink-0">${sylOfLine(l.text)}</span>`+
+        `</div>`;
+    }).join('');
+    // scheme label (collapse consecutive, cap)
+    const schemeStr=schemeLetters.join(' ');
+    // contour sparkline
+    const sylArr=lines.map(l=>sylOfLine(l.text)); const mx=Math.max(...sylArr,1);
+    const spark=`<svg viewBox="0 0 ${sylArr.length*10} 30" preserveAspectRatio="none" class="w-full h-8">`+
+      sylArr.map((s,i)=>`<rect x="${i*10+1}" y="${30-(s/mx)*28}" width="8" height="${(s/mx)*28}" fill="#FF88FF${s===mx?'':'80'}" rx="1"/>`).join('')+`</svg>`;
+    box.innerHTML=`<div class="p-4 rounded border border-[#FF88FF25] bg-black/30">`+
+      `<div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-[#FF88FF15]">`+
+        `<div class="text-[9px] tracking-widest text-[#FF88FF]/70">RHYME SCHEME &nbsp;<span class="text-white/90 font-mono">${schemeStr.slice(0,80)}</span></div>`+
+        `<label class="flex items-center gap-1.5 text-[9px] text-[#B18CFF]/70 tracking-widest cursor-pointer"><input type="checkbox" id="lyr-show-internal" class="accent-[#B18CFF]" ${showInternal?'checked':''}> INTERNAL RHYMES</label>`+
+      `</div>`+
+      rows+
+      `<div class="mt-3 pt-2 border-t border-[#FF88FF15]"><div class="text-[8px] tracking-widest text-[#FF88FF]/50 mb-1">SYLLABLE CONTOUR (flow evenness)</div>${spark}</div>`+
+    `</div>`;
+    $('lyr-show-internal')?.addEventListener('change', buildAnalyze);
+  }
+  function setLyrMode(m){
+    lyrMode=m; const edit=m==='edit';
+    $('lyr-lines')?.classList.toggle('hidden',!edit);
+    $('lyr-analyze')?.classList.toggle('hidden',edit);
+    $('lyr-analyze-tools')?.classList.toggle('hidden',edit);
+    $('lyr-analyze-tools')?.classList.toggle('flex',!edit);
+    const be=$('btn-lyr-mode-edit'), ba=$('btn-lyr-mode-analyze');
+    if(be&&ba){ be.classList.toggle('bg-[#FF88FF]/20',edit); be.classList.toggle('text-[#FF88FF]',edit); be.classList.toggle('text-[#FF88FF]/50',!edit); ba.classList.toggle('bg-[#FF88FF]/20',!edit); ba.classList.toggle('text-[#FF88FF]',!edit); ba.classList.toggle('text-[#FF88FF]/50',edit); }
+    if(!edit) buildAnalyze(); else stopRead();
+  }
+  // ---- READ ALOUD (TTS) ----
+  let reading=false;
+  function stopRead(){ reading=false; try{ window.speechSynthesis?.cancel(); }catch(e){} const b=$('btn-lyr-read'); if(b) b.textContent='🔊 READ ALOUD'; }
+  function toggleRead(){
+    if(!window.speechSynthesis){ alert('Speech synthesis not available in this browser.'); return; }
+    if(reading){ stopRead(); return; }
+    const lines=activeSheet().lines.filter(l=>l.text.trim()); if(!lines.length) return;
+    reading=true; const b=$('btn-lyr-read'); if(b) b.textContent='■ STOP';
+    const rate=(+($('lyr-read-rate')?.value||95))/100;
+    const u=new SpeechSynthesisUtterance(lines.map(l=>l.text).join('. \n'));
+    u.rate=rate; u.pitch=1;
+    u.onend=()=>{ reading=false; if(b) b.textContent='🔊 READ ALOUD'; };
+    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+  }
+  // ---- SPARK: random evocative word ----
+  const SPARK_WORDS='neon velvet static ghost concrete gasoline halo rust midnight chrome ember thunder marble smoke violet iron paper glass ash comet fever gold ocean fracture pulse mirror echo vapor crimson hollow drift signal wildfire feather shadow diamond'.split(' ');
+  function spark(){ const el=$('lyr-spark-out'); if(!el) return; const w=SPARK_WORDS[Math.floor(Math.random()*SPARK_WORDS.length)]; const w2=SPARK_WORDS[Math.floor(Math.random()*SPARK_WORDS.length)]; el.textContent='“'+w+(Math.random()<0.5?' + '+w2:'')+'”'; }
+
   // ==================== BEAT SKETCH — step sequencer ====================
   const BEAT_KEY='ferrett_os_beat_v1';
   const KITS=['KICK','SNARE','HAT','OHAT','CLAP','TOM'];
@@ -5138,39 +5255,52 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     'Four-Floor':{KICK:[0,4,8,12],SNARE:[],HAT:[2,6,10,14],OHAT:[],CLAP:[4,12],TOM:[]},
     'Half-Time':{KICK:[0,10],SNARE:[8],HAT:'x8',OHAT:[14],CLAP:[],TOM:[]}
   };
-  let beatPattern=null, beatAC=null, beatPlaying=false, beatStep=0, beatNextTime=0, beatTimer=null, beatBpm=90;
-  function blankPattern(){ const p={}; KITS.forEach(k=>p[k]=new Array(16).fill(false)); return p; }
-  function loadBeat(){ try{ const r=localStorage.getItem(BEAT_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
+  let beatPattern=null, beatAC=null, beatPlaying=false, beatStep=0, beatNextTime=0, beatTimer=null, beatBpm=90, beatSwing=0;
+  const BEAT_SNAP_KEY='ferrett_os_beat_snaps_v1';
+  function blankPattern(){ const p={}; KITS.forEach(k=>p[k]=new Array(16).fill(0)); return p; }
+  function normalizePattern(p){ const np=blankPattern(); if(p) KITS.forEach(k=>{ if(Array.isArray(p[k])) p[k].forEach((v,i)=>{ if(i<16) np[k][i]= v===true?1 : (typeof v==='number'?v:0); }); }); return np; }
+  function loadBeat(){ try{ const r=localStorage.getItem(BEAT_KEY); if(r) return normalizePattern(JSON.parse(r)); }catch(e){} return null; }
   function saveBeat(){ try{ localStorage.setItem(BEAT_KEY, JSON.stringify(beatPattern)); }catch(e){} }
-  function applyPreset(name){ const pr=BEAT_PRESETS[name]; beatPattern=blankPattern(); KITS.forEach(k=>{ let v=pr[k]; if(v==='x8') v=[0,2,4,6,8,10,12,14]; else if(v==='x16') v=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; (v||[]).forEach(i=>{ if(i>=0&&i<16) beatPattern[k][i]=true; }); }); saveBeat(); renderBeatGrid(); }
+  function applyPreset(name){ const pr=BEAT_PRESETS[name]; beatPattern=blankPattern(); KITS.forEach(k=>{ let v=pr[k]; if(v==='x8') v=[0,2,4,6,8,10,12,14]; else if(v==='x16') v=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; (v||[]).forEach(i=>{ if(i>=0&&i<16) beatPattern[k][i]=1; }); }); saveBeat(); renderBeatGrid(); }
   function renderBeatPresets(){ const w=$('beat-presets'); if(!w) return; w.innerHTML=Object.keys(BEAT_PRESETS).map(n=>`<button class="beat-preset btn-ferrett px-3 py-1 text-[10px]" data-p="${n}">${n}</button>`).join(''); w.querySelectorAll('.beat-preset').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.p))); }
+  function cellStyle(v){ return v===2?'bg-[#FFD60A] border-[#FFD60A]' : v===1?'bg-[#00FF88] border-[#00FF88]' : 'bg-black/40 border-white/10 hover:border-[#00FF88]/50'; }
   function renderBeatGrid(){
     const g=$('beat-grid'); if(!g) return; if(!beatPattern) beatPattern=loadBeat()||blankPattern();
-    g.innerHTML=KITS.map(k=>`<div class="flex items-center gap-1"><span class="text-[8px] font-bold tracking-widest text-[#00FF88]/70 w-9 shrink-0">${k}</span><div class="flex gap-1">${beatPattern[k].map((on,i)=>`<button class="beat-cell w-5 h-5 md:w-6 md:h-6 rounded-sm border transition-colors ${on?'bg-[#00FF88] border-[#00FF88]':'bg-black/40 border-white/10 hover:border-[#00FF88]/50'} ${i%4===0?'ml-1':''}" data-k="${k}" data-i="${i}"></button>`).join('')}</div></div>`).join('');
-    g.querySelectorAll('.beat-cell').forEach(c=>c.addEventListener('click',()=>{ beatPattern[c.dataset.k][+c.dataset.i]=!beatPattern[c.dataset.k][+c.dataset.i]; saveBeat(); renderBeatGrid(); }));
+    g.innerHTML=KITS.map(k=>`<div class="flex items-center gap-1"><span class="text-[8px] font-bold tracking-widest text-[#00FF88]/70 w-9 shrink-0">${k}</span><div class="flex gap-1">${beatPattern[k].map((v,i)=>`<button class="beat-cell w-5 h-5 md:w-6 md:h-6 rounded-sm border transition-colors ${cellStyle(v)} ${i%4===0?'ml-1':''}" data-k="${k}" data-i="${i}"></button>`).join('')}</div></div>`).join('');
+    g.querySelectorAll('.beat-cell').forEach(c=>c.addEventListener('click',()=>{ const k=c.dataset.k,i=+c.dataset.i; beatPattern[k][i]=(beatPattern[k][i]+1)%3; saveBeat(); renderBeatGrid(); }));
   }
+  // snapshots
+  function loadSnaps(){ try{ return JSON.parse(localStorage.getItem(BEAT_SNAP_KEY)||'{}'); }catch(e){ return {}; } }
+  function saveSnaps(s){ try{ localStorage.setItem(BEAT_SNAP_KEY, JSON.stringify(s)); }catch(e){} }
+  function renderSnapSlots(){ const sel=$('beat-snap-slot'); if(!sel) return; const snaps=loadSnaps(); const cur=sel.value; sel.innerHTML='<option value="">— snapshots —</option>'+Object.keys(snaps).map(n=>`<option value="${n}">${n}</option>`).join(''); if(snaps[cur]) sel.value=cur; }
+  function saveSnapshot(){ const name=prompt('Name this beat snapshot:'); if(!name) return; const snaps=loadSnaps(); snaps[name.slice(0,24)]={pattern:beatPattern, bpm:beatBpm, swing:beatSwing}; saveSnaps(snaps); renderSnapSlots(); $('beat-snap-slot').value=name.slice(0,24); }
+  function loadSnapshot(name){ const snaps=loadSnaps(); const s=snaps[name]; if(!s) return; beatPattern=normalizePattern(s.pattern); if(s.bpm){ beatBpm=s.bpm; const bi=$('beat-bpm'); if(bi) bi.value=s.bpm; } if(typeof s.swing==='number'){ beatSwing=s.swing; const sw=$('beat-swing'); if(sw) sw.value=s.swing; const sv=$('beat-swing-val'); if(sv) sv.textContent=s.swing+'%'; } saveBeat(); renderBeatGrid(); }
+  function delSnapshot(){ const sel=$('beat-snap-slot'); const name=sel.value; if(!name) return; if(!confirm('Delete snapshot "'+name+'"?')) return; const snaps=loadSnaps(); delete snaps[name]; saveSnaps(snaps); renderSnapSlots(); }
   function beatEnsureAC(){ if(!beatAC){ try{ beatAC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(beatAC.state==='suspended') beatAC.resume(); return beatAC; }
   function noiseBurst(ac,t,dur,hp,gainv){ const len=ac.sampleRate*dur, buf=ac.createBuffer(1,len,ac.sampleRate), d=buf.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1; const src=ac.createBufferSource(); src.buffer=buf; const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; const g=ac.createGain(); g.gain.setValueAtTime(gainv,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); src.stop(t+dur); }
-  function playDrum(k,t){ const ac=beatAC; if(!ac) return;
-    if(k==='KICK'){ const o=ac.createOscillator(),g=ac.createGain(); o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(50,t+0.12); g.gain.setValueAtTime(0.9,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.32); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.34); }
-    else if(k==='SNARE'){ noiseBurst(ac,t,0.18,1200,0.5); const o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=190; g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.14); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.16); }
-    else if(k==='HAT'){ noiseBurst(ac,t,0.045,7000,0.35); }
-    else if(k==='OHAT'){ noiseBurst(ac,t,0.28,6500,0.3); }
-    else if(k==='CLAP'){ [0,0.012,0.024].forEach(o=>noiseBurst(ac,t+o,0.12,1500,0.35)); }
-    else if(k==='TOM'){ const o=ac.createOscillator(),g=ac.createGain(); o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(90,t+0.2); g.gain.setValueAtTime(0.6,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.32); }
+  function playDrum(k,t,vel){ const ac=beatAC; if(!ac) return; const V=vel===2?1.35:1;
+    if(k==='KICK'){ const o=ac.createOscillator(),g=ac.createGain(); o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(50,t+0.12); g.gain.setValueAtTime(0.9*V,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.32); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.34); }
+    else if(k==='SNARE'){ noiseBurst(ac,t,0.18,1200,0.5*V); const o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=190; g.gain.setValueAtTime(0.5*V,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.14); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.16); }
+    else if(k==='HAT'){ noiseBurst(ac,t,0.045,7000,0.35*V); }
+    else if(k==='OHAT'){ noiseBurst(ac,t,0.28,6500,0.3*V); }
+    else if(k==='CLAP'){ [0,0.012,0.024].forEach(o=>noiseBurst(ac,t+o,0.12,1500,0.35*V)); }
+    else if(k==='TOM'){ const o=ac.createOscillator(),g=ac.createGain(); o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(90,t+0.2); g.gain.setValueAtTime(0.6*V,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.32); }
   }
   function beatSchedule(){
     const ac=beatAC; const stepDur=(60/beatBpm)/4;
     while(beatNextTime < ac.currentTime+0.1){
-      const step=beatStep, t=beatNextTime;
-      KITS.forEach(k=>{ if(beatPattern[k][step]) playDrum(k,t); });
+      const step=beatStep;
+      // swing: push odd 16ths later, up to ~2/3 of a step
+      const swingOffset=(step%2===1)? (beatSwing/100)*stepDur : 0;
+      const t=beatNextTime+swingOffset;
+      KITS.forEach(k=>{ const v=beatPattern[k][step]; if(v) playDrum(k,t,v); });
       const delay=(t-ac.currentTime)*1000;
-      setTimeout(()=>{ document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>{ if(+c.dataset.i===step) c.classList.add('ring-2','ring-[#FFD60A]'); else c.classList.remove('ring-2','ring-[#FFD60A]'); }); }, Math.max(0,delay));
+      setTimeout(()=>{ document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>{ if(+c.dataset.i===step) c.classList.add('ring-2','ring-[#FF88FF]'); else c.classList.remove('ring-2','ring-[#FF88FF]'); }); }, Math.max(0,delay));
       beatNextTime+=stepDur; beatStep=(beatStep+1)%16;
     }
     beatTimer=setTimeout(beatSchedule,25);
   }
-  window.stopBeatSketch=()=>{ beatPlaying=false; if(beatTimer){ clearTimeout(beatTimer); beatTimer=null; } document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>c.classList.remove('ring-2','ring-[#FFD60A]')); const b=$('btn-beat-play'); if(b){ b.textContent='▶ PLAY'; b.classList.add('btn-ferrett-green'); } };
+  window.stopBeatSketch=()=>{ beatPlaying=false; if(beatTimer){ clearTimeout(beatTimer); beatTimer=null; } document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>c.classList.remove('ring-2','ring-[#FF88FF]')); const b=$('btn-beat-play'); if(b){ b.textContent='▶ PLAY'; b.classList.add('btn-ferrett-green'); } };
   function toggleBeat(){ if(beatPlaying){ window.stopBeatSketch(); return; } const ac=beatEnsureAC(); if(!ac) return; beatPlaying=true; beatStep=0; beatNextTime=ac.currentTime+0.05; const b=$('btn-beat-play'); if(b) b.textContent='■ STOP'; beatSchedule(); }
 
   // ==================== CHORD PROGRESSION BOOK ====================
@@ -5198,10 +5328,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     frets.forEach((f,c)=>{ const x=padX+c*gw; if(f===-1) els+=`<text x="${x}" y="${padY-4}" text-anchor="middle" fill="#FF5A5A" font-size="8">✕</text>`; else if(f===0) els+=`<circle cx="${x}" cy="${padY-6}" r="3" fill="none" stroke="#00FF88" stroke-width="1.2"/>`; else { const y=padY+(f-0.5)*gh; els+=`<circle cx="${x}" cy="${y}" r="4.5" fill="#FFD60A"/>`; } });
     return `<svg viewBox="0 0 ${W} ${H}" class="w-full"><text x="${W/2}" y="${H-1}" text-anchor="middle" fill="#FFD60A" font-size="10" font-weight="bold">${name}</text>${els}</svg>`;
   }
+  // open-string MIDI: guitar E2 A2 D3 G3 B3 E4 ; bass E1 A1 D2 G2
+  const TUNE_GTR=[40,45,50,55,59,64], TUNE_BASS=[28,33,38,43];
+  let chordAC=null;
+  function chordEnsureAC(){ if(!chordAC){ try{ chordAC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(chordAC.state==='suspended') chordAC.resume(); return chordAC; }
+  function pluck(ac,freq,t,dur){ const o=ac.createOscillator(),o2=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter(); o.type='triangle'; o2.type='sawtooth'; o.frequency.value=freq; o2.frequency.value=freq; o2.detune.value=6; f.type='lowpass'; f.frequency.setValueAtTime(4200,t); f.frequency.exponentialRampToValueAtTime(900,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.008); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(f); o2.connect(f); f.connect(g); g.connect(ac.destination); o.start(t); o2.start(t); o.stop(t+dur+0.05); o2.stop(t+dur+0.05); }
+  function strum(frets){ const ac=chordEnsureAC(); if(!ac) return; const tune=chordInst==='guitar'?TUNE_GTR:TUNE_BASS; const t0=ac.currentTime+0.02; let n=0; frets.forEach((f,i)=>{ if(f<0) return; const midi=tune[i]+f; const freq=440*Math.pow(2,(midi-69)/12); pluck(ac,freq,t0+n*0.035,1.1); n++; }); }
   let chordInst='guitar';
   function buildChords(){
     const wrap=$('chord-diagrams'); if(!wrap) return; const lib=chordInst==='guitar'?CHORDS_GTR:CHORDS_BASS;
-    wrap.innerHTML=Object.keys(lib).map(n=>`<div class="p-1.5 rounded border border-[#FFD60A15] bg-black/25">${fretSVG(n,lib[n])}</div>`).join('');
+    wrap.innerHTML=Object.keys(lib).map(n=>`<button class="chord-card w-full p-1.5 rounded border border-[#FFD60A15] bg-black/25 hover:border-[#FFD60A70] hover:bg-[#FFD60A]/5 transition-colors cursor-pointer" data-n="${n}">${fretSVG(n,lib[n])}</button>`).join('');
+    wrap.querySelectorAll('.chord-card').forEach(b=>b.addEventListener('click',()=>{ strum(lib[b.dataset.n]); b.classList.add('ring-2','ring-[#FFD60A]'); setTimeout(()=>b.classList.remove('ring-2','ring-[#FFD60A]'),300); }));
   }
 
   // ==================== SONG STRUCTURE TEMPLATES ====================
@@ -5231,14 +5368,28 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('btn-lyr-totrack')?.addEventListener('click',lyrToTrack);
       $('btn-lyr-rhyme')?.addEventListener('click',findRhymes);
       $('lyr-rhyme-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') findRhymes(); });
+      // view mode toggle
+      $('btn-lyr-mode-edit')?.addEventListener('click',()=>setLyrMode('edit'));
+      $('btn-lyr-mode-analyze')?.addEventListener('click',()=>setLyrMode('analyze'));
+      // rhyme/synonym mode toggle
+      const setFind=(m)=>{ lyrFindMode=m; const r=$('btn-lyr-mode-rhyme'), s=$('btn-lyr-mode-syn'); const rOn=m==='rhyme'; r.classList.toggle('bg-[#B18CFF]/20',rOn); r.classList.toggle('text-[#B18CFF]',rOn); r.classList.toggle('text-[#B18CFF]/50',!rOn); s.classList.toggle('bg-[#B18CFF]/20',!rOn); s.classList.toggle('text-[#B18CFF]',!rOn); s.classList.toggle('text-[#B18CFF]/50',rOn); if($('lyr-rhyme-in').value.trim()) findRhymes(); };
+      $('btn-lyr-mode-rhyme')?.addEventListener('click',()=>setFind('rhyme'));
+      $('btn-lyr-mode-syn')?.addEventListener('click',()=>setFind('syn'));
+      // analyze tools
+      $('btn-lyr-read')?.addEventListener('click',toggleRead);
+      $('btn-lyr-spark')?.addEventListener('click',spark);
       renderLyr();
     }
     // beat
     if($('beat-grid')){
-      renderBeatPresets(); renderBeatGrid();
+      renderBeatPresets(); renderBeatGrid(); renderSnapSlots();
       $('btn-beat-play')?.addEventListener('click',toggleBeat);
       $('btn-beat-clear')?.addEventListener('click',()=>{ window.stopBeatSketch(); beatPattern=blankPattern(); saveBeat(); renderBeatGrid(); });
       $('beat-bpm')?.addEventListener('input',(e)=>{ beatBpm=Math.max(40,Math.min(220,+e.target.value||90)); });
+      $('beat-swing')?.addEventListener('input',(e)=>{ beatSwing=+e.target.value; const v=$('beat-swing-val'); if(v) v.textContent=beatSwing+'%'; });
+      $('btn-beat-snap-save')?.addEventListener('click',saveSnapshot);
+      $('btn-beat-snap-del')?.addEventListener('click',delSnapshot);
+      $('beat-snap-slot')?.addEventListener('change',(e)=>{ if(e.target.value) loadSnapshot(e.target.value); });
       beatBpm=+($('beat-bpm')?.value||90);
     }
     // chord book

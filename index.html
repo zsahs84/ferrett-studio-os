@@ -235,10 +235,8 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-links" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Web Tools & Intel</button>
     <button id="nav-tracks" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Track DB [Images]</button>
     <button id="nav-tones" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Tone DB [Tags/Img]</button>
-    <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator & Tools</button>
-    <button id="nav-lab" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Lab // X-Tools</button>
+    <button id="nav-toolbox" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🧰 Toolbox</button>
     <button id="nav-lyrics" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Lyrics Lab // Cut-Up</button>
-    <button id="nav-tools" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio+ // Theory · Ear · AI</button>
     <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Notes Vault</button>
 
     <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
@@ -516,8 +514,9 @@ main { background: rgba(5,8,7,0.72); }
         <div id="tone-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </div>
 
-    <section id="tab-calc" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00E5FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">STUDIO CALCULATOR & TIME TOOLS</h2></div>
+
+    <section id="tab-toolbox" class="middle-tab p-4 md:p-8 max-w-6xl border-b border-[#7AFFBF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#7AFFBF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#7AFFBF]">TOOLBOX</h2><span class="text-[9px] text-[#7AFFBF]/40 tracking-widest hidden sm:block">EVERY TOOL, SORTED</span></div>
 
         <div class="card border-[#FFD60A40] mb-6 text-center py-8" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(0,229,255,0.04));">
             <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-2">🚀 Session Starter</h3>
@@ -526,19 +525,163 @@ main { background: rgba(5,8,7,0.72); }
             <div class="mt-4"><button id="btn-open-lyria-tools" type="button" class="text-[10px] font-bold tracking-widest text-[#00E5FF]/70 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0 underline underline-offset-2">🎼 or just open the Lyria Prompt Generator</button></div>
         </div>
 
+        <div class="flex flex-wrap gap-2 mb-6" id="tbx-subnav">
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="theory" style="background:rgba(122,255,191,0.18);color:#7AFFBF;border-color:#7AFFBF;">🎵 THEORY &amp; EAR</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="calc">🧮 CALCULATORS</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="players">🥁 PLAYERS &amp; PRACTICE</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="arrange">🎬 ARRANGEMENT &amp; SETLISTS</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="monitor">🎙️ MONITORING &amp; ROOM</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="spark">✨ CREATIVE SPARKS</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="ai">🤖 AI ASSISTANT</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="analytics">📊 STUDIO ANALYTICS</button>
+            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="ops">🗂️ STUDIO OPS</button>
+        </div>
+
+    <div id="tbx-panel-theory" class="tbx-panel space-y-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">◎ CIRCLE OF FIFTHS</h4>
+                <div class="flex justify-center mb-2"><svg id="lab-cof-svg" viewBox="0 0 260 260" class="w-full max-w-[260px]"></svg></div>
+                <div id="lab-cof-info" class="text-center text-[11px] text-[#E2E8F0]/70 font-mono min-h-[40px]"></div>
+            </div>
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎼 SCALE & MODE HELPER</h4>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">ROOT</label><select id="lab-scale-root" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                    <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">SCALE</label><select id="lab-scale-type" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                </div>
+                <div id="lab-scale-notes" class="flex flex-wrap gap-2 mb-3"></div>
+                <div id="lab-scale-chords" class="text-[10px] text-[#E2E8F0]/55 font-mono leading-relaxed"></div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔑 KEY DETECTOR (FROM CHORDS)</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type the chords of a song — get the most likely key(s).</p>
+                <input type="text" id="kd-in" value="Am F C G" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
+                <div id="kd-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
+            </div>
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🔢 NASHVILLE NUMBER CHART</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Portable chord chart — numbers instead of letters, so it works in any key.</p>
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="nn-in" value="C G Am F" class="flex-1 bg-black/50 border border-[#FFD60A]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none">
+                    <select id="nn-key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-2 focus:outline-none"></select>
+                </div>
+                <div id="nn-out" class="text-[15px] font-mono font-bold text-white"></div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#B18CFF30]">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🎧 HARMONIC MIXING (CAMELOT)</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Which keys mix smoothly with what you've got. Pick a key:</p>
+                <div class="flex gap-2 mb-3">
+                    <select id="cm-root" class="flex-1 bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"></select>
+                    <select id="cm-mode" class="bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="maj">Major</option><option value="min">Minor</option></select>
+                </div>
+                <div id="cm-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
+            </div>
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">👂 INTERVAL EAR TRAINER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Hear two notes, name the interval. Build your ear.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button id="btn-ear-new" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ NEW</button>
+                    <button id="btn-ear-replay" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">↻ REPLAY</button>
+                    <span id="ear-score" class="text-[10px] font-mono text-[#00FF88]/70 self-center ml-auto">0 / 0</span>
+                </div>
+                <div id="ear-choices" class="grid grid-cols-3 gap-1.5"></div>
+                <div id="ear-feedback" class="text-[11px] font-mono mt-2 h-4"></div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔁 PROGRESSION PLAYER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords, hear them loop with a bass. Test a progression fast.</p>
+                <input type="text" id="pp-in" value="C G Am F" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
+                <div class="flex items-center gap-2">
+                    <button id="btn-pp-play" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px]">▶ PLAY</button>
+                    <input type="number" id="pp-bpm" value="90" min="40" max="200" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none">
+                    <span class="text-[9px] text-[#00E5FF]/50 font-bold tracking-widest">BPM</span>
+                    <label class="flex items-center gap-1 text-[9px] text-[#00E5FF]/70 tracking-widest cursor-pointer ml-2"><input type="checkbox" id="pp-bass" class="accent-[#00E5FF]" checked> BASS</label>
+                </div>
+            </div>
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎵 NOTE ↔ FREQUENCY</h4>
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest">A4=</label>
+                    <input type="number" id="nf-a4" value="440" min="415" max="466" class="w-16 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none">
+                    <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest ml-2">OCT</label>
+                    <select id="nf-oct" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-1.5 py-1 focus:outline-none"></select>
+                    <input type="number" id="nf-hz" placeholder="Hz→note" class="w-24 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none ml-auto">
+                </div>
+                <div id="nf-table" class="grid grid-cols-4 gap-1.5"></div>
+                <div id="nf-lookup" class="text-[11px] font-mono text-[#FFD60A] mt-2 h-4"></div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="card border-[#00E5FF30] mb-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🎹 CHORD PROGRESSION BOOK</h4>
+            <div class="grid grid-cols-2 gap-3 mb-4 max-w-md">
+                <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">KEY</label><select id="prog-key" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">TONALITY</label><select id="prog-tonality" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="major">Major</option><option value="minor">Minor</option></select></div>
+            </div>
+            <div id="prog-list" class="space-y-2"></div>
+        </div>
+        <div class="card border-[#FFD60A30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-[#FFD60A20] pb-2">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 CHORD DIAGRAM LIBRARY</h4>
+                <div class="flex gap-2" id="chord-inst-toggle">
+                    <button data-inst="guitar" class="chord-inst btn-ferrett px-3 py-1 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.12)">GUITAR</button>
+                    <button data-inst="bass" class="chord-inst btn-ferrett px-3 py-1 text-[10px]">BASS</button>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔊 Tap any chord to hear it strummed.</p>
+            <div id="chord-diagrams" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+        </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="card border-[#FFD60A30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#FFD60A20] pb-2">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 FRETBOARD SCALE EXPLORER</h4>
+                <div class="flex items-center gap-2">
+                    <select id="fb-root" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <select id="fb-scale" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <div class="flex rounded overflow-hidden border border-[#FFD60A40]"><button id="fb-inst-gtr" type="button" class="px-2 py-1 text-[9px] font-bold bg-[#FFD60A]/20 text-[#FFD60A]">GTR</button><button id="fb-inst-bass" type="button" class="px-2 py-1 text-[9px] font-bold text-[#FFD60A]/50">BASS</button></div>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔴 root · 🟡 scale tone. Tap a dot to hear the note.</p>
+            <div class="overflow-x-auto"><svg id="fb-svg" viewBox="0 0 640 150" class="min-w-[560px] w-full"></svg></div>
+        </div>
         <div class="card border-[#00FF8830] mb-6">
-            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">SESSION STATS</h4>
-            <div class="grid grid-cols-3 gap-4 text-center" id="session-stats-display">
-                <div><div id="stat-today" class="text-[22px] font-bold text-[#00FF88]">--</div><div class="text-[9px] text-[#00FF88]/50 tracking-widest mt-1">TODAY</div></div>
-                <div><div id="stat-week" class="text-[22px] font-bold text-[#00E5FF]">--</div><div class="text-[9px] text-[#00E5FF]/50 tracking-widest mt-1">THIS WEEK</div></div>
-                <div><div id="stat-streak" class="text-[22px] font-bold text-[#FFD60A]">--</div><div class="text-[9px] text-[#FFD60A]/50 tracking-widest mt-1">DAY STREAK</div></div>
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 TRANSPOSE & CAPO</h4>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords (e.g. <span class="font-mono text-[#00FF88]/70">C G Am F</span>). Slide to transpose; the capo helper finds an easier shape in the same sounding key.</p>
+            <input type="text" id="tr-chords" value="C G Am F" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SHIFT</span>
+                <input type="range" id="tr-amt" min="-12" max="12" value="0" class="flex-1 accent-[#00FF88]">
+                <span id="tr-amt-val" class="text-[11px] font-mono text-[#00FF88] w-16 text-right">0 st</span>
+            </div>
+            <div id="tr-out" class="text-[15px] font-mono font-bold text-white mb-4 min-h-[24px]"></div>
+            <div class="grid grid-cols-2 gap-3 items-end border-t border-[#00FF8815] pt-3">
+                <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">EASIER SHAPES OF</label><select id="tr-capo-shape" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
+                <div id="tr-capo-out" class="text-[11px] font-mono text-[#00FF88]/90"></div>
             </div>
         </div>
+            </div>
+    </div>
+
+    <div id="tbx-panel-calc" class="tbx-panel hidden space-y-6 mb-6">
         <div class="card border-[#00E5FF30] mb-6 flex flex-col md:flex-row items-center justify-center gap-8 p-8 md:p-12">
             <div class="flex flex-col items-center gap-2"><span class="text-[12px] tracking-widest text-[#00E5FF]/70 font-bold">PROJECT TEMPO</span><div class="flex items-center gap-2"><input type="number" id="calc-bpm-main" value="120" class="bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[40px] font-bold text-[#00E5FF] w-40 py-2 focus:outline-none shadow-[0_0_15px_rgba(0,229,255,0.1)]"><span class="text-[14px] text-[#00E5FF]/50 font-bold">BPM</span></div></div>
             <div class="text-[#00E5FF]/30 text-[32px] hidden md:block">||</div>
             <button id="btn-tap-tempo-main" class="w-40 h-40 rounded-full bg-[#00E5FF]/10 border-2 border-[#00E5FF]/50 text-[#00E5FF] hover:bg-[#00E5FF] hover:text-black transition-all text-[22px] font-bold tracking-[0.3em] active:scale-95 shadow-[0_0_20px_rgba(0,229,255,0.2)]">TAP</button>
         </div>
+
         <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
             <div class="card border-[#00FF8830]"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">STRAIGHT DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/2</span><span id="calc-main-12" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">1000ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/4</span><span id="calc-main-14" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">500ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8</span><span id="calc-main-18" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">250ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16</span><span id="calc-main-116" class="text-[#00FF88] font-bold bg-[#00FF88]/10 px-2 py-1 rounded">125ms</span></div></div></div>
             <div class="card border-[#00E5FF30]"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">DOTTED DELAY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1/4 Dot</span><span id="calc-main-14d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">750ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Dot</span><span id="calc-main-18d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">375ms</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/16 Dot</span><span id="calc-main-116d" class="text-[#00E5FF] font-bold bg-[#00E5FF]/10 px-2 py-1 rounded">188ms</span></div></div></div>
@@ -546,6 +689,61 @@ main { background: rgba(5,8,7,0.72); }
             <div class="card border-[#FF88FF30]"><h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-4 border-b border-[#FF88FF20] pb-2">LFO FREQUENCY</h4><div class="space-y-3 font-mono text-[14px]"><div class="flex justify-between items-center"><span class="text-white/40">1 Bar</span><span id="calc-main-hz-bar" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">0.50 Hz</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/4 Note</span><span id="calc-main-hz-1" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">2.00 Hz</span></div><div class="flex justify-between items-center"><span class="text-white/40">1/8 Note</span><span id="calc-main-hz-2" class="text-[#FF88FF] font-bold bg-[#FF88FF]/10 px-2 py-1 rounded">4.00 Hz</span></div></div></div>
         </div>
 
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">🎯 LOUDNESS TARGETS (LUFS) — WHERE TO LAND YOUR MASTER</h4>
+            <div id="lab-lufs-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+            <p class="text-[9px] text-[#E2E8F0]/35 mt-4 leading-relaxed">Streaming normalizes to a target — mastering hotter than the target just gets turned down (and often sounds worse). True-peak ceiling of −1 dBTP keeps lossy codecs from clipping.</p>
+        </div>
+
+        <div class="card border-[#FFD60A30] mb-6">
+            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">📊 FREQUENCY COLLISION MAP — WHO OWNS WHAT</h4>
+            <div id="lab-eq-grid" class="space-y-2"></div>
+            <p class="text-[9px] text-[#E2E8F0]/35 mt-4">Two instruments fighting for the same band = mud. Carve one, boost the other. Bars show each source's core range across 20 Hz → 20 kHz.</p>
+        </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#FF88FF30]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">TEMPO (BPM)</label><input type="number" id="lab-rev-bpm" value="90" min="40" max="220" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-center text-[#FF88FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                    <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">VERB TYPE</label><select id="lab-rev-type" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-[#FF88FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="vocal">Vocal Plate</option><option value="room">Drum Room</option><option value="hall">Lush Hall</option><option value="slap">Slapback</option></select></div>
+                </div>
+                <div id="lab-rev-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-2"></div>
+            </div>
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎤 MIC 3:1 & SPL FALLOFF</h4>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SOURCE↔MIC (in)</label><input type="number" id="lab-mic-dist" value="6" min="1" max="120" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                    <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SPL @ MIC (dB)</label><input type="number" id="lab-mic-spl" value="94" min="40" max="140" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                </div>
+                <div id="lab-mic-out" class="font-mono text-[11px] text-[#E2E8F0]/80 space-y-2"></div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">💾 FILE-SIZE & RECORD-TIME</h4>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">RATE</label><select id="lab-fs-rate" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="44100">44.1k</option><option value="48000" selected>48k</option><option value="88200">88.2k</option><option value="96000">96k</option><option value="192000">192k</option></select></div>
+                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">BITS</label><select id="lab-fs-bits" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="16">16</option><option value="24" selected>24</option><option value="32">32f</option></select></div>
+                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CH</label><select id="lab-fs-ch" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="1">Mono</option><option value="2" selected>Stereo</option><option value="8">8-trk</option><option value="16">16-trk</option></select></div>
+                </div>
+                <div class="mb-3"><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MINUTES</label><input type="number" id="lab-fs-mins" value="4" min="1" max="600" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-center text-[#00E5FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
+                <div id="lab-fs-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-1"></div>
+            </div>
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🧮 LEVEL / dB CONVERTERS</h4>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">dBFS →</span><input type="number" id="lc-dbfs" value="-6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-dbfs-out" class="text-[11px] font-mono text-white/70"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">GAIN dB →</span><input type="number" id="lc-gain" value="6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-gain-out" class="text-[11px] font-mono text-white/70"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">RATIO x:1 →</span><input type="number" id="lc-ratio" value="4" min="1" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-ratio-out" class="text-[11px] font-mono text-white/70"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">SEMITONES →</span><input type="number" id="lc-semi" value="12" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-semi-out" class="text-[11px] font-mono text-white/70"></span></div>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <div id="tbx-panel-players" class="tbx-panel hidden space-y-6 mb-6">
         <div class="card border-[#00FF8830] mt-6">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">METRONOME</h4>
             <div class="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-6">
@@ -608,29 +806,98 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             <p class="text-[9px] text-[#E2E8F0]/30 mt-4 text-center max-w-lg mx-auto leading-relaxed">Low strings (bass low B/E) can be genuinely hard to pick up on a phone or tablet's built-in mic — the low-frequency roll-off on small mics makes the fundamental weak. It'll work, but for reliable low-B tracking, an audio interface input beats a phone mic every time.</p>
         </div>
-    </section>
 
-    <section id="tab-lab" class="middle-tab p-4 md:p-8 max-w-6xl border-b border-[#B18CFF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex items-end justify-between border-b border-[#B18CFF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#B18CFF]">STUDIO LAB // EXPERIMENTAL X-TOOLS</h2><span class="text-[9px] text-[#B18CFF]/40 tracking-widest hidden sm:block">22 TOYS · ALL OFFLINE</span></div>
-
-        <!-- ROW: creative catalysts -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#FFD60A40]" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(177,140,255,0.04));">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎲 SHUFFLE A CHALLENGE</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Random recipe + tempo + key + a creative constraint. Break the blank-page freeze.</p>
-                <div id="lab-challenge-out" class="hidden mb-4 p-3 rounded border border-[#FFD60A25] bg-black/40 space-y-2"></div>
-                <button id="btn-lab-challenge" type="button" class="btn-ferrett-green px-6 py-2" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1);">ROLL THE DICE</button>
+        <div class="card border-[#00FF8830] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-[#00FF8820] pb-2">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🥁 BEAT SKETCH — 16-STEP SEQUENCER</h4>
+                <div class="flex items-center gap-2">
+                    <button id="btn-beat-play" type="button" class="btn-ferrett-green px-4 py-1.5">▶ PLAY</button>
+                    <button id="btn-beat-midi" type="button" class="btn-ferrett px-3 py-1.5" title="Export as a MIDI drum clip">↓ MIDI</button>
+                    <button id="btn-beat-clear" type="button" class="btn-ferrett px-3 py-1.5">CLEAR</button>
+                    <input type="number" id="beat-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[13px] font-bold text-[#00FF88] w-16 py-1 focus:outline-none">
+                    <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
+                </div>
             </div>
-            <div class="card border-[#B18CFF40]" style="background:linear-gradient(135deg,rgba(177,140,255,0.07),rgba(0,229,255,0.03));">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🃏 VIBE ROULETTE</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Oblique-strategy cards for producers. Pull one when you're stuck.</p>
-                <div id="lab-vibe-card" class="mb-4 p-4 rounded border border-[#B18CFF25] bg-black/40 text-center text-[13px] text-[#E2E8F0]/85 italic min-h-[64px] flex items-center justify-center">Pull a card…</div>
-                <button id="btn-lab-vibe" type="button" class="btn-ferrett px-6 py-2" style="border-color:#B18CFF80;color:#B18CFF;background:rgba(177,140,255,0.1);">PULL A CARD</button>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Synthesized drums, all in-browser. Click a cell once for a hit, again for an <span class="text-[#FFD60A]">accent</span>. Presets get you started.</p>
+            <div class="flex flex-wrap items-center gap-4 mb-4">
+                <div class="flex items-center gap-2 flex-1 min-w-[180px]"><span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SWING</span><input type="range" id="beat-swing" min="0" max="65" value="0" class="flex-1 accent-[#00FF88]"><span id="beat-swing-val" class="text-[10px] font-mono text-[#00FF88] w-9 text-right">0%</span></div>
+                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-ferrett px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-ferrett px-2 py-1 text-[10px]" title="Delete snapshot">🗑</button></div>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-4" id="beat-presets"></div>
+            <div id="beat-grid" class="space-y-1.5 overflow-x-auto"></div>
+        </div>
+
+        <div class="card border-[#00E5FF30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#00E5FF20] pb-2">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🎹 MELODY SKETCHPAD</h4>
+                <div class="flex items-center gap-2">
+                    <select id="kb-scale-root" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <select id="kb-scale-type" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <select id="kb-wave" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"><option value="triangle">Keys</option><option value="sawtooth">Synth</option><option value="square">Chip</option><option value="sine">Sine</option></select>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Click keys or use your keyboard (<span class="font-mono text-[#00E5FF]/70">A S D F G H J K</span> = white, <span class="font-mono text-[#00E5FF]/70">W E T Y U</span> = black). Scale notes glow. Record a lick and play it back.</p>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button id="btn-kb-rec" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
+                <button id="btn-kb-play" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
+                <button id="btn-kb-midi" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI">↓ MIDI</button>
+                <button id="btn-kb-clear" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CLEAR</button>
+                <span id="kb-status" class="text-[10px] font-mono text-[#00E5FF]/60 self-center"></span>
+            </div>
+            <div id="kb-keys" class="relative select-none" style="height:120px"></div>
+        </div>
+
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">⏱️ PRACTICE TIMER & LOG</h4>
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+                <input type="text" id="pr-what" placeholder="what are you working on?" class="flex-1 min-w-[150px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+                <div id="pr-clock" class="text-[24px] font-bold font-mono text-[#00FF88]">00:00</div>
+                <button id="btn-pr-toggle" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">▶ START</button>
+            </div>
+            <div id="pr-log" class="space-y-1 max-h-[140px] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="tbx-panel-arrange" class="tbx-panel hidden space-y-6 mb-6">
+        <div class="card border-[#B18CFF30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#B18CFF20] pb-2">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎬 ARRANGEMENT TIMELINE</h4>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="arr-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#B18CFF]/30 rounded text-center text-[12px] font-bold text-[#B18CFF] w-14 py-1 focus:outline-none">
+                    <span class="text-[9px] text-[#B18CFF]/50 font-bold tracking-widest">BPM · 4/4</span>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Block out a song section-by-section — get each part's length and the total runtime. Drag to reorder.</p>
+            <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
+            <div id="arr-list" class="space-y-1.5 mb-3"></div>
+            <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
+                <button id="btn-arr-markers" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
             </div>
         </div>
 
-        <!-- ROW: tone generator + break timer -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎫 SETLIST BUILDER</h4>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="set-title" placeholder="song title…" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <input type="text" id="set-len" placeholder="3:30" class="w-16 bg-black/50 border border-[#00FF88]/25 rounded text-center text-[12px] text-[#00FF88] px-2 py-1.5 focus:outline-none">
+                    <button id="btn-set-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD</button>
+                </div>
+                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Track DB</option></select>
+                <div id="set-list" class="space-y-1 mb-2"></div>
+                <div id="set-total" class="text-[11px] font-mono text-[#00FF88] font-bold"></div>
+            </div>
+        <div class="card border-[#B18CFF30] mb-6">
+            <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-4 border-b border-[#B18CFF20] pb-2">🧱 SONG STRUCTURE TEMPLATES</h4>
+            <div id="struct-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+            </div>
+    </div>
+
+    <div id="tbx-panel-monitor" class="tbx-panel hidden space-y-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔊 TEST-TONE & NOISE LAB</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Room / monitor checks, tuning drones, ear training. Watch your levels.</p>
@@ -676,10 +943,34 @@ main { background: rgba(5,8,7,0.72); }
                     <button id="btn-lab-break-reset" type="button" class="btn-ferrett px-4 py-2">RESET</button>
                 </div>
             </div>
-        </div>
+            </div>
 
-        <!-- ROW: idea catcher + voice memos -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#FF88FF30]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">📊 SPECTRUM ANALYZER (RTA)</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Live mic spectrum — spot room resonances, tune monitors, check a mix in the room.</p>
+                <canvas id="rta-canvas" class="w-full rounded bg-black/50 border border-[#FF88FF20]" height="120"></canvas>
+                <button id="btn-rta-toggle" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px] mt-3">🎙️ START</button>
+                <span id="rta-status" class="text-[10px] text-[#E2E8F0]/40 ml-2"></span>
+            </div>
+    </div>
+
+    <div id="tbx-panel-spark" class="tbx-panel hidden space-y-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#FFD60A40]" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(177,140,255,0.04));">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎲 SHUFFLE A CHALLENGE</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Random recipe + tempo + key + a creative constraint. Break the blank-page freeze.</p>
+                <div id="lab-challenge-out" class="hidden mb-4 p-3 rounded border border-[#FFD60A25] bg-black/40 space-y-2"></div>
+                <button id="btn-lab-challenge" type="button" class="btn-ferrett-green px-6 py-2" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1);">ROLL THE DICE</button>
+            </div>
+            <div class="card border-[#B18CFF40]" style="background:linear-gradient(135deg,rgba(177,140,255,0.07),rgba(0,229,255,0.03));">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🃏 VIBE ROULETTE</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Oblique-strategy cards for producers. Pull one when you're stuck.</p>
+                <div id="lab-vibe-card" class="mb-4 p-4 rounded border border-[#B18CFF25] bg-black/40 text-center text-[13px] text-[#E2E8F0]/85 italic min-h-[64px] flex items-center justify-center">Pull a card…</div>
+                <button id="btn-lab-vibe" type="button" class="btn-ferrett px-6 py-2" style="border-color:#B18CFF80;color:#B18CFF;background:rgba(177,140,255,0.1);">PULL A CARD</button>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00FF8830]">
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">⚡ IDEA CATCHER</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Tap the tempo of an idea, name it, and spawn a track-DB stub before it escapes.</p>
@@ -702,250 +993,10 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
                 <div id="lab-memo-list" class="space-y-2 max-h-[180px] overflow-y-auto"></div>
             </div>
-        </div>
+            </div>
+    </div>
 
-        <!-- ROW: circle of fifths + scale helper -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">◎ CIRCLE OF FIFTHS</h4>
-                <div class="flex justify-center mb-2"><svg id="lab-cof-svg" viewBox="0 0 260 260" class="w-full max-w-[260px]"></svg></div>
-                <div id="lab-cof-info" class="text-center text-[11px] text-[#E2E8F0]/70 font-mono min-h-[40px]"></div>
-            </div>
-            <div class="card border-[#00FF8830]">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎼 SCALE & MODE HELPER</h4>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">ROOT</label><select id="lab-scale-root" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
-                    <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">SCALE</label><select id="lab-scale-type" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
-                </div>
-                <div id="lab-scale-notes" class="flex flex-wrap gap-2 mb-3"></div>
-                <div id="lab-scale-chords" class="text-[10px] text-[#E2E8F0]/55 font-mono leading-relaxed"></div>
-            </div>
-        </div>
-
-        <!-- ROW: reverb recommender + mic/spl calc -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#FF88FF30]">
-                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">TEMPO (BPM)</label><input type="number" id="lab-rev-bpm" value="90" min="40" max="220" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-center text-[#FF88FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
-                    <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">VERB TYPE</label><select id="lab-rev-type" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-[#FF88FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="vocal">Vocal Plate</option><option value="room">Drum Room</option><option value="hall">Lush Hall</option><option value="slap">Slapback</option></select></div>
-                </div>
-                <div id="lab-rev-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-2"></div>
-            </div>
-            <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎤 MIC 3:1 & SPL FALLOFF</h4>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SOURCE↔MIC (in)</label><input type="number" id="lab-mic-dist" value="6" min="1" max="120" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
-                    <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SPL @ MIC (dB)</label><input type="number" id="lab-mic-spl" value="94" min="40" max="140" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
-                </div>
-                <div id="lab-mic-out" class="font-mono text-[11px] text-[#E2E8F0]/80 space-y-2"></div>
-            </div>
-        </div>
-
-        <!-- ROW: file size calc + syllable counter -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">💾 FILE-SIZE & RECORD-TIME</h4>
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">RATE</label><select id="lab-fs-rate" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="44100">44.1k</option><option value="48000" selected>48k</option><option value="88200">88.2k</option><option value="96000">96k</option><option value="192000">192k</option></select></div>
-                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">BITS</label><select id="lab-fs-bits" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="16">16</option><option value="24" selected>24</option><option value="32">32f</option></select></div>
-                    <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CH</label><select id="lab-fs-ch" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="1">Mono</option><option value="2" selected>Stereo</option><option value="8">8-trk</option><option value="16">16-trk</option></select></div>
-                </div>
-                <div class="mb-3"><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MINUTES</label><input type="number" id="lab-fs-mins" value="4" min="1" max="600" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-center text-[#00E5FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
-                <div id="lab-fs-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-1"></div>
-            </div>
-            <div class="card border-[#B18CFF30]">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🅰️ BAR / SYLLABLE COUNTER</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Paste bars — get syllables per line + total. Keep your flow even.</p>
-                <textarea id="lab-syl-in" rows="4" class="w-full bg-black/50 border border-[#B18CFF]/25 rounded p-2 text-[12px] font-mono text-[#E2E8F0]/90 focus:outline-none resize-none mb-3" placeholder="drop your bars here…"></textarea>
-                <div id="lab-syl-out" class="text-[10px] font-mono text-[#E2E8F0]/70 space-y-1 max-h-[140px] overflow-y-auto"></div>
-            </div>
-        </div>
-
-        <!-- Loudness targets + EQ collision (reference) -->
-        <div class="card border-[#00FF8830] mb-6">
-            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">🎯 LOUDNESS TARGETS (LUFS) — WHERE TO LAND YOUR MASTER</h4>
-            <div id="lab-lufs-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-            <p class="text-[9px] text-[#E2E8F0]/35 mt-4 leading-relaxed">Streaming normalizes to a target — mastering hotter than the target just gets turned down (and often sounds worse). True-peak ceiling of −1 dBTP keeps lossy codecs from clipping.</p>
-        </div>
-        <div class="card border-[#FFD60A30] mb-6">
-            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">📊 FREQUENCY COLLISION MAP — WHO OWNS WHAT</h4>
-            <div id="lab-eq-grid" class="space-y-2"></div>
-            <p class="text-[9px] text-[#E2E8F0]/35 mt-4">Two instruments fighting for the same band = mud. Carve one, boost the other. Bars show each source's core range across 20 Hz → 20 kHz.</p>
-        </div>
-
-        <!-- Session heatmap + achievements -->
-        <div class="card border-[#00E5FF30] mb-6">
-            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🗓️ STUDIO ACTIVITY HEATMAP — LAST 26 WEEKS</h4>
-            <div id="lab-heatmap" class="overflow-x-auto"></div>
-        </div>
-        <div class="card border-[#FFD60A30] mb-6">
-            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">🏆 ACHIEVEMENTS</h4>
-            <div id="lab-achievements" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-        </div>
-
-        <!-- Studio graph -->
-        <div class="card border-[#B18CFF30] mb-6">
-            <div class="flex items-center justify-between mb-4 border-b border-[#B18CFF20] pb-2">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🕸️ STUDIO GRAPH — WHAT FEEDS WHAT</h4>
-                <button id="btn-lab-graph-refresh" type="button" class="btn-ferrett px-3 py-1 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF;">REDRAW</button>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Every track wired to the tone and recipe it references. Tap a node to jump to it.</p>
-            <div class="overflow-x-auto"><svg id="lab-graph-svg" viewBox="0 0 620 420" class="w-full min-w-[520px]" style="background:radial-gradient(circle at 50% 40%,rgba(177,140,255,0.05),transparent 70%);"></svg></div>
-        </div>
-
-        <!-- Cold storage report -->
-        <div class="card border-[#00E5FF30] mb-6">
-            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🧊 COLD STORAGE — WHAT'S GONE STALE</h4>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Recipes / tones / tracks you created 90+ days ago and may have forgotten. Time to revisit or retire.</p>
-            <div id="lab-cold-out" class="space-y-2 max-h-[220px] overflow-y-auto"></div>
-        </div>
-
-        <!-- BEAT SKETCH — step sequencer (drummer) -->
-        <div class="card border-[#00FF8830] mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-[#00FF8820] pb-2">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🥁 BEAT SKETCH — 16-STEP SEQUENCER</h4>
-                <div class="flex items-center gap-2">
-                    <button id="btn-beat-play" type="button" class="btn-ferrett-green px-4 py-1.5">▶ PLAY</button>
-                    <button id="btn-beat-midi" type="button" class="btn-ferrett px-3 py-1.5" title="Export as a MIDI drum clip">↓ MIDI</button>
-                    <button id="btn-beat-clear" type="button" class="btn-ferrett px-3 py-1.5">CLEAR</button>
-                    <input type="number" id="beat-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[13px] font-bold text-[#00FF88] w-16 py-1 focus:outline-none">
-                    <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
-                </div>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Synthesized drums, all in-browser. Click a cell once for a hit, again for an <span class="text-[#FFD60A]">accent</span>. Presets get you started.</p>
-            <div class="flex flex-wrap items-center gap-4 mb-4">
-                <div class="flex items-center gap-2 flex-1 min-w-[180px]"><span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SWING</span><input type="range" id="beat-swing" min="0" max="65" value="0" class="flex-1 accent-[#00FF88]"><span id="beat-swing-val" class="text-[10px] font-mono text-[#00FF88] w-9 text-right">0%</span></div>
-                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-ferrett px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-ferrett px-2 py-1 text-[10px]" title="Delete snapshot">🗑</button></div>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-4" id="beat-presets"></div>
-            <div id="beat-grid" class="space-y-1.5 overflow-x-auto"></div>
-        </div>
-
-        <!-- CHORD PROGRESSION BOOK (guitar / bass / keys) -->
-        <div class="card border-[#00E5FF30] mb-6">
-            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🎹 CHORD PROGRESSION BOOK</h4>
-            <div class="grid grid-cols-2 gap-3 mb-4 max-w-md">
-                <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">KEY</label><select id="prog-key" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
-                <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">TONALITY</label><select id="prog-tonality" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="major">Major</option><option value="minor">Minor</option></select></div>
-            </div>
-            <div id="prog-list" class="space-y-2"></div>
-        </div>
-
-        <!-- GUITAR / BASS CHORD DIAGRAMS -->
-        <div class="card border-[#FFD60A30] mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-[#FFD60A20] pb-2">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 CHORD DIAGRAM LIBRARY</h4>
-                <div class="flex gap-2" id="chord-inst-toggle">
-                    <button data-inst="guitar" class="chord-inst btn-ferrett px-3 py-1 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.12)">GUITAR</button>
-                    <button data-inst="bass" class="chord-inst btn-ferrett px-3 py-1 text-[10px]">BASS</button>
-                </div>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔊 Tap any chord to hear it strummed.</p>
-            <div id="chord-diagrams" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
-        </div>
-
-        <!-- TRANSPOSE & CAPO -->
-        <div class="card border-[#00FF8830] mb-6">
-            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 TRANSPOSE & CAPO</h4>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords (e.g. <span class="font-mono text-[#00FF88]/70">C G Am F</span>). Slide to transpose; the capo helper finds an easier shape in the same sounding key.</p>
-            <input type="text" id="tr-chords" value="C G Am F" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
-            <div class="flex items-center gap-3 mb-3">
-                <span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SHIFT</span>
-                <input type="range" id="tr-amt" min="-12" max="12" value="0" class="flex-1 accent-[#00FF88]">
-                <span id="tr-amt-val" class="text-[11px] font-mono text-[#00FF88] w-16 text-right">0 st</span>
-            </div>
-            <div id="tr-out" class="text-[15px] font-mono font-bold text-white mb-4 min-h-[24px]"></div>
-            <div class="grid grid-cols-2 gap-3 items-end border-t border-[#00FF8815] pt-3">
-                <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">EASIER SHAPES OF</label><select id="tr-capo-shape" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
-                <div id="tr-capo-out" class="text-[11px] font-mono text-[#00FF88]/90"></div>
-            </div>
-        </div>
-
-        <!-- SONG STRUCTURE TEMPLATES (reference) -->
-        <div class="card border-[#B18CFF30] mb-6">
-            <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-4 border-b border-[#B18CFF20] pb-2">🧱 SONG STRUCTURE TEMPLATES</h4>
-            <div id="struct-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-        </div>
-
-        <!-- PLAYABLE KEYBOARD / MELODY SKETCHPAD -->
-        <div class="card border-[#00E5FF30] mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#00E5FF20] pb-2">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🎹 MELODY SKETCHPAD</h4>
-                <div class="flex items-center gap-2">
-                    <select id="kb-scale-root" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"></select>
-                    <select id="kb-scale-type" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"></select>
-                    <select id="kb-wave" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"><option value="triangle">Keys</option><option value="sawtooth">Synth</option><option value="square">Chip</option><option value="sine">Sine</option></select>
-                </div>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Click keys or use your keyboard (<span class="font-mono text-[#00E5FF]/70">A S D F G H J K</span> = white, <span class="font-mono text-[#00E5FF]/70">W E T Y U</span> = black). Scale notes glow. Record a lick and play it back.</p>
-            <div class="flex flex-wrap gap-2 mb-3">
-                <button id="btn-kb-rec" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
-                <button id="btn-kb-play" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
-                <button id="btn-kb-midi" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI">↓ MIDI</button>
-                <button id="btn-kb-clear" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CLEAR</button>
-                <span id="kb-status" class="text-[10px] font-mono text-[#00E5FF]/60 self-center"></span>
-            </div>
-            <div id="kb-keys" class="relative select-none" style="height:120px"></div>
-        </div>
-
-        <!-- FRETBOARD SCALE EXPLORER -->
-        <div class="card border-[#FFD60A30] mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#FFD60A20] pb-2">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 FRETBOARD SCALE EXPLORER</h4>
-                <div class="flex items-center gap-2">
-                    <select id="fb-root" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
-                    <select id="fb-scale" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
-                    <div class="flex rounded overflow-hidden border border-[#FFD60A40]"><button id="fb-inst-gtr" type="button" class="px-2 py-1 text-[9px] font-bold bg-[#FFD60A]/20 text-[#FFD60A]">GTR</button><button id="fb-inst-bass" type="button" class="px-2 py-1 text-[9px] font-bold text-[#FFD60A]/50">BASS</button></div>
-                </div>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔴 root · 🟡 scale tone. Tap a dot to hear the note.</p>
-            <div class="overflow-x-auto"><svg id="fb-svg" viewBox="0 0 640 150" class="min-w-[560px] w-full"></svg></div>
-        </div>
-
-        <!-- ARRANGEMENT TIMELINE -->
-        <div class="card border-[#B18CFF30] mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#B18CFF20] pb-2">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎬 ARRANGEMENT TIMELINE</h4>
-                <div class="flex items-center gap-2">
-                    <input type="number" id="arr-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#B18CFF]/30 rounded text-center text-[12px] font-bold text-[#B18CFF] w-14 py-1 focus:outline-none">
-                    <span class="text-[9px] text-[#B18CFF]/50 font-bold tracking-widest">BPM · 4/4</span>
-                </div>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Block out a song section-by-section — get each part's length and the total runtime. Drag to reorder.</p>
-            <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
-            <div id="arr-list" class="space-y-1.5 mb-3"></div>
-            <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-                <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
-                <button id="btn-arr-markers" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
-            </div>
-        </div>
-
-        <!-- SETLIST BUILDER + NAME GENERATOR -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#00FF8830]">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎫 SETLIST BUILDER</h4>
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <input type="text" id="set-title" placeholder="song title…" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <input type="text" id="set-len" placeholder="3:30" class="w-16 bg-black/50 border border-[#00FF88]/25 rounded text-center text-[12px] text-[#00FF88] px-2 py-1.5 focus:outline-none">
-                    <button id="btn-set-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD</button>
-                </div>
-                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Track DB</option></select>
-                <div id="set-list" class="space-y-1 mb-2"></div>
-                <div id="set-total" class="text-[11px] font-mono text-[#00FF88] font-bold"></div>
-            </div>
-            <div class="card border-[#FF88FF40]">
-                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎭 BAND / SONG NAME GENERATOR</h4>
-                <div class="flex gap-2 mb-4">
-                    <button id="btn-name-band" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">BAND NAME</button>
-                    <button id="btn-name-song" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">SONG TITLE</button>
-                </div>
-                <div id="name-out" class="space-y-2"></div>
-            </div>
-        </div>
-
-        <!-- AI MUSIC-PROMPT GENERATOR -->
+    <div id="tbx-panel-ai" class="tbx-panel hidden space-y-6 mb-6">
         <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(0,255,136,0.03))">
             <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">✨ AI MUSIC-PROMPT GENERATOR <span id="ai-status-lab" class="text-[8px] font-normal ml-1"></span></h4>
@@ -967,7 +1018,141 @@ main { background: rgba(5,8,7,0.72); }
             <div id="ai-mp-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
         </div>
 
-        <!-- Exporters -->
+        <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(177,140,255,0.04))">
+            <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧠 AI STUDIO BRAIN <span id="ai-status-tools" class="text-[8px] font-normal ml-1"></span></h4>
+                <button id="btn-ai-settings-tools" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">ASK ANYTHING (production, theory, gear)</label>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-ask-in" placeholder="how do I get a punchy 808?" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-ask" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">ASK</button></div>
+                </div>
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CHORDS FROM A MOOD</label>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mood-in" placeholder="bittersweet, nostalgic" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mood" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
+                </div>
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">REIMAGINE A RECIPE IN A NEW GENRE</label>
+                    <div class="flex gap-2 mb-2"><select id="ai-recipe-sel" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"></select><input type="text" id="ai-recipe-genre" placeholder="→ genre" class="w-28 bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-2 focus:outline-none"><button id="btn-ai-recipe" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
+                </div>
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MIX FEEDBACK (describe what you hear)</label>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mix-in" placeholder="vocals harsh, low end muddy" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mix" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GET FIXES</button></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
+            <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
+        </div>
+
+        <div class="card border-[#FFD60A40] mb-6" style="background:linear-gradient(135deg,rgba(255,214,10,0.05),rgba(0,229,255,0.03))">
+            <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🅶 GOOGLE MUSIC BRIDGE (Lyria / MusicFX)</h4>
+                <button id="btn-ai-settings-gm" type="button" class="text-[10px] text-[#FFD60A]/60 hover:text-[#FFD60A] cursor-pointer bg-transparent border-0">⚙ setup</button>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Craft a prompt tuned for Google's music models, then launch the tool. Lyria/MusicFX like short comma-separated descriptors (genre, instruments, mood, BPM) and no lyrics in the prompt.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                <input type="text" id="gm-genre" placeholder="genre" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="gm-mood" placeholder="mood" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="gm-bpm" placeholder="BPM/key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="gm-instr" placeholder="instruments" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button id="btn-gm-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1)">✨ CRAFT PROMPT</button>
+                <button id="btn-gm-copy" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#FFD60A80;color:#FFD60A">⧉ COPY</button>
+                <span id="gm-spinner" class="hidden text-[10px] text-[#FFD60A] self-center animate-pulse">thinking…</span>
+            </div>
+            <textarea id="gm-out" rows="3" class="w-full bg-black/40 border border-[#FFD60A]/20 rounded p-3 text-[12px] text-[#C9FFE6] font-mono focus:outline-none resize-none mb-3" placeholder="Crafted prompt appears here — copy it into the tool you launch below."></textarea>
+            <div class="flex flex-wrap gap-2">
+                <a href="https://labs.google/fx/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX</a>
+                <a href="https://labs.google/fx/tools/music-fx-dj" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX DJ</a>
+                <a href="https://aitestkitchen.withgoogle.com/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ AI Test Kitchen</a>
+                <a href="https://gemini.google.com" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ Gemini</a>
+            </div>
+            <div id="gm-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
+        </div>
+    </div>
+
+    <div id="tbx-panel-analytics" class="tbx-panel hidden space-y-6 mb-6">
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">SESSION STATS</h4>
+            <div class="grid grid-cols-3 gap-4 text-center" id="session-stats-display">
+                <div><div id="stat-today" class="text-[22px] font-bold text-[#00FF88]">--</div><div class="text-[9px] text-[#00FF88]/50 tracking-widest mt-1">TODAY</div></div>
+                <div><div id="stat-week" class="text-[22px] font-bold text-[#00E5FF]">--</div><div class="text-[9px] text-[#00E5FF]/50 tracking-widest mt-1">THIS WEEK</div></div>
+                <div><div id="stat-streak" class="text-[22px] font-bold text-[#FFD60A]">--</div><div class="text-[9px] text-[#FFD60A]/50 tracking-widest mt-1">DAY STREAK</div></div>
+            </div>
+        </div>
+
+        <div class="card border-[#00E5FF30] mb-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🗓️ STUDIO ACTIVITY HEATMAP — LAST 26 WEEKS</h4>
+            <div id="lab-heatmap" class="overflow-x-auto"></div>
+        </div>
+
+        <div class="card border-[#FFD60A30] mb-6">
+            <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">🏆 ACHIEVEMENTS</h4>
+            <div id="lab-achievements" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+        </div>
+
+        <div class="card border-[#B18CFF30] mb-6">
+            <div class="flex items-center justify-between mb-4 border-b border-[#B18CFF20] pb-2">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🕸️ STUDIO GRAPH — WHAT FEEDS WHAT</h4>
+                <button id="btn-lab-graph-refresh" type="button" class="btn-ferrett px-3 py-1 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF;">REDRAW</button>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Every track wired to the tone and recipe it references. Tap a node to jump to it.</p>
+            <div class="overflow-x-auto"><svg id="lab-graph-svg" viewBox="0 0 620 420" class="w-full min-w-[520px]" style="background:radial-gradient(circle at 50% 40%,rgba(177,140,255,0.05),transparent 70%);"></svg></div>
+        </div>
+
+        <div class="card border-[#00E5FF30] mb-6">
+            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🧊 COLD STORAGE — WHAT'S GONE STALE</h4>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Recipes / tones / tracks you created 90+ days ago and may have forgotten. Time to revisit or retire.</p>
+            <div id="lab-cold-out" class="space-y-2 max-h-[220px] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="tbx-panel-ops" class="tbx-panel hidden space-y-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 GEAR MAINTENANCE LOG</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Strings, tubes, batteries — log it, see how long since.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="gm-what" placeholder="e.g. Strat strings" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <button id="btn-gm-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">LOG TODAY</button>
+                </div>
+                <div id="gm-list" class="space-y-1"></div>
+            </div>
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🗂️ SAMPLE / LOOP INDEX</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Tag your samples by BPM + key so you can actually find them.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="sl-name" placeholder="name" class="flex-1 min-w-[100px] bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <input type="text" id="sl-bpm" placeholder="bpm" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
+                    <input type="text" id="sl-key" placeholder="key" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
+                    <button id="btn-sl-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
+                </div>
+                <input type="text" id="sl-filter" placeholder="filter…" class="w-full bg-black/40 border border-[#00E5FF]/15 rounded text-[10px] text-[#C9FFE6] px-2 py-1 focus:outline-none mb-2">
+                <div id="sl-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">✅ RELEASE CHECKLIST</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Everything between "final mix" and "it's live." Per-track progress saved.</p>
+                <select id="rc-track" class="w-full bg-black/50 border border-[#FFD60A]/20 rounded text-[#FFD60A]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"></select>
+                <div id="rc-list" class="space-y-1"></div>
+                <div id="rc-progress" class="text-[10px] font-mono text-[#FFD60A]/70 mt-2"></div>
+            </div>
+            <div class="card border-[#B18CFF30]">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">👥 COLLABORATORS & CREDITS</h4>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="co-name" placeholder="name" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <input type="text" id="co-role" placeholder="role / contact" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <button id="btn-co-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
+                </div>
+                <div id="co-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
+            </div>
+            </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
             <div class="card border-[#00FF8830]">
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎚️ REAPER TRACK TEMPLATE</h4>
@@ -990,7 +1175,7 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
             </div>
         </div>
-
+    </div>
     </section>
 
     <section id="tab-lyrics" class="middle-tab p-4 md:p-8 max-w-4xl border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
@@ -1062,6 +1247,22 @@ main { background: rgba(5,8,7,0.72); }
             <div id="lyr-freq-out" class="space-y-1.5"></div>
         </div>
 
+            <div class="card border-[#B18CFF30]">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🅰️ BAR / SYLLABLE COUNTER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Paste bars — get syllables per line + total. Keep your flow even.</p>
+                <textarea id="lab-syl-in" rows="4" class="w-full bg-black/50 border border-[#B18CFF]/25 rounded p-2 text-[12px] font-mono text-[#E2E8F0]/90 focus:outline-none resize-none mb-3" placeholder="drop your bars here…"></textarea>
+                <div id="lab-syl-out" class="text-[10px] font-mono text-[#E2E8F0]/70 space-y-1 max-h-[140px] overflow-y-auto"></div>
+            </div>
+
+            <div class="card border-[#FF88FF40]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎭 BAND / SONG NAME GENERATOR</h4>
+                <div class="flex gap-2 mb-4">
+                    <button id="btn-name-band" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">BAND NAME</button>
+                    <button id="btn-name-song" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">SONG TITLE</button>
+                </div>
+                <div id="name-out" class="space-y-2"></div>
+            </div>
+
         <!-- AI CO-PILOT (lyrics) -->
         <div class="card border-[#00E5FF40] mt-5" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(177,140,255,0.04))">
             <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
@@ -1085,207 +1286,6 @@ main { background: rgba(5,8,7,0.72); }
         </div>
     </section>
 
-    <section id="tab-tools" class="middle-tab p-4 md:p-8 max-w-6xl border-b border-[#7AFFBF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex items-end justify-between border-b border-[#7AFFBF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#7AFFBF]">STUDIO+ // THEORY · EAR · UTILITIES · AI</h2></div>
-
-        <!-- ============ THEORY & EAR ============ -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔑 KEY DETECTOR (FROM CHORDS)</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type the chords of a song — get the most likely key(s).</p>
-                <input type="text" id="kd-in" value="Am F C G" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
-                <div id="kd-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
-            </div>
-            <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🔢 NASHVILLE NUMBER CHART</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Portable chord chart — numbers instead of letters, so it works in any key.</p>
-                <div class="flex gap-2 mb-3">
-                    <input type="text" id="nn-in" value="C G Am F" class="flex-1 bg-black/50 border border-[#FFD60A]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none">
-                    <select id="nn-key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-2 focus:outline-none"></select>
-                </div>
-                <div id="nn-out" class="text-[15px] font-mono font-bold text-white"></div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#B18CFF30]">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🎧 HARMONIC MIXING (CAMELOT)</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Which keys mix smoothly with what you've got. Pick a key:</p>
-                <div class="flex gap-2 mb-3">
-                    <select id="cm-root" class="flex-1 bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"></select>
-                    <select id="cm-mode" class="bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="maj">Major</option><option value="min">Minor</option></select>
-                </div>
-                <div id="cm-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
-            </div>
-            <div class="card border-[#00FF8830]">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">👂 INTERVAL EAR TRAINER</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Hear two notes, name the interval. Build your ear.</p>
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <button id="btn-ear-new" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ NEW</button>
-                    <button id="btn-ear-replay" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">↻ REPLAY</button>
-                    <span id="ear-score" class="text-[10px] font-mono text-[#00FF88]/70 self-center ml-auto">0 / 0</span>
-                </div>
-                <div id="ear-choices" class="grid grid-cols-3 gap-1.5"></div>
-                <div id="ear-feedback" class="text-[11px] font-mono mt-2 h-4"></div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔁 PROGRESSION PLAYER</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords, hear them loop with a bass. Test a progression fast.</p>
-                <input type="text" id="pp-in" value="C G Am F" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
-                <div class="flex items-center gap-2">
-                    <button id="btn-pp-play" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px]">▶ PLAY</button>
-                    <input type="number" id="pp-bpm" value="90" min="40" max="200" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none">
-                    <span class="text-[9px] text-[#00E5FF]/50 font-bold tracking-widest">BPM</span>
-                    <label class="flex items-center gap-1 text-[9px] text-[#00E5FF]/70 tracking-widest cursor-pointer ml-2"><input type="checkbox" id="pp-bass" class="accent-[#00E5FF]" checked> BASS</label>
-                </div>
-            </div>
-            <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎵 NOTE ↔ FREQUENCY</h4>
-                <div class="flex flex-wrap items-center gap-2 mb-3">
-                    <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest">A4=</label>
-                    <input type="number" id="nf-a4" value="440" min="415" max="466" class="w-16 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none">
-                    <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest ml-2">OCT</label>
-                    <select id="nf-oct" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-1.5 py-1 focus:outline-none"></select>
-                    <input type="number" id="nf-hz" placeholder="Hz→note" class="w-24 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none ml-auto">
-                </div>
-                <div id="nf-table" class="grid grid-cols-4 gap-1.5"></div>
-                <div id="nf-lookup" class="text-[11px] font-mono text-[#FFD60A] mt-2 h-4"></div>
-            </div>
-        </div>
-
-        <!-- ============ STUDIO UTILITIES ============ -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#FF88FF30]">
-                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">📊 SPECTRUM ANALYZER (RTA)</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Live mic spectrum — spot room resonances, tune monitors, check a mix in the room.</p>
-                <canvas id="rta-canvas" class="w-full rounded bg-black/50 border border-[#FF88FF20]" height="120"></canvas>
-                <button id="btn-rta-toggle" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px] mt-3">🎙️ START</button>
-                <span id="rta-status" class="text-[10px] text-[#E2E8F0]/40 ml-2"></span>
-            </div>
-            <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🧮 LEVEL / dB CONVERTERS</h4>
-                <div class="space-y-3">
-                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">dBFS →</span><input type="number" id="lc-dbfs" value="-6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-dbfs-out" class="text-[11px] font-mono text-white/70"></span></div>
-                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">GAIN dB →</span><input type="number" id="lc-gain" value="6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-gain-out" class="text-[11px] font-mono text-white/70"></span></div>
-                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">RATIO x:1 →</span><input type="number" id="lc-ratio" value="4" min="1" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-ratio-out" class="text-[11px] font-mono text-white/70"></span></div>
-                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">SEMITONES →</span><input type="number" id="lc-semi" value="12" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-semi-out" class="text-[11px] font-mono text-white/70"></span></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#00FF8830]">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 GEAR MAINTENANCE LOG</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Strings, tubes, batteries — log it, see how long since.</p>
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <input type="text" id="gm-what" placeholder="e.g. Strat strings" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <button id="btn-gm-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">LOG TODAY</button>
-                </div>
-                <div id="gm-list" class="space-y-1"></div>
-            </div>
-            <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🗂️ SAMPLE / LOOP INDEX</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Tag your samples by BPM + key so you can actually find them.</p>
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <input type="text" id="sl-name" placeholder="name" class="flex-1 min-w-[100px] bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <input type="text" id="sl-bpm" placeholder="bpm" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
-                    <input type="text" id="sl-key" placeholder="key" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
-                    <button id="btn-sl-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
-                </div>
-                <input type="text" id="sl-filter" placeholder="filter…" class="w-full bg-black/40 border border-[#00E5FF]/15 rounded text-[10px] text-[#C9FFE6] px-2 py-1 focus:outline-none mb-2">
-                <div id="sl-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-            <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">✅ RELEASE CHECKLIST</h4>
-                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Everything between "final mix" and "it's live." Per-track progress saved.</p>
-                <select id="rc-track" class="w-full bg-black/50 border border-[#FFD60A]/20 rounded text-[#FFD60A]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"></select>
-                <div id="rc-list" class="space-y-1"></div>
-                <div id="rc-progress" class="text-[10px] font-mono text-[#FFD60A]/70 mt-2"></div>
-            </div>
-            <div class="card border-[#B18CFF30]">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">👥 COLLABORATORS & CREDITS</h4>
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <input type="text" id="co-name" placeholder="name" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <input type="text" id="co-role" placeholder="role / contact" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <button id="btn-co-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
-                </div>
-                <div id="co-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
-            </div>
-        </div>
-
-        <div class="card border-[#00FF8830] mb-6">
-            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">⏱️ PRACTICE TIMER & LOG</h4>
-            <div class="flex flex-wrap items-center gap-3 mb-3">
-                <input type="text" id="pr-what" placeholder="what are you working on?" class="flex-1 min-w-[150px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
-                <div id="pr-clock" class="text-[24px] font-bold font-mono text-[#00FF88]">00:00</div>
-                <button id="btn-pr-toggle" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">▶ START</button>
-            </div>
-            <div id="pr-log" class="space-y-1 max-h-[140px] overflow-y-auto"></div>
-        </div>
-
-        <!-- ============ AI STUDIO BRAIN ============ -->
-        <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(177,140,255,0.04))">
-            <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧠 AI STUDIO BRAIN <span id="ai-status-tools" class="text-[8px] font-normal ml-1"></span></h4>
-                <button id="btn-ai-settings-tools" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">ASK ANYTHING (production, theory, gear)</label>
-                    <div class="flex gap-2 mb-2"><input type="text" id="ai-ask-in" placeholder="how do I get a punchy 808?" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-ask" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">ASK</button></div>
-                </div>
-                <div>
-                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CHORDS FROM A MOOD</label>
-                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mood-in" placeholder="bittersweet, nostalgic" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mood" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
-                </div>
-                <div>
-                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">REIMAGINE A RECIPE IN A NEW GENRE</label>
-                    <div class="flex gap-2 mb-2"><select id="ai-recipe-sel" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"></select><input type="text" id="ai-recipe-genre" placeholder="→ genre" class="w-28 bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-2 focus:outline-none"><button id="btn-ai-recipe" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
-                </div>
-                <div>
-                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MIX FEEDBACK (describe what you hear)</label>
-                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mix-in" placeholder="vocals harsh, low end muddy" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mix" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GET FIXES</button></div>
-                </div>
-            </div>
-            <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
-            <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
-        </div>
-
-        <!-- ============ GOOGLE MUSIC BRIDGE ============ -->
-        <div class="card border-[#FFD60A40] mb-6" style="background:linear-gradient(135deg,rgba(255,214,10,0.05),rgba(0,229,255,0.03))">
-            <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🅶 GOOGLE MUSIC BRIDGE (Lyria / MusicFX)</h4>
-                <button id="btn-ai-settings-gm" type="button" class="text-[10px] text-[#FFD60A]/60 hover:text-[#FFD60A] cursor-pointer bg-transparent border-0">⚙ setup</button>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Craft a prompt tuned for Google's music models, then launch the tool. Lyria/MusicFX like short comma-separated descriptors (genre, instruments, mood, BPM) and no lyrics in the prompt.</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                <input type="text" id="gm-genre" placeholder="genre" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="gm-mood" placeholder="mood" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="gm-bpm" placeholder="BPM/key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="gm-instr" placeholder="instruments" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-            </div>
-            <div class="flex flex-wrap gap-2 mb-3">
-                <button id="btn-gm-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1)">✨ CRAFT PROMPT</button>
-                <button id="btn-gm-copy" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#FFD60A80;color:#FFD60A">⧉ COPY</button>
-                <span id="gm-spinner" class="hidden text-[10px] text-[#FFD60A] self-center animate-pulse">thinking…</span>
-            </div>
-            <textarea id="gm-out" rows="3" class="w-full bg-black/40 border border-[#FFD60A]/20 rounded p-3 text-[12px] text-[#C9FFE6] font-mono focus:outline-none resize-none mb-3" placeholder="Crafted prompt appears here — copy it into the tool you launch below."></textarea>
-            <div class="flex flex-wrap gap-2">
-                <a href="https://labs.google/fx/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX</a>
-                <a href="https://labs.google/fx/tools/music-fx-dj" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX DJ</a>
-                <a href="https://aitestkitchen.withgoogle.com/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ AI Test Kitchen</a>
-                <a href="https://gemini.google.com" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ Gemini</a>
-            </div>
-            <div id="gm-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
-        </div>
-
-    </section>
 
   </div>
 
@@ -1462,7 +1462,7 @@ main { background: rgba(5,8,7,0.72); }
                     <button id="btn-lyria-copy" type="button" class="btn-ferrett flex-1">📋 COPY TO CLIPBOARD</button>
                     <button id="btn-lyria-ai" type="button" class="btn-ferrett flex-1" style="border-color:#00E5FF80;color:#00E5FF" title="Send this draft to your AI co-pilot to tighten it into a Lyria-optimized prompt — keeps your real gear/technique details, cuts filler">✨ AI ENHANCE</button>
                 </div>
-                <p class="text-[9px] text-[#E2E8F0]/35 mt-2">The draft above is built from your own recipe data (free, offline). <b class="text-[#00E5FF]/60">AI Enhance</b> sends it to your Groq co-pilot to tighten it into Lyria/MusicFX's preferred style — needs the AI co-pilot set up (⚙ in Lyrics Lab or Studio Lab).</p>
+                <p class="text-[9px] text-[#E2E8F0]/35 mt-2">The draft above is built from your own recipe data (free, offline). <b class="text-[#00E5FF]/60">AI Enhance</b> sends it to your Groq co-pilot to tighten it into Lyria/MusicFX's preferred style — needs the AI co-pilot set up (⚙ in Lyrics Lab or Toolbox).</p>
                 <div id="lyria-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-1"></div>
             </div>
         </div>
@@ -3043,13 +3043,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.switchTab = (tabId) => {
-        if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); }
-        if (tabId !== 'lab') { window.stopTestTone?.(); window.stopBeatSketch?.(); }
-        if (tabId !== 'tools') { window.stopToolsAudio?.(); }
-        if (tabId === 'calc') { window.renderSessionStats?.(); }
-        if (tabId === 'lab') { window.refreshLab?.(); }
+        if (tabId !== 'toolbox') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); window.stopTestTone?.(); window.stopBeatSketch?.(); window.stopToolsAudio?.(); }
+        if (tabId === 'toolbox') { window.renderSessionStats?.(); window.refreshLab?.(); window.refreshTools?.(); window.setToolboxSub?.(window.__toolboxDefaultSub?.()); }
         if (tabId === 'lyrics') { window.refreshLyrics?.(); }
-        if (tabId === 'tools') { window.refreshTools?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
@@ -3070,7 +3066,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
-    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc', 'lab', 'lyrics', 'tools'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'toolbox', 'lyrics'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
 
     // Notes is a persistent footer under every tab, not a switchable tab — just expand/collapse it.
     window.NOTES_FOOTER_KEY = 'ferrett_os_notes_footer_open_v1';
@@ -3999,7 +3995,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); else window.openCmdk(); }
         const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
         if (e.key === '?' && !isTyping) { e.preventDefault(); const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } }
-        if (e.key === ' ' && !isTyping && document.getElementById('tab-calc')?.classList.contains('active')) { e.preventDefault(); window.metro?.running ? window.stopMetronome() : window.startMetronome(); }
+        if (e.key === ' ' && !isTyping && document.getElementById('tab-toolbox')?.classList.contains('active')) { e.preventDefault(); window.metro?.running ? window.stopMetronome() : window.startMetronome(); }
         if (e.key === 'Escape') {
             const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk();
             document.querySelectorAll('.fixed.flex[id$="-modal"]').forEach((m) => { m.classList.add('hidden'); m.classList.remove('flex'); });
@@ -5405,7 +5401,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   window.refreshLab = () => { fillRttSelect(); renderMemos(); buildHeatmap(); buildAchievements(); buildGraph(); buildCold(); };
 
   function init(){
-    if(!$('tab-lab')) return;
+    if(!$('tab-toolbox')) return;
     fillNoteSelects();
     // static builders
     buildCOF(); buildScale(); buildReverb(); buildMic(); buildFileSize(); buildSyllables(); buildLUFS(); buildEQ();
@@ -5899,7 +5895,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function kbTrigger(midi,el){ const a=ac(); if(a) voice(midiFreq(midi),a.currentTime,0.5,kbWave); flashKey(el||document.querySelector(`.kb-key[data-midi="${midi}"]`)); if(kbRec) kbTake.push({midi, t: performance.now()-kbStart}); }
   function kbToggleRec(){ kbRec=!kbRec; const b=$('btn-kb-rec'); if(kbRec){ kbTake=[]; kbStart=performance.now(); if(b){b.textContent='■ STOP';b.style.background='rgba(255,90,90,0.2)';} $('kb-status').textContent='recording…'; } else { if(b){b.textContent='● REC';b.style.background='';} $('kb-status').textContent=kbTake.length+' notes captured'; } }
   function kbPlayback(){ if(!kbTake.length){ $('kb-status').textContent='nothing recorded yet'; return; } const a=ac(); if(!a) return; const t0=a.currentTime+0.05; kbTake.forEach(n=>{ voice(midiFreq(n.midi),t0+n.t/1000,0.45,kbWave); setTimeout(()=>flashKey(document.querySelector(`.kb-key[data-midi="${n.midi}"]`)), n.t); }); $('kb-status').textContent='playing…'; setTimeout(()=>{ $('kb-status').textContent=kbTake.length+' notes'; }, (kbTake[kbTake.length-1].t)+500); }
-  function kbKeydown(e){ if(!$('tab-lab')?.classList.contains('active')) return; if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return; const m=KEYMAP[e.key.toLowerCase()]; if(m && !kbHeld[m]){ kbHeld[m]=1; kbTrigger(m); } }
+  function kbKeydown(e){ if(!$('tab-toolbox')?.classList.contains('active')) return; if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return; const m=KEYMAP[e.key.toLowerCase()]; if(m && !kbHeld[m]){ kbHeld[m]=1; kbTrigger(m); } }
   function kbKeyup(e){ const m=KEYMAP[e.key.toLowerCase()]; if(m) delete kbHeld[m]; }
 
   // ==================== FRETBOARD SCALE EXPLORER ====================
@@ -6394,7 +6390,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   function fillSel(sel,opts,def){ if(sel) sel.innerHTML=opts.map(o=>`<option${o===def?' selected':''}>${o}</option>`).join(''); }
   function init(){
-    if(!$('tab-tools')) return;
+    if(!$('tab-toolbox')) return;
     // theory
     detectKey(); $('kd-in')?.addEventListener('input',detectKey);
     fillSel($('nn-key'),NOTES,'C'); nashville(); ['nn-in','nn-key'].forEach(id=>$(id)?.addEventListener('input',nashville));
@@ -6433,6 +6429,31 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-gm-copy')?.addEventListener('click',()=>{ const t=$('gm-out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } const b=$('btn-gm-copy'); const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); });
     // initial persisted renders
     renderGear(); renderSamples(); renderCollab(); renderPractice(); renderRelease();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<!-- ============================ TOOLBOX SUB-NAV ============================ -->
+<script>
+(function(){
+  const TBX_KEY = 'ferrett_os_toolbox_sub_v1';
+  const ACTIVE_STYLE = { background: 'rgba(122,255,191,0.18)', color: '#7AFFBF', borderColor: '#7AFFBF' };
+  window.__toolboxDefaultSub = () => { try { return localStorage.getItem(TBX_KEY) || 'theory'; } catch(e) { return 'theory'; } };
+  window.setToolboxSub = (key) => {
+    if (!key) return;
+    const panel = document.getElementById('tbx-panel-' + key); if (!panel) return;
+    document.querySelectorAll('.tbx-panel').forEach(p => p.classList.toggle('hidden', p !== panel));
+    document.querySelectorAll('.tbx-pill').forEach(p => {
+      const on = p.dataset.tbx === key;
+      p.style.background = on ? ACTIVE_STYLE.background : '';
+      p.style.color = on ? ACTIVE_STYLE.color : '';
+      p.style.borderColor = on ? ACTIVE_STYLE.borderColor : '';
+    });
+    try { localStorage.setItem(TBX_KEY, key); } catch(e) {}
+  };
+  function init(){
+    document.querySelectorAll('.tbx-pill').forEach(p => p.addEventListener('click', () => window.setToolboxSub(p.dataset.tbx)));
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

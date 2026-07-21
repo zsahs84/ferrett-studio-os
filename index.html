@@ -110,6 +110,8 @@ main { background: rgba(5,8,7,0.72); }
 @keyframes surpriseFlash { 0% { box-shadow: 0 0 0 2px rgba(0,229,255,0.6), 0 0 30px rgba(0,229,255,0.3); } 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0); } }
 .btn-menu { background:transparent; border:1px solid transparent; transition:all 0.18s; }
 .btn-menu:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+.btn-tool-icon { background:transparent; border:1px solid rgba(226,232,240,0.18); color:rgba(226,232,240,0.55); padding:0.15rem 0.45rem; font-size:0.62rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.05em; transition:all 0.15s; line-height:1.4; }
+.btn-tool-icon:hover { color:#E2E8F0; border-color:rgba(226,232,240,0.4); background:rgba(226,232,240,0.06); }
 
 .active-nav-green { background: rgba(0,255,136,0.15) !important; color: #00FF88 !important; border-color: #00FF88 !important; box-shadow: 0 0 12px rgba(0,255,136,0.2) !important; }
 .active-nav-cyan { background: rgba(0,229,255,0.15) !important; color: #00E5FF !important; border-color: #00E5FF !important; box-shadow: 0 0 12px rgba(0,229,255,0.2) !important; }
@@ -545,7 +547,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div id="lab-cof-info" class="text-center text-[11px] text-[#E2E8F0]/70 font-mono min-h-[40px]"></div>
             </div>
             <div class="card border-[#00FF8830]">
-                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎼 SCALE & MODE HELPER</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🎼 SCALE & MODE HELPER</h4><button id="btn-reset-scale" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">ROOT</label><select id="lab-scale-root" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
                     <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">SCALE</label><select id="lab-scale-type" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
@@ -557,13 +559,13 @@ main { background: rgba(5,8,7,0.72); }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔑 KEY DETECTOR (FROM CHORDS)</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🔑 KEY DETECTOR (FROM CHORDS)</h4><button id="btn-reset-kd" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type the chords of a song — get the most likely key(s).</p>
                 <input type="text" id="kd-in" value="Am F C G" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
                 <div id="kd-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
             </div>
             <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🔢 NASHVILLE NUMBER CHART</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🔢 NASHVILLE NUMBER CHART</h4><button id="btn-reset-nn" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Portable chord chart — numbers instead of letters, so it works in any key.</p>
                 <div class="flex gap-2 mb-3">
                     <input type="text" id="nn-in" value="C G Am F" class="flex-1 bg-black/50 border border-[#FFD60A]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none">
@@ -575,7 +577,7 @@ main { background: rgba(5,8,7,0.72); }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#B18CFF30]">
-                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🎧 HARMONIC MIXING (CAMELOT)</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#B18CFF20] pb-2"><h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎧 HARMONIC MIXING (CAMELOT)</h4><button id="btn-reset-cm" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Which keys mix smoothly with what you've got. Pick a key:</p>
                 <div class="flex gap-2 mb-3">
                     <select id="cm-root" class="flex-1 bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"></select>
@@ -598,7 +600,7 @@ main { background: rgba(5,8,7,0.72); }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔁 PROGRESSION PLAYER</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🔁 PROGRESSION PLAYER</h4><button id="btn-reset-pp" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords, hear them loop with a bass. Test a progression fast.</p>
                 <input type="text" id="pp-in" value="C G Am F" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
                 <div class="flex items-center gap-2">
@@ -609,7 +611,7 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
             </div>
             <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎵 NOTE ↔ FREQUENCY</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎵 NOTE ↔ FREQUENCY</h4><button id="btn-reset-nf" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <div class="flex flex-wrap items-center gap-2 mb-3">
                     <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest">A4=</label>
                     <input type="number" id="nf-a4" value="440" min="415" max="466" class="w-16 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none">
@@ -624,7 +626,7 @@ main { background: rgba(5,8,7,0.72); }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="card border-[#00E5FF30] mb-6">
-            <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">🎹 CHORD PROGRESSION BOOK</h4>
+            <div class="flex items-center justify-between mb-4 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🎹 CHORD PROGRESSION BOOK</h4><button id="btn-reset-prog" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
             <div class="grid grid-cols-2 gap-3 mb-4 max-w-md">
                 <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">KEY</label><select id="prog-key" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
                 <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">TONALITY</label><select id="prog-tonality" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="major">Major</option><option value="minor">Minor</option></select></div>
@@ -652,13 +654,14 @@ main { background: rgba(5,8,7,0.72); }
                     <select id="fb-root" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
                     <select id="fb-scale" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
                     <div class="flex rounded overflow-hidden border border-[#FFD60A40]"><button id="fb-inst-gtr" type="button" class="px-2 py-1 text-[9px] font-bold bg-[#FFD60A]/20 text-[#FFD60A]">GTR</button><button id="fb-inst-bass" type="button" class="px-2 py-1 text-[9px] font-bold text-[#FFD60A]/50">BASS</button></div>
+                    <button id="btn-reset-fb" type="button" class="btn-tool-icon" title="Reset to defaults">↺</button>
                 </div>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔴 root · 🟡 scale tone. Tap a dot to hear the note.</p>
             <div class="overflow-x-auto"><svg id="fb-svg" viewBox="0 0 640 150" class="min-w-[560px] w-full"></svg></div>
         </div>
         <div class="card border-[#00FF8830] mb-6">
-            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 TRANSPOSE & CAPO</h4>
+            <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔧 TRANSPOSE & CAPO</h4><button id="btn-reset-tr" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords (e.g. <span class="font-mono text-[#00FF88]/70">C G Am F</span>). Slide to transpose; the capo helper finds an easier shape in the same sounding key.</p>
             <input type="text" id="tr-chords" value="C G Am F" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
             <div class="flex items-center gap-3 mb-3">
@@ -703,7 +706,7 @@ main { background: rgba(5,8,7,0.72); }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#FF88FF30]">
-                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FF88FF20] pb-2"><h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4><button id="btn-reset-rev" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">TEMPO (BPM)</label><input type="number" id="lab-rev-bpm" value="90" min="40" max="220" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-center text-[#FF88FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
                     <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">VERB TYPE</label><select id="lab-rev-type" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-[#FF88FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="vocal">Vocal Plate</option><option value="room">Drum Room</option><option value="hall">Lush Hall</option><option value="slap">Slapback</option></select></div>
@@ -711,7 +714,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div id="lab-rev-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-2"></div>
             </div>
             <div class="card border-[#FFD60A30]">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎤 MIC 3:1 & SPL FALLOFF</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎤 MIC 3:1 & SPL FALLOFF</h4><button id="btn-reset-mic" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SOURCE↔MIC (in)</label><input type="number" id="lab-mic-dist" value="6" min="1" max="120" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
                     <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SPL @ MIC (dB)</label><input type="number" id="lab-mic-spl" value="94" min="40" max="140" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
@@ -722,7 +725,7 @@ main { background: rgba(5,8,7,0.72); }
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">💾 FILE-SIZE & RECORD-TIME</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">💾 FILE-SIZE & RECORD-TIME</h4><button id="btn-reset-fs" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">RATE</label><select id="lab-fs-rate" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="44100">44.1k</option><option value="48000" selected>48k</option><option value="88200">88.2k</option><option value="96000">96k</option><option value="192000">192k</option></select></div>
                     <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">BITS</label><select id="lab-fs-bits" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="16">16</option><option value="24" selected>24</option><option value="32">32f</option></select></div>
@@ -732,7 +735,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div id="lab-fs-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-1"></div>
             </div>
             <div class="card border-[#00E5FF30]">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🧮 LEVEL / dB CONVERTERS</h4>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧮 LEVEL / dB CONVERTERS</h4><button id="btn-reset-lc" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
                 <div class="space-y-3">
                     <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">dBFS →</span><input type="number" id="lc-dbfs" value="-6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-dbfs-out" class="text-[11px] font-mono text-white/70"></span></div>
                     <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">GAIN dB →</span><input type="number" id="lc-gain" value="6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-gain-out" class="text-[11px] font-mono text-white/70"></span></div>
@@ -960,7 +963,10 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎲 SHUFFLE A CHALLENGE</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Random recipe + tempo + key + a creative constraint. Break the blank-page freeze.</p>
                 <div id="lab-challenge-out" class="hidden mb-4 p-3 rounded border border-[#FFD60A25] bg-black/40 space-y-2"></div>
+                <div class="flex flex-wrap gap-2">
                 <button id="btn-lab-challenge" type="button" class="btn-ferrett-green px-6 py-2" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1);">ROLL THE DICE</button>
+                <button id="btn-lab-challenge-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
+                </div>
             </div>
             <div class="card border-[#B18CFF40]" style="background:linear-gradient(135deg,rgba(177,140,255,0.07),rgba(0,229,255,0.03));">
                 <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🃏 VIBE ROULETTE</h4>
@@ -1012,7 +1018,9 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             <div class="flex flex-wrap gap-2 mb-3">
                 <button id="btn-ai-mp-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">✨ GENERATE PROMPT</button>
+                <button id="btn-ai-mp-redo" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
                 <button id="btn-ai-mp-copy" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">⧉ COPY</button>
+                <button id="btn-ai-mp-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
                 <span id="ai-mp-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
             </div>
             <textarea id="ai-mp-out" rows="4" class="w-full bg-black/40 border border-[#00E5FF]/20 rounded p-3 text-[12px] text-[#C9FFE6] font-mono focus:outline-none resize-none" placeholder="Your generated prompt appears here…"></textarea>
@@ -1043,6 +1051,10 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
             </div>
             <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
+            <div id="ai-brain-out-controls" class="hidden gap-2 mt-3">
+                <button id="btn-ai-brain-redo" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
+                <button id="btn-ai-brain-hide" type="button" class="btn-tool-icon">HIDE</button>
+            </div>
             <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
         </div>
 
@@ -1428,6 +1440,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex gap-2 mb-4">
                 <button id="btn-lyria-generate" type="button" class="btn-ferrett-green flex-1">GENERATE PROMPT</button>
                 <button id="btn-lyria-regenerate" type="button" class="btn-ferrett hidden" title="Generate a different variation">🎲</button>
+                <button id="btn-lyria-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
             </div>
 
             <div id="lyria-output-wrap" class="hidden">
@@ -2884,6 +2897,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const out = document.getElementById('lyria-output'); if (out) out.value = prompt;
         document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
+        document.getElementById('btn-lyria-hide')?.classList.remove('hidden');
+        const lh = document.getElementById('btn-lyria-hide'); if (lh) lh.textContent = 'HIDE';
         const note = document.getElementById('lyria-ai-note'); if (note) note.textContent = '';
     };
 
@@ -3448,6 +3463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('lyria-genre-select')?.addEventListener('change', (e) => { const bpmEl = document.getElementById('lyria-bpm'); if (bpmEl) bpmEl.value = window.getGenreBpmMid(e.target.value); });
     document.getElementById('btn-lyria-generate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
+    document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
     document.getElementById('btn-lyria-copy')?.addEventListener('click', () => { const out = document.getElementById('lyria-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
     document.getElementById('btn-lyria-ai')?.addEventListener('click', () => window.runLyriaAIEnhance());
     document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
@@ -5398,6 +5414,14 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     ['lab-rev-bpm','lab-rev-type'].forEach(id=>$(id)?.addEventListener('input', buildReverb));
     ['lab-mic-dist','lab-mic-spl'].forEach(id=>$(id)?.addEventListener('input', buildMic));
     ['lab-fs-rate','lab-fs-bits','lab-fs-ch','lab-fs-mins'].forEach(id=>$(id)?.addEventListener('input', buildFileSize));
+    // reset buttons
+    $('btn-reset-scale')?.addEventListener('click',()=>{ $('lab-scale-root').value='C'; $('lab-scale-type').value='Major (Ionian)'; buildScale(); });
+    $('btn-reset-rev')?.addEventListener('click',()=>{ $('lab-rev-bpm').value='90'; $('lab-rev-type').value='vocal'; buildReverb(); });
+    $('btn-reset-mic')?.addEventListener('click',()=>{ $('lab-mic-dist').value='6'; $('lab-mic-spl').value='94'; buildMic(); });
+    $('btn-reset-fs')?.addEventListener('click',()=>{ $('lab-fs-rate').value='48000'; $('lab-fs-bits').value='24'; $('lab-fs-ch').value='2'; $('lab-fs-mins').value='4'; buildFileSize(); });
+    // shuffle-a-challenge show/hide
+    $('btn-lab-challenge')?.addEventListener('click',()=>{ $('btn-lab-challenge-hide')?.classList.remove('hidden'); });
+    $('btn-lab-challenge-hide')?.addEventListener('click',()=>{ $('lab-challenge-out')?.classList.add('hidden'); $('btn-lab-challenge-hide')?.classList.add('hidden'); });
     $('lab-syl-in')?.addEventListener('input', buildSyllables);
     // graph
     $('btn-lab-graph-refresh')?.addEventListener('click', buildGraph);
@@ -5823,6 +5847,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('prog-key').innerHTML=NOTES.map(n=>`<option${n==='C'?' selected':''}>${n}</option>`).join('');
       ['prog-key','prog-tonality'].forEach(id=>$(id)?.addEventListener('change',buildProg));
       buildProg();
+      $('btn-reset-prog')?.addEventListener('click',()=>{ $('prog-key').value='C'; $('prog-tonality').value='major'; buildProg(); });
     }
     // chord diagrams
     if($('chord-diagrams')){
@@ -6025,6 +6050,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       ['fb-root','fb-scale'].forEach(id=>$(id)?.addEventListener('change',buildFretboard));
       $('fb-inst-gtr')?.addEventListener('click',()=>{ fbInst='gtr'; $('fb-inst-gtr').classList.add('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-gtr').classList.remove('text-[#FFD60A]/50'); $('fb-inst-bass').classList.remove('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-bass').classList.add('text-[#FFD60A]/50'); buildFretboard(); });
       $('fb-inst-bass')?.addEventListener('click',()=>{ fbInst='bass'; $('fb-inst-bass').classList.add('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-bass').classList.remove('text-[#FFD60A]/50'); $('fb-inst-gtr').classList.remove('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-gtr').classList.add('text-[#FFD60A]/50'); buildFretboard(); });
+      $('btn-reset-fb')?.addEventListener('click',()=>{ $('fb-root').value='E'; $('fb-scale').value='Min Pent'; $('fb-inst-gtr').click(); buildFretboard(); });
     }
     // arrangement
     if($('arr-list')){
@@ -6041,6 +6067,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('tr-amt')?.addEventListener('input',upd);
       $('tr-capo-shape')?.addEventListener('change',buildCapo);
       upd();
+      $('btn-reset-tr')?.addEventListener('click',()=>{ $('tr-chords').value='C G Am F'; $('tr-amt').value='0'; $('tr-capo-shape').value='G'; upd(); });
     }
     // setlist
     if($('set-list')){
@@ -6177,6 +6204,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const sys='You write vivid, concise music-generation prompts for tools like Suno, Udio and Lyria. Reply with ONE dense paragraph (max ~60 words) packed with genre, instrumentation, production, mood and tempo adjectives. No preamble, no quotes, no lists.';
       const txt=await window.ferrettAI(sys, `Write a prompt for: ${brief}.`, {creative:false});
       $('ai-mp-out').value=txt; $('btn-ai-mp-copy').classList.remove('hidden');
+      $('btn-ai-mp-redo')?.classList.remove('hidden'); $('btn-ai-mp-hide')?.classList.remove('hidden');
+      $('ai-mp-out').classList.remove('hidden'); const h=$('btn-ai-mp-hide'); if(h) h.textContent='HIDE';
     }catch(e){ note('ai-mp-note', e.message); } finally{ spin('ai-mp-spinner',false); }
   }
 
@@ -6199,6 +6228,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrGen(); });
     // music prompt
     $('btn-ai-mp-gen')?.addEventListener('click',mpGen);
+    $('btn-ai-mp-redo')?.addEventListener('click',mpGen);
+    $('btn-ai-mp-hide')?.addEventListener('click',()=>{ const o=$('ai-mp-out'), h=$('btn-ai-mp-hide'); if(!o||!h) return; const nowHidden=o.classList.toggle('hidden'); h.textContent=nowHidden?'SHOW':'HIDE'; });
     $('btn-ai-mp-copy')?.addEventListener('click',()=>{ const t=$('ai-mp-out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } const b=$('btn-ai-mp-copy'); const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); });
     updateStatus();
   }
@@ -6333,9 +6364,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function renderPractice(){ const box=$('pr-log'); if(!box) return; const log=lsGet(PRAC_KEY,[]); box.innerHTML=log.slice(0,10).map(e=>{ const m=Math.round(e.sec/60); return `<div class="flex items-center gap-2 text-[10px]"><span class="flex-1 text-white/70 truncate">${e.what}</span><span class="font-mono text-[#00FF88]/70">${m}m</span><span class="text-white/30">${new Date(e.ts).toLocaleDateString()}</span></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">No sessions logged.</div>'; }
 
   // ---------- AI STUDIO BRAIN ----------
+  let lastBrainArgs=null;
   function brainBusy(on){ const s=$('ai-brain-spinner'); if(s) s.classList.toggle('hidden',!on); }
-  function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } }
-  async function brainCall(sys,user,creative){ if(!window.ferrettAI){ brainShow('AI not available.'); return; } const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
+  function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } const c=$('ai-brain-out-controls'); if(c && txt){ c.classList.remove('hidden'); c.classList.add('flex'); } }
+  async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
+  function brainRedo(){ if(lastBrainArgs) brainCall(...lastBrainArgs); }
+  function brainHide(){ const o=$('ai-brain-out'), c=$('ai-brain-out-controls'), h=$('btn-ai-brain-hide'); if(!o) return; const nowHidden=o.classList.toggle('hidden'); if(h) h.textContent=nowHidden?'SHOW':'HIDE'; }
   function aiAsk(){ const q=$('ai-ask-in').value.trim(); if(!q) return; brainCall('You are a veteran recording/mixing engineer and producer. Answer concisely and practically — a few sentences or tight bullets, real moves not fluff.', q, false); }
   function aiMood(){ const q=$('ai-mood-in').value.trim(); if(!q) return; brainCall('You suggest chord progressions for songwriters. Give 2-3 progressions as chord symbols (e.g. Am–F–C–G), each with a short why. No preamble.', 'Mood: '+q, true); }
   function aiRecipe(){ const sel=$('ai-recipe-sel'); const id=+sel.value; const r=((window.db&&window.db.cookbook)||[]).find(x=>x.id===id); if(!r){ brainShow('Pick a recipe.'); return; } const genre=$('ai-recipe-genre').value.trim()||'a different genre'; brainCall('You are a music production expert. Reimagine the given production recipe for a new genre. Be practical and specific: key sonic moves, plugin/gear analogs, arrangement notes. Keep it tight.', `Original (${r.genre} — ${r.inst}): ${r.desc||''} ${r.luna||''} ${r.reaper||''}\n\nReimagine for: ${genre}.`, true); }
@@ -6355,18 +6389,24 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if(!$('tab-toolbox')) return;
     // theory
     detectKey(); $('kd-in')?.addEventListener('input',detectKey);
+    $('btn-reset-kd')?.addEventListener('click',()=>{ $('kd-in').value='Am F C G'; detectKey(); });
     fillSel($('nn-key'),NOTES,'C'); nashville(); ['nn-in','nn-key'].forEach(id=>$(id)?.addEventListener('input',nashville));
+    $('btn-reset-nn')?.addEventListener('click',()=>{ $('nn-in').value='C G Am F'; $('nn-key').value='C'; nashville(); });
     fillSel($('cm-root'),NOTES,'C'); camelot(); ['cm-root','cm-mode'].forEach(id=>$(id)?.addEventListener('change',camelot));
+    $('btn-reset-cm')?.addEventListener('click',()=>{ $('cm-root').value='C'; $('cm-mode').value='maj'; camelot(); });
     // ear
     $('btn-ear-new')?.addEventListener('click',earNew); $('btn-ear-replay')?.addEventListener('click',earPlay); renderEarChoices();
     // progression
     $('btn-pp-play')?.addEventListener('click',ppToggle);
+    $('btn-reset-pp')?.addEventListener('click',()=>{ ppStop(); $('pp-in').value='C G Am F'; $('pp-bpm').value='90'; $('pp-bass').checked=true; });
     // note/freq
     fillSel($('nf-oct'),['0','1','2','3','4','5','6','7','8'],'4'); noteFreqTable(); ['nf-a4','nf-oct'].forEach(id=>$(id)?.addEventListener('input',noteFreqTable)); $('nf-hz')?.addEventListener('input',hzLookup);
+    $('btn-reset-nf')?.addEventListener('click',()=>{ $('nf-a4').value='440'; $('nf-oct').value='4'; $('nf-hz').value=''; noteFreqTable(); hzLookup(); });
     // rta
     $('btn-rta-toggle')?.addEventListener('click',rtaToggle);
     // level
     levelConv(); ['lc-dbfs','lc-gain','lc-ratio','lc-semi'].forEach(id=>$(id)?.addEventListener('input',levelConv));
+    $('btn-reset-lc')?.addEventListener('click',()=>{ $('lc-dbfs').value='-6'; $('lc-gain').value='6'; $('lc-ratio').value='4'; $('lc-semi').value='12'; levelConv(); });
     // gear
     $('btn-gm-add')?.addEventListener('click',()=>{ const w=$('gm-what').value.trim(); if(!w) return; const it=lsGet(GEAR_KEY,[]); it.unshift({what:w,ts:Date.now()}); lsSet(GEAR_KEY,it); $('gm-what').value=''; renderGear(); });
     $('gm-what')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-gm-add').click(); });
@@ -6385,6 +6425,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-ai-recipe')?.addEventListener('click',aiRecipe);
     $('btn-ai-mix')?.addEventListener('click',aiMix); $('ai-mix-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') aiMix(); });
     $('btn-ai-settings-tools')?.addEventListener('click',()=>window.__openAiModal&&window.__openAiModal());
+    $('btn-ai-brain-redo')?.addEventListener('click',brainRedo);
+    $('btn-ai-brain-hide')?.addEventListener('click',brainHide);
     // initial persisted renders
     renderGear(); renderSamples(); renderCollab(); renderPractice(); renderRelease();
   }

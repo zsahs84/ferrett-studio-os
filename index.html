@@ -238,6 +238,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-calc" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Calculator & Tools</button>
     <button id="nav-lab" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio Lab // X-Tools</button>
     <button id="nav-lyrics" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Lyrics Lab // Cut-Up</button>
+    <button id="nav-tools" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Studio+ // Theory · Ear · AI</button>
     <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">Notes Vault</button>
 
     <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
@@ -1077,10 +1078,214 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-ai-lyr-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">✨ GENERATE</button>
                 <button id="btn-ai-lyr-cont" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet">↳ CONTINUE</button>
                 <button id="btn-ai-lyr-punch" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest punch-in rhyme alternatives for the last line">↑ PUNCH UP</button>
+                <button id="btn-ai-lyr-title" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines">🏷 TITLES</button>
                 <span id="ai-lyr-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
             </div>
+            <div id="ai-lyr-titles" class="hidden flex-wrap gap-1.5 mt-2"></div>
             <div id="ai-lyr-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
         </div>
+    </section>
+
+    <section id="tab-tools" class="middle-tab p-4 md:p-8 max-w-6xl border-b border-[#7AFFBF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#7AFFBF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#7AFFBF]">STUDIO+ // THEORY · EAR · UTILITIES · AI</h2></div>
+
+        <!-- ============ THEORY & EAR ============ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔑 KEY DETECTOR (FROM CHORDS)</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type the chords of a song — get the most likely key(s).</p>
+                <input type="text" id="kd-in" value="Am F C G" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
+                <div id="kd-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
+            </div>
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🔢 NASHVILLE NUMBER CHART</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Portable chord chart — numbers instead of letters, so it works in any key.</p>
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="nn-in" value="C G Am F" class="flex-1 bg-black/50 border border-[#FFD60A]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none">
+                    <select id="nn-key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-2 focus:outline-none"></select>
+                </div>
+                <div id="nn-out" class="text-[15px] font-mono font-bold text-white"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#B18CFF30]">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🎧 HARMONIC MIXING (CAMELOT)</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Which keys mix smoothly with what you've got. Pick a key:</p>
+                <div class="flex gap-2 mb-3">
+                    <select id="cm-root" class="flex-1 bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"></select>
+                    <select id="cm-mode" class="bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="maj">Major</option><option value="min">Minor</option></select>
+                </div>
+                <div id="cm-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
+            </div>
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">👂 INTERVAL EAR TRAINER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Hear two notes, name the interval. Build your ear.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button id="btn-ear-new" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ NEW</button>
+                    <button id="btn-ear-replay" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">↻ REPLAY</button>
+                    <span id="ear-score" class="text-[10px] font-mono text-[#00FF88]/70 self-center ml-auto">0 / 0</span>
+                </div>
+                <div id="ear-choices" class="grid grid-cols-3 gap-1.5"></div>
+                <div id="ear-feedback" class="text-[11px] font-mono mt-2 h-4"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔁 PROGRESSION PLAYER</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords, hear them loop with a bass. Test a progression fast.</p>
+                <input type="text" id="pp-in" value="C G Am F" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
+                <div class="flex items-center gap-2">
+                    <button id="btn-pp-play" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px]">▶ PLAY</button>
+                    <input type="number" id="pp-bpm" value="90" min="40" max="200" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none">
+                    <span class="text-[9px] text-[#00E5FF]/50 font-bold tracking-widest">BPM</span>
+                    <label class="flex items-center gap-1 text-[9px] text-[#00E5FF]/70 tracking-widest cursor-pointer ml-2"><input type="checkbox" id="pp-bass" class="accent-[#00E5FF]" checked> BASS</label>
+                </div>
+            </div>
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎵 NOTE ↔ FREQUENCY</h4>
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest">A4=</label>
+                    <input type="number" id="nf-a4" value="440" min="415" max="466" class="w-16 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none">
+                    <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest ml-2">OCT</label>
+                    <select id="nf-oct" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-1.5 py-1 focus:outline-none"></select>
+                    <input type="number" id="nf-hz" placeholder="Hz→note" class="w-24 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none ml-auto">
+                </div>
+                <div id="nf-table" class="grid grid-cols-4 gap-1.5"></div>
+                <div id="nf-lookup" class="text-[11px] font-mono text-[#FFD60A] mt-2 h-4"></div>
+            </div>
+        </div>
+
+        <!-- ============ STUDIO UTILITIES ============ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#FF88FF30]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">📊 SPECTRUM ANALYZER (RTA)</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Live mic spectrum — spot room resonances, tune monitors, check a mix in the room.</p>
+                <canvas id="rta-canvas" class="w-full rounded bg-black/50 border border-[#FF88FF20]" height="120"></canvas>
+                <button id="btn-rta-toggle" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px] mt-3">🎙️ START</button>
+                <span id="rta-status" class="text-[10px] text-[#E2E8F0]/40 ml-2"></span>
+            </div>
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🧮 LEVEL / dB CONVERTERS</h4>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">dBFS →</span><input type="number" id="lc-dbfs" value="-6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-dbfs-out" class="text-[11px] font-mono text-white/70"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">GAIN dB →</span><input type="number" id="lc-gain" value="6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-gain-out" class="text-[11px] font-mono text-white/70"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">RATIO x:1 →</span><input type="number" id="lc-ratio" value="4" min="1" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-ratio-out" class="text-[11px] font-mono text-white/70"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">SEMITONES →</span><input type="number" id="lc-semi" value="12" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-semi-out" class="text-[11px] font-mono text-white/70"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 GEAR MAINTENANCE LOG</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Strings, tubes, batteries — log it, see how long since.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="gm-what" placeholder="e.g. Strat strings" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <button id="btn-gm-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">LOG TODAY</button>
+                </div>
+                <div id="gm-list" class="space-y-1"></div>
+            </div>
+            <div class="card border-[#00E5FF30]">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🗂️ SAMPLE / LOOP INDEX</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Tag your samples by BPM + key so you can actually find them.</p>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="sl-name" placeholder="name" class="flex-1 min-w-[100px] bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <input type="text" id="sl-bpm" placeholder="bpm" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
+                    <input type="text" id="sl-key" placeholder="key" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
+                    <button id="btn-sl-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
+                </div>
+                <input type="text" id="sl-filter" placeholder="filter…" class="w-full bg-black/40 border border-[#00E5FF]/15 rounded text-[10px] text-[#C9FFE6] px-2 py-1 focus:outline-none mb-2">
+                <div id="sl-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#FFD60A30]">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">✅ RELEASE CHECKLIST</h4>
+                <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Everything between "final mix" and "it's live." Per-track progress saved.</p>
+                <select id="rc-track" class="w-full bg-black/50 border border-[#FFD60A]/20 rounded text-[#FFD60A]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"></select>
+                <div id="rc-list" class="space-y-1"></div>
+                <div id="rc-progress" class="text-[10px] font-mono text-[#FFD60A]/70 mt-2"></div>
+            </div>
+            <div class="card border-[#B18CFF30]">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">👥 COLLABORATORS & CREDITS</h4>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="co-name" placeholder="name" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <input type="text" id="co-role" placeholder="role / contact" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <button id="btn-co-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
+                </div>
+                <div id="co-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <div class="card border-[#00FF8830] mb-6">
+            <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">⏱️ PRACTICE TIMER & LOG</h4>
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+                <input type="text" id="pr-what" placeholder="what are you working on?" class="flex-1 min-w-[150px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+                <div id="pr-clock" class="text-[24px] font-bold font-mono text-[#00FF88]">00:00</div>
+                <button id="btn-pr-toggle" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">▶ START</button>
+            </div>
+            <div id="pr-log" class="space-y-1 max-h-[140px] overflow-y-auto"></div>
+        </div>
+
+        <!-- ============ AI STUDIO BRAIN ============ -->
+        <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(177,140,255,0.04))">
+            <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧠 AI STUDIO BRAIN <span id="ai-status-tools" class="text-[8px] font-normal ml-1"></span></h4>
+                <button id="btn-ai-settings-tools" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">ASK ANYTHING (production, theory, gear)</label>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-ask-in" placeholder="how do I get a punchy 808?" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-ask" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">ASK</button></div>
+                </div>
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CHORDS FROM A MOOD</label>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mood-in" placeholder="bittersweet, nostalgic" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mood" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
+                </div>
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">REIMAGINE A RECIPE IN A NEW GENRE</label>
+                    <div class="flex gap-2 mb-2"><select id="ai-recipe-sel" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"></select><input type="text" id="ai-recipe-genre" placeholder="→ genre" class="w-28 bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-2 focus:outline-none"><button id="btn-ai-recipe" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
+                </div>
+                <div>
+                    <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MIX FEEDBACK (describe what you hear)</label>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mix-in" placeholder="vocals harsh, low end muddy" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mix" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GET FIXES</button></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
+            <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
+        </div>
+
+        <!-- ============ GOOGLE MUSIC BRIDGE ============ -->
+        <div class="card border-[#FFD60A40] mb-6" style="background:linear-gradient(135deg,rgba(255,214,10,0.05),rgba(0,229,255,0.03))">
+            <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🅶 GOOGLE MUSIC BRIDGE (Lyria / MusicFX)</h4>
+                <button id="btn-ai-settings-gm" type="button" class="text-[10px] text-[#FFD60A]/60 hover:text-[#FFD60A] cursor-pointer bg-transparent border-0">⚙ setup</button>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Craft a prompt tuned for Google's music models, then launch the tool. Lyria/MusicFX like short comma-separated descriptors (genre, instruments, mood, BPM) and no lyrics in the prompt.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                <input type="text" id="gm-genre" placeholder="genre" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="gm-mood" placeholder="mood" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="gm-bpm" placeholder="BPM/key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="gm-instr" placeholder="instruments" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button id="btn-gm-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1)">✨ CRAFT PROMPT</button>
+                <button id="btn-gm-copy" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#FFD60A80;color:#FFD60A">⧉ COPY</button>
+                <span id="gm-spinner" class="hidden text-[10px] text-[#FFD60A] self-center animate-pulse">thinking…</span>
+            </div>
+            <textarea id="gm-out" rows="3" class="w-full bg-black/40 border border-[#FFD60A]/20 rounded p-3 text-[12px] text-[#C9FFE6] font-mono focus:outline-none resize-none mb-3" placeholder="Crafted prompt appears here — copy it into the tool you launch below."></textarea>
+            <div class="flex flex-wrap gap-2">
+                <a href="https://labs.google/fx/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX</a>
+                <a href="https://labs.google/fx/tools/music-fx-dj" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX DJ</a>
+                <a href="https://aitestkitchen.withgoogle.com/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ AI Test Kitchen</a>
+                <a href="https://gemini.google.com" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ Gemini</a>
+            </div>
+            <div id="gm-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
+        </div>
+
     </section>
 
   </div>
@@ -2807,9 +3012,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.switchTab = (tabId) => {
         if (tabId !== 'calc') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); }
         if (tabId !== 'lab') { window.stopTestTone?.(); window.stopBeatSketch?.(); }
+        if (tabId !== 'tools') { window.stopToolsAudio?.(); }
         if (tabId === 'calc') { window.renderSessionStats?.(); }
         if (tabId === 'lab') { window.refreshLab?.(); }
         if (tabId === 'lyrics') { window.refreshLyrics?.(); }
+        if (tabId === 'tools') { window.refreshTools?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
         document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
@@ -2830,7 +3037,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
-    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc', 'lab', 'lyrics'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
+    ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'calc', 'lab', 'lyrics', 'tools'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
 
     // Notes is a persistent footer under every tab, not a switchable tab — just expand/collapse it.
     window.NOTES_FOOTER_KEY = 'ferrett_os_notes_footer_open_v1';
@@ -5911,12 +6118,14 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   // ---- helpers ----
   function toLines(txt){ return txt.split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').replace(/^["'“]|["'”]$/g,'').trim()).filter(l=>l && !/^\(.*\)$/.test(l)).slice(0,40); }
-  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const label= on?`● ${c.mode==='groq'?'Groq':'HA'} linked`:'○ not set up'; ['ai-status-lyr','ai-status-lab'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
+  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const label= on?`● ${c.mode==='groq'?'Groq':'HA'} linked`:'○ not set up'; ['ai-status-lyr','ai-status-lab','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
+  window.__updateAiStatus = updateStatus;
 
   // ---- settings modal ----
   let modalMode='ha';
   function setModalMode(m){ modalMode=m; const ha=m==='ha'; $('ai-cfg-ha').classList.toggle('hidden',!ha); $('ai-cfg-groq').classList.toggle('hidden',ha); const bh=$('ai-mode-ha'),bg=$('ai-mode-groq'); bh.classList.toggle('bg-[#00E5FF]/20',ha); bh.classList.toggle('text-[#00E5FF]',ha); bh.classList.toggle('text-[#00E5FF]/50',!ha); bg.classList.toggle('bg-[#00E5FF]/20',!ha); bg.classList.toggle('text-[#00E5FF]',!ha); bg.classList.toggle('text-[#00E5FF]/50',ha); }
   function openAiModal(){ const c=loadCfg(); setModalMode(c.mode==='groq'?'groq':'ha'); $('ai-url').value=c.url||''; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-test-out').textContent=''; const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+  window.__openAiModal = openAiModal;
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
   function readModalCfg(){ return modalMode==='groq' ? { mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' } : { mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() }; }
   async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
@@ -5960,6 +6169,20 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
   }
 
+  async function lyrTitle(){
+    if(!isConfigured()){ openAiModal(); return; }
+    const cur=(window.lyrGetActiveText&&window.lyrGetActiveText())||''; if(!cur.trim()){ note('ai-lyr-note','Write or generate a few lines first.'); return; }
+    spin('ai-lyr-spinner',true); note('ai-lyr-note','');
+    try{
+      const sys='You name songs. Given lyrics, output 5 short, evocative song-title options — one per line, no numbering, no quotes, no commentary.';
+      const txt=await window.ferrettAI(sys, `Lyrics:\n\n${cur}`, {creative:true});
+      const titles=toLines(txt).slice(0,6); const box=$('ai-lyr-titles');
+      box.innerHTML=titles.map(t=>`<button class="ai-title-chip text-[11px] px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" data-t="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('');
+      box.classList.remove('hidden'); box.classList.add('flex');
+      box.querySelectorAll('.ai-title-chip').forEach(c=>c.addEventListener('click',()=>{ const ti=$('lyr-title'); if(ti){ ti.value=c.dataset.t; ti.dispatchEvent(new Event('input',{bubbles:true})); } }));
+    }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
+  }
+
   // ---- music-prompt generator ----
   async function mpGen(){
     if(!isConfigured()){ openAiModal(); return; }
@@ -5988,11 +6211,210 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-ai-lyr-gen')?.addEventListener('click',lyrGen);
     $('btn-ai-lyr-cont')?.addEventListener('click',lyrContinue);
     $('btn-ai-lyr-punch')?.addEventListener('click',lyrPunch);
+    $('btn-ai-lyr-title')?.addEventListener('click',lyrTitle);
     $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrGen(); });
     // music prompt
     $('btn-ai-mp-gen')?.addEventListener('click',mpGen);
     $('btn-ai-mp-copy')?.addEventListener('click',()=>{ const t=$('ai-mp-out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } const b=$('btn-ai-mp-copy'); const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); });
     updateStatus();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<!-- ============================ STUDIO+ (theory · ear · utilities · AI) ============================ -->
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const MAJ=[0,2,4,5,7,9,11], MIN_NAT=[0,2,3,5,7,8,10];
+  const FLAT={Db:'C#',Eb:'D#',Gb:'F#',Ab:'G#',Bb:'A#',Cb:'B',Fb:'E'};
+  let AC=null; const ac=()=>{ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(AC.state==='suspended') AC.resume(); return AC; };
+  const mf=(m)=>440*Math.pow(2,(m-69)/12);
+  function voice(freq,t,dur,wave,gainv){ const a=ac(); if(!a) return; const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter(); o.type=wave||'triangle'; o.frequency.value=freq; f.type='lowpass'; f.frequency.setValueAtTime(4500,t); f.frequency.exponentialRampToValueAtTime(1000,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(gainv||0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(f); f.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+0.05); }
+  function parseCh(tok){ if(!tok) return null; const m=tok.match(/^([A-Ga-g])([#b]?)(.*)$/); if(!m) return null; let root=m[1].toUpperCase()+(m[2]||''); if(FLAT[root]) root=FLAT[root]; const pc=NOTES.indexOf(root); if(pc<0) return null; const suf=(m[3]||''); const dim=/dim|°|º/i.test(suf); const min=(/^m/i.test(suf)&&!/^maj/i.test(suf))||/min/i.test(suf); return {pc, min:min&&!dim, dim, suf}; }
+  const splitChords=(s)=>s.trim().split(/[\s,|]+/).filter(Boolean);
+
+  // ---------- KEY DETECTOR ----------
+  function keyProfile(tonic, major){ const iv=major?MAJ:MIN_NAT; const q=major?['maj','min','min','maj','maj','min','dim']:['min','dim','maj','min','min','maj','maj']; const map={}; iv.forEach((off,i)=>{ map[(tonic+off)%12]=q[i]; }); return map; }
+  function detectKey(){
+    const chords=splitChords($('kd-in').value).map(parseCh).filter(Boolean); const out=$('kd-out'); if(!out) return;
+    if(!chords.length){ out.innerHTML='<span class="text-white/30 italic">Enter some chords…</span>'; return; }
+    const scored=[];
+    for(let t=0;t<12;t++){ [true,false].forEach(maj=>{ const prof=keyProfile(t,maj); let score=0; chords.forEach(c=>{ const q=prof[c.pc]; if(q!==undefined){ const cq=c.dim?'dim':c.min?'min':'maj'; score+= (q===cq)?1 : 0.4; } }); if(t===chords[chords.length-1].pc) score+=0.3; scored.push({name:NOTES[t]+(maj?' major':' minor'), score}); }); }
+    scored.sort((a,b)=>b.score-a.score); const max=scored[0].score;
+    out.innerHTML=scored.slice(0,3).map((s,i)=>`<div class="flex items-center gap-2"><span class="${i===0?'text-[#00E5FF] font-bold':'text-white/60'} w-24">${s.name}</span><div class="flex-1 h-2 rounded bg-black/40 overflow-hidden"><div class="h-full" style="width:${(s.score/max*100)}%;background:${i===0?'#00E5FF':'#00E5FF60'}"></div></div></div>`).join('');
+  }
+
+  // ---------- NASHVILLE ----------
+  function nashville(){
+    const key=NOTES.indexOf($('nn-key').value); const chords=splitChords($('nn-in').value).map(parseCh).filter(Boolean); const out=$('nn-out'); if(!out) return;
+    const deg=(pc)=>{ const rel=((pc-key)%12+12)%12; const idx=MAJ.indexOf(rel); if(idx>=0) return {n:idx+1,acc:''}; const belowIdx=MAJ.indexOf(((rel+1)%12)); if(belowIdx>=0) return {n:belowIdx+1,acc:'b'}; return {n:'?',acc:''}; };
+    out.innerHTML=chords.map(c=>{ const d=deg(c.pc); return `<span class="inline-block mr-2">${d.acc}${d.n}${c.dim?'°':c.min?'m':''}</span>`; }).join('')||'<span class="text-white/30 italic">—</span>';
+  }
+
+  // ---------- CAMELOT ----------
+  const CAM_MAJ={}, CAM_MIN={}; (function(){ const majOrder=[['C',8],['G',9],['D',10],['A',11],['E',12],['B',1],['F#',2],['C#',3],['G#',4],['D#',5],['A#',6],['F',7]]; majOrder.forEach(([n,num])=>CAM_MAJ[NOTES.indexOf(n)]=num); const minOrder=[['A',8],['E',9],['B',10],['F#',11],['C#',12],['G#',1],['D#',2],['A#',3],['F',4],['C',5],['G',6],['D',7]]; minOrder.forEach(([n,num])=>CAM_MIN[NOTES.indexOf(n)]=num); })();
+  function camName(num,letter){ const src=letter==='B'?CAM_MAJ:CAM_MIN; const pc=Object.keys(src).find(k=>src[k]===num); return pc!==undefined? NOTES[pc]+(letter==='B'?' maj':' min'):''; }
+  function camelot(){
+    const pc=NOTES.indexOf($('cm-root').value); const isMaj=$('cm-mode').value==='maj'; const num=isMaj?CAM_MAJ[pc]:CAM_MIN[pc]; const letter=isMaj?'B':'A'; const out=$('cm-out'); if(!out) return;
+    const wrap=(n)=>((n-1+12)%12)+1;
+    const rows=[ ['Your key', `${num}${letter} — ${NOTES[pc]} ${isMaj?'maj':'min'}`, '#B18CFF'],
+      ['Energy up (+1)', `${wrap(num+1)}${letter} — ${camName(wrap(num+1),letter)}`, '#00FF88'],
+      ['Energy down (−1)', `${wrap(num-1)}${letter} — ${camName(wrap(num-1),letter)}`, '#00E5FF'],
+      ['Mood switch', `${num}${letter==='B'?'A':'B'} — ${camName(num,letter==='B'?'A':'B')}`, '#FFD60A'] ];
+    out.innerHTML=rows.map(r=>`<div class="flex justify-between"><span class="text-white/40">${r[0]}</span><span class="font-bold" style="color:${r[2]}">${r[1]}</span></div>`).join('');
+  }
+
+  // ---------- INTERVAL EAR TRAINER ----------
+  const IVL=['Unison','m2','M2','m3','M3','P4','Tritone','P5','m6','M6','m7','M7','Octave'];
+  let earRoot=60, earIv=7, earScore=0, earTotal=0;
+  function earPlay(){ const a=ac(); if(!a) return; const t=a.currentTime+0.05; voice(mf(earRoot),t,0.6,'triangle'); voice(mf(earRoot+earIv),t+0.65,0.6,'triangle'); }
+  function earNew(){ earRoot=52+Math.floor(Math.random()*12); earIv=1+Math.floor(Math.random()*12); const fb=$('ear-feedback'); if(fb) fb.textContent=''; earPlay(); renderEarChoices(); }
+  function renderEarChoices(){ const box=$('ear-choices'); if(!box) return; box.innerHTML=IVL.slice(1).map((n,i)=>`<button class="ear-choice btn-ferrett px-1 py-1.5 text-[9px]" data-iv="${i+1}">${n}</button>`).join(''); box.querySelectorAll('.ear-choice').forEach(b=>b.addEventListener('click',()=>{ const g=+b.dataset.iv; earTotal++; const fb=$('ear-feedback'); if(g===earIv){ earScore++; if(fb){ fb.textContent='✓ '+IVL[earIv]; fb.style.color='#00FF88'; } } else if(fb){ fb.textContent='✗ it was '+IVL[earIv]; fb.style.color='#FF5A5A'; } const sc=$('ear-score'); if(sc) sc.textContent=earScore+' / '+earTotal; })); }
+
+  // ---------- PROGRESSION PLAYER ----------
+  let ppTimer=null, ppPlaying=false, ppStep=0, ppNext=0, ppChords=[];
+  function triadMidiFromChord(c){ const base=60+c.pc; if(c.dim) return [base,base+3,base+6]; if(c.min) return [base,base+3,base+7]; return [base,base+4,base+7]; }
+  function ppSchedule(){ const a=ac(); const bpm=Math.max(40,Math.min(200,+$('pp-bpm').value||90)); const barDur=4*(60/bpm);
+    while(ppNext < a.currentTime+0.15){ const c=ppChords[ppStep%ppChords.length]; const t=ppNext; triadMidiFromChord(c).forEach(m=>voice(mf(m),t,barDur*0.9,'triangle',0.12)); if($('pp-bass').checked) voice(mf(c.pc+36),t,barDur*0.95,'sine',0.22); ppNext+=barDur; ppStep++; }
+    ppTimer=setTimeout(ppSchedule,30);
+  }
+  function ppStop(){ ppPlaying=false; if(ppTimer){ clearTimeout(ppTimer); ppTimer=null; } const b=$('btn-pp-play'); if(b) b.textContent='▶ PLAY'; }
+  function ppToggle(){ if(ppPlaying){ ppStop(); return; } ppChords=splitChords($('pp-in').value).map(parseCh).filter(Boolean); if(!ppChords.length) return; const a=ac(); if(!a) return; ppPlaying=true; ppStep=0; ppNext=a.currentTime+0.06; const b=$('btn-pp-play'); if(b) b.textContent='■ STOP'; ppSchedule(); }
+
+  // ---------- NOTE <-> FREQ ----------
+  function noteFreqTable(){ const a4=+$('nf-a4').value||440; const oct=+$('nf-oct').value; const box=$('nf-table'); if(!box) return;
+    box.innerHTML=NOTES.map((n,pc)=>{ const midi=(oct+1)*12+pc; const hz=a4*Math.pow(2,(midi-69)/12); return `<button class="nf-cell text-[10px] font-mono px-1 py-1 rounded border border-[#FFD60A20] bg-black/25 text-white/80 hover:border-[#FFD60A]" data-midi="${midi}">${n}${oct}<br><span class="text-[#FFD60A]">${hz.toFixed(1)}</span></button>`; }).join('');
+    box.querySelectorAll('.nf-cell').forEach(b=>b.addEventListener('click',()=>{ const a=ac(); if(a) voice(mf(+b.dataset.midi),a.currentTime,0.6,'triangle'); }));
+  }
+  function hzLookup(){ const a4=+$('nf-a4').value||440; const hz=+$('nf-hz').value; const out=$('nf-lookup'); if(!out) return; if(!hz){ out.textContent=''; return; } const midi=69+12*Math.log2(hz/a4); const near=Math.round(midi); const cents=Math.round((midi-near)*100); out.textContent=`${NOTES[((near%12)+12)%12]}${Math.floor(near/12)-1} ${cents>=0?'+':''}${cents}¢`; }
+
+  // ---------- SPECTRUM ANALYZER ----------
+  let rtaStream=null, rtaRaf=null, rtaAnalyser=null;
+  function rtaStop(){ if(rtaRaf) cancelAnimationFrame(rtaRaf); rtaRaf=null; if(rtaStream){ rtaStream.getTracks().forEach(t=>t.stop()); rtaStream=null; } rtaAnalyser=null; const b=$('btn-rta-toggle'); if(b) b.textContent='🎙️ START'; const s=$('rta-status'); if(s) s.textContent=''; }
+  async function rtaToggle(){ if(rtaAnalyser){ rtaStop(); return; } const a=ac(); if(!a){ return; } if(!navigator.mediaDevices?.getUserMedia){ $('rta-status').textContent='no mic api'; return; }
+    try{ rtaStream=await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ $('rta-status').textContent='mic denied'; return; }
+    const src=a.createMediaStreamSource(rtaStream); rtaAnalyser=a.createAnalyser(); rtaAnalyser.fftSize=1024; src.connect(rtaAnalyser);
+    const cv=$('rta-canvas'); cv.width=cv.clientWidth||400; const ctx=cv.getContext('2d'); const bins=rtaAnalyser.frequencyBinCount; const data=new Uint8Array(bins);
+    const b=$('btn-rta-toggle'); if(b) b.textContent='■ STOP'; $('rta-status').textContent='live';
+    const draw=()=>{ rtaRaf=requestAnimationFrame(draw); rtaAnalyser.getByteFrequencyData(data); ctx.fillStyle='rgba(5,8,7,0.35)'; ctx.fillRect(0,0,cv.width,cv.height); const bars=64; const step=Math.floor(bins/bars); for(let i=0;i<bars;i++){ let v=0; for(let j=0;j<step;j++) v=Math.max(v,data[i*step+j]); const h=(v/255)*cv.height; const x=i*(cv.width/bars); const hue=180+ (i/bars)*120; ctx.fillStyle=`hsl(${hue},90%,${30+v/255*35}%)`; ctx.fillRect(x, cv.height-h, cv.width/bars-1, h); } };
+    draw();
+  }
+
+  // ---------- LEVEL CONVERTERS ----------
+  function levelConv(){
+    const db=+$('lc-dbfs').value; const lin=Math.pow(10,db/20); const o1=$('lc-dbfs-out'); if(o1) o1.textContent=`= ${lin.toFixed(3)} lin · ${(lin*100).toFixed(1)}%`;
+    const g=+$('lc-gain').value; const o2=$('lc-gain-out'); if(o2) o2.textContent=`= ×${Math.pow(10,g/20).toFixed(3)} amplitude`;
+    const r=Math.max(1,+$('lc-ratio').value); const o3=$('lc-ratio-out'); if(o3) o3.textContent=`= 10 dB over → +${(10/r).toFixed(1)} dB out`;
+    const s=+$('lc-semi').value; const o4=$('lc-semi-out'); if(o4) o4.textContent=`= ×${Math.pow(2,s/12).toFixed(4)} freq · ${s*100} cents`;
+  }
+
+  // ---------- generic persisted mini-lists ----------
+  const lsGet=(k,d)=>{ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):d; }catch(e){ return d; } };
+  const lsSet=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+  const daysSince=(ts)=>Math.floor((Date.now()-ts)/86400000);
+
+  // GEAR LOG
+  const GEAR_KEY='ferrett_os_gearlog_v1';
+  function renderGear(){ const list=$('gm-list'); if(!list) return; const items=lsGet(GEAR_KEY,[]); list.innerHTML=items.map((g,i)=>{ const d=daysSince(g.ts); return `<div class="flex items-center gap-2 text-[11px]"><span class="flex-1 text-white/80 truncate">${g.what}</span><span class="font-mono ${d>90?'text-[#FF5A5A]':'text-[#00FF88]/70'}">${d}d ago</span><button class="gm-reset text-[#00FF88]/50 hover:text-[#00FF88] text-[10px]" data-i="${i}" title="Log again today">↻</button><button class="gm-del text-white/25 hover:text-[#FF5A5A] text-[12px]" data-i="${i}">×</button></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">Nothing logged yet.</div>';
+    list.querySelectorAll('.gm-reset').forEach(b=>b.addEventListener('click',()=>{ const it=lsGet(GEAR_KEY,[]); it[+b.dataset.i].ts=Date.now(); lsSet(GEAR_KEY,it); renderGear(); }));
+    list.querySelectorAll('.gm-del').forEach(b=>b.addEventListener('click',()=>{ const it=lsGet(GEAR_KEY,[]); it.splice(+b.dataset.i,1); lsSet(GEAR_KEY,it); renderGear(); }));
+  }
+  // SAMPLE INDEX
+  const SAMP_KEY='ferrett_os_samples_v1';
+  function renderSamples(){ const list=$('sl-list'); if(!list) return; const f=($('sl-filter').value||'').toLowerCase(); const items=lsGet(SAMP_KEY,[]).filter(s=>!f||[s.name,s.bpm,s.key].join(' ').toLowerCase().includes(f)); list.innerHTML=items.map(s=>`<div class="flex items-center gap-2 text-[11px] p-1 rounded bg-black/25"><span class="flex-1 text-white/80 truncate">${s.name}</span>${s.bpm?`<span class="font-mono text-[#00E5FF]/70">${s.bpm}</span>`:''}${s.key?`<span class="font-mono text-[#FFD60A]/70">${s.key}</span>`:''}<button class="sl-del text-white/25 hover:text-[#FF5A5A] text-[12px]" data-id="${s.id}">×</button></div>`).join('')||'<div class="text-[10px] text-white/25 italic">No samples.</div>';
+    list.querySelectorAll('.sl-del').forEach(b=>b.addEventListener('click',()=>{ lsSet(SAMP_KEY, lsGet(SAMP_KEY,[]).filter(x=>x.id!=b.dataset.id)); renderSamples(); }));
+  }
+  // COLLABORATORS
+  const COLLAB_KEY='ferrett_os_collab_v1';
+  function renderCollab(){ const list=$('co-list'); if(!list) return; const items=lsGet(COLLAB_KEY,[]); list.innerHTML=items.map((c,i)=>`<div class="flex items-center gap-2 text-[11px] p-1 rounded bg-black/25"><span class="text-white/85 font-bold">${c.name}</span><span class="text-white/45 flex-1 truncate">${c.role||''}</span><button class="co-del text-white/25 hover:text-[#FF5A5A] text-[12px]" data-i="${i}">×</button></div>`).join('')||'<div class="text-[10px] text-white/25 italic">No collaborators yet.</div>';
+    list.querySelectorAll('.co-del').forEach(b=>b.addEventListener('click',()=>{ const it=lsGet(COLLAB_KEY,[]); it.splice(+b.dataset.i,1); lsSet(COLLAB_KEY,it); renderCollab(); }));
+  }
+  // RELEASE CHECKLIST
+  const REL_KEY='ferrett_os_release_v1';
+  const REL_STEPS=['Final mix approved','Reference A/B checked','Mastered / limiter set','True-peak ≤ −1 dB','Metadata & ISRC','Artwork ready','Distributor upload','Release date set','Socials teased'];
+  function relTracks(){ const tr=(window.db&&window.db.tracks)||[]; return ['General'].concat(tr.map(t=>t.inst||'Track')); }
+  function renderRelease(){ const sel=$('rc-track'); if(!sel) return; if(!sel.options.length){ sel.innerHTML=relTracks().map(t=>`<option>${t}</option>`).join(''); } const key=sel.value||'General'; const all=lsGet(REL_KEY,{}); const st=all[key]||{}; const list=$('rc-list');
+    list.innerHTML=REL_STEPS.map((s,i)=>`<label class="flex items-center gap-2 text-[11px] cursor-pointer py-0.5"><input type="checkbox" class="rc-chk accent-[#FFD60A]" data-i="${i}" ${st[i]?'checked':''}><span class="${st[i]?'line-through text-white/35':'text-white/80'}">${s}</span></label>`).join('');
+    const done=REL_STEPS.filter((_,i)=>st[i]).length; const p=$('rc-progress'); if(p) p.textContent=`${done}/${REL_STEPS.length} done`;
+    list.querySelectorAll('.rc-chk').forEach(c=>c.addEventListener('change',()=>{ const a=lsGet(REL_KEY,{}); a[key]=a[key]||{}; a[key][+c.dataset.i]=c.checked; lsSet(REL_KEY,a); renderRelease(); }));
+  }
+  // PRACTICE TIMER
+  const PRAC_KEY='ferrett_os_practice_v1';
+  let prSec=0, prTimer=null;
+  function prPaint(){ const c=$('pr-clock'); if(c){ const m=Math.floor(prSec/60),s=prSec%60; c.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); } }
+  function prToggle(){ const b=$('btn-pr-toggle'); if(prTimer){ clearInterval(prTimer); prTimer=null; if(prSec>=10){ const log=lsGet(PRAC_KEY,[]); log.unshift({what:$('pr-what').value.trim()||'Practice', sec:prSec, ts:Date.now()}); lsSet(PRAC_KEY,log.slice(0,50)); renderPractice(); } prSec=0; prPaint(); if(b) b.textContent='▶ START'; }
+    else { prTimer=setInterval(()=>{ prSec++; prPaint(); },1000); if(b) b.textContent='■ STOP & LOG'; } }
+  function renderPractice(){ const box=$('pr-log'); if(!box) return; const log=lsGet(PRAC_KEY,[]); box.innerHTML=log.slice(0,10).map(e=>{ const m=Math.round(e.sec/60); return `<div class="flex items-center gap-2 text-[10px]"><span class="flex-1 text-white/70 truncate">${e.what}</span><span class="font-mono text-[#00FF88]/70">${m}m</span><span class="text-white/30">${new Date(e.ts).toLocaleDateString()}</span></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">No sessions logged.</div>'; }
+
+  // ---------- AI STUDIO BRAIN ----------
+  function brainBusy(on){ const s=$('ai-brain-spinner'); if(s) s.classList.toggle('hidden',!on); }
+  function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } }
+  async function brainCall(sys,user,creative){ if(!window.ferrettAI){ brainShow('AI not available.'); return; } const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
+  function aiAsk(){ const q=$('ai-ask-in').value.trim(); if(!q) return; brainCall('You are a veteran recording/mixing engineer and producer. Answer concisely and practically — a few sentences or tight bullets, real moves not fluff.', q, false); }
+  function aiMood(){ const q=$('ai-mood-in').value.trim(); if(!q) return; brainCall('You suggest chord progressions for songwriters. Give 2-3 progressions as chord symbols (e.g. Am–F–C–G), each with a short why. No preamble.', 'Mood: '+q, true); }
+  function aiRecipe(){ const sel=$('ai-recipe-sel'); const id=+sel.value; const r=((window.db&&window.db.cookbook)||[]).find(x=>x.id===id); if(!r){ brainShow('Pick a recipe.'); return; } const genre=$('ai-recipe-genre').value.trim()||'a different genre'; brainCall('You are a music production expert. Reimagine the given production recipe for a new genre. Be practical and specific: key sonic moves, plugin/gear analogs, arrangement notes. Keep it tight.', `Original (${r.genre} — ${r.inst}): ${r.desc||''} ${r.luna||''} ${r.reaper||''}\n\nReimagine for: ${genre}.`, true); }
+  function aiMix(){ const q=$('ai-mix-in').value.trim(); if(!q) return; brainCall('You are a mixing engineer. Given described mix problems, return a short prioritized fix list — each item a concrete move with frequency/dB/tool. No preamble.', q, false); }
+
+  // ---------- GOOGLE MUSIC BRIDGE ----------
+  async function gmGen(){ const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); return; }
+    const brief=[$('gm-genre').value,$('gm-mood').value,$('gm-bpm').value,$('gm-instr').value].map(x=>x.trim()).filter(Boolean).join(', ')||'an original instrumental';
+    const sp=$('gm-spinner'); if(sp) sp.classList.remove('hidden'); $('gm-note').textContent='';
+    try{ const sys='You write prompts for Google music-generation models (Lyria, MusicFX). Output ONE line: comma-separated descriptors only — genre, sub-genre, instruments, mood, production style, tempo/BPM. No sentences, no lyrics, no quotes, no preamble. Keep it under 30 words.'; const r=await window.ferrettAI(sys, 'Make a prompt from: '+brief, false); $('gm-out').value=r; $('btn-gm-copy').classList.remove('hidden'); }
+    catch(e){ $('gm-note').textContent='⚠ '+e.message; } finally{ if(sp) sp.classList.add('hidden'); }
+  }
+
+  window.stopToolsAudio=()=>{ ppStop(); rtaStop(); };
+  window.refreshTools=()=>{
+    // recipe select + release track list stay current
+    const rs=$('ai-recipe-sel'); if(rs){ const cur=rs.value; rs.innerHTML=((window.db&&window.db.cookbook)||[]).map(r=>`<option value="${r.id}">${(r.inst||r.genre||'Recipe').slice(0,32)}</option>`).join(''); if(cur) rs.value=cur; }
+    const rc=$('rc-track'); if(rc){ const cur=rc.value; rc.innerHTML=relTracks().map(t=>`<option>${t}</option>`).join(''); if(cur) rc.value=cur; renderRelease(); }
+    renderGear(); renderSamples(); renderCollab(); renderPractice();
+    if(window.__updateAiStatus) window.__updateAiStatus();
+  };
+
+  function fillSel(sel,opts,def){ if(sel) sel.innerHTML=opts.map(o=>`<option${o===def?' selected':''}>${o}</option>`).join(''); }
+  function init(){
+    if(!$('tab-tools')) return;
+    // theory
+    detectKey(); $('kd-in')?.addEventListener('input',detectKey);
+    fillSel($('nn-key'),NOTES,'C'); nashville(); ['nn-in','nn-key'].forEach(id=>$(id)?.addEventListener('input',nashville));
+    fillSel($('cm-root'),NOTES,'C'); camelot(); ['cm-root','cm-mode'].forEach(id=>$(id)?.addEventListener('change',camelot));
+    // ear
+    $('btn-ear-new')?.addEventListener('click',earNew); $('btn-ear-replay')?.addEventListener('click',earPlay); renderEarChoices();
+    // progression
+    $('btn-pp-play')?.addEventListener('click',ppToggle);
+    // note/freq
+    fillSel($('nf-oct'),['0','1','2','3','4','5','6','7','8'],'4'); noteFreqTable(); ['nf-a4','nf-oct'].forEach(id=>$(id)?.addEventListener('input',noteFreqTable)); $('nf-hz')?.addEventListener('input',hzLookup);
+    // rta
+    $('btn-rta-toggle')?.addEventListener('click',rtaToggle);
+    // level
+    levelConv(); ['lc-dbfs','lc-gain','lc-ratio','lc-semi'].forEach(id=>$(id)?.addEventListener('input',levelConv));
+    // gear
+    $('btn-gm-add')?.addEventListener('click',()=>{ const w=$('gm-what').value.trim(); if(!w) return; const it=lsGet(GEAR_KEY,[]); it.unshift({what:w,ts:Date.now()}); lsSet(GEAR_KEY,it); $('gm-what').value=''; renderGear(); });
+    $('gm-what')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-gm-add').click(); });
+    // samples
+    $('btn-sl-add')?.addEventListener('click',()=>{ const n=$('sl-name').value.trim(); if(!n) return; const it=lsGet(SAMP_KEY,[]); it.unshift({id:Date.now(),name:n,bpm:$('sl-bpm').value.trim(),key:$('sl-key').value.trim()}); lsSet(SAMP_KEY,it); $('sl-name').value='';$('sl-bpm').value='';$('sl-key').value=''; renderSamples(); });
+    $('sl-filter')?.addEventListener('input',renderSamples);
+    // collab
+    $('btn-co-add')?.addEventListener('click',()=>{ const n=$('co-name').value.trim(); if(!n) return; const it=lsGet(COLLAB_KEY,[]); it.unshift({name:n,role:$('co-role').value.trim()}); lsSet(COLLAB_KEY,it); $('co-name').value='';$('co-role').value=''; renderCollab(); });
+    // release
+    $('rc-track')?.addEventListener('change',renderRelease);
+    // practice
+    $('btn-pr-toggle')?.addEventListener('click',prToggle); prPaint();
+    // ai brain
+    $('btn-ai-ask')?.addEventListener('click',aiAsk); $('ai-ask-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') aiAsk(); });
+    $('btn-ai-mood')?.addEventListener('click',aiMood);
+    $('btn-ai-recipe')?.addEventListener('click',aiRecipe);
+    $('btn-ai-mix')?.addEventListener('click',aiMix); $('ai-mix-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') aiMix(); });
+    $('btn-ai-settings-tools')?.addEventListener('click',()=>window.__openAiModal&&window.__openAiModal());
+    $('btn-ai-settings-gm')?.addEventListener('click',()=>window.__openAiModal&&window.__openAiModal());
+    // google bridge
+    $('btn-gm-gen')?.addEventListener('click',gmGen);
+    $('btn-gm-copy')?.addEventListener('click',()=>{ const t=$('gm-out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } const b=$('btn-gm-copy'); const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); });
+    // initial persisted renders
+    renderGear(); renderSamples(); renderCollab(); renderPractice(); renderRelease();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

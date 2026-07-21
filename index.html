@@ -34,10 +34,10 @@ body { background-color: var(--bg); color: #E2E8F0; font-family: 'JetBrains Mono
 
 /* === ENHANCED CRT HUD LAYERS === */
 .hud-grid { position:fixed; inset:0; background-image: linear-gradient(rgba(0,255,136,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.07) 1px, transparent 1px), linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px); background-size: 40px 40px, 40px 40px, 120px 120px; animation: grid-drift 40s linear infinite; pointer-events:none; z-index:0; opacity:0.9; }
-.hud-scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 9991 !important; }
-.hud-scanlines::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 15vh; background: linear-gradient(to bottom, rgba(0, 255, 136, 0) 0%, rgba(0, 255, 136, 0.05) 25%, rgba(0, 255, 136, 0.3) 50%, rgba(0, 255, 136, 0.05) 75%, rgba(0, 255, 136, 0) 100%); animation: crt-roll 6s linear infinite; pointer-events: none; z-index: 9992 !important; mix-blend-mode: screen; }
+.hud-scanlines { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 9991 !important; }
+.hud-scanlines::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 15vh; background: linear-gradient(to bottom, rgba(0, 255, 136, 0) 0%, rgba(0, 255, 136, 0.02) 25%, rgba(0, 255, 136, 0.12) 50%, rgba(0, 255, 136, 0.02) 75%, rgba(0, 255, 136, 0) 100%); animation: crt-roll 6s linear infinite; pointer-events: none; z-index: 9992 !important; mix-blend-mode: screen; }
 .hud-flicker { position: fixed; inset: 0; background: rgba(0, 255, 136, 0.02); pointer-events: none; z-index: 9993 !important; animation: crt-flicker 0.12s infinite alternate; mix-blend-mode: overlay; }
-.hud-vignette { position:fixed; inset:0; background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.65) 95%, rgba(0,0,0,0.95) 100%); pointer-events:none; z-index: 9994 !important; transition: opacity 0.07s ease-out; }
+.hud-vignette { position:fixed; inset:0; background: radial-gradient(ellipse at center, transparent 70%, rgba(0,0,0,0.3) 95%, rgba(0,0,0,0.45) 100%); pointer-events:none; z-index: 9994 !important; transition: opacity 0.07s ease-out; }
 body.beat-pulse .hud-vignette { opacity: 0.78; }
 body.beat-pulse-accent .hud-vignette { opacity: 0.55; }
 body.theme-amber { filter: hue-rotate(-100deg) saturate(1.25); }
@@ -1003,6 +1003,7 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-ai-settings-lab" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Turn a vibe into a fully-formed prompt for Suno / Udio / Lyria — via your own Groq. Also great for describing a tone you're chasing.</p>
+            <a href="https://www.flowmusic.app/" target="_blank" rel="noopener" class="btn-ferrett inline-block px-3 py-1.5 text-[10px] no-underline mb-3" style="border-color:#00E5FF60;color:#00E5FF">↗ Google Flow</a>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                 <input type="text" id="ai-mp-genre" placeholder="genre" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="ai-mp-mood" placeholder="mood" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
@@ -1045,32 +1046,6 @@ main { background: rgba(5,8,7,0.72); }
             <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
         </div>
 
-        <div class="card border-[#FFD60A40] mb-6" style="background:linear-gradient(135deg,rgba(255,214,10,0.05),rgba(0,229,255,0.03))">
-            <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2">
-                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🅶 GOOGLE MUSIC BRIDGE (Lyria / MusicFX)</h4>
-                <button id="btn-ai-settings-gm" type="button" class="text-[10px] text-[#FFD60A]/60 hover:text-[#FFD60A] cursor-pointer bg-transparent border-0">⚙ setup</button>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Craft a prompt tuned for Google's music models, then launch the tool. Lyria/MusicFX like short comma-separated descriptors (genre, instruments, mood, BPM) and no lyrics in the prompt.</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                <input type="text" id="gm-genre" placeholder="genre" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="gm-mood" placeholder="mood" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="gm-bpm" placeholder="BPM/key" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="gm-instr" placeholder="instruments" class="bg-black/50 border border-[#FFD60A]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-            </div>
-            <div class="flex flex-wrap gap-2 mb-3">
-                <button id="btn-gm-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1)">✨ CRAFT PROMPT</button>
-                <button id="btn-gm-copy" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#FFD60A80;color:#FFD60A">⧉ COPY</button>
-                <span id="gm-spinner" class="hidden text-[10px] text-[#FFD60A] self-center animate-pulse">thinking…</span>
-            </div>
-            <textarea id="gm-out" rows="3" class="w-full bg-black/40 border border-[#FFD60A]/20 rounded p-3 text-[12px] text-[#C9FFE6] font-mono focus:outline-none resize-none mb-3" placeholder="Crafted prompt appears here — copy it into the tool you launch below."></textarea>
-            <div class="flex flex-wrap gap-2">
-                <a href="https://labs.google/fx/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX</a>
-                <a href="https://labs.google/fx/tools/music-fx-dj" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ MusicFX DJ</a>
-                <a href="https://aitestkitchen.withgoogle.com/tools/music-fx" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ AI Test Kitchen</a>
-                <a href="https://gemini.google.com" target="_blank" rel="noopener" class="btn-ferrett px-3 py-1.5 text-[10px] no-underline" style="border-color:#FFD60A60;color:#FFD60A">↗ Gemini</a>
-            </div>
-            <div id="gm-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
-        </div>
     </div>
 
     <div id="tbx-panel-analytics" class="tbx-panel hidden space-y-6 mb-6">
@@ -2259,7 +2234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Alternate HUD themes — cheap CSS-filter re-tint, cycles default -> amber -> stealth.
-    window.HUD_THEMES = ['default', 'theme-amber', 'theme-infrared', 'theme-stealth', 'auto'];
+    window.HUD_THEMES = ['default', 'theme-amber', 'theme-infrared', 'theme-stealth'];
     window.HUD_THEME_KEY = 'ferrett_os_hud_theme_v1';
     // 'auto' follows the active tab (set by the switchTab wrapper in the add-ons block).
     window.TAB_THEME = { guitars: 'theme-amber', hardware: 'theme-amber', tracks: 'theme-infrared' };
@@ -4597,15 +4572,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         });
 
         // =====================================================================
-        // 20. AUTO-THEME BY TAB (the 'auto' entry in the 🎨 cycle)
+        // 20. AUTO-THEME BY TAB — disabled; theme now stays fixed across tabs
         // =====================================================================
         window.__activeTab = window.__activeTab || 'cookbook';
-        const _switchTabTheme = window.switchTab;
-        if (typeof _switchTabTheme === 'function' && !_switchTabTheme.__themeWrapped) {
-            window.switchTab = function (tab) { if (tab) window.__activeTab = tab; const r = _switchTabTheme.apply(this, arguments); if (window.__hudAuto) window.applyHudTheme('auto'); return r; };
-            window.switchTab.__themeWrapped = true;
-        }
-        try { if ((localStorage.getItem(window.HUD_THEME_KEY) || '') === 'auto') { window.__hudAuto = true; window.applyHudTheme('auto'); } } catch (e) {}
+        try { if ((localStorage.getItem(window.HUD_THEME_KEY) || '') === 'auto') { window.applyHudTheme('default'); } } catch (e) {}
 
         // =====================================================================
         // 21. GEAR CROSS-LINKER — find every recipe/tone/track that uses a gear term
@@ -6371,14 +6341,6 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function aiRecipe(){ const sel=$('ai-recipe-sel'); const id=+sel.value; const r=((window.db&&window.db.cookbook)||[]).find(x=>x.id===id); if(!r){ brainShow('Pick a recipe.'); return; } const genre=$('ai-recipe-genre').value.trim()||'a different genre'; brainCall('You are a music production expert. Reimagine the given production recipe for a new genre. Be practical and specific: key sonic moves, plugin/gear analogs, arrangement notes. Keep it tight.', `Original (${r.genre} — ${r.inst}): ${r.desc||''} ${r.luna||''} ${r.reaper||''}\n\nReimagine for: ${genre}.`, true); }
   function aiMix(){ const q=$('ai-mix-in').value.trim(); if(!q) return; brainCall('You are a mixing engineer. Given described mix problems, return a short prioritized fix list — each item a concrete move with frequency/dB/tool. No preamble.', q, false); }
 
-  // ---------- GOOGLE MUSIC BRIDGE ----------
-  async function gmGen(){ const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); return; }
-    const brief=[$('gm-genre').value,$('gm-mood').value,$('gm-bpm').value,$('gm-instr').value].map(x=>x.trim()).filter(Boolean).join(', ')||'an original instrumental';
-    const sp=$('gm-spinner'); if(sp) sp.classList.remove('hidden'); $('gm-note').textContent='';
-    try{ const sys='You write prompts for Google music-generation models (Lyria, MusicFX). Output ONE line: comma-separated descriptors only — genre, sub-genre, instruments, mood, production style, tempo/BPM. No sentences, no lyrics, no quotes, no preamble. Keep it under 30 words.'; const r=await window.ferrettAI(sys, 'Make a prompt from: '+brief, false); $('gm-out').value=r; $('btn-gm-copy').classList.remove('hidden'); }
-    catch(e){ $('gm-note').textContent='⚠ '+e.message; } finally{ if(sp) sp.classList.add('hidden'); }
-  }
-
   window.stopToolsAudio=()=>{ ppStop(); rtaStop(); };
   window.refreshTools=()=>{
     // recipe select + release track list stay current
@@ -6423,10 +6385,6 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-ai-recipe')?.addEventListener('click',aiRecipe);
     $('btn-ai-mix')?.addEventListener('click',aiMix); $('ai-mix-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') aiMix(); });
     $('btn-ai-settings-tools')?.addEventListener('click',()=>window.__openAiModal&&window.__openAiModal());
-    $('btn-ai-settings-gm')?.addEventListener('click',()=>window.__openAiModal&&window.__openAiModal());
-    // google bridge
-    $('btn-gm-gen')?.addEventListener('click',gmGen);
-    $('btn-gm-copy')?.addEventListener('click',()=>{ const t=$('gm-out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } const b=$('btn-gm-copy'); const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); });
     // initial persisted renders
     renderGear(); renderSamples(); renderCollab(); renderPractice(); renderRelease();
   }

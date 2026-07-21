@@ -850,6 +850,79 @@ main { background: rgba(5,8,7,0.72); }
             <div id="struct-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
+        <!-- PLAYABLE KEYBOARD / MELODY SKETCHPAD -->
+        <div class="card border-[#00E5FF30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#00E5FF20] pb-2">
+                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🎹 MELODY SKETCHPAD</h4>
+                <div class="flex items-center gap-2">
+                    <select id="kb-scale-root" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <select id="kb-scale-type" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <select id="kb-wave" class="bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[10px] px-1.5 py-1 focus:outline-none"><option value="triangle">Keys</option><option value="sawtooth">Synth</option><option value="square">Chip</option><option value="sine">Sine</option></select>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Click keys or use your keyboard (<span class="font-mono text-[#00E5FF]/70">A S D F G H J K</span> = white, <span class="font-mono text-[#00E5FF]/70">W E T Y U</span> = black). Scale notes glow. Record a lick and play it back.</p>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button id="btn-kb-rec" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
+                <button id="btn-kb-play" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
+                <button id="btn-kb-clear" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CLEAR</button>
+                <span id="kb-status" class="text-[10px] font-mono text-[#00E5FF]/60 self-center"></span>
+            </div>
+            <div id="kb-keys" class="relative select-none" style="height:120px"></div>
+        </div>
+
+        <!-- FRETBOARD SCALE EXPLORER -->
+        <div class="card border-[#FFD60A30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#FFD60A20] pb-2">
+                <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 FRETBOARD SCALE EXPLORER</h4>
+                <div class="flex items-center gap-2">
+                    <select id="fb-root" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <select id="fb-scale" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
+                    <div class="flex rounded overflow-hidden border border-[#FFD60A40]"><button id="fb-inst-gtr" type="button" class="px-2 py-1 text-[9px] font-bold bg-[#FFD60A]/20 text-[#FFD60A]">GTR</button><button id="fb-inst-bass" type="button" class="px-2 py-1 text-[9px] font-bold text-[#FFD60A]/50">BASS</button></div>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔴 root · 🟡 scale tone. Tap a dot to hear the note.</p>
+            <div class="overflow-x-auto"><svg id="fb-svg" viewBox="0 0 640 150" class="min-w-[560px] w-full"></svg></div>
+        </div>
+
+        <!-- ARRANGEMENT TIMELINE -->
+        <div class="card border-[#B18CFF30] mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#B18CFF20] pb-2">
+                <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎬 ARRANGEMENT TIMELINE</h4>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="arr-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#B18CFF]/30 rounded text-center text-[12px] font-bold text-[#B18CFF] w-14 py-1 focus:outline-none">
+                    <span class="text-[9px] text-[#B18CFF]/50 font-bold tracking-widest">BPM · 4/4</span>
+                </div>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Block out a song section-by-section — get each part's length and the total runtime. Drag to reorder.</p>
+            <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
+            <div id="arr-list" class="space-y-1.5 mb-3"></div>
+            <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
+            <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
+        </div>
+
+        <!-- SETLIST BUILDER + NAME GENERATOR -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div class="card border-[#00FF8830]">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎫 SETLIST BUILDER</h4>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <input type="text" id="set-title" placeholder="song title…" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                    <input type="text" id="set-len" placeholder="3:30" class="w-16 bg-black/50 border border-[#00FF88]/25 rounded text-center text-[12px] text-[#00FF88] px-2 py-1.5 focus:outline-none">
+                    <button id="btn-set-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD</button>
+                </div>
+                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Track DB</option></select>
+                <div id="set-list" class="space-y-1 mb-2"></div>
+                <div id="set-total" class="text-[11px] font-mono text-[#00FF88] font-bold"></div>
+            </div>
+            <div class="card border-[#FF88FF40]">
+                <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎭 BAND / SONG NAME GENERATOR</h4>
+                <div class="flex gap-2 mb-4">
+                    <button id="btn-name-band" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">BAND NAME</button>
+                    <button id="btn-name-song" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">SONG TITLE</button>
+                </div>
+                <div id="name-out" class="space-y-2"></div>
+            </div>
+        </div>
+
         <!-- Exporters -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
             <div class="card border-[#00FF8830]">
@@ -896,6 +969,7 @@ main { background: rgba(5,8,7,0.72); }
             <label class="flex items-center gap-1.5 text-[9px] text-[#FF88FF]/70 tracking-widest cursor-pointer ml-1"><input type="checkbox" id="lyr-show-syl" class="accent-[#FF88FF]" checked> SYLLABLES</label>
             <div class="flex-1"></div>
             <button id="btn-lyr-export" type="button" class="btn-ferrett px-3 py-2 text-[10px]">↓ .TXT</button>
+            <button id="btn-lyr-print" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
             <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Track DB as a new stub">→ TRACK</button>
         </div>
 
@@ -932,6 +1006,16 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-lyr-rhyme" type="button" class="btn-ferrett px-4 py-2" style="border-color:#B18CFF80;color:#B18CFF">FIND</button>
             </div>
             <div id="lyr-rhyme-out" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- word frequency / hook detector -->
+        <div class="card border-[#00FF8830] mt-5">
+            <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2">
+                <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">📈 WORD FREQUENCY & HOOK DETECTOR</h4>
+                <button id="btn-lyr-freq" type="button" class="btn-ferrett px-3 py-1 text-[10px]" style="border-color:#00FF8880;color:#00FF88">ANALYZE</button>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Your most-repeated words — spot your hook, or catch a crutch word you're leaning on too hard.</p>
+            <div id="lyr-freq-out" class="space-y-1.5"></div>
         </div>
     </section>
 
@@ -5405,6 +5489,182 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     }
     // structures
     buildStructs();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
+<!-- ============================ MELODY / FRETBOARD / ARRANGE / SETLIST / NAMES ============================ -->
+<script>
+(function(){
+  const $ = (id)=>document.getElementById(id);
+  const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const SCALES={ 'Major':[0,2,4,5,7,9,11],'Nat Minor':[0,2,3,5,7,8,10],'Dorian':[0,2,3,5,7,9,10],'Mixolydian':[0,2,4,5,7,9,10],'Harm Minor':[0,2,3,5,7,8,11],'Min Pent':[0,3,5,7,10],'Maj Pent':[0,2,4,7,9],'Blues':[0,3,5,6,7,10] };
+  const midiFreq=(m)=>440*Math.pow(2,(m-69)/12);
+  let AC=null; const ac=()=>{ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(AC.state==='suspended') AC.resume(); return AC; };
+  function voice(freq,t,dur,wave){ const a=ac(); if(!a) return; const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter(); o.type=wave||'triangle'; o.frequency.value=freq; f.type='lowpass'; f.frequency.setValueAtTime(5000,t); f.frequency.exponentialRampToValueAtTime(1200,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.2,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(f); f.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+0.05); }
+
+  // ==================== MELODY SKETCHPAD (keyboard) ====================
+  const KB_LOW=48, KB_HIGH=72; // C3..C5
+  const KEYMAP={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
+  let kbScale=new Set(), kbWave='triangle', kbRec=false, kbTake=[], kbStart=0, kbHeld={};
+  function kbComputeScale(){ const r=NOTES.indexOf($('kb-scale-root').value); const ivs=SCALES[$('kb-scale-type').value]||SCALES['Major']; kbScale=new Set(ivs.map(i=>(r+i)%12)); }
+  function renderKeyboard(){
+    const wrap=$('kb-keys'); if(!wrap) return; kbComputeScale();
+    const whites=[]; for(let m=KB_LOW;m<=KB_HIGH;m++){ if([0,2,4,5,7,9,11].includes(m%12)) whites.push(m); }
+    const ww=100/whites.length; let html='';
+    whites.forEach((m,i)=>{ const inScale=kbScale.has(m%12); const isRoot=kbScale.size&&(m%12)===NOTES.indexOf($('kb-scale-root').value); html+=`<div class="kb-key kb-white absolute bottom-0 border border-[#00E5FF20] rounded-b cursor-pointer" data-midi="${m}" style="left:${i*ww}%;width:${ww}%;height:100%;background:${isRoot?'rgba(0,229,255,0.35)':inScale?'rgba(0,229,255,0.14)':'rgba(255,255,255,0.9)'}"></div>`; });
+    // black keys
+    whites.forEach((m,i)=>{ const nm=m+1; if([1,3,6,8,10].includes(nm%12) && nm<=KB_HIGH){ const inScale=kbScale.has(nm%12); html+=`<div class="kb-key kb-black absolute top-0 cursor-pointer rounded-b z-10" data-midi="${nm}" style="left:${(i+1)*ww-ww*0.3}%;width:${ww*0.6}%;height:62%;background:${inScale?'#0891b2':'#0a0f0d'};border:1px solid #00E5FF30"></div>`; } });
+    wrap.innerHTML=html;
+    wrap.querySelectorAll('.kb-key').forEach(k=>{ k.addEventListener('mousedown',()=>kbTrigger(+k.dataset.midi,k)); k.addEventListener('mouseup',()=>{delete kbHeld[k.dataset.midi];}); k.addEventListener('touchstart',(e)=>{ e.preventDefault(); kbTrigger(+k.dataset.midi,k); },{passive:false}); });
+  }
+  function flashKey(el){ if(!el) return; const o=el.style.filter; el.style.filter='brightness(1.6)'; setTimeout(()=>el.style.filter=o,140); }
+  function kbTrigger(midi,el){ const a=ac(); if(a) voice(midiFreq(midi),a.currentTime,0.5,kbWave); flashKey(el||document.querySelector(`.kb-key[data-midi="${midi}"]`)); if(kbRec) kbTake.push({midi, t: performance.now()-kbStart}); }
+  function kbToggleRec(){ kbRec=!kbRec; const b=$('btn-kb-rec'); if(kbRec){ kbTake=[]; kbStart=performance.now(); if(b){b.textContent='■ STOP';b.style.background='rgba(255,90,90,0.2)';} $('kb-status').textContent='recording…'; } else { if(b){b.textContent='● REC';b.style.background='';} $('kb-status').textContent=kbTake.length+' notes captured'; } }
+  function kbPlayback(){ if(!kbTake.length){ $('kb-status').textContent='nothing recorded yet'; return; } const a=ac(); if(!a) return; const t0=a.currentTime+0.05; kbTake.forEach(n=>{ voice(midiFreq(n.midi),t0+n.t/1000,0.45,kbWave); setTimeout(()=>flashKey(document.querySelector(`.kb-key[data-midi="${n.midi}"]`)), n.t); }); $('kb-status').textContent='playing…'; setTimeout(()=>{ $('kb-status').textContent=kbTake.length+' notes'; }, (kbTake[kbTake.length-1].t)+500); }
+  function kbKeydown(e){ if(!$('tab-lab')?.classList.contains('active')) return; if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return; const m=KEYMAP[e.key.toLowerCase()]; if(m && !kbHeld[m]){ kbHeld[m]=1; kbTrigger(m); } }
+  function kbKeyup(e){ const m=KEYMAP[e.key.toLowerCase()]; if(m) delete kbHeld[m]; }
+
+  // ==================== FRETBOARD SCALE EXPLORER ====================
+  const FB_GTR=[64,59,55,50,45,40], FB_BASS=[43,38,33,28]; // top->bottom (high->low)
+  let fbInst='gtr';
+  function buildFretboard(){
+    const svg=$('fb-svg'); if(!svg) return; const tuning=fbInst==='gtr'?FB_GTR:FB_BASS; const frets=12;
+    const rootPc=NOTES.indexOf($('fb-root').value); const ivs=SCALES[$('fb-scale').value]||SCALES['Major']; const set=new Set(ivs.map(i=>(rootPc+i)%12));
+    const W=640,H=150,padL=30,padR=14,padT=14,padB=14; const fw=(W-padL-padR)/frets; const sh=(H-padT-padB)/(tuning.length-1);
+    let els='';
+    // fret lines + numbers
+    for(let f=0;f<=frets;f++){ const x=padL+f*fw; els+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="#FFD60A${f===0?'':'25'}" stroke-width="${f===0?2.5:1}"/>`; if(f>0) els+=`<text x="${x-fw/2}" y="${H-2}" text-anchor="middle" fill="#FFD60A50" font-size="8">${f}</text>`; }
+    for(let s=0;s<tuning.length;s++){ const y=padT+s*sh; els+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#FFD60A25" stroke-width="1"/>`; }
+    // markers 3,5,7,9,12
+    [3,5,7,9,12].forEach(f=>{ const x=padL+(f-0.5)*fw; els+=`<circle cx="${x}" cy="${H/2}" r="2.5" fill="#FFD60A20"/>`; });
+    // notes
+    tuning.forEach((open,s)=>{ for(let f=0;f<=frets;f++){ const pc=(open+f)%12; if(!set.has(pc)) continue; const x=padL+(f===0?-11:(f-0.5)*fw); const y=padT+s*sh; const isRoot=pc===rootPc; els+=`<g class="fb-note" data-midi="${open+f}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="8.5" fill="${isRoot?'#FF5A5A':'#FFD60A'}" stroke="#050807" stroke-width="1"/><text x="${x}" y="${y+3}" text-anchor="middle" fill="#050807" font-size="8" font-weight="bold">${NOTES[pc]}</text></g>`; } });
+    svg.innerHTML=els;
+    svg.querySelectorAll('.fb-note').forEach(g=>g.addEventListener('click',()=>{ const a=ac(); if(a) voice(midiFreq(+g.dataset.midi),a.currentTime,0.7,'sawtooth'); g.style.opacity='0.5'; setTimeout(()=>g.style.opacity='1',150); }));
+  }
+
+  // ==================== ARRANGEMENT TIMELINE ====================
+  const ARR_KEY='ferrett_os_arrange_v1';
+  const ARR_TYPES=[['Intro',4,'#7AFFBF'],['Verse',16,'#00E5FF'],['Pre',4,'#FFD60A'],['Chorus',8,'#FF88FF'],['Hook',8,'#FF88FF'],['Bridge',8,'#B18CFF'],['Solo',8,'#FFD60A'],['Drop',8,'#00FF88'],['Outro',4,'#FF5A5A']];
+  let arrData=null;
+  function loadArr(){ try{ const r=localStorage.getItem(ARR_KEY); if(r) return JSON.parse(r); }catch(e){} return {bpm:90,sections:[]}; }
+  function saveArr(){ try{ localStorage.setItem(ARR_KEY, JSON.stringify(arrData)); }catch(e){} }
+  function colorFor(name){ const t=ARR_TYPES.find(x=>x[0]===name); return t?t[2]:'#B18CFF'; }
+  function fmtT(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m+':'+String(s).padStart(2,'0'); }
+  function renderArr(){
+    if(!arrData) arrData=loadArr(); const bpmEl=$('arr-bpm'); if(bpmEl && !bpmEl.value) bpmEl.value=arrData.bpm;
+    const bpm=Math.max(40,Math.min(220,+($('arr-bpm')?.value||arrData.bpm||90))); arrData.bpm=bpm;
+    const secPerBar=4*(60/bpm);
+    const list=$('arr-list'); if(!list) return;
+    list.innerHTML=arrData.sections.map((s,i)=>`<div class="arr-row flex items-center gap-2 p-1.5 rounded border" style="border-color:${colorFor(s.name)}30;background:${colorFor(s.name)}0A" data-i="${i}" draggable="true"><span class="cursor-grab text-white/25 text-[12px]">⠿</span><span class="text-[11px] font-bold w-16" style="color:${colorFor(s.name)}">${s.name}</span><input type="number" value="${s.bars}" min="1" max="128" class="arr-bars w-14 bg-black/40 border border-white/10 rounded text-center text-[11px] text-white px-1 py-0.5 focus:outline-none" data-i="${i}"><span class="text-[9px] text-white/40">bars</span><span class="text-[10px] font-mono text-white/60 flex-1 text-right">${fmtT(s.bars*secPerBar)}</span><button class="arr-del text-white/25 hover:text-[#FF5A5A] text-[13px]" data-i="${i}">×</button></div>`).join('')||'<div class="text-[10px] text-white/25 italic py-2">Add sections above to build your arrangement.</div>';
+    const total=arrData.sections.reduce((a,s)=>a+s.bars,0)*secPerBar;
+    const bar=$('arr-bar'); if(bar){ bar.innerHTML=arrData.sections.map(s=>`<div style="flex:${s.bars};background:${colorFor(s.name)}90" title="${s.name} ${s.bars} bars"></div>`).join(''); }
+    const tot=$('arr-total'); if(tot) tot.textContent=`TOTAL: ${arrData.sections.reduce((a,s)=>a+s.bars,0)} bars · ${fmtT(total)}`;
+    list.querySelectorAll('.arr-bars').forEach(inp=>inp.addEventListener('input',()=>{ arrData.sections[+inp.dataset.i].bars=Math.max(1,+inp.value||1); saveArr(); renderArr(); }));
+    list.querySelectorAll('.arr-del').forEach(b=>b.addEventListener('click',()=>{ arrData.sections.splice(+b.dataset.i,1); saveArr(); renderArr(); }));
+    let dragI=null;
+    list.querySelectorAll('.arr-row').forEach(row=>{ row.addEventListener('dragstart',()=>dragI=+row.dataset.i); row.addEventListener('dragover',(e)=>e.preventDefault()); row.addEventListener('drop',()=>{ const to=+row.dataset.i; if(dragI===null||dragI===to) return; const [m]=arrData.sections.splice(dragI,1); arrData.sections.splice(to,0,m); saveArr(); renderArr(); dragI=null; }); });
+    saveArr();
+  }
+
+  // ==================== SETLIST BUILDER ====================
+  const SET_KEY='ferrett_os_setlist_v1';
+  let setData=null;
+  function loadSet(){ try{ const r=localStorage.getItem(SET_KEY); if(r) return JSON.parse(r); }catch(e){} return []; }
+  function saveSet(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(setData)); }catch(e){} }
+  function parseLen(s){ s=(s||'').trim(); if(/^\d+:\d{1,2}$/.test(s)){ const [m,se]=s.split(':'); return (+m)*60+(+se); } if(/^\d+$/.test(s)) return (+s)*60; return 210; }
+  function renderSet(){
+    if(!setData) setData=loadSet(); const list=$('set-list'); if(!list) return;
+    list.innerHTML=setData.map((e,i)=>`<div class="flex items-center gap-2 p-1.5 rounded border border-[#00FF8820] bg-black/25"><span class="text-[10px] font-mono text-[#00FF88]/50 w-5">${i+1}.</span><span class="text-[11px] text-[#E2E8F0]/85 flex-1 truncate">${e.title}</span><span class="text-[10px] font-mono text-[#00FF88]/70">${fmtT(e.sec)}</span><button class="set-up text-white/25 hover:text-white text-[11px]" data-i="${i}">▲</button><button class="set-dn text-white/25 hover:text-white text-[11px]" data-i="${i}">▼</button><button class="set-del text-white/25 hover:text-[#FF5A5A] text-[12px]" data-i="${i}">×</button></div>`).join('')||'<div class="text-[10px] text-white/25 italic py-2">Empty setlist.</div>';
+    const total=setData.reduce((a,e)=>a+e.sec,0);
+    const tot=$('set-total'); if(tot) tot.textContent=`${setData.length} songs · ${fmtT(total)} total`;
+    list.querySelectorAll('.set-del').forEach(b=>b.addEventListener('click',()=>{ setData.splice(+b.dataset.i,1); saveSet(); renderSet(); }));
+    list.querySelectorAll('.set-up').forEach(b=>b.addEventListener('click',()=>{ const i=+b.dataset.i; if(i>0){ [setData[i-1],setData[i]]=[setData[i],setData[i-1]]; saveSet(); renderSet(); } }));
+    list.querySelectorAll('.set-dn').forEach(b=>b.addEventListener('click',()=>{ const i=+b.dataset.i; if(i<setData.length-1){ [setData[i+1],setData[i]]=[setData[i],setData[i+1]]; saveSet(); renderSet(); } }));
+    saveSet();
+  }
+  function populateSetlistTracks(){ const sel=$('set-from-track'); if(!sel) return; const tracks=(window.db&&window.db.tracks)||[]; sel.innerHTML='<option value="">…or pull from Track DB</option>'+tracks.map(t=>`<option value="${(t.inst||'Track').replace(/"/g,'')}">${(t.inst||'Track').slice(0,40)}</option>`).join(''); }
+
+  // ==================== NAME GENERATOR ====================
+  const N_ADJ='Neon Velvet Broken Golden Electric Midnight Silent Crimson Hollow Wild Frozen Sacred Lonely Savage Crooked Radiant Phantom Restless Feral Molten'.split(' ');
+  const N_NOUN='Wolves Saints Echoes Ghosts Riot Anthem Mirage Cathedral Vultures Machine Tigers Kingdom Static Halo Embers Circus Reverie Undertow Serpents Chrome'.split(' ');
+  const S_A='Bleeding Chasing Burning Waiting Falling Dancing Drowning Breaking Running Fading'.split(' ');
+  const S_N='Neon Ghosts Fire Shadows Gold Thunder Silence Wildfire Heaven Static Midnight Glass'.split(' ');
+  const pick=(a)=>a[Math.floor(Math.random()*a.length)];
+  function genNames(kind){
+    const out=$('name-out'); if(!out) return; const items=[];
+    for(let i=0;i<4;i++){
+      if(kind==='band'){ const r=Math.random(); items.push(r<0.4?`The ${pick(N_NOUN)}`:r<0.75?`${pick(N_ADJ)} ${pick(N_NOUN)}`:`${pick(N_NOUN)} & the ${pick(N_NOUN)}`); }
+      else { const r=Math.random(); items.push(r<0.4?`${pick(S_A)} in the ${pick(S_N)}`:r<0.7?`${pick(S_A)} ${pick(S_N)}`:`${pick(S_N)} & ${pick(S_N)}`); }
+    }
+    out.innerHTML=items.map(n=>`<div class="p-2 rounded border border-[#FF88FF20] bg-black/25 text-[13px] text-[#E2E8F0]/90 font-bold">${n}</div>`).join('');
+  }
+
+  // ==================== LYRICS: word frequency + print (read from storage) ====================
+  const LYR_KEY='ferrett_os_lyrics_v1';
+  const STOP=new Set('the a an and or but of to in on at for with it its is am are was were be been i you he she we they me my your his her our their this that these those as so if then than too not no yeah oh ooh la na do dont cant im ive youre all up down out just got get gonna wanna like'.split(' '));
+  function activeLyrSheet(){ try{ const st=JSON.parse(localStorage.getItem(LYR_KEY)||'null'); if(!st) return null; return st.sheets.find(s=>s.id===st.activeId)||st.sheets[0]; }catch(e){ return null; } }
+  function lyrFreq(){
+    const out=$('lyr-freq-out'); if(!out) return; const sheet=activeLyrSheet();
+    if(!sheet){ out.innerHTML='<div class="text-[10px] text-white/25 italic">No lyrics yet.</div>'; return; }
+    const counts={}; sheet.lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>1 && !STOP.has(w)) counts[w]=(counts[w]||0)+1; }));
+    const arr=Object.entries(counts).filter(([w,c])=>c>=2).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    if(!arr.length){ out.innerHTML='<div class="text-[10px] text-white/25 italic">No word repeats yet — add more lines.</div>'; return; }
+    const mx=arr[0][1];
+    out.innerHTML=arr.map(([w,c],i)=>`<div class="flex items-center gap-2"><span class="text-[11px] w-24 truncate ${i===0?'text-[#00FF88] font-bold':'text-white/70'}">${w}${i===0?' 🎣':''}</span><div class="flex-1 h-3 rounded bg-black/40 overflow-hidden"><div class="h-full rounded" style="width:${(c/mx)*100}%;background:${i===0?'#00FF88':'#00FF8860'}"></div></div><span class="text-[10px] font-mono text-white/50 w-5 text-right">${c}</span></div>`).join('');
+  }
+  function lyrPrint(){
+    const sheet=activeLyrSheet(); if(!sheet){ alert('No lyrics to print.'); return; }
+    const rows=sheet.lines.map(l=>{ if(!l.text.trim() && !l.tag) return '<div class="sp">&nbsp;</div>'; return `<div class="ln">${l.tag?`<span class="tag">[${l.tag}]</span> `:''}${(l.text||'').replace(/</g,'&lt;')}</div>`; }).join('');
+    const w=window.open('','_blank','width=640,height=800'); if(!w){ alert('Popup blocked — allow popups to print.'); return; }
+    w.document.write(`<!doctype html><html><head><meta charset="utf8"><title>${(sheet.title||'Lyrics')}</title><style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:0 20px;color:#111;line-height:1.7}h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px}.ln{font-size:15px}.tag{color:#a21caf;font-weight:bold;font-size:11px;letter-spacing:1px}.sp{height:10px}.foot{margin-top:40px;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:8px}@media print{.noprint{display:none}}</style></head><body><h1>${(sheet.title||'Untitled')}</h1>${rows}<div class="foot">FERRETT_STUDIO_OS · ${new Date().toLocaleDateString()}</div><button class="noprint" onclick="window.print()" style="margin-top:20px;padding:8px 16px">Print / Save PDF</button></body></html>`);
+    w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
+  }
+
+  // ==================== INIT ====================
+  function fillSel(sel,opts,def){ if(!sel) return; sel.innerHTML=opts.map(o=>`<option${o===def?' selected':''}>${o}</option>`).join(''); }
+  function init(){
+    // keyboard
+    if($('kb-keys')){
+      fillSel($('kb-scale-root'),NOTES,'C'); fillSel($('kb-scale-type'),Object.keys(SCALES),'Major');
+      renderKeyboard();
+      ['kb-scale-root','kb-scale-type'].forEach(id=>$(id)?.addEventListener('change',renderKeyboard));
+      $('kb-wave')?.addEventListener('change',(e)=>kbWave=e.target.value);
+      $('btn-kb-rec')?.addEventListener('click',kbToggleRec);
+      $('btn-kb-play')?.addEventListener('click',kbPlayback);
+      $('btn-kb-clear')?.addEventListener('click',()=>{ kbTake=[]; $('kb-status').textContent='cleared'; });
+      document.addEventListener('keydown',kbKeydown); document.addEventListener('keyup',kbKeyup);
+    }
+    // fretboard
+    if($('fb-svg')){
+      fillSel($('fb-root'),NOTES,'E'); fillSel($('fb-scale'),Object.keys(SCALES),'Min Pent');
+      buildFretboard();
+      ['fb-root','fb-scale'].forEach(id=>$(id)?.addEventListener('change',buildFretboard));
+      $('fb-inst-gtr')?.addEventListener('click',()=>{ fbInst='gtr'; $('fb-inst-gtr').classList.add('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-gtr').classList.remove('text-[#FFD60A]/50'); $('fb-inst-bass').classList.remove('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-bass').classList.add('text-[#FFD60A]/50'); buildFretboard(); });
+      $('fb-inst-bass')?.addEventListener('click',()=>{ fbInst='bass'; $('fb-inst-bass').classList.add('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-bass').classList.remove('text-[#FFD60A]/50'); $('fb-inst-gtr').classList.remove('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-gtr').classList.add('text-[#FFD60A]/50'); buildFretboard(); });
+    }
+    // arrangement
+    if($('arr-list')){
+      const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-ferrett px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
+      $('arr-bpm')?.addEventListener('input',renderArr);
+      renderArr();
+    }
+    // setlist
+    if($('set-list')){
+      renderSet(); populateSetlistTracks();
+      $('btn-set-add')?.addEventListener('click',()=>{ const t=$('set-title').value.trim(); if(!t) return; if(!setData) setData=loadSet(); setData.push({title:t,sec:parseLen($('set-len').value)}); $('set-title').value=''; $('set-len').value=''; saveSet(); renderSet(); });
+      $('set-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-set-add').click(); });
+      $('set-from-track')?.addEventListener('change',(e)=>{ if(e.target.value){ if(!setData) setData=loadSet(); setData.push({title:e.target.value,sec:210}); saveSet(); renderSet(); e.target.value=''; } });
+    }
+    // names
+    if($('name-out')){ $('btn-name-band')?.addEventListener('click',()=>genNames('band')); $('btn-name-song')?.addEventListener('click',()=>genNames('song')); genNames('band'); }
+    // lyrics extras
+    $('btn-lyr-freq')?.addEventListener('click',lyrFreq);
+    $('btn-lyr-print')?.addEventListener('click',lyrPrint);
+    // chain into lab refresh so the setlist track list stays current
+    const prev=window.refreshLab; window.refreshLab=function(){ try{ prev&&prev(); }catch(e){} populateSetlistTracks(); };
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

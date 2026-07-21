@@ -324,12 +324,19 @@ main { background: rgba(5,8,7,0.72); }
 
         <div class="card border-[#00FF8830] mb-8">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
-                <div class="flex items-center gap-2 flex-wrap"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4><button id="patchbay-match-badge" class="hidden text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border cursor-pointer uppercase" title="Whether the drawn patchbay matches the default Volt 176 rig"></button></div>
-                <div class="flex gap-2">
+                <div class="flex items-center gap-2 flex-wrap"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4><button id="patchbay-match-badge" class="hidden text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border cursor-pointer uppercase" title="Whether the drawn patchbay matches your default rig"></button></div>
+                <div class="flex gap-2 flex-wrap">
                     <button id="btn-patchbay-add-device" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">+ DEVICE</button>
-                    <button id="btn-patchbay-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" title="Load the default Volt 176 studio rig">⟳ LOAD RIG</button>
+                    <button id="btn-patchbay-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" title="Load your default rig">⟳ LOAD DEFAULT</button>
+                    <button id="btn-patchbay-set-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FFD60A50] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer" title="Save the current patchbay as your default rig (what LOAD DEFAULT loads)">💾 SET AS DEFAULT</button>
                     <button id="btn-patchbay-clear" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">CLEAR ALL</button>
                 </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap mb-3">
+                <select id="patchbay-saved-select" class="bg-black/50 border border-[#B18CFF]/30 rounded text-[#B18CFF] text-[10px] px-2 py-1.5 focus:outline-none"><option value="">— saved patchbays —</option></select>
+                <button id="btn-patchbay-load-saved" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#B18CFF50] text-[#B18CFF] hover:bg-[#B18CFF]/10 cursor-pointer">LOAD</button>
+                <button id="btn-patchbay-save-as" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#B18CFF50] text-[#B18CFF] hover:bg-[#B18CFF]/10 cursor-pointer">💾 SAVE AS…</button>
+                <button id="btn-patchbay-delete-saved" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">DELETE</button>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/30 mb-3">Drag boxes to arrange your actual signal chain. Tap/click one port dot, then another, to connect them. Tap a connection line to remove it.</p>
             <div id="patchbay-canvas" class="relative w-full h-[380px] rounded border border-[#00FF8820] bg-black/40 overflow-auto" style="touch-action:none;">
@@ -1715,6 +1722,8 @@ window.tempTrackImages = []; window.tempToneImages = []; window.tempCookbookImag
 
 const defaultDb = {
     patchbay: { devices: [], connections: [] },
+    patchbayUserDefault: null,
+    patchbaySaved: [],
     multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// FERRETT OS: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
     tracks: [],
     cookbook: [
@@ -1815,9 +1824,12 @@ try {
         if (parsed.tones && parsed.tones.length > 0) window.db.tones = parsed.tones;
         if (parsed.links && parsed.links.length > 0) { window.db.links = parsed.links; defaultDb.links.forEach(dLink => { if (!window.db.links.find(l => l.url === dLink.url)) window.db.links.push(dLink); }); } 
         else { window.db.links = defaultDb.links; }
-        if (parsed.cookbook && parsed.cookbook.length > 0) { window.db.cookbook = parsed.cookbook; } 
+        if (parsed.cookbook && parsed.cookbook.length > 0) { window.db.cookbook = parsed.cookbook; }
         else { window.db.cookbook = defaultDb.cookbook; }
         window.db.multiNotes = parsed.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }];
+        if (parsed.patchbay) window.db.patchbay = parsed.patchbay;
+        if (parsed.patchbayUserDefault) window.db.patchbayUserDefault = parsed.patchbayUserDefault;
+        if (parsed.patchbaySaved) window.db.patchbaySaved = parsed.patchbaySaved;
     }
     window.storageAvailable = true;
 } catch(e) {}
@@ -1922,8 +1934,11 @@ window.findOrPullDriveFile = async function() {
             if (cloudDb) { 
                 window.db.tracks = cloudDb.tracks || []; window.db.tones = cloudDb.tones || defaultDb.tones; window.db.cookbook = cloudDb.cookbook || defaultDb.cookbook;
                 if (cloudDb.links) { window.db.links = cloudDb.links; defaultDb.links.forEach(dLink => { if (!window.db.links.find(l => l.url === dLink.url)) window.db.links.push(dLink); }); } else { window.db.links = defaultDb.links; }
-                window.db.multiNotes = cloudDb.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }]; 
-                window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI(); 
+                window.db.multiNotes = cloudDb.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }];
+                if (cloudDb.patchbay) window.db.patchbay = cloudDb.patchbay;
+                if (cloudDb.patchbayUserDefault) window.db.patchbayUserDefault = cloudDb.patchbayUserDefault;
+                if (cloudDb.patchbaySaved) window.db.patchbaySaved = cloudDb.patchbaySaved;
+                window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
         } 
         try {
@@ -2005,6 +2020,9 @@ window.restoreVaultFromFile = (file) => {
         window.db.links = incoming.links || [];
         window.db.cookbook = incoming.cookbook || [];
         window.db.multiNotes = incoming.multiNotes || [{ id: Date.now(), title: 'Main Scratchpad', content: '' }];
+        if (incoming.patchbay) window.db.patchbay = incoming.patchbay;
+        if (incoming.patchbayUserDefault) window.db.patchbayUserDefault = incoming.patchbayUserDefault;
+        if (incoming.patchbaySaved) window.db.patchbaySaved = incoming.patchbaySaved;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
         if (window.refreshAllUI) window.refreshAllUI();
@@ -2648,6 +2666,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === PATCHBAY / ROUTING DIAGRAM ===
     window.db.patchbay = window.db.patchbay || { devices: [], connections: [] };
+    window.db.patchbayUserDefault = window.db.patchbayUserDefault || null;
+    window.db.patchbaySaved = window.db.patchbaySaved || [];
     window.patchbayPending = null; // { deviceId, side }
     window.patchbayDrag = null; // { deviceId, offsetX, offsetY }
 
@@ -2722,20 +2742,67 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     });
 
+    // If the user has saved their own default rig, that takes precedence over the built-in Volt 176 template.
+    window.getEffectiveDefaultPatchbay = () => window.db.patchbayUserDefault ? JSON.parse(JSON.stringify(window.db.patchbayUserDefault)) : window.getDefaultPatchbay();
+
     window.loadDefaultPatchbay = (force) => {
         const hasData = (window.db.patchbay.devices || []).length > 0;
         if (hasData && !force) return false;
-        if (hasData && force && !confirm('Replace the current patchbay with the default Volt 176 rig?')) return false;
-        window.db.patchbay = window.getDefaultPatchbay();
+        if (hasData && force && !confirm('Replace the current patchbay with your default rig?')) return false;
+        window.db.patchbay = window.getEffectiveDefaultPatchbay();
         window.savePatchbay(); window.renderPatchbay();
         return true;
+    };
+
+    window.setPatchbayAsDefault = () => {
+        if ((window.db.patchbay.devices || []).length === 0) { alert('Nothing to save — add some devices first.'); return; }
+        if (!confirm('Save the current patchbay as your default rig? "⟳ LOAD DEFAULT" will load this from now on.')) return;
+        window.db.patchbayUserDefault = { devices: JSON.parse(JSON.stringify(window.db.patchbay.devices)), connections: JSON.parse(JSON.stringify(window.db.patchbay.connections)) };
+        window.savePatchbay(); window.renderPatchbay();
+        alert('Saved as your default rig.');
+    };
+
+    window.renderPatchbaySavedList = () => {
+        const sel = document.getElementById('patchbay-saved-select'); if (!sel) return;
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">— saved patchbays —</option>' + (window.db.patchbaySaved || []).map((p) => `<option value="${p.id}">${p.name}</option>`).join('');
+        if (cur) sel.value = cur;
+    };
+
+    window.savePatchbayAs = () => {
+        if ((window.db.patchbay.devices || []).length === 0) { alert('Nothing to save — add some devices first.'); return; }
+        const name = prompt('Name this patchbay setup (e.g. "Live Room Rig", "Mobile Rig"):'); if (!name) return;
+        const id = Date.now();
+        window.db.patchbaySaved = window.db.patchbaySaved || [];
+        window.db.patchbaySaved.push({ id, name, devices: JSON.parse(JSON.stringify(window.db.patchbay.devices)), connections: JSON.parse(JSON.stringify(window.db.patchbay.connections)) });
+        window.savePatchbay(); window.renderPatchbaySavedList();
+        const sel = document.getElementById('patchbay-saved-select'); if (sel) sel.value = id;
+    };
+
+    window.loadPatchbaySaved = (id) => {
+        const item = (window.db.patchbaySaved || []).find((p) => p.id === id); if (!item) return;
+        if (!confirm(`Replace the current patchbay with "${item.name}"?`)) return;
+        window.db.patchbay = { devices: JSON.parse(JSON.stringify(item.devices)), connections: JSON.parse(JSON.stringify(item.connections)) };
+        window.savePatchbay(); window.renderPatchbay();
+    };
+
+    window.deletePatchbaySaved = (id) => {
+        const item = (window.db.patchbaySaved || []).find((p) => p.id === id); if (!item) return;
+        if (!confirm(`Delete saved patchbay "${item.name}"?`)) return;
+        window.db.patchbaySaved = window.db.patchbaySaved.filter((p) => p.id !== id);
+        window.savePatchbay(); window.renderPatchbaySavedList();
     };
 
     (() => {
         const canvas = document.getElementById('patchbay-canvas');
         document.getElementById('btn-patchbay-add-device')?.addEventListener('click', () => window.addPatchbayDevice());
         document.getElementById('btn-patchbay-default')?.addEventListener('click', () => window.loadDefaultPatchbay(true));
+        document.getElementById('btn-patchbay-set-default')?.addEventListener('click', () => window.setPatchbayAsDefault());
         document.getElementById('btn-patchbay-clear')?.addEventListener('click', () => { if (confirm('Clear the entire patchbay diagram?')) { window.db.patchbay = { devices: [], connections: [] }; window.savePatchbay(); window.renderPatchbay(); } });
+        document.getElementById('btn-patchbay-save-as')?.addEventListener('click', () => window.savePatchbayAs());
+        document.getElementById('btn-patchbay-load-saved')?.addEventListener('click', () => { const sel = document.getElementById('patchbay-saved-select'); const id = parseInt(sel?.value, 10); if (id) window.loadPatchbaySaved(id); });
+        document.getElementById('btn-patchbay-delete-saved')?.addEventListener('click', () => { const sel = document.getElementById('patchbay-saved-select'); const id = parseInt(sel?.value, 10); if (id) window.deletePatchbaySaved(id); });
+        window.renderPatchbaySavedList();
         // Seed the default rig once for an empty patchbay (first run / never populated).
         try { if ((window.db.patchbay.devices || []).length === 0 && !localStorage.getItem('ferrett_patchbay_seeded_v1')) { window.loadDefaultPatchbay(false); localStorage.setItem('ferrett_patchbay_seeded_v1', '1'); } } catch (e) {}
 
@@ -4924,13 +4991,13 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             return devs + '::' + conns;
         };
         const checkPatchbayMatch = () => {
-            const badge = document.getElementById('patchbay-match-badge'); if (!badge || !window.getDefaultPatchbay) return;
+            const badge = document.getElementById('patchbay-match-badge'); if (!badge || !window.getEffectiveDefaultPatchbay) return;
             const pb = window.db.patchbay || { devices: [], connections: [] };
             if ((pb.devices || []).length === 0) { badge.classList.add('hidden'); return; }
             badge.classList.remove('hidden');
-            const match = pbSignature(pb) === pbSignature(window.getDefaultPatchbay());
-            if (match) { badge.textContent = '✓ matches rig'; badge.style.color = '#00FF88'; badge.style.borderColor = '#00FF8840'; badge.dataset.match = '1'; badge.title = 'Your patchbay matches the default Volt 176 rig.'; }
-            else { badge.textContent = '⚠ differs from rig — realign'; badge.style.color = '#FFD60A'; badge.style.borderColor = '#FFD60A40'; badge.dataset.match = '0'; badge.title = 'Click to re-load the default Volt 176 rig.'; }
+            const match = pbSignature(pb) === pbSignature(window.getEffectiveDefaultPatchbay());
+            if (match) { badge.textContent = '✓ matches rig'; badge.style.color = '#00FF88'; badge.style.borderColor = '#00FF8840'; badge.dataset.match = '1'; badge.title = 'Your patchbay matches your default rig.'; }
+            else { badge.textContent = '⚠ differs from rig — realign'; badge.style.color = '#FFD60A'; badge.style.borderColor = '#FFD60A40'; badge.dataset.match = '0'; badge.title = 'Click to re-load your default rig.'; }
         };
         document.getElementById('patchbay-match-badge')?.addEventListener('click', () => { if (document.getElementById('patchbay-match-badge').dataset.match === '0' && window.loadDefaultPatchbay) window.loadDefaultPatchbay(true); });
         const _rpMatch = window.renderPatchbay;
@@ -5369,7 +5436,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
       const restored=JSON.parse(new TextDecoder().decode(pt));
       if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
-      ['cookbook','tones','tracks','links','patchbay','scripts','refShelf','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
       window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
     }catch(e){ alert('Wrong passphrase or corrupted file.'); }
   }

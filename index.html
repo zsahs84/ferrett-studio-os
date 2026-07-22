@@ -1075,6 +1075,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
             <div id="ai-brain-out-controls" class="hidden gap-2 mt-3">
                 <button id="btn-ai-brain-redo" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
+                <button id="btn-ai-brain-save-note" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88">📝 SAVE AS NOTE</button>
                 <button id="btn-ai-brain-hide" type="button" class="btn-tool-icon">HIDE</button>
             </div>
             <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
@@ -1405,11 +1406,22 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-cleanup-orphaned-audio" class="btn-ferrett" style="border-color:#FF888850;color:#FF8888;background:rgba(255,136,136,0.08);">🧹 CLEAN UP ORPHANED CLIPS</button>
             </div>
             <div class="mt-6 pt-4 border-t border-[#FFD60A14]">
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <h4 class="text-[11px] font-bold tracking-widest text-[#00E5FF] uppercase">Plugin Coverage</h4>
-                    <button id="btn-check-coverage" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🔍 CHECK</button>
+                    <div class="flex gap-2">
+                        <button id="btn-edit-owned-plugins" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#B18CFF40] text-[#B18CFF] hover:bg-[#B18CFF]/10 cursor-pointer">✎ EDIT LIST</button>
+                        <button id="btn-check-coverage" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🔍 CHECK</button>
+                    </div>
                 </div>
-                <p class="text-[10px] text-[#E2E8F0]/40 mb-3">Owned plugins never referenced in a single recipe or tone.</p>
+                <p class="text-[10px] text-[#E2E8F0]/40 mb-3">Owned plugins never referenced in a single recipe or tone. This same list is what the AI Studio Brain is allowed to suggest.</p>
+                <div id="owned-plugins-editor" class="hidden mb-3">
+                    <p class="text-[9px] text-[#E2E8F0]/40 mb-2">One plugin per line.</p>
+                    <textarea id="owned-plugins-textarea" class="w-full h-40 bg-black/50 border border-[#B18CFF]/30 rounded p-2 text-[10px] font-mono text-[#C9FFE6] focus:outline-none resize-y"></textarea>
+                    <div class="flex gap-2 mt-2">
+                        <button id="btn-save-owned-plugins" class="btn-ferrett-green px-3 py-1.5 text-[10px]">SAVE LIST</button>
+                        <button id="btn-cancel-owned-plugins" class="text-[10px] font-bold text-[#E2E8F0]/40">CANCEL</button>
+                    </div>
+                </div>
                 <div id="plugin-coverage-content" class="text-[10px] text-[#E2E8F0]/30 italic"></div>
             </div>
         </div>
@@ -1740,6 +1752,34 @@ const defaultDb = {
     patchbayUserDefault: null,
     patchbaySaved: [],
     songBoard: [],
+    ownedPlugins: [
+        'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
+        'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
+        'Hitsville EQ', 'CHANNEV', '1176 Rev A', 'bx_blackdist2', 'Dream Amp', '610-A', 'Fairchild 660',
+        'Hemisphere', 'Waterfall Rotary Speaker', 'Neve 1073', 'SSDSampler5', 'Amplifiers', 'bx_distorange',
+        'Ocean Way Studios Deluxe', 'Sitala', 'Ampex ATR-102', 'Electra', 'VD-DEEP', 'Diablo Lite', 'Stems 3',
+        'Hitsville EQ Mastering', 'Kontakt 8', 'WaveLab', 'HALion Sonic', 'A-Type Multiband', 'Oxide Tape',
+        'Teletronix LA-2', 'bx_tuner', 'Manley Massive Passive', 'bx_shredspread', 'Trigger_2', 'Saturation Knob',
+        'Tape Cassette 2', 'LA-2A Gray', 'TDR Nova', 'SSL G-Bus Compressor', 'DrumGPT', 'elysia niveau filter',
+        'Fairchild 670', 'API Vision Channel Strip', 'Manley Preamp', 'LA-2A Silver', 'Capitol Compressor',
+        'bx_boom', 'ParametricOD', 'CHOWTapeModel', 'ValhallaSupermassive', 'KolinMB', 'IVGI2', 'Studer A800',
+        'bx_subfilter', 'Massive Passive M', 'Emissary', 'Topline Vocal Suite', 'Neutone Morpho', 'bx_bluechorus2',
+        'Filterjam', 'Distressor', '1176AE', 'VoiceAssist', 'Manley Variable Mu', 'Marshall Plexi Classic',
+        'bx_megasingle', 'MT-PowerDrumKit', 'Vital', 'Hitsville Chambers', 'Pultec HLF-3C', 'bx_masterdesk Classic',
+        'Ruby Amp', 'bx_cleansweep', 'Pultec EQP-1A', 'kHs Gate', 'kHs Distortion', 'kHs Delay', 'kHs Resonator',
+        'kHs Formant Filter', 'kHs Compactor', 'kHs Dynamics', 'kHs Channel Mixer', 'kHs Nonlinear Filter',
+        'kHs Phaser', 'kHs Dual Delay', 'kHs Clipper', 'kHs Compressor', 'kHs Pitch Shifter', 'kHs Shaper',
+        'kHs Gain', 'kHs Comb Filter', 'kHs Phase Distortion', 'kHs Flanger', 'kHs Trance Gate',
+        'kHs Transient Shaper', 'kHs Tape Stop', 'kHs 3-Band EQ', 'kHs Haas', 'kHs Ladder Filter', 'kHs Chorus',
+        'kHs Ensemble', 'kHs Stereo', 'kHs Bitcrush', 'kHs Reverser', 'kHs Frequency Shifter', 'kHs Ring Mod',
+        'kHs Limiter', 'kHs Reverb', 'kHs Filter', 'NeuralAmpModeler', 'Woodrow Amp', 'Verve', 'Ravel',
+        'Surge XT Effects', 'Neutone FX', 'Surge XT', 'Melodyne', 'Studio D Chorus', 'SSL E-Channel Strip',
+        'Lion Amp', 'bx_opto Pedal', 'ChordAXE Lite', '1176LN Rev E', 'Avalon VT-737SP', 'TDR Kotelnikov',
+        'Siren', 'Manley VoxBox', 'Opal', 'Ampeg SVTVR Classic', 'bx_meter', 'Drawmer S73', 'dbx 160',
+        'Minimoog', 'SpectraLayers', 'Vinyl', 'Waterfall B3', 'bx_yellowdrive', 'API 2500', 'DynAssist',
+        'TSAR-1R Reverb', '176', 'FIN-MICRO', 'bx_greenscreamer', 'Paradise Guitar Studio', 'SINE Player',
+        'NeuralNote', 'Helios Type 69', 'Graillon 3', '175-B', 'bx_metal2', 'Lexicon 224', 'LA-3A'
+    ],
     multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// FERRETT OS: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
     tracks: [],
     cookbook: [
@@ -1849,6 +1889,7 @@ try {
         if (parsed.scripts) window.db.scripts = parsed.scripts;
         if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
         if (parsed.songBoard) window.db.songBoard = parsed.songBoard;
+        if (parsed.ownedPlugins) window.db.ownedPlugins = parsed.ownedPlugins;
     }
     window.storageAvailable = true;
 } catch(e) {}
@@ -1984,6 +2025,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.scripts) window.db.scripts = cloudDb.scripts;
                 if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
                 if (cloudDb.songBoard) window.db.songBoard = cloudDb.songBoard;
+                if (cloudDb.ownedPlugins) window.db.ownedPlugins = cloudDb.ownedPlugins;
                 window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
         } 
@@ -2077,6 +2119,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.scripts) window.db.scripts = incoming.scripts;
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
+        if (incoming.ownedPlugins) window.db.ownedPlugins = incoming.ownedPlugins;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
         if (window.refreshAllUI) window.refreshAllUI();
@@ -3059,34 +3102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // === PLUGIN COVERAGE GAP-CHECK ===
-    window.OWNED_PLUGINS = [
-        'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
-        'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
-        'Hitsville EQ', 'CHANNEV', '1176 Rev A', 'bx_blackdist2', 'Dream Amp', '610-A', 'Fairchild 660',
-        'Hemisphere', 'Waterfall Rotary Speaker', 'Neve 1073', 'SSDSampler5', 'Amplifiers', 'bx_distorange',
-        'Ocean Way Studios Deluxe', 'Sitala', 'Ampex ATR-102', 'Electra', 'VD-DEEP', 'Diablo Lite', 'Stems 3',
-        'Hitsville EQ Mastering', 'Kontakt 8', 'WaveLab', 'HALion Sonic', 'A-Type Multiband', 'Oxide Tape',
-        'Teletronix LA-2', 'bx_tuner', 'Manley Massive Passive', 'bx_shredspread', 'Trigger_2', 'Saturation Knob',
-        'Tape Cassette 2', 'LA-2A Gray', 'TDR Nova', 'SSL G-Bus Compressor', 'DrumGPT', 'elysia niveau filter',
-        'Fairchild 670', 'API Vision Channel Strip', 'Manley Preamp', 'LA-2A Silver', 'Capitol Compressor',
-        'bx_boom', 'ParametricOD', 'CHOWTapeModel', 'ValhallaSupermassive', 'KolinMB', 'IVGI2', 'Studer A800',
-        'bx_subfilter', 'Massive Passive M', 'Emissary', 'Topline Vocal Suite', 'Neutone Morpho', 'bx_bluechorus2',
-        'Filterjam', 'Distressor', '1176AE', 'VoiceAssist', 'Manley Variable Mu', 'Marshall Plexi Classic',
-        'bx_megasingle', 'MT-PowerDrumKit', 'Vital', 'Hitsville Chambers', 'Pultec HLF-3C', 'bx_masterdesk Classic',
-        'Ruby Amp', 'bx_cleansweep', 'Pultec EQP-1A', 'kHs Gate', 'kHs Distortion', 'kHs Delay', 'kHs Resonator',
-        'kHs Formant Filter', 'kHs Compactor', 'kHs Dynamics', 'kHs Channel Mixer', 'kHs Nonlinear Filter',
-        'kHs Phaser', 'kHs Dual Delay', 'kHs Clipper', 'kHs Compressor', 'kHs Pitch Shifter', 'kHs Shaper',
-        'kHs Gain', 'kHs Comb Filter', 'kHs Phase Distortion', 'kHs Flanger', 'kHs Trance Gate',
-        'kHs Transient Shaper', 'kHs Tape Stop', 'kHs 3-Band EQ', 'kHs Haas', 'kHs Ladder Filter', 'kHs Chorus',
-        'kHs Ensemble', 'kHs Stereo', 'kHs Bitcrush', 'kHs Reverser', 'kHs Frequency Shifter', 'kHs Ring Mod',
-        'kHs Limiter', 'kHs Reverb', 'kHs Filter', 'NeuralAmpModeler', 'Woodrow Amp', 'Verve', 'Ravel',
-        'Surge XT Effects', 'Neutone FX', 'Surge XT', 'Melodyne', 'Studio D Chorus', 'SSL E-Channel Strip',
-        'Lion Amp', 'bx_opto Pedal', 'ChordAXE Lite', '1176LN Rev E', 'Avalon VT-737SP', 'TDR Kotelnikov',
-        'Siren', 'Manley VoxBox', 'Opal', 'Ampeg SVTVR Classic', 'bx_meter', 'Drawmer S73', 'dbx 160',
-        'Minimoog', 'SpectraLayers', 'Vinyl', 'Waterfall B3', 'bx_yellowdrive', 'API 2500', 'DynAssist',
-        'TSAR-1R Reverb', '176', 'FIN-MICRO', 'bx_greenscreamer', 'Paradise Guitar Studio', 'SINE Player',
-        'NeuralNote', 'Helios Type 69', 'Graillon 3', '175-B', 'bx_metal2', 'Lexicon 224', 'LA-3A'
-    ];
+    window.db.ownedPlugins = window.db.ownedPlugins || [];
 
     window.checkPluginCoverage = () => {
         const el = document.getElementById('plugin-coverage-content'); if (!el) return;
@@ -3096,12 +3112,35 @@ document.addEventListener('DOMContentLoaded', () => {
             ...(window.db.tones || []).flatMap((t) => [t.nam, t.ir, t.notes]),
             ...(window.db.tracks || []).flatMap((t) => [t.plugins, t.notes])
         ].join(' \n ').toLowerCase();
-        const unused = window.OWNED_PLUGINS.filter((p) => !haystack.includes(p.toLowerCase()));
+        const owned = window.db.ownedPlugins || [];
+        if (owned.length === 0) { el.innerHTML = `<div class="text-[#E2E8F0]/40 italic">No owned plugins listed yet — click ✎ EDIT LIST above to add yours.</div>`; return; }
+        const unused = owned.filter((p) => !haystack.includes(p.toLowerCase()));
         if (unused.length === 0) { el.innerHTML = `<div class="text-[#00FF88]">Every owned plugin shows up somewhere. Nice.</div>`; return; }
-        el.innerHTML = `<div class="mb-2 text-[#E2E8F0]/50">${unused.length} of ${window.OWNED_PLUGINS.length} owned plugins have never been referenced:</div><div class="flex flex-wrap gap-1.5">` +
+        el.innerHTML = `<div class="mb-2 text-[#E2E8F0]/50">${unused.length} of ${owned.length} owned plugins have never been referenced:</div><div class="flex flex-wrap gap-1.5">` +
             unused.map((p) => `<span class="px-2 py-1 rounded border border-[#FFD60A30] text-[#FFD60A] bg-[#FFD60A]/5">${p}</span>`).join('') + `</div>`;
     };
     document.getElementById('btn-check-coverage')?.addEventListener('click', () => window.checkPluginCoverage());
+    document.getElementById('btn-edit-owned-plugins')?.addEventListener('click', () => {
+        const editor = document.getElementById('owned-plugins-editor'); const ta = document.getElementById('owned-plugins-textarea');
+        if (!editor || !ta) return;
+        ta.value = (window.db.ownedPlugins || []).join('\n');
+        editor.classList.remove('hidden');
+        document.getElementById('plugin-coverage-content')?.classList.add('hidden');
+        ta.focus();
+    });
+    document.getElementById('btn-cancel-owned-plugins')?.addEventListener('click', () => {
+        document.getElementById('owned-plugins-editor')?.classList.add('hidden');
+        document.getElementById('plugin-coverage-content')?.classList.remove('hidden');
+    });
+    document.getElementById('btn-save-owned-plugins')?.addEventListener('click', () => {
+        const ta = document.getElementById('owned-plugins-textarea'); if (!ta) return;
+        const list = [...new Set(ta.value.split('\n').map((s) => s.trim()).filter(Boolean))];
+        window.db.ownedPlugins = list;
+        window.saveData();
+        document.getElementById('owned-plugins-editor')?.classList.add('hidden');
+        document.getElementById('plugin-coverage-content')?.classList.remove('hidden');
+        window.checkPluginCoverage();
+    });
 
     window.blendGenres = () => {
 
@@ -5470,7 +5509,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
       const restored=JSON.parse(new TextDecoder().decode(pt));
       if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
-      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','ownedPlugins','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
       window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
     }catch(e){ alert('Wrong passphrase or corrupted file.'); }
   }
@@ -6501,12 +6540,25 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   // ---------- AI STUDIO BRAIN ----------
   let lastBrainArgs=null;
-  function gearContext(){ const p=window.OWNED_PLUGINS||[]; if(!p.length) return ''; return ` You only own these plugins/VSTs — when you name a specific tool, pick one from this list, or suggest a free/stock alternative if nothing here fits. Never recommend a paid plugin that isn't on this list: ${p.join(', ')}.`; }
+  function gearContext(){ const p=(window.db&&window.db.ownedPlugins)||[]; if(!p.length) return ''; return ` You only own these plugins/VSTs — when you name a specific tool, pick one from this list, or suggest a free/stock alternative if nothing here fits. Never recommend a paid plugin that isn't on this list: ${p.join(', ')}.`; }
   function brainBusy(on){ const s=$('ai-brain-spinner'); if(s) s.classList.toggle('hidden',!on); }
   function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } const c=$('ai-brain-out-controls'); if(c && txt){ c.classList.remove('hidden'); c.classList.add('flex'); } }
   async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
   function brainRedo(){ if(lastBrainArgs) brainCall(...lastBrainArgs); }
   function brainHide(){ const o=$('ai-brain-out'), c=$('ai-brain-out-controls'), h=$('btn-ai-brain-hide'); if(!o) return; const nowHidden=o.classList.toggle('hidden'); if(h) h.textContent=nowHidden?'SHOW':'HIDE'; }
+  function brainSaveNote(){
+    const out=$('ai-brain-out'); const text=out?out.textContent:''; if(!text||!text.trim()) return;
+    const q=(lastBrainArgs&&lastBrainArgs[1])?lastBrainArgs[1]:'AI suggestion';
+    const title=('🧠 '+q).replace(/\s+/g,' ').trim().slice(0,40);
+    window.db.multiNotes=window.db.multiNotes||[];
+    const note={ id:Date.now(), title, content:text };
+    window.db.multiNotes.push(note);
+    window.currentNoteId=note.id;
+    window.saveData();
+    window.renderNoteTabs&&window.renderNoteTabs();
+    window.setNotesFooterOpen&&window.setNotesFooterOpen(true);
+    const b=$('btn-ai-brain-save-note'); if(b){ const o2=b.textContent; b.textContent='✓ SAVED'; setTimeout(()=>{ b.textContent=o2; },1400); }
+  }
   function aiAsk(){ const q=$('ai-ask-in').value.trim(); if(!q) return; brainCall('You are a veteran recording/mixing engineer and producer. Answer concisely and practically — a few sentences or tight bullets, real moves not fluff.'+gearContext(), q, false); }
   function aiMood(){ const q=$('ai-mood-in').value.trim(); if(!q) return; brainCall('You suggest chord progressions for songwriters. Give 2-3 progressions as chord symbols (e.g. Am–F–C–G), each with a short why. No preamble.', 'Mood: '+q, true); }
   function aiRecipe(){ const sel=$('ai-recipe-sel'); const id=+sel.value; const r=((window.db&&window.db.cookbook)||[]).find(x=>x.id===id); if(!r){ brainShow('Pick a recipe.'); return; } const genre=$('ai-recipe-genre').value.trim()||'a different genre'; brainCall('You are a music production expert. Reimagine the given production recipe for a new genre. Be practical and specific: key sonic moves, plugin/gear analogs, arrangement notes. Keep it tight.'+gearContext(), `Original (${r.genre} — ${r.inst}): ${r.desc||''} ${r.luna||''} ${r.reaper||''}\n\nReimagine for: ${genre}.`, true); }
@@ -6563,6 +6615,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-ai-mix')?.addEventListener('click',aiMix); $('ai-mix-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') aiMix(); });
     $('btn-ai-settings-tools')?.addEventListener('click',()=>window.__openAiModal&&window.__openAiModal());
     $('btn-ai-brain-redo')?.addEventListener('click',brainRedo);
+    $('btn-ai-brain-save-note')?.addEventListener('click',brainSaveNote);
     $('btn-ai-brain-hide')?.addEventListener('click',brainHide);
     // initial persisted renders
     renderGear(); renderSamples(); renderCollab(); renderPractice(); renderRelease();

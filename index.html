@@ -1228,6 +1228,12 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <!-- line editor (EDIT mode) -->
+        <div id="lyr-select-bar" class="hidden items-center gap-2 mb-2 p-2 rounded border border-[#FFD60A40] bg-[#FFD60A]/5 flex-wrap">
+            <span id="lyr-select-count" class="text-[10px] font-bold text-[#FFD60A] tracking-widest"></span>
+            <button id="btn-lyr-punch-selected" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punch up only the checked lines, alternatives inserted right below each">↑ PUNCH UP SELECTED</button>
+            <button id="btn-lyr-delete-selected" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF888880;color:#FF8888">🗑 DELETE SELECTED</button>
+            <button id="btn-lyr-clear-selected" type="button" class="text-[10px] font-bold text-[#E2E8F0]/40 ml-auto">CLEAR</button>
+        </div>
         <div id="lyr-lines" class="space-y-1 mb-2"></div>
         <!-- analysis view (ANALYZE mode) -->
         <div id="lyr-analyze" class="hidden mb-3"></div>
@@ -1288,7 +1294,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap gap-2">
                 <button id="btn-ai-lyr-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">✨ GENERATE</button>
                 <button id="btn-ai-lyr-cont" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet">↳ CONTINUE</button>
-                <button id="btn-ai-lyr-punch" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest punch-in rhyme alternatives for the last line">↑ PUNCH UP</button>
+                <button id="btn-ai-lyr-punch" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
                 <button id="btn-ai-lyr-title" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines">🏷 TITLES</button>
                 <span id="ai-lyr-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
             </div>
@@ -5598,6 +5604,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const LYR_KEY='ferrett_os_lyrics_v1';
   const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'OUTRO':['◆','#FF5A5A'] };
   let lyrState=null, lyrUndo=[];
+  let lyrSelected=new Set(); // holds line object references, not indices — survives reorder/insert
   function loadLyr(){ try{ const r=localStorage.getItem(LYR_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
   function saveLyr(){ try{ localStorage.setItem(LYR_KEY, JSON.stringify(lyrState)); }catch(e){} }
   function initLyrState(){
@@ -5614,7 +5621,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function renderSheetTabs(){
     const wrap=$('lyr-sheet-tabs'); if(!wrap) return;
     wrap.innerHTML=lyrState.sheets.map(s=>{ const on=s.id===lyrState.activeId; return `<button class="lyr-tab shrink-0 text-[10px] font-bold tracking-widest px-3 py-1.5 rounded border transition-colors ${on?'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]':'border-[#FF88FF20] text-[#FF88FF]/50 hover:text-[#FF88FF]'}" data-id="${s.id}">${(s.title||'Untitled').slice(0,18)}${lyrState.sheets.length>1?` <span class="lyr-tab-x text-white/30 hover:text-[#FF5A5A] ml-1" data-del="${s.id}">×</span>`:''}</button>`; }).join('');
-    wrap.querySelectorAll('.lyr-tab').forEach(b=>b.addEventListener('click',(e)=>{ if(e.target.classList.contains('lyr-tab-x')) return; lyrState.activeId=parseInt(b.dataset.id,10); lyrUndo=[]; saveLyr(); renderLyr(); }));
+    wrap.querySelectorAll('.lyr-tab').forEach(b=>b.addEventListener('click',(e)=>{ if(e.target.classList.contains('lyr-tab-x')) return; lyrState.activeId=parseInt(b.dataset.id,10); lyrUndo=[]; lyrSelected.clear(); saveLyr(); renderLyr(); }));
     wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; saveLyr(); renderLyr(); }));
   }
   function renderLines(){
@@ -5623,6 +5630,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const tc=(TAGS[ln.tag]||TAGS[''])[1];
       const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
       return `<div class="lyr-row flex items-center gap-1.5 group${ln.alt?' lyr-row-alt':''}" data-i="${i}" title="${ln.alt?'Punch-up alternative — pick your favorite, delete the rest':''}">`+
+        `<input type="checkbox" class="lyr-select accent-[#FFD60A] shrink-0 cursor-pointer" data-i="${i}"${lyrSelected.has(ln)?' checked':''} title="Select for Punch Up / Delete">`+
         `<span class="lyr-handle cursor-grab text-white/20 hover:text-[#FF88FF] text-[13px] select-none shrink-0" draggable="true" title="Drag to reorder">⠿</span>`+
         (ln.alt?`<span class="lyr-alt-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#FFD60A50] text-[#FFD60A] shrink-0">ALT</span>`:'')+
         `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
@@ -5638,9 +5646,18 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
     });
     box.querySelectorAll('.lyr-tag').forEach(sel=> sel.addEventListener('change',()=>{ activeSheet().lines[+sel.dataset.i].tag=sel.value; saveLyr(); renderLines(); }));
-    box.querySelectorAll('.lyr-del').forEach(b=> b.addEventListener('click',()=>{ pushUndo(); const s=activeSheet(); s.lines.splice(+b.dataset.i,1); if(!s.lines.length) s.lines.push({text:'',tag:''}); saveLyr(); renderLines(); updateLyrMeta(); }));
+    box.querySelectorAll('.lyr-del').forEach(b=> b.addEventListener('click',()=>{ pushUndo(); const s=activeSheet(); const ln=s.lines[+b.dataset.i]; lyrSelected.delete(ln); s.lines.splice(+b.dataset.i,1); if(!s.lines.length) s.lines.push({text:'',tag:''}); saveLyr(); renderLines(); updateLyrMeta(); }));
+    box.querySelectorAll('.lyr-select').forEach(cb=> cb.addEventListener('change',()=>{ const ln=activeSheet().lines[+cb.dataset.i]; if(cb.checked) lyrSelected.add(ln); else lyrSelected.delete(ln); updateLyrSelectBar(); }));
     wireDnD();
     updateLyrMeta();
+    updateLyrSelectBar();
+  }
+  function updateLyrSelectBar(){
+    const bar=$('lyr-select-bar'); const count=$('lyr-select-count'); if(!bar||!count) return;
+    const n=lyrSelected.size;
+    bar.classList.toggle('hidden', n===0);
+    bar.classList.toggle('flex', n>0);
+    count.textContent=`${n} SELECTED`;
   }
   function wireDnD(){
     const box=$('lyr-lines'); let dragI=null;
@@ -5716,6 +5733,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   window.lyrGetActiveText=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };
   window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[([A-Za-z]+)\]\s*(.*)$/); if(m && TAGS[m[1].toUpperCase()]) s.lines.push({text:m[2],tag:m[1].toUpperCase(),alt}); else s.lines.push({text:item,tag:'',alt}); } }); saveLyr(); renderLyr(); };
+  // ---- bridge for the AI Co-Pilot script (separate closure) to reach the selection/line state above ----
+  window.lyrGetSelectedLines=()=>{ if(!lyrState) initLyrState(); const s=activeSheet(); return Array.from(lyrSelected).filter(ln=>s.lines.includes(ln)); };
+  window.lyrGetLastNonEmptyLine=()=>{ if(!lyrState) initLyrState(); const ne=activeSheet().lines.filter(l=>l.text.trim()); return ne.length?ne[ne.length-1]:null; };
+  window.lyrBeginBatchEdit=()=>{ if(!lyrState) initLyrState(); pushUndo(); };
+  window.lyrInsertAltsAfterLine=(ln,alts)=>{ if(!lyrState||!alts||!alts.length) return false; const s=activeSheet(); const idx=s.lines.indexOf(ln); if(idx<0) return false; s.lines.splice(idx+1,0,...alts.map(a=>({text:a,tag:'',alt:true}))); return true; };
+  window.lyrFinishBatchEdit=()=>{ lyrSelected.clear(); saveLyr(); renderLyr(); };
 
   // ---- ANALYZE MODE: rhyme scheme, internal rhymes, contour ----
   let lyrMode='edit';
@@ -5954,6 +5977,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('btn-lyr-cutup-sec')?.addEventListener('click',()=>lyrCutup(true));
       $('btn-lyr-undo')?.addEventListener('click',()=>{ if(!lyrUndo.length) return; activeSheet().lines=JSON.parse(lyrUndo.pop()); saveLyr(); renderLines(); });
       $('btn-lyr-add-line')?.addEventListener('click',()=>{ activeSheet().lines.push({text:'',tag:''}); saveLyr(); renderLines(); const box=$('lyr-lines'); const last=box.querySelector('.lyr-text:last-of-type'); last&&last.focus(); });
+      $('btn-lyr-delete-selected')?.addEventListener('click',()=>{ const s=activeSheet(); if(!lyrSelected.size) return; if(!confirm(`Delete ${lyrSelected.size} selected line(s)?`)) return; pushUndo(); s.lines=s.lines.filter(ln=>!lyrSelected.has(ln)); if(!s.lines.length) s.lines.push({text:'',tag:''}); lyrSelected.clear(); saveLyr(); renderLyr(); });
+      $('btn-lyr-clear-selected')?.addEventListener('click',()=>{ lyrSelected.clear(); renderLines(); });
       $('lyr-show-syl')?.addEventListener('change',renderLines);
       $('btn-lyr-export')?.addEventListener('click',lyrExport);
       $('btn-lyr-totrack')?.addEventListener('click',lyrToTrack);
@@ -6345,15 +6370,27 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   }
   async function lyrPunch(){
     if(!isConfigured()){ openAiModal(); return; }
-    const cur=(window.lyrGetActiveText&&window.lyrGetActiveText())||''; const lines=cur.split('\n').filter(x=>x.trim()); const last=lines[lines.length-1];
-    if(!last){ note('ai-lyr-note','Nothing to punch up yet.'); return; }
+    let targets=window.lyrGetSelectedLines?window.lyrGetSelectedLines().filter(ln=>ln.text.trim()):[];
+    let usingSelection=targets.length>0;
+    if(!usingSelection){
+      const last=window.lyrGetLastNonEmptyLine&&window.lyrGetLastNonEmptyLine();
+      if(!last){ note('ai-lyr-note','Nothing to punch up yet — check a line, or write one first.'); return; }
+      targets=[last];
+    }
     spin('ai-lyr-spinner',true); note('ai-lyr-note','');
     try{
+      window.lyrBeginBatchEdit&&window.lyrBeginBatchEdit();
       const sys='You are a punch-in lyric editor. Given one line, output 3 punchier alternative versions — one per line, no numbering, no commentary. Keep the syllable count close.';
-      const txt=await window.ferrettAI(sys, `Rewrite this line 3 ways: ${last.replace(/^\[[^\]]*\]\s*/,'')}`, {creative:true});
-      const alts=toLines(txt).slice(0,3); if(!alts.length) throw new Error('No alternatives came back.');
-      window.lyrAddLines(alts,{alt:true});
-      note('ai-lyr-note','Added alternatives at the bottom (highlighted) — keep your favorite, delete the rest.');
+      let addedAny=false;
+      for(const ln of targets){
+        const clean=(ln.text||'').replace(/^\[[^\]]*\]\s*/,'').trim(); if(!clean) continue;
+        const txt=await window.ferrettAI(sys, `Rewrite this line 3 ways: ${clean}`, {creative:true});
+        const alts=toLines(txt).slice(0,3); if(!alts.length) continue;
+        if(window.lyrInsertAltsAfterLine(ln,alts)) addedAny=true;
+      }
+      if(!addedAny) throw new Error('No alternatives came back.');
+      window.lyrFinishBatchEdit&&window.lyrFinishBatchEdit();
+      note('ai-lyr-note', usingSelection ? 'Added alternatives right under each checked line (highlighted) — keep your favorite, delete the rest.' : 'Added alternatives right under the last line (highlighted) — keep your favorite, delete the rest.');
     }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
   }
 
@@ -6401,6 +6438,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-ai-lyr-gen')?.addEventListener('click',lyrGen);
     $('btn-ai-lyr-cont')?.addEventListener('click',lyrContinue);
     $('btn-ai-lyr-punch')?.addEventListener('click',lyrPunch);
+    $('btn-lyr-punch-selected')?.addEventListener('click',lyrPunch);
     $('btn-ai-lyr-title')?.addEventListener('click',lyrTitle);
     $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrGen(); });
     // music prompt

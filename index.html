@@ -247,14 +247,14 @@ main { background: rgba(5,8,7,0.72); }
     <button id="nav-notes" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">📝 Notes Vault</button>
 
     <div class="mt-auto pt-4 pb-2 relative overflow-hidden">
-      <div class="flex items-center justify-between mb-2 px-1"><span class="text-[9px] tracking-[0.18em] text-[#00FF88]/70 uppercase font-bold">SPL // CONIC GAUGE</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-[#00FF8812] border border-[#00FF8818] text-[#00FF88]/60">LIVE</span></div>
+      <div class="flex items-center justify-between mb-2 px-1"><span class="text-[9px] tracking-[0.18em] text-[#00FF88]/70 uppercase font-bold">SPL // CONIC GAUGE</span><span id="spl-live-badge" class="text-[8px] px-1.5 py-0.5 rounded bg-[#E2E8F012] border border-[#E2E8F018] text-[#E2E8F0]/40">UNCAL</span></div>
       <div class="flex flex-col items-center">
         <canvas id="spl-canvas" width="140" height="140" class="w-[120px] h-[120px]"></canvas>
-        <div class="mt-1 flex items-baseline gap-1"><span id="spl-value" class="spl-readout text-[18px] font-bold tracking-widest">82.4</span><span class="text-[10px] text-[#00FF88]/55">dB</span></div>
-        <div class="w-full mt-2 h-[2px] bg-[#00FF8814] relative overflow-hidden rounded"><div id="spl-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#00FF88] via-[#00E5FF] to-[#FFD60A] transition-all duration-200" style="width:62%"></div></div>
+        <div class="mt-1 flex items-baseline gap-1"><span id="spl-value" class="spl-readout text-[18px] font-bold tracking-widest">—</span><span class="text-[10px] text-[#00FF88]/55">dB</span></div>
+        <div class="w-full mt-2 h-[2px] bg-[#00FF8814] relative overflow-hidden rounded"><div id="spl-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#00FF88] via-[#00E5FF] to-[#FFD60A] transition-all duration-200" style="width:0%"></div></div>
         <div class="flex justify-between w-full mt-1 text-[7px] tracking-widest text-white/25"><span>60</span><span>85</span><span>105</span></div>
         <div class="flex items-center gap-2 mt-2 w-full justify-center">
-          <button id="btn-spl-cal" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Play steady pink noise at your mix level, then calibrate. Warns when monitoring drifts.">⊕ CAL</button>
+          <button id="btn-spl-cal" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Play pink noise, match a known SPL reading from a real meter/app, then calibrate. Gauge shows estimated absolute SPL from the mic from then on.">⊕ CAL</button>
           <span id="spl-drift" class="text-[10px] font-bold font-mono text-white/30">—</span>
         </div>
       </div>
@@ -3813,7 +3813,7 @@ window.cloneTone = (id) => {
 
     window.startVuLive = async () => {
         try {
-            window.vuLive.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            window.vuLive.stream = await navigator.mediaDevices.getUserMedia({ audio: { autoGainControl: false, noiseSuppression: false, echoCancellation: false } });
             window.vuLive.ctx = window.vuLive.ctx || new (window.AudioContext || window.webkitAudioContext)();
             if (window.vuLive.ctx.state === 'suspended') await window.vuLive.ctx.resume();
             const source = window.vuLive.ctx.createMediaStreamSource(window.vuLive.stream);
@@ -3838,12 +3838,14 @@ window.cloneTone = (id) => {
 
     const c = document.getElementById('spl-canvas');
     if(c) {
-        const ctx = c.getContext('2d'); let spl=82.4, peak=84.1, rms=79.8, target=82.4;
-        function dG(val) {
+        const ctx = c.getContext('2d');
+        // Real gauge: needle is driven by the actual mic reading (window.__splCal), calibrated via the CAL
+        // button against a known SPL reading. No calibration yet (or mic off) = idle, dimmed needle at rest.
+        function dG(val, idle) {
             ctx.clearRect(0,0,140,140); ctx.beginPath(); ctx.arc(70,70,58,0,Math.PI*2); ctx.strokeStyle='rgba(0,255,136,0.08)'; ctx.lineWidth=10; ctx.stroke();
             const sA=-Math.PI*0.78, range=Math.PI*1.56;
             for(let i=0;i<120;i++) {
-                let t=i/120, col=window.FERRETT_QUIET?'rgba(226,232,240,0.1)':(t<0.45?`rgba(0,255,136,${0.6+t*0.4})`:(t<0.68?`rgba(0,229,255,0.75)`:(t<0.85?`rgba(255,214,10,0.85)`:`rgba(255,68,68,0.9)`)));
+                let t=i/120, col=(window.FERRETT_QUIET||idle)?'rgba(226,232,240,0.1)':(t<0.45?`rgba(0,255,136,${0.6+t*0.4})`:(t<0.68?`rgba(0,229,255,0.75)`:(t<0.85?`rgba(255,214,10,0.85)`:`rgba(255,68,68,0.9)`)));
                 ctx.beginPath(); ctx.arc(70,70,58,sA+t*range,sA+((i+1)/120)*range); ctx.strokeStyle=col; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
             }
             ctx.save(); ctx.translate(70,70);
@@ -3853,17 +3855,19 @@ window.cloneTone = (id) => {
             ctx.restore();
             const nA = sA + Math.min(1,Math.max(0,(val-60)/45))*range;
             ctx.save(); ctx.translate(70,70); ctx.rotate(nA);
-            ctx.beginPath(); ctx.moveTo(0,6); ctx.lineTo(0,-50); ctx.strokeStyle=window.FERRETT_QUIET?'#64748b':'#E6FFF4'; ctx.lineWidth=2; ctx.shadowColor=window.FERRETT_QUIET?'transparent':'#00FF88'; ctx.shadowBlur=window.FERRETT_QUIET?0:10; ctx.stroke();
-            ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle='#050807'; ctx.fill(); ctx.strokeStyle=window.FERRETT_QUIET?'#64748b':'#00FF88'; ctx.lineWidth=1.2; ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0,6); ctx.lineTo(0,-50); ctx.strokeStyle=(window.FERRETT_QUIET||idle)?'#64748b':'#E6FFF4'; ctx.lineWidth=2; ctx.shadowColor=(window.FERRETT_QUIET||idle)?'transparent':'#00FF88'; ctx.shadowBlur=(window.FERRETT_QUIET||idle)?0:10; ctx.stroke();
+            ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fillStyle='#050807'; ctx.fill(); ctx.strokeStyle=(window.FERRETT_QUIET||idle)?'#64748b':'#00FF88'; ctx.lineWidth=1.2; ctx.stroke();
             ctx.restore();
-            ctx.beginPath(); ctx.arc(70,70,2.2,0,Math.PI*2); ctx.fillStyle=window.FERRETT_QUIET?'#64748b':'#00FF88'; ctx.shadowColor=window.FERRETT_QUIET?'transparent':'#00FF88'; ctx.shadowBlur=window.FERRETT_QUIET?0:8; ctx.fill();
+            ctx.beginPath(); ctx.arc(70,70,2.2,0,Math.PI*2); ctx.fillStyle=(window.FERRETT_QUIET||idle)?'#64748b':'#00FF88'; ctx.shadowColor=(window.FERRETT_QUIET||idle)?'transparent':'#00FF88'; ctx.shadowBlur=(window.FERRETT_QUIET||idle)?0:8; ctx.fill();
         }
         function l() {
-            if(window.FERRETT_QUIET) { spl=60; peak=60; rms=60; } 
-            else { if(Math.random()<0.04) target=72+Math.random()*28; spl+=(target-spl)*0.08+(Math.random()-0.5)*0.35; spl=Math.max(62,Math.min(104.5,spl)); peak=Math.max(peak*0.998,spl+Math.random()*1.2); rms=rms*0.92+spl*0.08; }
-            dG(spl);
-            const ve=document.getElementById('spl-value'), pe=document.getElementById('spl-peak'), re=document.getElementById('spl-rms'), b=document.getElementById('spl-bar');
-            if(ve) ve.textContent=spl.toFixed(1); if(pe) pe.textContent=peak.toFixed(1); if(re) re.textContent=rms.toFixed(1); if(b) b.style.width=window.FERRETT_QUIET?'0%':((spl-60)/45*100).toFixed(1)+'%';
+            const cal=window.__splCal;
+            const live = !window.FERRETT_QUIET && cal && cal.offset!=null && window.vuLive?.active && cal.cur!=null;
+            const val = live ? Math.max(60,Math.min(105,cal.cur+cal.offset)) : 60;
+            dG(val, !live);
+            const ve=document.getElementById('spl-value'), b=document.getElementById('spl-bar');
+            if(ve) ve.textContent = live ? val.toFixed(1) : '—';
+            if(b) b.style.width = live ? ((val-60)/45*100).toFixed(1)+'%' : '0%';
             requestAnimationFrame(l);
         }
         l();
@@ -5030,9 +5034,19 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('refshelf-modal'); closeModal('selimport-modal'); } });
 
         // =====================================================================
-        // 30. REFERENCE-LEVEL CALIBRATION — live-mic drift warning (piggybacks vuLive)
+        // 30. REFERENCE-LEVEL CALIBRATION — live-mic drift warning + estimated absolute SPL (piggybacks vuLive)
         // =====================================================================
-        window.__splCal = { ref: null, cur: null };
+        window.SPL_CAL_KEY = 'ferrett_os_spl_cal_v1';
+        window.__splCal = { ref: null, cur: null, offset: null, calibratedAt: null };
+        try {
+            const saved = JSON.parse(localStorage.getItem(window.SPL_CAL_KEY) || 'null');
+            if (saved && typeof saved.ref === 'number') {
+                window.__splCal.ref = saved.ref; window.__splCal.offset = (typeof saved.offset === 'number') ? saved.offset : null; window.__splCal.calibratedAt = saved.calibratedAt || null;
+                const badge = document.getElementById('spl-live-badge');
+                if (badge) { badge.textContent = window.__splCal.offset != null ? 'SPL SAVED' : 'DRIFT SAVED'; badge.className = 'text-[8px] px-1.5 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF18] text-[#00E5FF]/60'; }
+            }
+        } catch (e) {}
+        window.saveSplCal = () => { try { localStorage.setItem(window.SPL_CAL_KEY, JSON.stringify({ ref: window.__splCal.ref, offset: window.__splCal.offset, calibratedAt: window.__splCal.calibratedAt })); } catch (e) {} };
         const CAL_TOL = 3; // dB
         const splDbNow = () => {
             const vl = window.vuLive; if (!vl || !vl.active || !vl.analyser || !vl.buf) return null;
@@ -5045,6 +5059,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const splCalTick = () => {
             const db = splDbNow();
             if (db != null) { splSmooth = splSmooth == null ? db : splSmooth * 0.85 + db * 0.15; window.__splCal.cur = splSmooth; }
+            else { splSmooth = null; window.__splCal.cur = null; }
             const el = document.getElementById('spl-drift');
             if (el) {
                 if (window.__splCal.ref == null) { el.textContent = window.vuLive?.active ? 'ready' : '—'; el.style.color = 'rgba(255,255,255,0.3)'; }
@@ -5055,8 +5070,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         document.getElementById('btn-spl-cal')?.addEventListener('click', async () => {
             if (!window.vuLive?.active && window.startVuLive) { await window.startVuLive(); }
             setTimeout(() => {
-                if (window.__splCal.cur != null && window.vuLive?.active) { window.__splCal.ref = window.__splCal.cur; const el = document.getElementById('spl-drift'); if (el) { el.textContent = '0.0 dB'; el.style.color = '#00FF88'; } }
-                else alert('Enable the mic (🎙️) and play steady pink noise at mix level, then calibrate.');
+                if (window.__splCal.cur != null && window.vuLive?.active) {
+                    const raw = prompt('Playing steady pink noise, matched to a real SPL meter/app reading?\n\nEnter that dB SPL number now to calibrate an absolute readout (e.g. 75).\nLeave blank for relative drift-tracking only (no external meter needed).');
+                    if (raw === null) return; // cancelled — leave existing calibration untouched
+                    window.__splCal.ref = window.__splCal.cur;
+                    window.__splCal.calibratedAt = Date.now();
+                    const knownSpl = parseFloat(raw);
+                    window.__splCal.offset = (raw.trim() !== '' && !isNaN(knownSpl)) ? (knownSpl - window.__splCal.ref) : null;
+                    window.saveSplCal();
+                    const el = document.getElementById('spl-drift'); if (el) { el.textContent = '0.0 dB'; el.style.color = '#00FF88'; }
+                    const badge = document.getElementById('spl-live-badge'); if (badge) { badge.textContent = window.__splCal.offset != null ? 'SPL LIVE' : 'DRIFT ONLY'; badge.className = 'text-[8px] px-1.5 py-0.5 rounded bg-[#00FF8812] border border-[#00FF8818] text-[#00FF88]/60'; }
+                } else alert('Enable the mic and play steady pink noise at mix level, then calibrate.');
             }, 700);
         });
         splCalTick();

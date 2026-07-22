@@ -117,6 +117,7 @@ main { background: rgba(5,8,7,0.72); }
 .active-nav-cyan { background: rgba(0,229,255,0.15) !important; color: #00E5FF !important; border-color: #00E5FF !important; box-shadow: 0 0 12px rgba(0,229,255,0.2) !important; }
 .active-genre { background: rgba(0,229,255,0.14) !important; border-color:#00E5FF !important; color:#00E5FF !important; box-shadow:0 0 12px rgba(0,229,255,0.18); }
 .active-inst { background: rgba(0,255,136,0.14) !important; border-color:#00FF88 !important; color:#00FF88 !important; box-shadow:0 0 12px rgba(0,255,136,0.18); }
+.lyr-row-alt { background: rgba(255,214,10,0.06); border-radius: 4px; }
 
 .note-tab { padding:6px 12px; font-size:10px; font-weight:bold; border-top-left-radius:4px; border-top-right-radius:4px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; background:rgba(0,229,255,0.05); color:rgba(0,229,255,0.5); border:1px solid transparent; border-bottom:none; min-width:100px; justify-content:space-between; }
 .note-tab.active { background:rgba(0,229,255,0.15); color:#00E5FF; border-color:rgba(0,229,255,0.3); box-shadow:0 -4px 12px rgba(0,229,255,0.1); }
@@ -5621,17 +5622,18 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     box.innerHTML=sheet.lines.map((ln,i)=>{
       const tc=(TAGS[ln.tag]||TAGS[''])[1];
       const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
-      return `<div class="lyr-row flex items-center gap-1.5 group" data-i="${i}">`+
+      return `<div class="lyr-row flex items-center gap-1.5 group${ln.alt?' lyr-row-alt':''}" data-i="${i}" title="${ln.alt?'Punch-up alternative — pick your favorite, delete the rest':''}">`+
         `<span class="lyr-handle cursor-grab text-white/20 hover:text-[#FF88FF] text-[13px] select-none shrink-0" draggable="true" title="Drag to reorder">⠿</span>`+
+        (ln.alt?`<span class="lyr-alt-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#FFD60A50] text-[#FFD60A] shrink-0">ALT</span>`:'')+
         `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
-        `<input type="text" class="lyr-text flex-1 bg-transparent border-b border-white/10 focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
+        `<input type="text" class="lyr-text flex-1 bg-transparent border-b ${ln.alt?'border-[#FFD60A40]':'border-white/10'} focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
         (showSyl?`<span class="text-[9px] font-mono text-[#FF88FF]/60 w-6 text-right shrink-0">${syl||''}</span>`:'')+
         `<button class="lyr-del text-white/20 hover:text-[#FF5A5A] text-[13px] shrink-0 opacity-0 group-hover:opacity-100" data-i="${i}" title="Delete line">×</button>`+
         `</div>`;
     }).join('');
     // text edit
     box.querySelectorAll('.lyr-text').forEach(inp=>{
-      inp.addEventListener('input',()=>{ activeSheet().lines[+inp.dataset.i].text=inp.value; saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.parentElement.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
+      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.parentElement.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
       inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const i=+inp.dataset.i; activeSheet().lines.splice(i+1,0,{text:'',tag:activeSheet().lines[i].tag}); saveLyr(); renderLines(); const nx=box.querySelector(`.lyr-text[data-i="${i+1}"]`); nx&&nx.focus(); } });
       inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
     });
@@ -5713,7 +5715,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // exposed for the AI co-pilot (keeps lyrState the single source of truth)
   window.lyrGetActiveText=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };
-  window.lyrAddLines=(arr)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[([A-Za-z]+)\]\s*(.*)$/); if(m && TAGS[m[1].toUpperCase()]) s.lines.push({text:m[2],tag:m[1].toUpperCase()}); else s.lines.push({text:item,tag:''}); } }); saveLyr(); renderLyr(); };
+  window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[([A-Za-z]+)\]\s*(.*)$/); if(m && TAGS[m[1].toUpperCase()]) s.lines.push({text:m[2],tag:m[1].toUpperCase(),alt}); else s.lines.push({text:item,tag:'',alt}); } }); saveLyr(); renderLyr(); };
 
   // ---- ANALYZE MODE: rhyme scheme, internal rhymes, contour ----
   let lyrMode='edit';
@@ -6350,8 +6352,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const sys='You are a punch-in lyric editor. Given one line, output 3 punchier alternative versions — one per line, no numbering, no commentary. Keep the syllable count close.';
       const txt=await window.ferrettAI(sys, `Rewrite this line 3 ways: ${last.replace(/^\[[^\]]*\]\s*/,'')}`, {creative:true});
       const alts=toLines(txt).slice(0,3); if(!alts.length) throw new Error('No alternatives came back.');
-      window.lyrAddLines(alts);
-      note('ai-lyr-note','Added alternatives at the bottom — keep your favorite.');
+      window.lyrAddLines(alts,{alt:true});
+      note('ai-lyr-note','Added alternatives at the bottom (highlighted) — keep your favorite, delete the rest.');
     }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
   }
 

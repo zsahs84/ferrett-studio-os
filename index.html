@@ -11,12 +11,17 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>FERRETT_STUDIO_OS // HUD v22.4 (FINAL STABLE)</title>
+<title>FERRETT_STUDIO_OS // HUD v43 (FINAL STABLE)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <script>
+// Single source of truth for the version shown in the tab title + header. Bump this AND
+// CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
+// identical so there's only one version to remember, not two drifting counters.
+window.APP_VERSION = 'v43';
+document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
 const DRIVE_FILE_NAME = 'FERRETT_OS_VAULT.json';
@@ -157,7 +162,7 @@ main { background: rgba(5,8,7,0.72); }
     </button>
     <div class="leading-none min-w-0">
       <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">FERRETT_STUDIO_OS</h1>
-      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">DUAL DAW WORKSPACE v22.4</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
+      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">DUAL DAW WORKSPACE v43</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
     </div>
     <div class="hidden lg:flex items-center gap-3 ml-4 pl-4 border-l border-[#00FF8814]">
       <div class="vu-wrap" id="vuLeft"><div class="vu-bar" style="height:4px"></div><div class="vu-bar" style="height:8px"></div><div class="vu-bar" style="height:6px"></div><div class="vu-bar" style="height:10px"></div></div>
@@ -3207,7 +3212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.currentMode = mode; document.body.className = `mode-${mode} h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black`;
         if(window.FERRETT_QUIET) document.body.classList.add('quiet'); 
         ['reaper', 'both', 'luna'].forEach(m => { const btn = document.getElementById(`btn-${m}`); if(btn) { if (m === mode) btn.className = `px-4 py-1 text-[10px] font-bold rounded uppercase tracking-wider transition-colors ${m === 'luna' ? 'bg-[#00E5FF] text-black' : 'bg-[#00FF88] text-black'}`; else btn.className = `px-4 py-1 text-[10px] font-bold rounded text-[#7AFFBF]/40 hover:text-${m === 'luna' ? '[#00E5FF]' : '[#00FF88]'} uppercase tracking-wider transition-colors`; } });
-        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = mode === 'both' ? 'DUAL DAW WORKSPACE v22.4' : `${mode.toUpperCase()} WORKSPACE v22.4`;
+        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = mode === 'both' ? `DUAL DAW WORKSPACE ${window.APP_VERSION}` : `${mode.toUpperCase()} WORKSPACE ${window.APP_VERSION}`;
         window.refreshAllUI();
     };
 

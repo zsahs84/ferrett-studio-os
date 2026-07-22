@@ -1,7 +1,9 @@
 // FERRETT_STUDIO_OS service worker
 // Bump this version string any time index.html (or any cached asset) changes,
 // so returning clients pick up the new copy instead of a stale cache.
-const CACHE_VERSION = 'ferrett-os-v42';
+// Keep the number in sync with window.APP_VERSION at the top of index.html —
+// one version number for both, not two drifting counters.
+const CACHE_VERSION = 'ferrett-os-v43';
 
 const APP_SHELL = [
   './',

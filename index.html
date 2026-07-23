@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v48';
+window.APP_VERSION = 'v49';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5734,39 +5734,52 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
   const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#00FF88'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'SOLO':['S','#FFA05C'], 'DROP':['D','#FFD60A'], 'OUTRO':['◆','#FF5A5A'] };
-  // fallback bar length per tag, only used when a pasted section header has no lines under it —
-  // mirrors ARR_TYPES in the Arrangement Timeline
-  const TAG_DEFAULT_BARS={ INTRO:4, VERSE:16, PRE:4, CHORUS:8, HOOK:8, BRIDGE:8, SOLO:8, DROP:8, OUTRO:4 };
+  // Derives an ordered arrangement section list straight from the CURRENT lyric lines — this is the
+  // single source of truth for lyrics->arrangement sync, called both at initial paste and live on
+  // every subsequent edit (see saveLyr below). A maximal run of consecutive lines sharing the same
+  // tag becomes one section (bars = lines in that run, one bar per line — the standard hip-hop
+  // convention); an untagged line breaks a run without creating a section of its own. Repeated tags
+  // get auto-numbered in order ("Verse 1", "Verse 2", ...); a tag used only once stays unnumbered.
+  function sectionsFromLines(lines){
+    const sections=[]; let current=null; let currentTag=null;
+    lines.forEach(ln=>{
+      const tag=ln.tag||'';
+      if(tag && tag===currentTag){ current.bars++; }
+      else if(tag){ current={ name: tag.charAt(0)+tag.slice(1).toLowerCase(), bars:1, _tag:tag }; sections.push(current); currentTag=tag; }
+      else { currentTag=null; current=null; }
+    });
+    const countByTag={}; sections.forEach(s=>{ countByTag[s._tag]=(countByTag[s._tag]||0)+1; });
+    const seen={};
+    sections.forEach(s=>{ if(countByTag[s._tag]>1){ seen[s._tag]=(seen[s._tag]||0)+1; s.name+=' '+seen[s._tag]; } delete s._tag; });
+    return sections;
+  }
   // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]")
   // into per-line {text,tag} pairs — every non-blank line under a header inherits that header's tag,
-  // including parenthetical ad-libs — plus an ordered section list that can be handed straight to the
-  // Arrangement Timeline. Bars per section = lines counted under that header (one bar per lyric line,
-  // the standard hip-hop convention), so the arrangement always matches what was actually pasted; a
-  // header with nothing under it falls back to TAG_DEFAULT_BARS. A numeral after the tag name
-  // ("Verse 1") is stripped for tag matching but kept in the section's display name.
+  // including parenthetical ad-libs. The numeral in the header itself is not kept (sectionsFromLines
+  // renumbers repeated tags from the actual line order), so structure stays correct even after later
+  // edits reshuffle things.
   function parseTaggedSongText(raw){
     const rawLines=(raw||'').split(/\r?\n/);
-    const lines=[]; const rawSections=[]; // {name, tag, bars}
-    let currentTag=''; let current=null;
+    const lines=[]; let currentTag='';
     for(const rl of rawLines){
       const trimmed=rl.trim();
       if(!trimmed) continue;
       const m=trimmed.match(/^\[([A-Za-z]+)(\s+\d+)?\]$/);
-      if(m){
-        const base=m[1].toUpperCase();
-        currentTag = TAGS[base] ? base : '';
-        const label = base.charAt(0)+base.slice(1).toLowerCase()+(m[2]||'');
-        current={ name:label, tag:base, bars:0 };
-        rawSections.push(current);
-        continue;
-      }
+      if(m){ const base=m[1].toUpperCase(); currentTag = TAGS[base] ? base : ''; continue; }
       lines.push({ text:trimmed, tag:currentTag });
-      if(current) current.bars++;
     }
-    const sections=rawSections.map(s=>({ name:s.name, bars: s.bars || TAG_DEFAULT_BARS[s.tag] || 4 }));
-    return { lines, sections };
+    return { lines, sections: sectionsFromLines(lines) };
   }
   window.parseTaggedSongText = parseTaggedSongText;
+  // Re-derives and re-attaches a song's arrangement from its linked sheet's current lines — called
+  // after every lyric edit (see saveLyr) so "cross editable" holds: retag a line, delete/add lines,
+  // or reorder them, and the arrangement updates live to match. No-ops when nothing changed (cheap
+  // guard so typing plain lyric text, which doesn't affect tags/line-count, doesn't churn re-renders).
+  function rebuildArrangementFromLyrics(sheet){
+    if(!sheet || sheet.songId==null) return;
+    const sections=sectionsFromLines(sheet.lines);
+    if(sections.length) window.applyParsedSectionsToSong?.(sheet.songId, sections);
+  }
   let lyrState=null, lyrUndo=[];
   let lyrSelected=new Set(); // holds line object references, not indices — survives reorder/insert
   // A bare, never-typed-in default counts as "no real content" — must not be treated as data worth
@@ -5795,7 +5808,13 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     }catch(e){}
     return (window.db && window.db.lyrics) || null;
   }
-  function saveLyr(){ if (!window.db) return; window.db.lyrics = lyrState; window.saveData && window.saveData(); }
+  function saveLyr(){
+    if (!window.db) return;
+    window.db.lyrics = lyrState;
+    window.saveData && window.saveData();
+    const s = lyrState && lyrState.sheets.find(sh=>sh.id===lyrState.activeId);
+    if(s) rebuildArrangementFromLyrics(s);
+  }
   function initLyrState(){
     lyrState=loadLyr();
     if(!lyrState || !lyrState.sheets || !lyrState.sheets.length){
@@ -6217,8 +6236,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         pushUndo();
         const s=activeSheet();
         s.lines = ($('lyr-paste-replace').checked || (s.lines.length===1 && !s.lines[0].text.trim())) ? parsed.lines : s.lines.concat(parsed.lines);
-        saveLyr(); renderLyr();
-        if(s.songId!=null && parsed.sections.length) window.applyParsedSectionsToSong?.(s.songId, parsed.sections);
+        saveLyr(); renderLyr(); // saveLyr rebuilds the linked song's arrangement from these lines automatically
         $('lyr-paste-panel').classList.add('hidden'); $('lyr-paste-text').value='';
       });
       $('btn-lyr-delete-selected')?.addEventListener('click',()=>{ const s=activeSheet(); if(!lyrSelected.size) return; if(!confirm(`Delete ${lyrSelected.size} selected line(s)?`)) return; pushUndo(); s.lines=s.lines.filter(ln=>!lyrSelected.has(ln)); if(!s.lines.length) s.lines.push({text:'',tag:''}); lyrSelected.clear(); saveLyr(); renderLyr(); });
@@ -6419,19 +6437,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     renderSongBoard();
   }
   window.loadSongIntoArrWorkspace=function(id){ const song=(window.db.songBoard||[]).find(s=>s.id===id); if(song) loadSongIntoArrWorkspace(song); };
-  // Builds and attaches an arrangement straight from a parsed section list (from a pasted tagged
-  // song) — used by the paste-tagged flows on Lyrics Lab, Song Board and Arrangement Timeline so
-  // one paste can wire up a song's structure without the user rebuilding it by hand.
+  // Builds and attaches an arrangement straight from a section list — used both by the paste-tagged
+  // flows (initial build) and by the live lyrics->arrangement sync (rebuildArrangementFromLyrics,
+  // called on every lyric edit) so a song's structure always tracks its lyric tags. Preserves the
+  // song's existing bpm rather than resetting it, and no-ops when nothing actually changed so typing
+  // plain lyric text — which doesn't affect line count or tags — doesn't churn a save/re-render.
   window.applyParsedSectionsToSong=function(songId, sections){
     if(!sections || !sections.length) return;
     const song=(window.db.songBoard||[]).find(s=>s.id===songId);
     if(!song) return;
-    const bpm=90, secPerBar=4*(60/bpm);
-    song.arrangement={ bpm, sections: sections.map(s=>({name:s.name,bars:s.bars})) };
-    song.length=Math.round(sections.reduce((a,s)=>a+s.bars,0)*secPerBar);
+    const bpm=(song.arrangement&&song.arrangement.bpm)||90, secPerBar=4*(60/bpm);
+    const newSections=sections.map(s=>({name:s.name,bars:s.bars}));
+    if(song.arrangement && song.arrangement.bpm===bpm && JSON.stringify(song.arrangement.sections)===JSON.stringify(newSections)) return;
+    song.arrangement={ bpm, sections: newSections };
+    song.length=Math.round(newSections.reduce((a,s)=>a+s.bars,0)*secPerBar);
     window.saveData();
     if(arrData && arrData.attachedSongId===songId){
-      arrData.bpm=bpm; arrData.sections=JSON.parse(JSON.stringify(song.arrangement.sections));
+      arrData.bpm=bpm; arrData.sections=JSON.parse(JSON.stringify(newSections));
       const bpmEl=$('arr-bpm'); if(bpmEl) bpmEl.value=bpm;
       renderArr();
     }
@@ -6590,8 +6612,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const parsed=window.parseTaggedSongText?.(raw);
         if(!parsed || !parsed.lines.length) return;
         const song=(window.db.songBoard||[]).find(s=>s.id===id);
-        if(parsed.sections.length) window.applyParsedSectionsToSong(id, parsed.sections);
-        window.lyrLoadParsedLines?.(id, song?song.title:'', parsed.lines);
+        window.lyrLoadParsedLines?.(id, song?song.title:'', parsed.lines); // this links the sheet and rebuilds the song's arrangement from the parsed lines
         $('arr-paste-panel').classList.add('hidden'); $('arr-paste-text').value='';
       });
       if(!arrData) arrData=loadArr();
@@ -6621,8 +6642,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const song={ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:'', length:null, status:'lyrics' };
         window.db.songBoard.push(song);
         window.saveData();
-        if(parsed.sections.length) window.applyParsedSectionsToSong(song.id, parsed.sections);
-        window.lyrLoadParsedLines?.(song.id, title, parsed.lines);
+        window.lyrLoadParsedLines?.(song.id, title, parsed.lines); // links the sheet and builds the arrangement from the parsed lines
         t.value=''; $('songboard-note').value=''; $('songboard-len').value='';
         renderSongBoard(); populateArrSongSelect(); populateSetlistTracks();
         $('songboard-paste-panel').classList.add('hidden'); $('songboard-paste-text').value='';

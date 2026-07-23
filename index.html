@@ -6931,7 +6931,21 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       }
     }
   }
-  const SPECTRUM_BANDS = [['Sub',20,60],['Bass',60,250],['Low-Mid',250,500],['Mid',500,2000],['Upper-Mid',2000,4000],['Presence',4000,8000],['Air',8000,20000]];
+  // [shortLabel (chart axis), fullLabel (used in flag text), lowHz, highHz]
+  const SPECTRUM_BANDS = [
+    ['Sub','Sub (20-60Hz)',20,60],
+    ['Bass','Bass (60-100Hz)',60,100],
+    ['U.Bass','Upper Bass (100-200Hz)',100,200],
+    ['Boxy','Boxy (200-350Hz)',200,350],
+    ['Mud','Mud (350-500Hz)',350,500],
+    ['L.Mid','Low-Mid (500-800Hz)',500,800],
+    ['Mid','Mid (800Hz-1.2kHz)',800,1200],
+    ['U.Mid','Upper-Mid (1.2-2.5kHz)',1200,2500],
+    ['Pres','Presence (2.5-4kHz)',2500,4000],
+    ['Harsh','Harshness (4-6.5kHz)',4000,6500],
+    ['Bril','Brilliance (6.5-10kHz)',6500,10000],
+    ['Air','Air (10-20kHz)',10000,20000]
+  ];
   function computeSpectrum(audioBuffer){
     const sr = audioBuffer.sampleRate, numCh = audioBuffer.numberOfChannels;
     const fftSize = 4096, hop = fftSize/2;
@@ -6947,13 +6961,43 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       fftInPlace(re, im);
       for (let bin=1; bin<fftSize/2; bin++){
         const freq = bin*sr/fftSize, mag = re[bin]*re[bin]+im[bin]*im[bin];
-        for (let b=0;b<SPECTRUM_BANDS.length;b++){ if (freq>=SPECTRUM_BANDS[b][1] && freq<SPECTRUM_BANDS[b][2]){ bandEnergy[b]+=mag; break; } }
+        for (let b=0;b<SPECTRUM_BANDS.length;b++){ if (freq>=SPECTRUM_BANDS[b][2] && freq<SPECTRUM_BANDS[b][3]){ bandEnergy[b]+=mag; break; } }
       }
       frames++;
     }
-    if (!frames) return SPECTRUM_BANDS.map(b=>({ name:b[0], db:-100 }));
+    if (!frames) return SPECTRUM_BANDS.map(b=>({ name:b[0], fullName:b[1], db:-100 }));
     const maxE = Math.max(...bandEnergy, 1e-12);
-    return SPECTRUM_BANDS.map((b,i)=>({ name:b[0], db: 10*Math.log10(Math.max(bandEnergy[i],1e-12)/maxE) }));
+    return SPECTRUM_BANDS.map((b,i)=>({ name:b[0], fullName:b[1], db: 10*Math.log10(Math.max(bandEnergy[i],1e-12)/maxE) }));
+  }
+
+  // ============================================================
+  // BAND-IMBALANCE FLAGS — plain threshold comparisons against common mixing terminology.
+  // These are transparent rules of thumb, not a certified standard or a judgment on the mix —
+  // every flag shows the actual dB delta that triggered it so it's auditable, not a black box.
+  // ============================================================
+  const FLAG_RULES = [
+    { shorts:['Boxy'],        label:'Boxy buildup',       sev:'warn', dir:'over',  thresh:6,  tip:'can sound boxy/honky' },
+    { shorts:['Mud'],         label:'Mud buildup',        sev:'warn', dir:'over',  thresh:6,  tip:'classic mud/muffled buildup' },
+    { shorts:['Harsh'],       label:'Possible harshness', sev:'warn', dir:'over',  thresh:6,  tip:'can read as harsh or sibilant' },
+    { shorts:['Bass','U.Bass'], label:'Bass-heavy',       sev:'info', dir:'over',  thresh:8,  tip:'can sound boomy, especially on smaller speakers' },
+    { shorts:['Sub','Bass'],  label:'Light low end',      sev:'info', dir:'under', thresh:10, tip:'may sound thin on full-range systems' },
+    { shorts:['Bril','Air'],  label:'Rolled-off highs',   sev:'info', dir:'under', thresh:10, tip:'mix may sound dark/dull' }
+  ];
+  function computeFlags(spectrum){
+    const get = (short) => { const b = spectrum.find(x=>x.name===short); return b ? b.db : null; };
+    const meanExcluding = (excl) => { const vals = spectrum.filter(b=>!excl.includes(b.name)).map(b=>b.db); return vals.length ? vals.reduce((a,c)=>a+c,0)/vals.length : null; };
+    const flags = [];
+    for (const r of FLAG_RULES){
+      const bandVals = r.shorts.map(get).filter(v=>v!=null); if (!bandVals.length) continue;
+      const bandAvg = bandVals.reduce((a,b)=>a+b,0)/bandVals.length;
+      const rest = meanExcluding(r.shorts); if (rest==null) continue;
+      const delta = bandAvg - rest;
+      const desc = r.shorts.map(s=>{ const b=SPECTRUM_BANDS.find(x=>x[0]===s); return b?b[1]:s; }).join(' + ');
+      if (r.dir==='over' && delta > r.thresh) flags.push({ label:r.label, sev:r.sev, detail:`${desc} is running ${delta.toFixed(1)}dB above the rest of the spectrum — ${r.tip}.` });
+      if (r.dir==='under' && -delta > r.thresh) flags.push({ label:r.label, sev:r.sev, detail:`${desc} is running ${(-delta).toFixed(1)}dB below the rest of the spectrum — ${r.tip}.` });
+    }
+    if (!flags.length) flags.push({ label:'No obvious band imbalances', sev:'ok', detail:'No single region stands out from the rest by more than a rule-of-thumb threshold — not proof the mix is good, just that nothing here jumps out.' });
+    return flags;
   }
 
   // ============================================================
@@ -6976,12 +7020,15 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function fmtDb(v){ return (v!=null && isFinite(v)) ? v.toFixed(1)+' dBTP' : '—'; }
   function fmtDur(s){ const m=Math.floor(s/60), sec=Math.round(s%60); return `${m}:${String(sec).padStart(2,'0')}`; }
 
+  const FLAG_SEV_STYLE = { warn:{color:'#FFD60A',icon:'⚠'}, info:{color:'#00E5FF',icon:'●'}, ok:{color:'#00FF88',icon:'✓'} };
   function renderReport(label, color, r){
     const phaseTxt = r.phase==null ? (r.channels<2 ? 'mono file' : 'n/a (silent)') : r.phase.toFixed(2);
     const phasePct = r.phase==null ? 50 : ((r.phase+1)/2*100);
     const phaseWarn = r.phase!=null && r.phase < 0.2;
     const drTxt = r.dr!=null ? 'DR'+Math.round(r.dr) : '—';
     const truePeakOver = isFinite(r.truePeak) && r.truePeak > -1;
+    const flags = computeFlags(r.spectrum);
+    const flagsHtml = flags.map(f => { const s = FLAG_SEV_STYLE[f.sev]; return `<div class="text-[9px] leading-relaxed mb-1"><span class="font-bold" style="color:${s.color}">${s.icon} ${f.label}:</span> <span class="text-[#E2E8F0]/45">${f.detail}</span></div>`; }).join('');
     return `<div class="card" style="border-color:${color}30;">
       <div class="flex items-center justify-between mb-2 border-b pb-2" style="border-color:${color}20;">
         <h4 class="text-[11px] font-bold tracking-widest truncate pr-2" style="color:${color}">${label}</h4>
@@ -7000,6 +7047,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         <div class="absolute top-0 bottom-0 w-1.5 rounded" style="left:calc(${phasePct}% - 3px);background:${phaseWarn?'#FF5C5C':color};"></div>
       </div>
       <div class="flex justify-between text-[7px] text-white/25 mt-0.5"><span>-1 out of phase</span><span>0</span><span>+1 mono-safe</span></div>
+      <div class="mt-3 pt-3 border-t" style="border-color:${color}14;">${flagsHtml}</div>
     </div>`;
   }
 

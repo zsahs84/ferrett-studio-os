@@ -1265,6 +1265,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div class="flex items-center gap-1.5"><span class="text-[8px] text-[#00E5FF]/60 tracking-widest">RATE</span><input type="range" id="lyr-read-rate" min="60" max="140" value="95" class="w-16 accent-[#00E5FF]"></div>
                 <button id="btn-lyr-spark" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line">✨ SPARK</button>
                 <span id="lyr-spark-out" class="text-[11px] text-[#FFD60A] font-bold italic"></span>
+                <button id="btn-lyr-copy" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the whole lyric sheet as plain text">📋 COPY</button>
             </div>
         </div>
 
@@ -2555,8 +2556,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
             const option = document.createElement('option'); option.value = genre; datalist.appendChild(option);
         });
-        if(genres.length > 0 && (!window.currentCookbookGenre || !genres.includes(window.currentCookbookGenre))) window.selectGenre(genres[0]);
+        if(genres.length > 0 && (!window.currentCookbookGenre || !genres.includes(window.currentCookbookGenre))) window.renderCookbookCover();
         else if(window.currentCookbookGenre) window.selectGenre(window.currentCookbookGenre);
+    };
+
+    window.renderCookbookCover = () => {
+        const disp = document.getElementById('recipe-display'); if (!disp) return;
+        document.getElementById('genre-info-bar')?.classList.add('hidden');
+        const genres = [...new Set((window.db.cookbook||[]).map(r=>r.genre))];
+        const total = (window.db.cookbook||[]).length;
+        disp.innerHTML = `<div class="animate-fade-in flex flex-col items-center justify-center text-center py-16 px-4 min-h-[400px]">
+            <div class="text-[9px] tracking-[0.35em] text-[#00FF88]/40 mb-4 uppercase">Ferrett_Studio_OS // Cookbook</div>
+            <h1 class="text-[34px] md:text-[46px] font-black tracking-widest text-[#00FF88] leading-tight mb-3" style="text-shadow:0 0 24px rgba(0,255,136,0.45), 0 0 60px rgba(0,255,136,0.15);">THE ULTIMATE<br>RECIPE BOOK</h1>
+            <div class="w-28 h-[2px] bg-gradient-to-r from-transparent via-[#00FF88]/70 to-transparent my-5"></div>
+            <div class="text-[10px] tracking-widest text-[#A7DCC3]/60 font-mono mb-8">${genres.length} GENRES &nbsp;·&nbsp; ${total} RECIPES &nbsp;·&nbsp; YOUR SIGNAL CHAINS, YOUR RULES</div>
+            <p class="text-[12px] text-[#E2E8F0]/45 max-w-sm leading-relaxed mb-8">Pick a vibe on the left to dive in — or let the book pick for you.</p>
+            <div class="flex flex-wrap gap-3 justify-center">
+                <button id="btn-cover-surprise" type="button" class="btn-ferrett px-5 py-2.5 text-[11px]">🎲 SURPRISE ME</button>
+                <button id="btn-cover-start" type="button" class="btn-ferrett-green px-5 py-2.5 text-[11px]">📖 START READING</button>
+            </div>
+        </div>`;
+        document.getElementById('btn-cover-surprise')?.addEventListener('click', () => document.getElementById('btn-surprise-cookbook')?.click());
+        document.getElementById('btn-cover-start')?.addEventListener('click', () => document.getElementById('genre-menu')?.querySelector('button')?.click());
     };
 
     window.currentCookbookGenre = null; window.currentCookbookId = null;
@@ -6094,6 +6115,13 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       // analyze tools
       $('btn-lyr-read')?.addEventListener('click',toggleRead);
       $('btn-lyr-spark')?.addEventListener('click',spark);
+      $('btn-lyr-copy')?.addEventListener('click',()=>{
+        const text=window.lyrGetActiveText?window.lyrGetActiveText():''; if(!text.trim()) return;
+        const done=()=>{ const b=$('btn-lyr-copy'); if(b){ const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); } };
+        const fallback=()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); done(); };
+        if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
+        else fallback();
+      });
       renderLyr();
     }
     // beat

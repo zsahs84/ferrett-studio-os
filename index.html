@@ -5676,21 +5676,31 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'OUTRO':['◆','#FF5A5A'] };
   let lyrState=null, lyrUndo=[];
   let lyrSelected=new Set(); // holds line object references, not indices — survives reorder/insert
+  // A bare, never-typed-in default counts as "no real content" — must not be treated as data worth
+  // migrating/pushing (a device that only ever glanced at an empty Lyrics tab shouldn't be able to
+  // stomp a different device's real lyrics on next sync).
+  function lyrStateHasContent(state){
+    if (!state || !Array.isArray(state.sheets) || !state.sheets.length) return false;
+    if (state.sheets.length > 1) return true;
+    const s = state.sheets[0];
+    if (s.title && s.title.trim() && s.title.trim().toLowerCase() !== 'untitled') return true;
+    return (s.lines||[]).some(l => (l.text||'').trim());
+  }
   function loadLyr(){
-    if (window.db && window.db.lyrics && window.db.lyrics.sheets && window.db.lyrics.sheets.length) return window.db.lyrics;
+    if (window.db && lyrStateHasContent(window.db.lyrics)) return window.db.lyrics;
     // One-time migration: earlier builds saved lyrics to this device-local-only key, never synced to Drive/backup.
     try{
       const legacy = localStorage.getItem(LYR_KEY);
       if (legacy){
         const parsed = JSON.parse(legacy);
-        if (parsed && parsed.sheets && parsed.sheets.length && window.db){
+        if (lyrStateHasContent(parsed) && window.db){
           window.db.lyrics = parsed;
           window.saveData && window.saveData();
           return parsed;
         }
       }
     }catch(e){}
-    return null;
+    return (window.db && window.db.lyrics) || null;
   }
   function saveLyr(){ if (!window.db) return; window.db.lyrics = lyrState; window.saveData && window.saveData(); }
   function initLyrState(){

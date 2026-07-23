@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v45';
+window.APP_VERSION = 'v46';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1246,6 +1246,9 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <input type="text" id="lyr-title" class="bg-transparent border-b border-[#FF88FF40] text-[#FF88FF] font-bold text-[15px] mb-4 px-2 py-1.5 focus:outline-none w-full" placeholder="Name this song…">
+
+        <!-- structure strip: shows the linked Song Board song's arrangement, if any -->
+        <div id="lyr-structure-strip" class="hidden flex-wrap items-center gap-1.5 mb-3"></div>
 
         <!-- toolbar -->
         <div class="flex flex-wrap items-center gap-2 mb-4">
@@ -5745,7 +5748,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const wrap=$('lyr-sheet-tabs'); if(!wrap) return;
     wrap.innerHTML=lyrState.sheets.map(s=>{ const on=s.id===lyrState.activeId; return `<button class="lyr-tab shrink-0 text-[10px] font-bold tracking-widest px-3 py-1.5 rounded border transition-colors ${on?'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]':'border-[#FF88FF20] text-[#FF88FF]/50 hover:text-[#FF88FF]'}" data-id="${s.id}">${(s.title||'Untitled').slice(0,18)}${lyrState.sheets.length>1?` <span class="lyr-tab-x text-white/30 hover:text-[#FF5A5A] ml-1" data-del="${s.id}">×</span>`:''}</button>`; }).join('');
     wrap.querySelectorAll('.lyr-tab').forEach(b=>b.addEventListener('click',(e)=>{ if(e.target.classList.contains('lyr-tab-x')) return; lyrState.activeId=parseInt(b.dataset.id,10); lyrUndo=[]; lyrSelected.clear(); saveLyr(); renderLyr(); }));
-    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; saveLyr(); renderLyr(); }));
+    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; const orphan=(window.db&&window.db.songBoard||[]).find(s=>s.lyricsSheetId===id); if(orphan) orphan.lyricsSheetId=null; saveLyr(); renderLyr(); }));
   }
   function renderLines(){
     const box=$('lyr-lines'); if(!box) return; const sheet=activeSheet(); const showSyl=$('lyr-show-syl')?.checked;
@@ -5799,7 +5802,20 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const avg=nonEmpty.length?(totSyl/nonEmpty.length).toFixed(1):'0';
     const m=$('lyr-meta'); if(m) m.textContent=`${nonEmpty.length} LINES · ${totSyl} SYLLABLES · ${avg} AVG/LINE`;
   }
-  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); }
+  function renderStructureStrip(){
+    const el=$('lyr-structure-strip'); if(!el) return;
+    const sheet=activeSheet();
+    const songId=sheet.songId;
+    const song=songId!=null ? (window.db&&window.db.songBoard||[]).find(x=>x.id===songId) : null;
+    const sections=song&&song.arrangement&&song.arrangement.sections;
+    if(!song || !sections || !sections.length){ el.classList.add('hidden'); el.classList.remove('flex'); el.innerHTML=''; return; }
+    el.classList.remove('hidden'); el.classList.add('flex');
+    el.innerHTML = `<span class="text-[9px] text-white/30 tracking-widest mr-1">🎬 STRUCTURE:</span>`
+      + sections.map(s=>`<span class="text-[9px] font-bold px-2 py-0.5 rounded border border-[#B18CFF40] text-[#B18CFF]">${s.name}</span>`).join('')
+      + `<button id="btn-lyr-insert-structure" type="button" class="text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#B18CFF60] text-[#B18CFF] hover:bg-[#B18CFF20] ml-1">+ INSERT AS HEADERS</button>`;
+    $('btn-lyr-insert-structure')?.addEventListener('click',()=>{ window.lyrAddLines(sections.map(s=>`[${s.name}]`)); });
+  }
+  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); renderStructureStrip(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); }
 
   // ---- built-in rhyme bank ----
   const RHYME_BANK='time rhyme climb prime mind find grind line shine sign design fire desire higher wire light night fight right sight tight bright flight sky high fly try eye cry die lie why day way say play stay away pray grey fade made way pain rain chain brain gain train plane game name flame fame blame shame ground sound found around down town crown clown gold cold bold soul road load code mode flow low grow show know glow slow snow soul roll control goal whole heart start apart part smart dark spark heavy ready steady heart hard guard hold gold fold told sold cold night alright tonight world word heard bird hurt work dirt love above enough tough rough stuff stay pay away today gun run fun done son one gone alone zone throne home roam dome smoke broke woke hope dope rope scope real feel deal steel steal wheel money honey funny sunny run done street beat heat sweet complete defeat repeat mine fine wine divine live give real deal fear tear near clear year hear dream team scheme cream king ring thing bring sing wing swing sting'.split(' ');
@@ -5852,6 +5868,22 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const b=$('btn-lyr-totrack'); if(b){ const o=b.textContent; b.textContent='✓ SENT'; setTimeout(()=>b.textContent=o,1400); }
   }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
+  // Opens (or creates) the lyric sheet linked to a Song Board song, so "Open in Lyrics" on a
+  // song card can jump straight to that song's own sheet instead of whatever was last active.
+  window.lyrOpenSheetForSong=(songId,songTitle)=>{
+    if(!lyrState) initLyrState();
+    const song=(window.db&&window.db.songBoard||[]).find(s=>s.id===songId);
+    let sheet = song && song.lyricsSheetId!=null ? lyrState.sheets.find(sh=>sh.id===song.lyricsSheetId) : null;
+    if(!sheet){
+      sheet={ id:Date.now(), title:(songTitle||'Untitled'), lines:[{text:'',tag:''}] };
+      lyrState.sheets.push(sheet);
+      if(song) song.lyricsSheetId=sheet.id;
+    }
+    sheet.songId=songId;
+    lyrState.activeId=sheet.id;
+    lyrUndo=[]; lyrSelected.clear();
+    saveLyr(); renderLyr();
+  };
   // Drops the in-memory cache so the next refreshLyrics() re-reads window.db.lyrics from scratch —
   // needed after a Drive pull lands newer lyrics than whatever's already cached in this tab session.
   window.lyrForceReload=()=>{ lyrState=null; };
@@ -6237,7 +6269,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
               <input type="text" class="song-len-input w-11 shrink-0 bg-transparent text-[8px] text-white/40 font-mono text-right focus:outline-none border-b border-transparent focus:border-white/20" value="${s.length?fmtT(s.length):''}" placeholder="m:ss" data-song-id="${s.id}" title="${s.arrangement?'Synced from Arrangement Timeline':'Song length (optional)'}"${s.arrangement?' readonly':''}>
             </div>
             <textarea class="song-note-input w-full bg-transparent text-[8px] text-white/40 focus:outline-none resize-none leading-tight" rows="2" placeholder="notes…" data-song-id="${s.id}">${escSongText(s.note||'')}</textarea>
-            <button type="button" class="song-arr-btn w-full mt-1 text-[8px] text-left ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
+            <div class="flex gap-1 mt-1">
+              <button type="button" class="song-arr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
+              <button type="button" class="song-lyr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.lyricsSheetId!=null?'text-[#FF88FF]':'text-white/25'} hover:text-[#FF88FF]" data-song-id="${s.id}">📝 ${s.lyricsSheetId!=null?'Open lyrics':'New lyrics'}</button>
+            </div>
           </div>`;
         }).join('')}</div>
       </div>`;
@@ -6456,15 +6491,22 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         window.db.songBoard = window.db.songBoard || [];
         window.db.songBoard.push({ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:(n.value||'').trim(), length:parseSongLen(l.value), status:'lyrics' });
         t.value=''; n.value=''; l.value='';
-        window.saveData(); renderSongBoard();
+        window.saveData(); renderSongBoard(); populateArrSongSelect(); populateSetlistTracks();
       });
       $('songboard-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-songboard-add')?.click(); });
       const sboard=$('songboard-board');
       sboard.addEventListener('click',(e)=>{
         const del=e.target.closest('.btn-del-song');
-        if(del){ const id=parseInt(del.dataset.songId,10); window.db.songBoard=(window.db.songBoard||[]).filter(s=>s.id!==id); window.saveData(); renderSongBoard(); return; }
+        if(del){ const id=parseInt(del.dataset.songId,10); window.db.songBoard=(window.db.songBoard||[]).filter(s=>s.id!==id); window.saveData(); renderSongBoard(); populateArrSongSelect(); updateArrAttachedLabel(); populateSetlistTracks(); return; }
         const arrBtn=e.target.closest('.song-arr-btn');
-        if(arrBtn){ window.loadSongIntoArrWorkspace(parseInt(arrBtn.dataset.songId,10)); }
+        if(arrBtn){ window.loadSongIntoArrWorkspace(parseInt(arrBtn.dataset.songId,10)); return; }
+        const lyrBtn=e.target.closest('.song-lyr-btn');
+        if(lyrBtn){
+          const id=parseInt(lyrBtn.dataset.songId,10);
+          const song=(window.db.songBoard||[]).find(x=>x.id===id);
+          window.lyrOpenSheetForSong?.(id, song?song.title:'');
+          $('nav-lyrics')?.click();
+        }
       });
       sboard.addEventListener('dragstart',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c){ dragSongId=parseInt(c.dataset.songId,10); e.dataTransfer.effectAllowed='move'; c.style.opacity='0.4'; } });
       sboard.addEventListener('dragend',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c) c.style.opacity=''; });

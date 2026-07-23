@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v43';
+window.APP_VERSION = 'v44';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -883,10 +883,11 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#00E5FF20] pb-2">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🗂️ SONG BOARD</h4>
             </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Where each song actually is right now — drag a card to the next stage as it moves. Just a title and a note, nothing to do with Channel Settings.</p>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Where each song actually is right now — drag the ⠿ handle to move a card to the next stage. Click a card's title, length, or note to edit it. Nothing to do with Channel Settings.</p>
             <div class="flex flex-wrap gap-2 mb-4">
                 <input type="text" id="songboard-title" placeholder="song title…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="songboard-note" placeholder="note (optional)…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="text" id="songboard-len" placeholder="m:ss (optional)" class="w-24 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <button id="btn-songboard-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
             </div>
             <div id="songboard-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
@@ -917,7 +918,7 @@ main { background: rgba(5,8,7,0.72); }
                     <input type="text" id="set-len" placeholder="3:30" class="w-16 bg-black/50 border border-[#00FF88]/25 rounded text-center text-[12px] text-[#00FF88] px-2 py-1.5 focus:outline-none">
                     <button id="btn-set-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD</button>
                 </div>
-                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Channel Settings</option></select>
+                <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Song Board</option></select>
                 <div id="set-list" class="space-y-1 mb-2"></div>
                 <div id="set-total" class="text-[11px] font-mono text-[#00FF88] font-bold"></div>
             </div>
@@ -6210,6 +6211,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // ==================== SONG BOARD (kanban of song titles + a note — separate from Channel Settings) ====================
   const SONG_STATUSES=[['lyrics','Just Lyrics','#B18CFF'],['beat','Just a Beat','#FFA05C'],['tracking','Tracking','#FFD60A'],['mixing','Mixing','#00E5FF'],['done','Done','#00FF88']];
   let dragSongId=null;
+  function escSongText(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function parseSongLen(str){ str=(str||'').trim(); if(!str) return null; if(/^\d+:\d{1,2}$/.test(str)){ const [m,se]=str.split(':'); return (+m)*60+(+se); } if(/^\d+$/.test(str)) return (+str)*60; return null; }
   function renderSongBoard(){
     const board=$('songboard-board'); if(!board) return;
     window.db.songBoard = window.db.songBoard || [];
@@ -6218,9 +6221,21 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const items=songs.filter(s=>(s.status||'lyrics')===key);
       return `<div class="song-col rounded border bg-black/30 p-2" data-status="${key}" style="border-color:${color}30;">
         <div class="text-[9px] font-bold tracking-widest uppercase mb-2 flex items-center justify-between" style="color:${color};">${label}<span class="opacity-50">${items.length}</span></div>
-        <div class="space-y-2 min-h-[48px]">${items.map(s=>`<div class="song-card-mini rounded border px-2 py-1.5 cursor-grab bg-[rgba(5,8,7,0.9)] relative group" draggable="true" data-song-id="${s.id}" style="border-color:${color}40;"><button data-song-id="${s.id}" class="btn-del-song absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#FF2A2A] text-white text-[9px] font-bold items-center justify-center cursor-pointer hidden group-hover:flex">×</button><div class="text-[10px] font-bold text-white truncate pr-3">${(s.title||'Untitled').replace(/</g,'')}</div>${s.note ? `<div class="text-[8px] text-white/40 truncate">${s.note.replace(/</g,'')}</div>` : ''}</div>`).join('')}</div>
+        <div class="space-y-2 min-h-[48px]">${items.map(s=>`
+          <div class="song-card-mini rounded border px-2 py-1.5 bg-[rgba(5,8,7,0.9)] relative group" data-song-id="${s.id}" style="border-color:${color}40;">
+            <button data-song-id="${s.id}" class="btn-del-song absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#FF2A2A] text-white text-[9px] font-bold items-center justify-center cursor-pointer hidden group-hover:flex">×</button>
+            <div class="flex items-center gap-1 mb-1">
+              <span class="song-drag-handle cursor-grab active:cursor-grabbing text-white/25 hover:text-white/60 text-[11px] select-none shrink-0" draggable="true" data-song-id="${s.id}" title="Drag to move stage">⠿</span>
+              <input type="text" class="song-title-input flex-1 min-w-0 bg-transparent text-[10px] font-bold text-white focus:outline-none border-b border-transparent focus:border-white/20 truncate" value="${escSongText(s.title||'').replace(/"/g,'&quot;')}" placeholder="Untitled" data-song-id="${s.id}">
+              <input type="text" class="song-len-input w-11 shrink-0 bg-transparent text-[8px] text-white/40 font-mono text-right focus:outline-none border-b border-transparent focus:border-white/20" value="${s.length?fmtT(s.length):''}" placeholder="m:ss" data-song-id="${s.id}" title="Song length (optional)">
+            </div>
+            <textarea class="song-note-input w-full bg-transparent text-[8px] text-white/40 focus:outline-none resize-none leading-tight" rows="2" placeholder="notes…" data-song-id="${s.id}">${escSongText(s.note||'')}</textarea>
+          </div>`).join('')}</div>
       </div>`;
     }).join('');
+    board.querySelectorAll('.song-title-input').forEach(inp=>inp.addEventListener('input',()=>{ const s=songs.find(x=>x.id===parseInt(inp.dataset.songId,10)); if(s){ s.title=inp.value; window.saveData(); } }));
+    board.querySelectorAll('.song-note-input').forEach(ta=>ta.addEventListener('input',()=>{ const s=songs.find(x=>x.id===parseInt(ta.dataset.songId,10)); if(s){ s.note=ta.value; window.saveData(); } }));
+    board.querySelectorAll('.song-len-input').forEach(inp=>inp.addEventListener('change',()=>{ const s=songs.find(x=>x.id===parseInt(inp.dataset.songId,10)); if(s){ s.length=parseSongLen(inp.value); inp.value=s.length?fmtT(s.length):''; window.saveData(); } }));
   }
   window.renderSongBoard = renderSongBoard;
 
@@ -6264,7 +6279,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     list.querySelectorAll('.set-dn').forEach(b=>b.addEventListener('click',()=>{ const i=+b.dataset.i; if(i<setData.length-1){ [setData[i+1],setData[i]]=[setData[i],setData[i+1]]; saveSet(); renderSet(); } }));
     saveSet();
   }
-  function populateSetlistTracks(){ const sel=$('set-from-track'); if(!sel) return; const tracks=(window.db&&window.db.tracks)||[]; sel.innerHTML='<option value="">…or pull from Channel Settings</option>'+tracks.map(t=>`<option value="${(t.inst||'Track').replace(/"/g,'')}">${(t.inst||'Track').slice(0,40)}</option>`).join(''); }
+  function populateSetlistTracks(){ const sel=$('set-from-track'); if(!sel) return; const songs=(window.db&&window.db.songBoard)||[]; sel.innerHTML='<option value="">…or pull from Song Board</option>'+songs.map(s=>`<option value="${s.id}">${(s.title||'Untitled').replace(/"/g,'').slice(0,40)}${s.length?' ('+fmtT(s.length)+')':''}</option>`).join(''); }
 
   // ==================== NAME GENERATOR ====================
   const N_ADJ='Neon Velvet Broken Golden Electric Midnight Silent Crimson Hollow Wild Frozen Sacred Lonely Savage Crooked Radiant Phantom Restless Feral Molten'.split(' ');
@@ -6367,10 +6382,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if($('songboard-board')){
       renderSongBoard();
       $('btn-songboard-add')?.addEventListener('click',()=>{
-        const t=$('songboard-title'), n=$('songboard-note'); const title=(t.value||'').trim(); if(!title){ t.focus(); return; }
+        const t=$('songboard-title'), n=$('songboard-note'), l=$('songboard-len'); const title=(t.value||'').trim(); if(!title){ t.focus(); return; }
         window.db.songBoard = window.db.songBoard || [];
-        window.db.songBoard.push({ id:Date.now(), title, note:(n.value||'').trim(), status:'lyrics' });
-        t.value=''; n.value='';
+        window.db.songBoard.push({ id:Date.now(), title, note:(n.value||'').trim(), length:parseSongLen(l.value), status:'lyrics' });
+        t.value=''; n.value=''; l.value='';
         window.saveData(); renderSongBoard();
       });
       $('songboard-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-songboard-add')?.click(); });
@@ -6403,7 +6418,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       renderSet(); populateSetlistTracks();
       $('btn-set-add')?.addEventListener('click',()=>{ const t=$('set-title').value.trim(); if(!t) return; if(!setData) setData=loadSet(); setData.push({title:t,sec:parseLen($('set-len').value)}); $('set-title').value=''; $('set-len').value=''; saveSet(); renderSet(); });
       $('set-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-set-add').click(); });
-      $('set-from-track')?.addEventListener('change',(e)=>{ if(e.target.value){ if(!setData) setData=loadSet(); setData.push({title:e.target.value,sec:210}); saveSet(); renderSet(); e.target.value=''; } });
+      $('set-from-track')?.addEventListener('change',(e)=>{ if(e.target.value){ const song=(window.db.songBoard||[]).find(s=>String(s.id)===e.target.value); if(song){ if(!setData) setData=loadSet(); setData.push({title:song.title||'Untitled',sec:song.length||210}); saveSet(); renderSet(); } e.target.value=''; } });
     }
     // names
     if($('name-out')){ $('btn-name-band')?.addEventListener('click',()=>genNames('band')); $('btn-name-song')?.addEventListener('click',()=>genNames('song')); genNames('band'); }

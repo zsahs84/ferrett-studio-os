@@ -1800,6 +1800,7 @@ const defaultDb = {
     patchbayUserDefault: null,
     patchbaySaved: [],
     songBoard: [],
+    lyrics: null,
     ownedPlugins: [
         'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
         'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
@@ -1938,6 +1939,7 @@ try {
         if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
         if (parsed.songBoard) window.db.songBoard = parsed.songBoard;
         if (parsed.ownedPlugins) window.db.ownedPlugins = parsed.ownedPlugins;
+        if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
     }
     window.storageAvailable = true;
 } catch(e) {}
@@ -2074,6 +2076,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
                 if (cloudDb.songBoard) window.db.songBoard = cloudDb.songBoard;
                 if (cloudDb.ownedPlugins) window.db.ownedPlugins = cloudDb.ownedPlugins;
+                if (cloudDb.lyrics) window.db.lyrics = cloudDb.lyrics;
                 window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
         } 
@@ -2168,6 +2171,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
         if (incoming.ownedPlugins) window.db.ownedPlugins = incoming.ownedPlugins;
+        if (incoming.lyrics) window.db.lyrics = incoming.lyrics;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
         if (window.refreshAllUI) window.refreshAllUI();
@@ -4064,6 +4068,7 @@ const originalRefresh = window.refreshAllUI;
 window.refreshAllUI = () => {
     if (originalRefresh) originalRefresh();
     window.renderScripts();
+    window.lyrForceReload?.(); window.refreshLyrics?.();
 };
 
 // 4. Form Controls & Delegation
@@ -5582,7 +5587,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
       const restored=JSON.parse(new TextDecoder().decode(pt));
       if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
-      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','ownedPlugins','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','ownedPlugins','lyrics','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
       window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
     }catch(e){ alert('Wrong passphrase or corrupted file.'); }
   }
@@ -5671,8 +5676,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'OUTRO':['◆','#FF5A5A'] };
   let lyrState=null, lyrUndo=[];
   let lyrSelected=new Set(); // holds line object references, not indices — survives reorder/insert
-  function loadLyr(){ try{ const r=localStorage.getItem(LYR_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
-  function saveLyr(){ try{ localStorage.setItem(LYR_KEY, JSON.stringify(lyrState)); }catch(e){} }
+  function loadLyr(){
+    if (window.db && window.db.lyrics && window.db.lyrics.sheets && window.db.lyrics.sheets.length) return window.db.lyrics;
+    // One-time migration: earlier builds saved lyrics to this device-local-only key, never synced to Drive/backup.
+    try{
+      const legacy = localStorage.getItem(LYR_KEY);
+      if (legacy){
+        const parsed = JSON.parse(legacy);
+        if (parsed && parsed.sheets && parsed.sheets.length && window.db){
+          window.db.lyrics = parsed;
+          window.saveData && window.saveData();
+          return parsed;
+        }
+      }
+    }catch(e){}
+    return null;
+  }
+  function saveLyr(){ if (!window.db) return; window.db.lyrics = lyrState; window.saveData && window.saveData(); }
   function initLyrState(){
     lyrState=loadLyr();
     if(!lyrState || !lyrState.sheets || !lyrState.sheets.length){
@@ -5795,6 +5815,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const b=$('btn-lyr-totrack'); if(b){ const o=b.textContent; b.textContent='✓ SENT'; setTimeout(()=>b.textContent=o,1400); }
   }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
+  // Drops the in-memory cache so the next refreshLyrics() re-reads window.db.lyrics from scratch —
+  // needed after a Drive pull lands newer lyrics than whatever's already cached in this tab session.
+  window.lyrForceReload=()=>{ lyrState=null; };
   // exposed for the AI co-pilot (keeps lyrState the single source of truth)
   window.lyrGetActiveText=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };
@@ -6220,9 +6243,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   }
 
   // ==================== LYRICS: word frequency + print (read from storage) ====================
-  const LYR_KEY='ferrett_os_lyrics_v1';
   const STOP=new Set('the a an and or but of to in on at for with it its is am are was were be been i you he she we they me my your his her our their this that these those as so if then than too not no yeah oh ooh la na do dont cant im ive youre all up down out just got get gonna wanna like'.split(' '));
-  function activeLyrSheet(){ try{ const st=JSON.parse(localStorage.getItem(LYR_KEY)||'null'); if(!st) return null; return st.sheets.find(s=>s.id===st.activeId)||st.sheets[0]; }catch(e){ return null; } }
+  function activeLyrSheet(){ try{ const st=window.db&&window.db.lyrics; if(!st||!st.sheets||!st.sheets.length) return null; return st.sheets.find(s=>s.id===st.activeId)||st.sheets[0]; }catch(e){ return null; } }
   function lyrFreq(){
     const out=$('lyr-freq-out'); if(!out) return; const sheet=activeLyrSheet();
     if(!sheet){ out.innerHTML='<div class="text-[10px] text-white/25 italic">No lyrics yet.</div>'; return; }

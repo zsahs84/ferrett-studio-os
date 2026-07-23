@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v44';
+window.APP_VERSION = 'v45';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -901,6 +901,11 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Block out a song section-by-section — get each part's length and the total runtime. Drag to reorder.</p>
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+                <select id="arr-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF]/80 text-[10px] px-2 py-1.5 focus:outline-none"><option value="">— choose a song —</option></select>
+                <button id="btn-arr-attach" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF">🔗 ATTACH TO SONG</button>
+            </div>
+            <div id="arr-attached-label" class="text-[9px] text-[#B18CFF]/60 mb-2 hidden"></div>
             <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
             <div id="arr-list" class="space-y-1.5 mb-3"></div>
             <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
@@ -1258,8 +1263,8 @@ main { background: rgba(5,8,7,0.72); }
         <!-- view mode + analysis toolbar -->
         <div class="flex flex-wrap items-center gap-2 mb-3">
             <div class="flex rounded overflow-hidden border border-[#FF88FF40]">
-                <button id="btn-lyr-mode-edit" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest bg-[#FF88FF]/20 text-[#FF88FF]">EDIT</button>
-                <button id="btn-lyr-mode-analyze" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#FF88FF]/50">ANALYZE</button>
+                <button id="btn-lyr-mode-edit" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest bg-[#FF88FF]/20 text-[#FF88FF]">ORGANIZE/GENERATE</button>
+                <button id="btn-lyr-mode-analyze" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#FF88FF]/50">EDIT/ANALYZE</button>
             </div>
             <div id="lyr-analyze-tools" class="hidden flex-wrap items-center gap-2">
                 <button id="btn-lyr-read" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">🔊 READ ALOUD</button>
@@ -6221,16 +6226,20 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const items=songs.filter(s=>(s.status||'lyrics')===key);
       return `<div class="song-col rounded border bg-black/30 p-2" data-status="${key}" style="border-color:${color}30;">
         <div class="text-[9px] font-bold tracking-widest uppercase mb-2 flex items-center justify-between" style="color:${color};">${label}<span class="opacity-50">${items.length}</span></div>
-        <div class="space-y-2 min-h-[48px]">${items.map(s=>`
-          <div class="song-card-mini rounded border px-2 py-1.5 bg-[rgba(5,8,7,0.9)] relative group" data-song-id="${s.id}" style="border-color:${color}40;">
+        <div class="space-y-2 min-h-[48px]">${items.map(s=>{
+          const isActive = arrData && arrData.attachedSongId===s.id;
+          return `
+          <div class="song-card-mini rounded border px-2 py-1.5 bg-[rgba(5,8,7,0.9)] relative group" data-song-id="${s.id}" style="border-color:${isActive?'#B18CFF':color+'40'};${isActive?'box-shadow:0 0 0 1px #B18CFF80;':''}">
             <button data-song-id="${s.id}" class="btn-del-song absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#FF2A2A] text-white text-[9px] font-bold items-center justify-center cursor-pointer hidden group-hover:flex">×</button>
             <div class="flex items-center gap-1 mb-1">
               <span class="song-drag-handle cursor-grab active:cursor-grabbing text-white/25 hover:text-white/60 text-[11px] select-none shrink-0" draggable="true" data-song-id="${s.id}" title="Drag to move stage">⠿</span>
               <input type="text" class="song-title-input flex-1 min-w-0 bg-transparent text-[10px] font-bold text-white focus:outline-none border-b border-transparent focus:border-white/20 truncate" value="${escSongText(s.title||'').replace(/"/g,'&quot;')}" placeholder="Untitled" data-song-id="${s.id}">
-              <input type="text" class="song-len-input w-11 shrink-0 bg-transparent text-[8px] text-white/40 font-mono text-right focus:outline-none border-b border-transparent focus:border-white/20" value="${s.length?fmtT(s.length):''}" placeholder="m:ss" data-song-id="${s.id}" title="Song length (optional)">
+              <input type="text" class="song-len-input w-11 shrink-0 bg-transparent text-[8px] text-white/40 font-mono text-right focus:outline-none border-b border-transparent focus:border-white/20" value="${s.length?fmtT(s.length):''}" placeholder="m:ss" data-song-id="${s.id}" title="${s.arrangement?'Synced from Arrangement Timeline':'Song length (optional)'}"${s.arrangement?' readonly':''}>
             </div>
             <textarea class="song-note-input w-full bg-transparent text-[8px] text-white/40 focus:outline-none resize-none leading-tight" rows="2" placeholder="notes…" data-song-id="${s.id}">${escSongText(s.note||'')}</textarea>
-          </div>`).join('')}</div>
+            <button type="button" class="song-arr-btn w-full mt-1 text-[8px] text-left ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
+          </div>`;
+        }).join('')}</div>
       </div>`;
     }).join('');
     board.querySelectorAll('.song-title-input').forEach(inp=>inp.addEventListener('input',()=>{ const s=songs.find(x=>x.id===parseInt(inp.dataset.songId,10)); if(s){ s.title=inp.value; window.saveData(); } }));
@@ -6243,10 +6252,53 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const ARR_KEY='ferrett_os_arrange_v1';
   const ARR_TYPES=[['Intro',4,'#7AFFBF'],['Verse',16,'#00E5FF'],['Pre',4,'#FFD60A'],['Chorus',8,'#FF88FF'],['Hook',8,'#FF88FF'],['Bridge',8,'#B18CFF'],['Solo',8,'#FFD60A'],['Drop',8,'#00FF88'],['Outro',4,'#FF5A5A']];
   let arrData=null;
-  function loadArr(){ try{ const r=localStorage.getItem(ARR_KEY); if(r) return JSON.parse(r); }catch(e){} return {bpm:90,sections:[]}; }
-  function saveArr(){ try{ localStorage.setItem(ARR_KEY, JSON.stringify(arrData)); }catch(e){} }
+  function loadArr(){ try{ const r=localStorage.getItem(ARR_KEY); if(r) return JSON.parse(r); }catch(e){} return {bpm:90,sections:[],attachedSongId:null}; }
+  function saveArr(){
+    try{ localStorage.setItem(ARR_KEY, JSON.stringify(arrData)); }catch(e){}
+    const songId=arrData&&arrData.attachedSongId;
+    if(songId!=null){
+      const song=(window.db.songBoard||[]).find(s=>s.id===songId);
+      if(song){
+        song.arrangement={bpm:arrData.bpm,sections:arrData.sections};
+        const bpm=arrData.bpm||90, secPerBar=4*(60/bpm);
+        song.length=Math.round(arrData.sections.reduce((a,s)=>a+s.bars,0)*secPerBar);
+        window.saveData();
+      } else {
+        arrData.attachedSongId=null;
+      }
+    }
+  }
   function colorFor(name){ const t=ARR_TYPES.find(x=>x[0]===name); return t?t[2]:'#B18CFF'; }
   function fmtT(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m+':'+String(s).padStart(2,'0'); }
+  function populateArrSongSelect(){
+    const sel=$('arr-song-select'); if(!sel) return;
+    const songs=(window.db&&window.db.songBoard)||[];
+    sel.innerHTML='<option value="">— choose a song —</option>'+songs.map(s=>`<option value="${s.id}">${(s.title||'Untitled').replace(/"/g,'').slice(0,40)}</option>`).join('');
+    const attached=arrData&&arrData.attachedSongId;
+    if(attached!=null && songs.some(s=>s.id===attached)) sel.value=String(attached);
+  }
+  function updateArrAttachedLabel(){
+    const lbl=$('arr-attached-label'); if(!lbl) return;
+    const songId=arrData&&arrData.attachedSongId;
+    if(songId==null){ lbl.classList.add('hidden'); lbl.innerHTML=''; return; }
+    const song=(window.db.songBoard||[]).find(s=>s.id===songId);
+    if(!song){ arrData.attachedSongId=null; lbl.classList.add('hidden'); lbl.innerHTML=''; return; }
+    lbl.classList.remove('hidden');
+    lbl.innerHTML=`🔗 Editing arrangement for <b>${(song.title||'Untitled').replace(/</g,'')}</b> — edits auto-save to this song. <button id="btn-arr-unlink" type="button" class="underline hover:text-white ml-1" title="Stop editing this song's arrangement — the saved arrangement stays on the song">close</button>`;
+    $('btn-arr-unlink')?.addEventListener('click',()=>{ arrData.attachedSongId=null; saveArr(); populateArrSongSelect(); updateArrAttachedLabel(); renderSongBoard(); });
+  }
+  function loadSongIntoArrWorkspace(song){
+    arrData = song.arrangement
+      ? { bpm: song.arrangement.bpm||90, sections: JSON.parse(JSON.stringify(song.arrangement.sections||[])), attachedSongId: song.id }
+      : { bpm: 90, sections: [], attachedSongId: song.id };
+    const bpmEl=$('arr-bpm'); if(bpmEl) bpmEl.value=arrData.bpm;
+    saveArr();
+    populateArrSongSelect();
+    updateArrAttachedLabel();
+    renderArr();
+    renderSongBoard();
+  }
+  window.loadSongIntoArrWorkspace=function(id){ const song=(window.db.songBoard||[]).find(s=>s.id===id); if(song) loadSongIntoArrWorkspace(song); };
   function renderArr(){
     if(!arrData) arrData=loadArr(); const bpmEl=$('arr-bpm'); if(bpmEl && !bpmEl.value) bpmEl.value=arrData.bpm;
     const bpm=Math.max(40,Math.min(220,+($('arr-bpm')?.value||arrData.bpm||90))); arrData.bpm=bpm;
@@ -6378,30 +6430,46 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('fb-inst-bass')?.addEventListener('click',()=>{ fbInst='bass'; $('fb-inst-bass').classList.add('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-bass').classList.remove('text-[#FFD60A]/50'); $('fb-inst-gtr').classList.remove('bg-[#FFD60A]/20','text-[#FFD60A]'); $('fb-inst-gtr').classList.add('text-[#FFD60A]/50'); buildFretboard(); });
       $('btn-reset-fb')?.addEventListener('click',()=>{ $('fb-root').value='E'; $('fb-scale').value='Min Pent'; $('fb-inst-gtr').click(); buildFretboard(); });
     }
+    // arrangement (loaded before song board so the board can reflect the attached song on first paint)
+    if($('arr-list')){
+      const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-ferrett px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
+      $('arr-bpm')?.addEventListener('input',renderArr);
+      $('btn-arr-markers')?.addEventListener('click',arrToMarkers);
+      $('btn-arr-attach')?.addEventListener('click',()=>{
+        const sel=$('arr-song-select'); const id=sel.value?parseInt(sel.value,10):null;
+        if(!id){ sel.focus(); return; }
+        if(!arrData) arrData=loadArr();
+        if(!arrData.sections.length){ alert('Build an arrangement first.'); return; }
+        arrData.attachedSongId=id;
+        saveArr(); populateArrSongSelect(); updateArrAttachedLabel(); renderSongBoard();
+      });
+      if(!arrData) arrData=loadArr();
+      populateArrSongSelect();
+      updateArrAttachedLabel();
+      renderArr();
+    }
     // song board
     if($('songboard-board')){
       renderSongBoard();
       $('btn-songboard-add')?.addEventListener('click',()=>{
         const t=$('songboard-title'), n=$('songboard-note'), l=$('songboard-len'); const title=(t.value||'').trim(); if(!title){ t.focus(); return; }
         window.db.songBoard = window.db.songBoard || [];
-        window.db.songBoard.push({ id:Date.now(), title, note:(n.value||'').trim(), length:parseSongLen(l.value), status:'lyrics' });
+        window.db.songBoard.push({ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:(n.value||'').trim(), length:parseSongLen(l.value), status:'lyrics' });
         t.value=''; n.value=''; l.value='';
         window.saveData(); renderSongBoard();
       });
       $('songboard-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-songboard-add')?.click(); });
       const sboard=$('songboard-board');
-      sboard.addEventListener('click',(e)=>{ const del=e.target.closest('.btn-del-song'); if(!del) return; const id=parseInt(del.dataset.songId,10); window.db.songBoard=(window.db.songBoard||[]).filter(s=>s.id!==id); window.saveData(); renderSongBoard(); });
+      sboard.addEventListener('click',(e)=>{
+        const del=e.target.closest('.btn-del-song');
+        if(del){ const id=parseInt(del.dataset.songId,10); window.db.songBoard=(window.db.songBoard||[]).filter(s=>s.id!==id); window.saveData(); renderSongBoard(); return; }
+        const arrBtn=e.target.closest('.song-arr-btn');
+        if(arrBtn){ window.loadSongIntoArrWorkspace(parseInt(arrBtn.dataset.songId,10)); }
+      });
       sboard.addEventListener('dragstart',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c){ dragSongId=parseInt(c.dataset.songId,10); e.dataTransfer.effectAllowed='move'; c.style.opacity='0.4'; } });
       sboard.addEventListener('dragend',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c) c.style.opacity=''; });
       sboard.addEventListener('dragover',(e)=>{ if(e.target.closest('.song-col')) e.preventDefault(); });
       sboard.addEventListener('drop',(e)=>{ const col=e.target.closest('.song-col'); if(!col||dragSongId==null) return; e.preventDefault(); const s=(window.db.songBoard||[]).find(x=>x.id===dragSongId); if(s){ s.status=col.dataset.status; window.saveData(); renderSongBoard(); } dragSongId=null; });
-    }
-    // arrangement
-    if($('arr-list')){
-      const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-ferrett px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
-      $('arr-bpm')?.addEventListener('input',renderArr);
-      $('btn-arr-markers')?.addEventListener('click',arrToMarkers);
-      renderArr();
     }
     // transpose & capo
     if($('tr-chords')){
@@ -6426,7 +6494,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-lyr-freq')?.addEventListener('click',lyrFreq);
     $('btn-lyr-print')?.addEventListener('click',lyrPrint);
     // chain into lab refresh so the setlist track list stays current
-    const prev=window.refreshLab; window.refreshLab=function(){ try{ prev&&prev(); }catch(e){} populateSetlistTracks(); renderSongBoard(); };
+    const prev=window.refreshLab; window.refreshLab=function(){ try{ prev&&prev(); }catch(e){} populateSetlistTracks(); populateArrSongSelect(); updateArrAttachedLabel(); renderSongBoard(); };
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

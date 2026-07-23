@@ -2076,7 +2076,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
                 if (cloudDb.songBoard) window.db.songBoard = cloudDb.songBoard;
                 if (cloudDb.ownedPlugins) window.db.ownedPlugins = cloudDb.ownedPlugins;
-                if (cloudDb.lyrics) window.db.lyrics = cloudDb.lyrics;
+                if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
                 window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
         } 
@@ -5828,6 +5828,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // Drops the in-memory cache so the next refreshLyrics() re-reads window.db.lyrics from scratch —
   // needed after a Drive pull lands newer lyrics than whatever's already cached in this tab session.
   window.lyrForceReload=()=>{ lyrState=null; };
+  window.lyrStateHasContent=lyrStateHasContent; // lets a Drive pull refuse to let an empty cloud copy stomp real local lyrics
   // exposed for the AI co-pilot (keeps lyrState the single source of truth)
   window.lyrGetActiveText=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };

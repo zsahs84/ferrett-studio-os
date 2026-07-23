@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v46';
+window.APP_VERSION = 'v47';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -889,6 +889,15 @@ main { background: rgba(5,8,7,0.72); }
                 <input type="text" id="songboard-note" placeholder="note (optional)…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="songboard-len" placeholder="m:ss (optional)" class="w-24 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <button id="btn-songboard-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
+                <button id="btn-songboard-paste-tagged" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once">📋 PASTE TAGGED SONG</button>
+            </div>
+            <div id="songboard-paste-panel" class="hidden mb-4 p-3 rounded border border-[#00E5FF40] bg-black/30">
+                <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Uses the title above (or "Untitled"). Paste lyrics with <code class="text-[#00E5FF]">[Section]</code> headers on their own line — creates the song, builds its arrangement from the detected sections, and loads the tagged lyrics into a linked sheet.</p>
+                <textarea id="songboard-paste-text" rows="8" class="w-full bg-black/50 border border-[#00E5FF40] rounded text-[11px] text-[#C9FFE6] p-2 focus:outline-none font-mono" placeholder="[Intro]&#10;(Check)&#10;&#10;[Verse 1]&#10;line one&#10;line two"></textarea>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <button id="btn-songboard-paste-apply" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">CREATE SONG FROM PASTE</button>
+                    <button id="btn-songboard-paste-cancel" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CANCEL</button>
+                </div>
             </div>
             <div id="songboard-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
         </div>
@@ -904,8 +913,17 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap items-center gap-2 mb-2">
                 <select id="arr-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF]/80 text-[10px] px-2 py-1.5 focus:outline-none"><option value="">— choose a song —</option></select>
                 <button id="btn-arr-attach" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF">🔗 ATTACH TO SONG</button>
+                <button id="btn-arr-paste-tagged" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — rebuilds the arrangement for the song selected above and loads its lyrics too">📋 PASTE TAGGED</button>
             </div>
             <div id="arr-attached-label" class="text-[9px] text-[#B18CFF]/60 mb-2 hidden"></div>
+            <div id="arr-paste-panel" class="hidden mb-3 p-3 rounded border border-[#B18CFF40] bg-black/30">
+                <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Choose a song above first. Paste lyrics with <code class="text-[#B18CFF]">[Section]</code> headers on their own line — rebuilds that song's arrangement from the detected sections and loads the tagged lyrics into its linked sheet.</p>
+                <textarea id="arr-paste-text" rows="8" class="w-full bg-black/50 border border-[#B18CFF40] rounded text-[11px] text-[#C9FFE6] p-2 focus:outline-none font-mono" placeholder="[Intro]&#10;(Check)&#10;&#10;[Verse 1]&#10;line one&#10;line two"></textarea>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <button id="btn-arr-paste-apply" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">PARSE &amp; APPLY</button>
+                    <button id="btn-arr-paste-cancel" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CANCEL</button>
+                </div>
+            </div>
             <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
             <div id="arr-list" class="space-y-1.5 mb-3"></div>
             <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
@@ -1256,11 +1274,23 @@ main { background: rgba(5,8,7,0.72); }
             <button id="btn-lyr-cutup-sec" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Shuffle only within each section">SHUFFLE IN SECTION</button>
             <button id="btn-lyr-undo" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Undo last shuffle/edit">↶ UNDO</button>
             <button id="btn-lyr-add-line" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">+ LINE</button>
+            <button id="btn-lyr-paste-tagged" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement">📋 PASTE TAGGED</button>
             <label class="flex items-center gap-1.5 text-[9px] text-[#FF88FF]/70 tracking-widest cursor-pointer ml-1"><input type="checkbox" id="lyr-show-syl" class="accent-[#FF88FF]" checked> SYLLABLES</label>
             <div class="flex-1"></div>
             <button id="btn-lyr-export" type="button" class="btn-ferrett px-3 py-2 text-[10px]">↓ .TXT</button>
             <button id="btn-lyr-print" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
             <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Channel Settings as a new stub">→ TRACK</button>
+        </div>
+
+        <!-- paste-tagged panel: paste a full song written with [Section] headers, parse into tagged lines + arrangement -->
+        <div id="lyr-paste-panel" class="hidden mb-4 p-3 rounded border border-[#B18CFF40] bg-black/30">
+            <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Paste lyrics with section headers on their own line, e.g. <code class="text-[#B18CFF]">[Verse 1]</code> — every line under a header gets that tag. If this sheet is linked to a Song Board song, the detected sections also rebuild its arrangement.</p>
+            <textarea id="lyr-paste-text" rows="8" class="w-full bg-black/50 border border-[#B18CFF40] rounded text-[11px] text-[#C9FFE6] p-2 focus:outline-none font-mono" placeholder="[Intro]&#10;(Check)&#10;&#10;[Verse 1]&#10;line one&#10;line two"></textarea>
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+                <button id="btn-lyr-paste-apply" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">PARSE &amp; LOAD</button>
+                <button id="btn-lyr-paste-cancel" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CANCEL</button>
+                <label class="flex items-center gap-1.5 text-[9px] text-[#B18CFF]/70 ml-1"><input type="checkbox" id="lyr-paste-replace" class="accent-[#B18CFF]"> replace existing lines (unchecked = append)</label>
+            </div>
         </div>
 
         <!-- view mode + analysis toolbar -->
@@ -5703,7 +5733,34 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
-  const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'OUTRO':['◆','#FF5A5A'] };
+  const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#00FF88'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'SOLO':['S','#FFA05C'], 'DROP':['D','#FFD60A'], 'OUTRO':['◆','#FF5A5A'] };
+  // default bar length per tag, used when auto-building an arrangement from pasted [Tag] lyrics — mirrors ARR_TYPES in the Arrangement Timeline
+  const TAG_DEFAULT_BARS={ INTRO:4, VERSE:16, PRE:4, CHORUS:8, HOOK:8, BRIDGE:8, SOLO:8, DROP:8, OUTRO:4 };
+  // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]")
+  // into per-line {text,tag} pairs — every non-blank line under a header inherits that header's tag,
+  // including parenthetical ad-libs — plus an ordered section list (with default bar guesses) that
+  // can be handed straight to the Arrangement Timeline. A numeral after the tag name ("Verse 1") is
+  // stripped for tag matching but kept in the section's display name.
+  function parseTaggedSongText(raw){
+    const rawLines=(raw||'').split(/\r?\n/);
+    const lines=[]; const sections=[];
+    let currentTag='';
+    for(const rl of rawLines){
+      const trimmed=rl.trim();
+      if(!trimmed) continue;
+      const m=trimmed.match(/^\[([A-Za-z]+)(\s+\d+)?\]$/);
+      if(m){
+        const base=m[1].toUpperCase();
+        currentTag = TAGS[base] ? base : '';
+        const label = base.charAt(0)+base.slice(1).toLowerCase()+(m[2]||'');
+        sections.push({ name:label, bars: TAG_DEFAULT_BARS[base]||8 });
+        continue;
+      }
+      lines.push({ text:trimmed, tag:currentTag });
+    }
+    return { lines, sections };
+  }
+  window.parseTaggedSongText = parseTaggedSongText;
   let lyrState=null, lyrUndo=[];
   let lyrSelected=new Set(); // holds line object references, not indices — survives reorder/insert
   // A bare, never-typed-in default counts as "no real content" — must not be treated as data worth
@@ -5882,6 +5939,15 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     sheet.songId=songId;
     lyrState.activeId=sheet.id;
     lyrUndo=[]; lyrSelected.clear();
+    saveLyr(); renderLyr();
+  };
+  // Opens/creates the sheet linked to a song (same as above) then replaces its lines with an
+  // already-parsed {text,tag} array — used by the "paste a tagged song" flow on the Song Board
+  // and Arrangement Timeline, which parse lyrics+structure in one shot from pasted text.
+  window.lyrLoadParsedLines=(songId,songTitle,lines)=>{
+    window.lyrOpenSheetForSong(songId,songTitle);
+    const sheet=activeSheet();
+    sheet.lines = (lines&&lines.length) ? lines : [{text:'',tag:''}];
     saveLyr(); renderLyr();
   };
   // Drops the in-memory cache so the next refreshLyrics() re-reads window.db.lyrics from scratch —
@@ -6136,6 +6202,19 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('btn-lyr-cutup-sec')?.addEventListener('click',()=>lyrCutup(true));
       $('btn-lyr-undo')?.addEventListener('click',()=>{ if(!lyrUndo.length) return; activeSheet().lines=JSON.parse(lyrUndo.pop()); saveLyr(); renderLines(); });
       $('btn-lyr-add-line')?.addEventListener('click',()=>{ activeSheet().lines.push({text:'',tag:''}); saveLyr(); renderLines(); const box=$('lyr-lines'); const last=box.querySelector('.lyr-text:last-of-type'); last&&last.focus(); });
+      $('btn-lyr-paste-tagged')?.addEventListener('click',()=>{ $('lyr-paste-panel')?.classList.toggle('hidden'); $('lyr-paste-text')?.focus(); });
+      $('btn-lyr-paste-cancel')?.addEventListener('click',()=>{ $('lyr-paste-panel')?.classList.add('hidden'); $('lyr-paste-text').value=''; });
+      $('btn-lyr-paste-apply')?.addEventListener('click',()=>{
+        const raw=$('lyr-paste-text').value; if(!raw.trim()) return;
+        const parsed=parseTaggedSongText(raw);
+        if(!parsed.lines.length) return;
+        pushUndo();
+        const s=activeSheet();
+        s.lines = ($('lyr-paste-replace').checked || (s.lines.length===1 && !s.lines[0].text.trim())) ? parsed.lines : s.lines.concat(parsed.lines);
+        saveLyr(); renderLyr();
+        if(s.songId!=null && parsed.sections.length) window.applyParsedSectionsToSong?.(s.songId, parsed.sections);
+        $('lyr-paste-panel').classList.add('hidden'); $('lyr-paste-text').value='';
+      });
       $('btn-lyr-delete-selected')?.addEventListener('click',()=>{ const s=activeSheet(); if(!lyrSelected.size) return; if(!confirm(`Delete ${lyrSelected.size} selected line(s)?`)) return; pushUndo(); s.lines=s.lines.filter(ln=>!lyrSelected.has(ln)); if(!s.lines.length) s.lines.push({text:'',tag:''}); lyrSelected.clear(); saveLyr(); renderLyr(); });
       $('btn-lyr-clear-selected')?.addEventListener('click',()=>{ lyrSelected.clear(); renderLines(); });
       $('lyr-show-syl')?.addEventListener('change',renderLines);
@@ -6334,6 +6413,24 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     renderSongBoard();
   }
   window.loadSongIntoArrWorkspace=function(id){ const song=(window.db.songBoard||[]).find(s=>s.id===id); if(song) loadSongIntoArrWorkspace(song); };
+  // Builds and attaches an arrangement straight from a parsed section list (from a pasted tagged
+  // song) — used by the paste-tagged flows on Lyrics Lab, Song Board and Arrangement Timeline so
+  // one paste can wire up a song's structure without the user rebuilding it by hand.
+  window.applyParsedSectionsToSong=function(songId, sections){
+    if(!sections || !sections.length) return;
+    const song=(window.db.songBoard||[]).find(s=>s.id===songId);
+    if(!song) return;
+    const bpm=90, secPerBar=4*(60/bpm);
+    song.arrangement={ bpm, sections: sections.map(s=>({name:s.name,bars:s.bars})) };
+    song.length=Math.round(sections.reduce((a,s)=>a+s.bars,0)*secPerBar);
+    window.saveData();
+    if(arrData && arrData.attachedSongId===songId){
+      arrData.bpm=bpm; arrData.sections=JSON.parse(JSON.stringify(song.arrangement.sections));
+      const bpmEl=$('arr-bpm'); if(bpmEl) bpmEl.value=bpm;
+      renderArr();
+    }
+    renderSongBoard(); populateArrSongSelect(); updateArrAttachedLabel(); populateSetlistTracks();
+  };
   function renderArr(){
     if(!arrData) arrData=loadArr(); const bpmEl=$('arr-bpm'); if(bpmEl && !bpmEl.value) bpmEl.value=arrData.bpm;
     const bpm=Math.max(40,Math.min(220,+($('arr-bpm')?.value||arrData.bpm||90))); arrData.bpm=bpm;
@@ -6478,6 +6575,19 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         arrData.attachedSongId=id;
         saveArr(); populateArrSongSelect(); updateArrAttachedLabel(); renderSongBoard();
       });
+      $('btn-arr-paste-tagged')?.addEventListener('click',()=>{ $('arr-paste-panel')?.classList.toggle('hidden'); $('arr-paste-text')?.focus(); });
+      $('btn-arr-paste-cancel')?.addEventListener('click',()=>{ $('arr-paste-panel')?.classList.add('hidden'); $('arr-paste-text').value=''; });
+      $('btn-arr-paste-apply')?.addEventListener('click',()=>{
+        const sel=$('arr-song-select'); const id=sel.value?parseInt(sel.value,10):null;
+        if(!id){ sel.focus(); return; }
+        const raw=$('arr-paste-text').value; if(!raw.trim()) return;
+        const parsed=window.parseTaggedSongText?.(raw);
+        if(!parsed || !parsed.lines.length) return;
+        const song=(window.db.songBoard||[]).find(s=>s.id===id);
+        if(parsed.sections.length) window.applyParsedSectionsToSong(id, parsed.sections);
+        window.lyrLoadParsedLines?.(id, song?song.title:'', parsed.lines);
+        $('arr-paste-panel').classList.add('hidden'); $('arr-paste-text').value='';
+      });
       if(!arrData) arrData=loadArr();
       populateArrSongSelect();
       updateArrAttachedLabel();
@@ -6494,6 +6604,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         window.saveData(); renderSongBoard(); populateArrSongSelect(); populateSetlistTracks();
       });
       $('songboard-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-songboard-add')?.click(); });
+      $('btn-songboard-paste-tagged')?.addEventListener('click',()=>{ $('songboard-paste-panel')?.classList.toggle('hidden'); $('songboard-paste-text')?.focus(); });
+      $('btn-songboard-paste-cancel')?.addEventListener('click',()=>{ $('songboard-paste-panel')?.classList.add('hidden'); $('songboard-paste-text').value=''; });
+      $('btn-songboard-paste-apply')?.addEventListener('click',()=>{
+        const raw=$('songboard-paste-text').value; if(!raw.trim()) return;
+        const parsed=window.parseTaggedSongText?.(raw);
+        if(!parsed || !parsed.lines.length) return;
+        const t=$('songboard-title'); const title=(t.value||'').trim()||'Untitled';
+        window.db.songBoard = window.db.songBoard || [];
+        const song={ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:'', length:null, status:'lyrics' };
+        window.db.songBoard.push(song);
+        window.saveData();
+        if(parsed.sections.length) window.applyParsedSectionsToSong(song.id, parsed.sections);
+        window.lyrLoadParsedLines?.(song.id, title, parsed.lines);
+        t.value=''; $('songboard-note').value=''; $('songboard-len').value='';
+        renderSongBoard(); populateArrSongSelect(); populateSetlistTracks();
+        $('songboard-paste-panel').classList.add('hidden'); $('songboard-paste-text').value='';
+      });
       const sboard=$('songboard-board');
       sboard.addEventListener('click',(e)=>{
         const del=e.target.closest('.btn-del-song');

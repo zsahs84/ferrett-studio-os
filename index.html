@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v47';
+window.APP_VERSION = 'v48';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5734,17 +5734,20 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
   const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#00FF88'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'SOLO':['S','#FFA05C'], 'DROP':['D','#FFD60A'], 'OUTRO':['◆','#FF5A5A'] };
-  // default bar length per tag, used when auto-building an arrangement from pasted [Tag] lyrics — mirrors ARR_TYPES in the Arrangement Timeline
+  // fallback bar length per tag, only used when a pasted section header has no lines under it —
+  // mirrors ARR_TYPES in the Arrangement Timeline
   const TAG_DEFAULT_BARS={ INTRO:4, VERSE:16, PRE:4, CHORUS:8, HOOK:8, BRIDGE:8, SOLO:8, DROP:8, OUTRO:4 };
   // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]")
   // into per-line {text,tag} pairs — every non-blank line under a header inherits that header's tag,
-  // including parenthetical ad-libs — plus an ordered section list (with default bar guesses) that
-  // can be handed straight to the Arrangement Timeline. A numeral after the tag name ("Verse 1") is
-  // stripped for tag matching but kept in the section's display name.
+  // including parenthetical ad-libs — plus an ordered section list that can be handed straight to the
+  // Arrangement Timeline. Bars per section = lines counted under that header (one bar per lyric line,
+  // the standard hip-hop convention), so the arrangement always matches what was actually pasted; a
+  // header with nothing under it falls back to TAG_DEFAULT_BARS. A numeral after the tag name
+  // ("Verse 1") is stripped for tag matching but kept in the section's display name.
   function parseTaggedSongText(raw){
     const rawLines=(raw||'').split(/\r?\n/);
-    const lines=[]; const sections=[];
-    let currentTag='';
+    const lines=[]; const rawSections=[]; // {name, tag, bars}
+    let currentTag=''; let current=null;
     for(const rl of rawLines){
       const trimmed=rl.trim();
       if(!trimmed) continue;
@@ -5753,11 +5756,14 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const base=m[1].toUpperCase();
         currentTag = TAGS[base] ? base : '';
         const label = base.charAt(0)+base.slice(1).toLowerCase()+(m[2]||'');
-        sections.push({ name:label, bars: TAG_DEFAULT_BARS[base]||8 });
+        current={ name:label, tag:base, bars:0 };
+        rawSections.push(current);
         continue;
       }
       lines.push({ text:trimmed, tag:currentTag });
+      if(current) current.bars++;
     }
+    const sections=rawSections.map(s=>({ name:s.name, bars: s.bars || TAG_DEFAULT_BARS[s.tag] || 4 }));
     return { lines, sections };
   }
   window.parseTaggedSongText = parseTaggedSongText;

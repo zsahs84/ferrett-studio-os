@@ -3,7 +3,7 @@
 // so returning clients pick up the new copy instead of a stale cache.
 // Keep the number in sync with window.APP_VERSION at the top of index.html —
 // one version number for both, not two drifting counters.
-const CACHE_VERSION = 'ferrett-os-v53';
+const CACHE_VERSION = 'ferrett-os-v54';
 
 const APP_SHELL = [
   './',

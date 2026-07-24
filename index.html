@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v53';
+window.APP_VERSION = 'v54';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5792,6 +5792,19 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     sections.forEach(s=>{ if(countByTag[s._tag]>1){ seen[s._tag]=(seen[s._tag]||0)+1; s.name+=' '+seen[s._tag]; } delete s._tag; });
     return sections;
   }
+  // Single shared reading of a [bracket] tag header — strips a trailing numeral ("Verse 1" -> VERSE)
+  // and an optional "Half Time"/"(Half Time)" marker, so "Verse 1", "Verse 2", and "Chorus (Half
+  // Time)" all resolve to their base tag instead of missing the tag lookup entirely. Used by both the
+  // paste parser and lyrAddLines (the "insert as headers" bridge) so the two never drift apart again —
+  // that drift is exactly what let numbered/half-time headers silently land as untagged plain text.
+  function parseTagHeader(inner){
+    inner=(inner||'').trim();
+    const halfTime=/half\s*time/i.test(inner);
+    inner=inner.replace(/\(?\s*half\s*time\s*\)?/i,'').trim();
+    const tm=inner.match(/^([A-Za-z]+)(?:\s+\d+)?$/);
+    const base=tm?tm[1].toUpperCase():'';
+    return { tag: TAGS[base]?base:'', halfTime };
+  }
   // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]",
   // "[Chorus Half Time]") into per-line {text,tag,halfTime} triples — every non-blank line under a
   // header inherits that header's tag, including parenthetical ad-libs and a lone "-" (an
@@ -5807,13 +5820,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       if(!trimmed) continue;
       const m=trimmed.match(/^\[(.+)\]$/);
       if(m){
-        let inner=m[1].trim();
-        const halfTime=/half\s*time/i.test(inner);
-        inner=inner.replace(/\(?\s*half\s*time\s*\)?/i,'').trim();
-        const tm=inner.match(/^([A-Za-z]+)(?:\s+\d+)?$/);
-        const base=tm?tm[1].toUpperCase():'';
-        currentTag = TAGS[base] ? base : '';
-        currentHalfTime = halfTime;
+        const parsed=parseTagHeader(m[1]);
+        currentTag=parsed.tag; currentHalfTime=parsed.halfTime;
         continue;
       }
       lines.push({ text:trimmed, tag:currentTag, halfTime:currentHalfTime });
@@ -6036,7 +6044,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // exposed for the AI co-pilot (keeps lyrState the single source of truth)
   window.lyrGetActiveText=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };
-  window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[([A-Za-z]+)\]\s*(.*)$/); if(m && TAGS[m[1].toUpperCase()]) s.lines.push({text:m[2],tag:m[1].toUpperCase(),alt}); else s.lines.push({text:item,tag:'',alt}); } }); saveLyr(); renderLyr(); };
+  window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[(.+?)\]\s*(.*)$/); const parsed=m?parseTagHeader(m[1]):null; if(parsed&&parsed.tag) s.lines.push({text:m[2],tag:parsed.tag,halfTime:parsed.halfTime,alt}); else s.lines.push({text:item,tag:'',alt}); } }); saveLyr(); renderLyr(); };
   // ---- bridge for the AI Co-Pilot script (separate closure) to reach the selection/line state above ----
   window.lyrGetSelectedLines=()=>{ if(!lyrState) initLyrState(); const s=activeSheet(); return Array.from(lyrSelected).filter(ln=>s.lines.includes(ln)); };
   window.lyrGetLastNonEmptyLine=()=>{ if(!lyrState) initLyrState(); const ne=activeSheet().lines.filter(l=>l.text.trim()); return ne.length?ne[ne.length-1]:null; };

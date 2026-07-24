@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v51';
+window.APP_VERSION = 'v52';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5768,7 +5768,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
-  const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#00FF88'], 'HOOK':['H','#FF88FF'], 'BRIDGE':['B','#B18CFF'], 'SOLO':['S','#FFA05C'], 'DROP':['D','#FFD60A'], 'OUTRO':['◆','#FF5A5A'] };
+  // one color per section type, shared with ARR_TYPES in the Arrangement Timeline so a Chorus/Hook/etc
+  // looks the same everywhere: per-line tag glyphs, the structure strip chips, arrangement rows, and the bar graph
+  const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#FF88FF'], 'HOOK':['H','#FFA05C'], 'BRIDGE':['B','#B18CFF'], 'SOLO':['S','#4DFFDF'], 'DROP':['D','#00FF88'], 'OUTRO':['◆','#FF5A5A'] };
   // Derives an ordered arrangement section list straight from the CURRENT lyric lines — this is the
   // single source of truth for lyrics->arrangement sync, called both at initial paste and live on
   // every subsequent edit (see saveLyr below). A maximal run of consecutive lines sharing the same
@@ -5919,6 +5921,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const avg=nonEmpty.length?(totSyl/nonEmpty.length).toFixed(1):'0';
     const m=$('lyr-meta'); if(m) m.textContent=`${nonEmpty.length} LINES · ${totSyl} SYLLABLES · ${avg} AVG/LINE`;
   }
+  // looks up a section's color the same way sectionsFromLines derives its tag — strip a trailing
+  // numeral ("Verse 1" -> VERSE) and match against TAGS, so chips use the same palette as the
+  // per-line tag glyphs/dropdown and (via the identical mapping in ARR_TYPES) the Arrangement Timeline
+  function colorForSection(name){ const base=(name||'').toUpperCase().replace(/\s+\d+$/,''); return (TAGS[base]||TAGS[''])[1]; }
   function renderStructureStrip(){
     const el=$('lyr-structure-strip'); if(!el) return;
     const sheet=activeSheet();
@@ -5928,7 +5934,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if(!song || !sections || !sections.length){ el.classList.add('hidden'); el.classList.remove('flex'); el.innerHTML=''; return; }
     el.classList.remove('hidden'); el.classList.add('flex');
     el.innerHTML = `<span class="text-[9px] text-white/30 tracking-widest mr-1">🎬 STRUCTURE:</span>`
-      + sections.map(s=>`<span class="text-[9px] font-bold px-2 py-0.5 rounded border border-[#B18CFF40] text-[#B18CFF]">${s.name}</span>`).join('')
+      + sections.map(s=>{ const c=colorForSection(s.name); return `<span class="text-[9px] font-bold px-2 py-0.5 rounded border" style="border-color:${c}40;color:${c}">${s.name}</span>`; }).join('')
       + `<button id="btn-lyr-insert-structure" type="button" class="text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#B18CFF60] text-[#B18CFF] hover:bg-[#B18CFF20] ml-1">+ INSERT AS HEADERS</button>`;
     $('btn-lyr-insert-structure')?.addEventListener('click',()=>{ window.lyrAddLines(sections.map(s=>`[${s.name}]`)); });
   }
@@ -6460,7 +6466,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   // ==================== ARRANGEMENT TIMELINE ====================
   const ARR_KEY='ferrett_os_arrange_v1';
-  const ARR_TYPES=[['Intro',4,'#7AFFBF'],['Verse',16,'#00E5FF'],['Pre',4,'#FFD60A'],['Chorus',8,'#FF88FF'],['Hook',8,'#FF88FF'],['Bridge',8,'#B18CFF'],['Solo',8,'#FFD60A'],['Drop',8,'#00FF88'],['Outro',4,'#FF5A5A']];
+  // colors match TAGS in the Lyrics Lab so a section type looks the same everywhere
+  const ARR_TYPES=[['Intro',4,'#7AFFBF'],['Verse',16,'#00E5FF'],['Pre',4,'#FFD60A'],['Chorus',8,'#FF88FF'],['Hook',8,'#FFA05C'],['Bridge',8,'#B18CFF'],['Solo',8,'#4DFFDF'],['Drop',8,'#00FF88'],['Outro',4,'#FF5A5A']];
   let arrData=null;
   function loadArr(){ try{ const r=localStorage.getItem(ARR_KEY); if(r) return JSON.parse(r); }catch(e){} return {bpm:90,sections:[],attachedSongId:null}; }
   function saveArr(){
@@ -6478,7 +6485,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       }
     }
   }
-  function colorFor(name){ const t=ARR_TYPES.find(x=>x[0]===name); return t?t[2]:'#B18CFF'; }
+  function colorFor(name){ const base=(name||'').replace(/\s+\d+$/,''); const t=ARR_TYPES.find(x=>x[0]===base); return t?t[2]:'#B18CFF'; }
   function fmtT(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m+':'+String(s).padStart(2,'0'); }
   function populateArrSongSelect(){
     const sel=$('arr-song-select'); if(!sel) return;

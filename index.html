@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v50';
+window.APP_VERSION = 'v51';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -902,7 +902,7 @@ main { background: rgba(5,8,7,0.72); }
             <div id="songboard-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
         </div>
 
-        <!-- song details modal: full editor for one song — title/note/length, arrangement + lyrics jump, and linked Channel Settings tracks -->
+        <!-- song details modal: full editor for one song — title/note/length, arrangement + lyrics jump, and linked Channel Settings tracks + Tone DB tones -->
         <div id="song-detail-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
             <div class="card border-[#00E5FF40] w-full max-w-lg relative">
                 <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center">×</button>
@@ -917,12 +917,20 @@ main { background: rgba(5,8,7,0.72); }
                     <button id="song-detail-arr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
                     <button id="song-detail-lyr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
                 </div>
-                <div class="border-t border-[#00E5FF20] pt-3">
+                <div class="border-t border-[#00E5FF20] pt-3 mb-4">
                     <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
                     <div id="song-detail-tracks-list" class="space-y-1 mb-2"></div>
                     <div class="flex gap-2">
                         <select id="song-detail-track-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a track —</option></select>
                         <button id="song-detail-track-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ LINK</button>
+                    </div>
+                </div>
+                <div class="border-t border-[#00E5FF20] pt-3">
+                    <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎛️ LINKED TONES (TONE DB)</div>
+                    <div id="song-detail-tones-list" class="space-y-1 mb-2"></div>
+                    <div class="flex gap-2">
+                        <select id="song-detail-tone-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a tone —</option></select>
+                        <button id="song-detail-tone-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ LINK</button>
                     </div>
                 </div>
             </div>
@@ -6404,7 +6412,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
               <button type="button" class="song-arr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
               <button type="button" class="song-lyr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.lyricsSheetId!=null?'text-[#FF88FF]':'text-white/25'} hover:text-[#FF88FF]" data-song-id="${s.id}">📝 ${s.lyricsSheetId!=null?'Open lyrics':'New lyrics'}</button>
             </div>
-            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${(s.trackIds||[]).length?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length?(s.trackIds.length+' track'+(s.trackIds.length===1?'':'s')+' linked'):'Link tracks…'}</button>
+            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}</button>
           </div>`;
         }).join('')}</div>
       </div>`;
@@ -6425,6 +6433,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const tracks=(window.db.tracks||[]).filter(t=>!linked.has(t.id));
     sel.innerHTML='<option value="">— choose a track —</option>'+tracks.map(t=>`<option value="${t.id}">${(t.inst||'Track').replace(/"/g,'').slice(0,40)}</option>`).join('');
   }
+  function populateSongDetailToneSelect(song){
+    const sel=$('song-detail-tone-select'); if(!sel) return;
+    const linked=new Set(song.toneIds||[]);
+    const tones=(window.db.tones||[]).filter(t=>!linked.has(t.id));
+    sel.innerHTML='<option value="">— choose a tone —</option>'+tones.map(t=>`<option value="${t.id}">${(t.name||'Unnamed Combo').replace(/"/g,'').slice(0,40)}</option>`).join('');
+  }
   function renderSongDetail(){
     const m=$('song-detail-modal'); if(!m || m.classList.contains('hidden')) return;
     const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId);
@@ -6438,6 +6452,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const linkedTracks=(song.trackIds||[]).map(id=>(window.db.tracks||[]).find(t=>t.id===id)).filter(Boolean);
     list.innerHTML = linkedTracks.length ? linkedTracks.map(t=>`<div class="flex items-center justify-between text-[10px] text-white/70 bg-black/30 rounded px-2 py-1"><span class="truncate pr-2">${(t.inst||'Track').replace(/</g,'')}</span><button type="button" class="song-detail-track-del text-white/30 hover:text-[#FF5A5A] text-[12px]" data-id="${t.id}">×</button></div>`).join('') : '<div class="text-[9px] text-white/25 italic py-1">No tracks linked yet.</div>';
     populateSongDetailTrackSelect(song);
+    const toneList=$('song-detail-tones-list');
+    const linkedTones=(song.toneIds||[]).map(id=>(window.db.tones||[]).find(t=>t.id===id)).filter(Boolean);
+    toneList.innerHTML = linkedTones.length ? linkedTones.map(t=>`<div class="flex items-center justify-between text-[10px] text-white/70 bg-black/30 rounded px-2 py-1"><span class="truncate pr-2">${(t.name||'Unnamed Combo').replace(/</g,'')}</span><button type="button" class="song-detail-tone-del text-white/30 hover:text-[#FF5A5A] text-[12px]" data-id="${t.id}">×</button></div>`).join('') : '<div class="text-[9px] text-white/25 italic py-1">No tones linked yet.</div>';
+    populateSongDetailToneSelect(song);
   }
 
   // ==================== ARRANGEMENT TIMELINE ====================
@@ -6738,6 +6756,21 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const id=parseInt(del.dataset.id,10);
         const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(!song) return;
         song.trackIds=(song.trackIds||[]).filter(x=>x!==id);
+        window.saveData(); renderSongDetail(); renderSongBoard();
+      });
+      $('song-detail-tone-add')?.addEventListener('click',()=>{
+        const sel=$('song-detail-tone-select'); const id=sel.value?parseInt(sel.value,10):null;
+        if(!id) return;
+        const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(!song) return;
+        song.toneIds=song.toneIds||[];
+        if(!song.toneIds.includes(id)) song.toneIds.push(id);
+        window.saveData(); renderSongDetail(); renderSongBoard();
+      });
+      $('song-detail-tones-list')?.addEventListener('click',(e)=>{
+        const del=e.target.closest('.song-detail-tone-del'); if(!del) return;
+        const id=parseInt(del.dataset.id,10);
+        const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(!song) return;
+        song.toneIds=(song.toneIds||[]).filter(x=>x!==id);
         window.saveData(); renderSongDetail(); renderSongBoard();
       });
       sboard.addEventListener('dragstart',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c){ dragSongId=parseInt(c.dataset.songId,10); e.dataTransfer.effectAllowed='move'; c.style.opacity='0.4'; } });

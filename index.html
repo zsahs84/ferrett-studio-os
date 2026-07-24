@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v56';
+window.APP_VERSION = 'v57';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3179,23 +3179,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // reloads and syncs; a snapshot can be attached to a Song Board song (see attachKitToSong).
     window.KIT_SLOTS = ['Vocals','Overdubs','Ad-Libs','Bass','Sub Bass','Keys / Synths','Guitars','Kick','Snare','Hats','Cymbals','Toms'];
 
-    function kitSysPrompt(){
+    // The kit is built in small batches of instrument slots rather than one giant request. A single
+    // call covering all 12 slots asks for thousands of tokens, which routinely outlives the Home
+    // Assistant rest_command timeout — HA then returns an error page with no CORS headers and the
+    // browser reports it as a CORS failure. Batching keeps every call the same size/duration as the
+    // lyrics tools' calls, which are known to work on both backends.
+    const KIT_BATCH = 3;
+
+    function kitSysPrompt(slots){
         return `You are a veteran hip-hop producer and mix engineer with deep, specific knowledge of how each sub-genre gets its sound — the actual processing moves, not generic advice.
 
-You will be given a genre with its tempo/mood/texture, and the COMPLETE list of plugins the producer owns. Build a per-instrument chain sheet.
+You will be given a genre with its tempo/mood/texture, and the COMPLETE list of plugins the producer owns. Write chains for ONLY these instrument slots: ${slots.join(', ')}.
 
 HARD RULES:
 - Use ONLY plugins from the owned list. Never invent or suggest a plugin that is not on it. Match the names exactly as given.
 - If a slot genuinely cannot be served well by the owned plugins, still give the best possible chain from what IS owned and say so in "why".
-- Give real, specific settings (ratios, frequencies in Hz, attack/release in ms, dB amounts, drive amounts). No vague "taste to taste".
+- Give real, specific settings (ratios, frequencies in Hz, attack/release in ms, dB amounts, drive amounts). No vague "to taste".
 - Order the chain the way it should sit in the insert slots, first to last.
-- Give 1-3 recipes per instrument slot — your call. Give more where the genre has genuinely distinct options worth having (e.g. two different snare treatments that both fit), and just one where the genre demands a specific sound.
+- Give 1-3 recipes per slot — your call. More where the genre has genuinely distinct options worth having, one where the genre demands a specific sound.
 - Be genre-accurate. A Memphis horrorcore snare and a G-funk snare are not the same chain.
+- Keep each "why" to one sentence.
 
 Reply with ONLY valid JSON, no markdown fences, no commentary, in exactly this shape:
-{"overview":"2-3 sentences on the overall sonic approach for this genre","instruments":[{"slot":"Vocals","recipes":[{"name":"short recipe name","chain":["Plugin Name — specific settings","Plugin Name — specific settings"],"why":"1-2 sentences on why this gets the genre's sound"}]}]}
+{"instruments":[{"slot":"${slots[0]}","recipes":[{"name":"short recipe name","chain":["Plugin Name — specific settings","Plugin Name — specific settings"],"why":"one sentence"}]}]}
 
-The "instruments" array must contain one entry for each of these slots, in this order: ${window.KIT_SLOTS.join(', ')}.`;
+Include exactly one entry per requested slot, in this order: ${slots.join(', ')}.`;
     }
 
     function extractJson(text){
@@ -3206,19 +3214,29 @@ The "instruments" array must contain one entry for each of these slots, in this 
         return JSON.parse(t);
     }
 
+    function kitProgress(genre, done, total, label){
+        const disp = document.getElementById('recipe-display'); if (!disp) return;
+        const pct = Math.round((done/total)*100);
+        disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-4 min-h-[400px] text-center px-8">
+            <div class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase animate-pulse">🤖 Building the ${String(genre).replace(/</g,'')} kit…</div>
+            <div class="w-full max-w-xs h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-[#FF88FF] transition-all duration-300" style="width:${pct}%"></div></div>
+            <div class="text-[10px] text-[#E2E8F0]/45 font-mono">${done} / ${total} batches · now doing <span class="text-[#FF88FF]/80">${String(label).replace(/</g,'')}</span></div>
+        </div>`;
+    }
+
     window.generateGenreKit = async (genre) => {
         const disp = document.getElementById('recipe-display'); if (!disp) return;
-        const cfg = (()=>{ try { return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}'); } catch(e){ return {}; } })();
-        if (!(cfg.mode === 'groq' ? cfg.groqKey : (cfg.url && cfg.token))) { window.__openAiModal && window.__openAiModal(); return; }
+        // Gate exactly the way the lyrics tools do, using the co-pilot's own helper.
+        const configured = window.__aiIsConfigured ? window.__aiIsConfigured()
+            : (()=>{ try { const c=JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}'); return c.mode==='groq'?!!c.groqKey:!!(c.url&&c.token); } catch(e){ return false; } })();
+        if (!configured) { window.__openAiModal && window.__openAiModal(); return; }
         if (!window.ferrettAI) { alert('AI co-pilot not loaded.'); return; }
 
         const owned = (window.db.ownedPlugins || []).filter(Boolean);
         if (!owned.length) { alert('Add the plugins you own first — Toolbox → AI Assistant → your gear list.'); return; }
 
         const meta = window.getGenreMeta(genre);
-        disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center"><div class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase animate-pulse">🤖 Building the ${genre} kit…</div><div class="text-[10px] text-[#E2E8F0]/40 font-mono">Sifting ${owned.length} owned plugins across ${window.KIT_SLOTS.length} instrument slots.<br>This one takes a while — it's writing a lot.</div></div>`;
-
-        const user = `GENRE: ${genre}
+        const ctx = `GENRE: ${genre}
 TEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM
 MOOD: ${meta.mood}
 TEXTURE: ${meta.texture}
@@ -3226,13 +3244,39 @@ TEXTURE: ${meta.texture}
 OWNED PLUGINS (${owned.length}) — use only these:
 ${owned.join(', ')}`;
 
+        const batches = [];
+        for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
+
+        const instruments = [];
+        const failed = [];
         try {
-            const raw = await window.ferrettAI(kitSysPrompt(), user, { creative: true });
-            const parsed = extractJson(raw);
-            if (!parsed || !Array.isArray(parsed.instruments) || !parsed.instruments.length) throw new Error('Model returned no instrument slots.');
-            const kit = { genre, generatedAt: Date.now(), overview: parsed.overview || '', instruments: parsed.instruments };
+            for (let b = 0; b < batches.length; b++) {
+                const slots = batches[b];
+                kitProgress(genre, b, batches.length, slots.join(', '));
+                try {
+                    const raw = await window.ferrettAI(kitSysPrompt(slots), ctx, { creative: true });
+                    const parsed = extractJson(raw);
+                    const got = Array.isArray(parsed?.instruments) ? parsed.instruments : [];
+                    if (!got.length) throw new Error('no slots returned');
+                    got.forEach(x => { if (x && x.slot) instruments.push(x); });
+                } catch (be) {
+                    // One bad batch shouldn't throw away the ones that already succeeded.
+                    failed.push(slots.join(', '));
+                }
+            }
+            if (!instruments.length) throw new Error('Every batch failed — check the ⚙ AI setup, then try again.');
+
+            kitProgress(genre, batches.length, batches.length, 'overview');
+            let overview = '';
+            try {
+                overview = await window.ferrettAI(
+                    'You are a veteran hip-hop producer. Reply with 2-3 plain sentences and nothing else — no JSON, no markdown, no preamble.',
+                    `In 2-3 sentences, describe the overall sonic approach for producing in this style:\n\nGENRE: ${genre}\nTEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM\nMOOD: ${meta.mood}\nTEXTURE: ${meta.texture}`,
+                    { creative: true });
+            } catch (oe) { overview = ''; }
+
             window.db.genreKits = window.db.genreKits || {};
-            window.db.genreKits[genre] = kit;
+            window.db.genreKits[genre] = { genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, partial: failed.length ? failed : null };
             window.saveData();
             window.renderGenreKit(genre);
         } catch(e) {
@@ -3282,6 +3326,7 @@ ${owned.join(', ')}`;
                 <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)}</div>
             </div>
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
+            ${kit.partial?`<div class="mb-5 p-3 rounded border border-[#FFD60A40] bg-[#FFD60A]/6 text-[10px] text-[#FFE9A6]/85 leading-relaxed">⚠ Some slots didn't come back: <b>${esc(kit.partial.join(' · '))}</b>. Everything else below is good — hit ↻ REGENERATE to retry the whole sheet.</div>`:''}
             <div class="flex flex-wrap items-center gap-2 mb-5 p-3 rounded border border-[#00E5FF25] bg-[#00E5FF]/5">
                 <span class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">ATTACH THIS KIT TO A SONG</span>
                 <select id="kit-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none">
@@ -7071,6 +7116,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const loadCfg=()=>{ try{ return JSON.parse(localStorage.getItem(AI_KEY)||'{}'); }catch(e){ return {}; } };
   const saveCfg=(c)=>{ try{ localStorage.setItem(AI_KEY, JSON.stringify(c)); }catch(e){} };
   const isConfigured=()=>{ const c=loadCfg(); return c.mode==='groq' ? !!c.groqKey : !!(c.url && c.token); };
+  window.__aiIsConfigured = isConfigured; // shared so other script blocks gate exactly like the lyrics tools do
 
   // ---- core client: returns text, throws Error with a friendly message ----
   window.ferrettAI = async function(system, user, opts){

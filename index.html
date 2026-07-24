@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v55';
+window.APP_VERSION = 'v56';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -310,7 +310,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
             <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
                 <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide" id="genre-menu"></div></div>
-                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex items-center justify-between gap-2 flex-wrap"><span id="genre-bpm-readout" class="text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span><div class="flex gap-2 flex-wrap"><button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)">📦 PACK</button><button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button><button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button></div></div>
+                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex items-center justify-between gap-2 flex-wrap"><span id="genre-bpm-readout" class="text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span><div class="flex gap-2 flex-wrap"><button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)">📦 PACK</button><button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button><button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button><button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button></div></div>
                 <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
             </div>
             <div class="w-full md:w-[65%] p-6 md:p-8 bg-[rgba(10,15,13,0.8)] overflow-y-auto max-h-[800px] relative" id="recipe-display">
@@ -932,6 +932,10 @@ main { background: rgba(5,8,7,0.72); }
                         <select id="song-detail-tone-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a tone —</option></select>
                         <button id="song-detail-tone-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ LINK</button>
                     </div>
+                </div>
+                <div id="song-detail-kit-wrap" class="border-t border-[#FF88FF20] pt-3 mt-4">
+                    <div class="text-[9px] text-[#FF88FF]/60 tracking-widest mb-2">🤖 ATTACHED AI KIT</div>
+                    <div id="song-detail-kit" class="text-[10px]"></div>
                 </div>
             </div>
         </div>
@@ -1877,6 +1881,7 @@ const defaultDb = {
     patchbaySaved: [],
     songBoard: [],
     lyrics: null,
+    genreKits: {},
     ownedPlugins: [
         'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
         'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
@@ -2015,6 +2020,7 @@ try {
         if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
         if (parsed.songBoard) window.db.songBoard = parsed.songBoard;
         if (parsed.ownedPlugins) window.db.ownedPlugins = parsed.ownedPlugins;
+        if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
     }
     window.storageAvailable = true;
@@ -2152,6 +2158,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
                 if (cloudDb.songBoard) window.db.songBoard = cloudDb.songBoard;
                 if (cloudDb.ownedPlugins) window.db.ownedPlugins = cloudDb.ownedPlugins;
+                if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
                 window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
             } 
@@ -2247,6 +2254,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
         if (incoming.ownedPlugins) window.db.ownedPlugins = incoming.ownedPlugins;
+        if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
         if (incoming.lyrics) window.db.lyrics = incoming.lyrics;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
@@ -2664,6 +2672,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const meta = window.getGenreMeta(genre);
         const bpmReadout = document.getElementById('genre-bpm-readout'); if (bpmReadout) bpmReadout.textContent = `~${meta.bpm[0]}-${meta.bpm[1]} BPM`;
         document.getElementById('genre-info-bar')?.classList.remove('hidden');
+        const kitBtn = document.getElementById('btn-genre-kit');
+        if (kitBtn) { const has = !!(window.db.genreKits||{})[genre]; kitBtn.textContent = has ? '🤖 VIEW KIT' : '🤖 AI KIT'; kitBtn.title = has ? "Open this genre's generated per-instrument chain sheet" : 'Build a full per-instrument chain sheet for this genre using only the plugins you own'; }
         const instMenu = document.getElementById('inst-menu'); if(instMenu) instMenu.innerHTML = ''; 
         const instruments = window.db.cookbook.filter(r => r.genre === genre);
         instruments.forEach((data, index) => {
@@ -3162,6 +3172,167 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.getGenreMeta = (genre) => window.LYRIA_GENRE_META[genre] || window.LYRIA_GENRE_META['__default__'];
     window.getGenreBpmMid = (genre) => { const m = window.getGenreMeta(genre); return Math.round((m.bpm[0] + m.bpm[1]) / 2); };
+
+    // ==================== AI GENRE KIT ====================
+    // Builds a full per-instrument chain sheet for a genre, constrained to the plugins the user
+    // actually owns (window.db.ownedPlugins). Stored per-genre in window.db.genreKits so it survives
+    // reloads and syncs; a snapshot can be attached to a Song Board song (see attachKitToSong).
+    window.KIT_SLOTS = ['Vocals','Overdubs','Ad-Libs','Bass','Sub Bass','Keys / Synths','Guitars','Kick','Snare','Hats','Cymbals','Toms'];
+
+    function kitSysPrompt(){
+        return `You are a veteran hip-hop producer and mix engineer with deep, specific knowledge of how each sub-genre gets its sound — the actual processing moves, not generic advice.
+
+You will be given a genre with its tempo/mood/texture, and the COMPLETE list of plugins the producer owns. Build a per-instrument chain sheet.
+
+HARD RULES:
+- Use ONLY plugins from the owned list. Never invent or suggest a plugin that is not on it. Match the names exactly as given.
+- If a slot genuinely cannot be served well by the owned plugins, still give the best possible chain from what IS owned and say so in "why".
+- Give real, specific settings (ratios, frequencies in Hz, attack/release in ms, dB amounts, drive amounts). No vague "taste to taste".
+- Order the chain the way it should sit in the insert slots, first to last.
+- Give 1-3 recipes per instrument slot — your call. Give more where the genre has genuinely distinct options worth having (e.g. two different snare treatments that both fit), and just one where the genre demands a specific sound.
+- Be genre-accurate. A Memphis horrorcore snare and a G-funk snare are not the same chain.
+
+Reply with ONLY valid JSON, no markdown fences, no commentary, in exactly this shape:
+{"overview":"2-3 sentences on the overall sonic approach for this genre","instruments":[{"slot":"Vocals","recipes":[{"name":"short recipe name","chain":["Plugin Name — specific settings","Plugin Name — specific settings"],"why":"1-2 sentences on why this gets the genre's sound"}]}]}
+
+The "instruments" array must contain one entry for each of these slots, in this order: ${window.KIT_SLOTS.join(', ')}.`;
+    }
+
+    function extractJson(text){
+        let t = (text||'').trim();
+        t = t.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+        const first = t.indexOf('{'), last = t.lastIndexOf('}');
+        if (first > 0 || last < t.length-1) { if (first >= 0 && last > first) t = t.slice(first, last+1); }
+        return JSON.parse(t);
+    }
+
+    window.generateGenreKit = async (genre) => {
+        const disp = document.getElementById('recipe-display'); if (!disp) return;
+        const cfg = (()=>{ try { return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}'); } catch(e){ return {}; } })();
+        if (!(cfg.mode === 'groq' ? cfg.groqKey : (cfg.url && cfg.token))) { window.__openAiModal && window.__openAiModal(); return; }
+        if (!window.ferrettAI) { alert('AI co-pilot not loaded.'); return; }
+
+        const owned = (window.db.ownedPlugins || []).filter(Boolean);
+        if (!owned.length) { alert('Add the plugins you own first — Toolbox → AI Assistant → your gear list.'); return; }
+
+        const meta = window.getGenreMeta(genre);
+        disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center"><div class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase animate-pulse">🤖 Building the ${genre} kit…</div><div class="text-[10px] text-[#E2E8F0]/40 font-mono">Sifting ${owned.length} owned plugins across ${window.KIT_SLOTS.length} instrument slots.<br>This one takes a while — it's writing a lot.</div></div>`;
+
+        const user = `GENRE: ${genre}
+TEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM
+MOOD: ${meta.mood}
+TEXTURE: ${meta.texture}
+
+OWNED PLUGINS (${owned.length}) — use only these:
+${owned.join(', ')}`;
+
+        try {
+            const raw = await window.ferrettAI(kitSysPrompt(), user, { creative: true });
+            const parsed = extractJson(raw);
+            if (!parsed || !Array.isArray(parsed.instruments) || !parsed.instruments.length) throw new Error('Model returned no instrument slots.');
+            const kit = { genre, generatedAt: Date.now(), overview: parsed.overview || '', instruments: parsed.instruments };
+            window.db.genreKits = window.db.genreKits || {};
+            window.db.genreKits[genre] = kit;
+            window.saveData();
+            window.renderGenreKit(genre);
+        } catch(e) {
+            disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center px-6"><div class="text-[12px] font-bold tracking-widest text-[#FF5A5A] uppercase">⚠ Kit build failed</div><div class="text-[11px] text-[#E2E8F0]/60 font-mono max-w-md">${(e.message||'Unknown error').replace(/</g,'')}</div><button id="btn-kit-retry" class="btn-ferrett px-4 py-2 text-[10px] mt-2" style="border-color:#FF88FF80;color:#FF88FF">↻ TRY AGAIN</button></div>`;
+            document.getElementById('btn-kit-retry')?.addEventListener('click', () => window.generateGenreKit(genre));
+        }
+    };
+
+    window.renderGenreKit = (genre) => {
+        const disp = document.getElementById('recipe-display'); if (!disp) return;
+        const kit = (window.db.genreKits || {})[genre];
+        if (!kit) { window.generateGenreKit(genre); return; }
+        const esc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const songs = window.db.songBoard || [];
+        const when = new Date(kit.generatedAt).toLocaleString();
+
+        const slots = kit.instruments.map((inst, ii) => {
+            const recipes = Array.isArray(inst.recipes) ? inst.recipes : [];
+            return `<div class="bg-[rgba(5,8,7,0.9)] rounded border border-[#FF88FF25] overflow-hidden">
+                <div class="px-4 py-2.5 bg-[#FF88FF]/8 border-b border-[#FF88FF20] flex items-center justify-between gap-2">
+                    <h4 class="text-[#FF88FF] text-[11px] font-bold tracking-widest uppercase">${esc(inst.slot)}</h4>
+                    <span class="text-[8px] text-[#FF88FF]/45 tracking-widest">${recipes.length} RECIPE${recipes.length===1?'':'S'}</span>
+                </div>
+                <div class="p-4 space-y-4">${recipes.map((r,ri)=>`
+                    <div class="${ri>0?'pt-4 border-t border-white/5':''}">
+                        <div class="text-[11px] font-bold text-[#00FF88] tracking-wide mb-2">${esc(r.name||'Chain '+(ri+1))}</div>
+                        <ol class="space-y-1 mb-2">${(Array.isArray(r.chain)?r.chain:[]).map((step,si)=>`
+                            <li class="flex gap-2 text-[11px] font-mono text-[#E2E8F0]/85 leading-relaxed">
+                                <span class="text-[#FF88FF]/40 shrink-0 tabular-nums">${si+1}.</span><span>${esc(step)}</span>
+                            </li>`).join('')}</ol>
+                        ${r.why?`<div class="text-[10px] text-[#FFE9A6]/70 italic leading-relaxed border-l-2 border-[#FFD60A40] pl-2.5">${esc(r.why)}</div>`:''}
+                    </div>`).join('')}</div>
+            </div>`;
+        }).join('');
+
+        disp.innerHTML = `<div class="animate-fade-in">
+            <div class="border-b border-[#FF88FF25] pb-4 mb-5">
+                <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+                    <div><div class="text-[9px] tracking-widest text-[#FF88FF]/60 uppercase mb-1">🤖 AI Kit · your gear only</div>
+                    <h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FF88FF] uppercase">${esc(genre)}</h2></div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button id="btn-kit-regen" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF88FF40] text-[#FF88FF] hover:bg-[#FF88FF]/10 cursor-pointer" title="Throw this away and build a fresh one">↻ REGENERATE</button>
+                        <button id="btn-kit-md" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer">📄 .MD</button>
+                        <button id="btn-kit-back" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">← RECIPES</button>
+                    </div>
+                </div>
+                <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)}</div>
+            </div>
+            ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
+            <div class="flex flex-wrap items-center gap-2 mb-5 p-3 rounded border border-[#00E5FF25] bg-[#00E5FF]/5">
+                <span class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">ATTACH THIS KIT TO A SONG</span>
+                <select id="kit-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none">
+                    <option value="">${songs.length?'— choose a song —':'— no songs on the board yet —'}</option>
+                    ${songs.map(s=>`<option value="${s.id}">${esc((s.title||'Untitled').slice(0,40))}</option>`).join('')}
+                </select>
+                <button id="btn-kit-attach" class="btn-ferrett-green px-3 py-1.5 text-[10px]">🔗 ATTACH</button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">${slots}</div>
+        </div>`;
+
+        document.getElementById('btn-kit-regen')?.addEventListener('click', () => { if(confirm('Replace this kit with a freshly generated one?')) window.generateGenreKit(genre); });
+        document.getElementById('btn-kit-back')?.addEventListener('click', () => { window.selectGenre(genre); });
+        document.getElementById('btn-kit-md')?.addEventListener('click', () => window.exportKitMarkdown(genre));
+        document.getElementById('btn-kit-attach')?.addEventListener('click', () => {
+            const sel = document.getElementById('kit-song-select'); const id = sel.value ? parseInt(sel.value,10) : null;
+            if (!id) { sel.focus(); return; }
+            window.attachKitToSong(id, genre);
+            const b = document.getElementById('btn-kit-attach'); if (b) { b.textContent = '✓ ATTACHED'; setTimeout(()=>{ b.textContent='🔗 ATTACH'; }, 1500); }
+        });
+    };
+
+    // Snapshots the kit onto the song rather than referencing it by genre, so regenerating a genre's
+    // kit later never silently rewrites the recipe a song was actually made with.
+    window.attachKitToSong = (songId, genre) => {
+        const song = (window.db.songBoard || []).find(s => s.id === songId);
+        const kit = (window.db.genreKits || {})[genre];
+        if (!song || !kit) return;
+        song.kit = JSON.parse(JSON.stringify(kit));
+        window.saveData();
+        window.renderSongBoard && window.renderSongBoard();
+    };
+
+    window.exportKitMarkdown = (genre) => {
+        const kit = (window.db.genreKits || {})[genre]; if (!kit) return;
+        let md = `# ${genre} — AI Kit\n\n_Generated ${new Date(kit.generatedAt).toLocaleString()} from your owned plugins._\n\n`;
+        if (kit.overview) md += `${kit.overview}\n\n`;
+        kit.instruments.forEach(inst => {
+            md += `## ${inst.slot}\n\n`;
+            (inst.recipes||[]).forEach(r => {
+                md += `### ${r.name||'Chain'}\n\n`;
+                (r.chain||[]).forEach((s,i) => { md += `${i+1}. ${s}\n`; });
+                if (r.why) md += `\n> ${r.why}\n`;
+                md += `\n`;
+            });
+        });
+        const blob = new Blob([md], {type:'text/markdown'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = genre.replace(/[^a-z0-9]+/gi,'_') + '_ai_kit.md'; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 800);
+    };
 
     window.extractGenreElements = (genre) => {
         const byCategory = {};
@@ -3777,6 +3948,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-surprise-cookbook')?.addEventListener('click', () => window.surpriseCookbook());
     document.getElementById('btn-blend-genres')?.addEventListener('click', () => window.blendGenres());
     document.getElementById('btn-genre-lyria')?.addEventListener('click', () => window.openLyriaModal(window.currentCookbookGenre));
+    document.getElementById('btn-genre-kit')?.addEventListener('click', () => { const g = window.currentCookbookGenre; if (!g) return; if ((window.db.genreKits||{})[g]) window.renderGenreKit(g); else window.generateGenreKit(g); });
     document.getElementById('btn-open-lyria-tools')?.addEventListener('click', () => window.openLyriaModal());
     document.getElementById('close-lyria-modal')?.addEventListener('click', () => window.closeLyriaModal());
     document.getElementById('lyria-modal')?.addEventListener('click', (e) => { if (e.target.id === 'lyria-modal') window.closeLyriaModal(); });
@@ -5683,7 +5855,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
       const restored=JSON.parse(new TextDecoder().decode(pt));
       if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
-      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','ownedPlugins','lyrics','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','ownedPlugins','genreKits','lyrics','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
       window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
     }catch(e){ alert('Wrong passphrase or corrupted file.'); }
   }
@@ -6466,7 +6638,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
               <button type="button" class="song-arr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
               <button type="button" class="song-lyr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.lyricsSheetId!=null?'text-[#FF88FF]':'text-white/25'} hover:text-[#FF88FF]" data-song-id="${s.id}">📝 ${s.lyricsSheetId!=null?'Open lyrics':'New lyrics'}</button>
             </div>
-            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}</button>
+            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length||s.kit)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}${s.kit?' · 🤖 kit':''}</button>
           </div>`;
         }).join('')}</div>
       </div>`;
@@ -6510,6 +6682,34 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const linkedTones=(song.toneIds||[]).map(id=>(window.db.tones||[]).find(t=>t.id===id)).filter(Boolean);
     toneList.innerHTML = linkedTones.length ? linkedTones.map(t=>`<div class="flex items-center justify-between text-[10px] text-white/70 bg-black/30 rounded px-2 py-1"><span class="truncate pr-2">${(t.name||'Unnamed Combo').replace(/</g,'')}</span><button type="button" class="song-detail-tone-del text-white/30 hover:text-[#FF5A5A] text-[12px]" data-id="${t.id}">×</button></div>`).join('') : '<div class="text-[9px] text-white/25 italic py-1">No tones linked yet.</div>';
     populateSongDetailToneSelect(song);
+    const kitBox=$('song-detail-kit');
+    if(kitBox){
+      if(song.kit){
+        const slots=(song.kit.instruments||[]).length;
+        const recipes=(song.kit.instruments||[]).reduce((a,i)=>a+((i.recipes||[]).length),0);
+        kitBox.innerHTML=`<div class="bg-black/30 rounded px-2 py-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="text-[10px] font-bold text-[#FF88FF] truncate">${(song.kit.genre||'Kit').replace(/</g,'')}</div>
+              <div class="text-[8px] text-white/35 font-mono mt-0.5">${slots} instruments · ${recipes} recipes · snapshot from ${new Date(song.kit.generatedAt).toLocaleDateString()}</div>
+            </div>
+            <button type="button" id="song-detail-kit-del" class="text-white/30 hover:text-[#FF5A5A] text-[12px] shrink-0">×</button>
+          </div>
+          <button type="button" id="song-detail-kit-open" class="text-[9px] font-bold tracking-widest text-[#FF88FF]/70 hover:text-[#FF88FF] mt-2">→ OPEN IN COOKBOOK</button>
+        </div>`;
+        $('song-detail-kit-del')?.addEventListener('click',()=>{ if(!confirm("Remove this song's attached kit? The genre's own kit in the Cookbook stays.")) return; delete song.kit; window.saveData(); renderSongDetail(); renderSongBoard(); });
+        $('song-detail-kit-open')?.addEventListener('click',()=>{
+          const g=song.kit.genre; closeSongDetail(); window.switchTab('cookbook'); window.selectGenre(g);
+          // If the Cookbook no longer holds a kit for this genre (deleted/never synced here), restore
+          // this song's snapshot into it rather than kicking off a fresh, slow, paid generation.
+          window.db.genreKits = window.db.genreKits || {};
+          if(!window.db.genreKits[g]){ window.db.genreKits[g]=JSON.parse(JSON.stringify(song.kit)); window.saveData(); }
+          setTimeout(()=>window.renderGenreKit(g),80);
+        });
+      } else {
+        kitBox.innerHTML='<div class="text-[9px] text-white/25 italic py-1">No kit attached. Generate one in the Cookbook (pick a genre → 🤖 AI KIT) and attach it there.</div>';
+      }
+    }
   }
 
   // ==================== ARRANGEMENT TIMELINE ====================

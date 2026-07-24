@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v54';
+window.APP_VERSION = 'v55';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1292,9 +1292,10 @@ main { background: rgba(5,8,7,0.72); }
     <section id="tab-lyrics" class="middle-tab p-4 md:p-8 max-w-4xl border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#FF88FF20] pb-2 mb-5"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#FF88FF]">LYRICS LAB // CUT-UP ENGINE</h2><span class="text-[9px] text-[#FF88FF]/40 tracking-widest hidden sm:block">DRAG · SHUFFLE · SPLICE</span></div>
 
-        <!-- sheet tabs -->
+        <!-- sheet tabs: up to 3 quick-switch tabs, a dropdown for every other sheet (picking one bumps the oldest tab out), + new sheet -->
         <div class="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-hide">
             <div id="lyr-sheet-tabs" class="flex items-center gap-1.5"></div>
+            <select id="lyr-sheet-more" class="hidden shrink-0 text-[10px] font-bold tracking-widest bg-[#FF88FF15] border border-[#FF88FF30] hover:bg-[#FF88FF30] text-[#FF88FF] px-2 py-1.5 rounded transition-colors focus:outline-none"><option value="">+ SONG ▾</option></select>
             <button id="btn-lyr-new-sheet" type="button" class="shrink-0 text-[10px] font-bold tracking-widest bg-[#FF88FF15] border border-[#FF88FF30] hover:bg-[#FF88FF30] text-[#FF88FF] px-3 py-1.5 rounded transition-colors">+ SHEET</button>
         </div>
 
@@ -5884,11 +5885,36 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function pushUndo(){ try{ lyrUndo.push(JSON.stringify(activeSheet().lines)); if(lyrUndo.length>25) lyrUndo.shift(); }catch(e){} }
   function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
+  // Only up to 3 sheets show as quick-switch tabs at once — everything else lives in the "+ SONG"
+  // dropdown next to them. Picking a sheet from that dropdown pushes it into the tab row and bumps
+  // out whichever of the 3 was added longest ago (plain sequential/FIFO, not recency-based) — clicking
+  // between the 3 visible tabs never reorders or evicts anything, only bringing in a 4th does.
+  let visibleTabIds=null;
+  function ensureVisibleTabs(){
+    if(!visibleTabIds) visibleTabIds=[];
+    visibleTabIds=visibleTabIds.filter(id=>lyrState.sheets.some(s=>s.id===id));
+    if(!visibleTabIds.includes(lyrState.activeId)){
+      if(visibleTabIds.length>=3) visibleTabIds.shift();
+      visibleTabIds.push(lyrState.activeId);
+    }
+    for(const s of lyrState.sheets){
+      if(visibleTabIds.length>=3) break;
+      if(!visibleTabIds.includes(s.id)) visibleTabIds.push(s.id);
+    }
+  }
   function renderSheetTabs(){
     const wrap=$('lyr-sheet-tabs'); if(!wrap) return;
-    wrap.innerHTML=lyrState.sheets.map(s=>{ const on=s.id===lyrState.activeId; return `<button class="lyr-tab shrink-0 text-[10px] font-bold tracking-widest px-3 py-1.5 rounded border transition-colors ${on?'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]':'border-[#FF88FF20] text-[#FF88FF]/50 hover:text-[#FF88FF]'}" data-id="${s.id}">${(s.title||'Untitled').slice(0,18)}${lyrState.sheets.length>1?` <span class="lyr-tab-x text-white/30 hover:text-[#FF5A5A] ml-1" data-del="${s.id}">×</span>`:''}</button>`; }).join('');
+    ensureVisibleTabs();
+    const visible=visibleTabIds.map(id=>lyrState.sheets.find(s=>s.id===id)).filter(Boolean);
+    wrap.innerHTML=visible.map(s=>{ const on=s.id===lyrState.activeId; return `<button class="lyr-tab shrink-0 text-[10px] font-bold tracking-widest px-3 py-1.5 rounded border transition-colors ${on?'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]':'border-[#FF88FF20] text-[#FF88FF]/50 hover:text-[#FF88FF]'}" data-id="${s.id}">${(s.title||'Untitled').slice(0,18)}${lyrState.sheets.length>1?` <span class="lyr-tab-x text-white/30 hover:text-[#FF5A5A] ml-1" data-del="${s.id}">×</span>`:''}</button>`; }).join('');
     wrap.querySelectorAll('.lyr-tab').forEach(b=>b.addEventListener('click',(e)=>{ if(e.target.classList.contains('lyr-tab-x')) return; lyrState.activeId=parseInt(b.dataset.id,10); lyrUndo=[]; lyrSelected.clear(); saveLyr(); renderLyr(); }));
-    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; const orphan=(window.db&&window.db.songBoard||[]).find(s=>s.lyricsSheetId===id); if(orphan) orphan.lyricsSheetId=null; saveLyr(); renderLyr(); }));
+    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; visibleTabIds=visibleTabIds.filter(x=>x!==id); const orphan=(window.db&&window.db.songBoard||[]).find(s=>s.lyricsSheetId===id); if(orphan) orphan.lyricsSheetId=null; saveLyr(); renderLyr(); }));
+    const moreSel=$('lyr-sheet-more');
+    if(moreSel){
+      const others=lyrState.sheets.filter(s=>!visibleTabIds.includes(s.id));
+      moreSel.classList.toggle('hidden', !others.length);
+      moreSel.innerHTML='<option value="">+ SONG ▾</option>'+others.map(s=>`<option value="${s.id}">${(s.title||'Untitled').slice(0,30)}</option>`).join('');
+    }
   }
   function renderLines(){
     const box=$('lyr-lines'); if(!box) return; const sheet=activeSheet(); const showSyl=$('lyr-show-syl')?.checked;
@@ -6284,6 +6310,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if($('tab-lyrics')){
       initLyrState();
       $('btn-lyr-new-sheet')?.addEventListener('click',()=>{ const id=Date.now(); lyrState.sheets.push({id,title:'Untitled',lines:[{text:'',tag:''}]}); lyrState.activeId=id; lyrUndo=[]; saveLyr(); renderLyr(); $('lyr-title')?.focus(); });
+      $('lyr-sheet-more')?.addEventListener('change',(e)=>{ const id=e.target.value?parseInt(e.target.value,10):null; if(id==null) return; lyrState.activeId=id; lyrUndo=[]; lyrSelected.clear(); saveLyr(); renderLyr(); e.target.value=''; });
       $('lyr-title')?.addEventListener('input',()=>{ activeSheet().title=$('lyr-title').value; saveLyr(); renderSheetTabs(); });
       $('btn-lyr-cutup')?.addEventListener('click',()=>lyrCutup(false));
       $('btn-lyr-cutup-sec')?.addEventListener('click',()=>lyrCutup(true));

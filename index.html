@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v57';
+window.APP_VERSION = 'v58';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3184,7 +3184,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Assistant rest_command timeout — HA then returns an error page with no CORS headers and the
     // browser reports it as a CORS failure. Batching keeps every call the same size/duration as the
     // lyrics tools' calls, which are known to work on both backends.
-    const KIT_BATCH = 3;
+    const KIT_BATCH = 2;
+    const KIT_RETRIES = 2; // extra attempts per batch, on top of the first try
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    // Retries a single batch with backoff — the flakiness isn't one-shot-or-nothing, it's transient
+    // (rate limits, a slow HA hop), so a batch that fails once is often fine on the very next try.
+    async function callWithRetry(sys, user, opts){
+        let lastErr;
+        for (let attempt = 0; attempt <= KIT_RETRIES; attempt++){
+            try { return await window.ferrettAI(sys, user, opts); }
+            catch(e){ lastErr = e; if (attempt < KIT_RETRIES) await sleep(800 * (attempt + 1)); }
+        }
+        throw lastErr;
+    }
 
     function kitSysPrompt(slots){
         return `You are a veteran hip-hop producer and mix engineer with deep, specific knowledge of how each sub-genre gets its sound — the actual processing moves, not generic advice.
@@ -3249,27 +3261,32 @@ ${owned.join(', ')}`;
 
         const instruments = [];
         const failed = [];
+        let firstError = null;
         try {
             for (let b = 0; b < batches.length; b++) {
                 const slots = batches[b];
                 kitProgress(genre, b, batches.length, slots.join(', '));
+                if (b > 0) await sleep(400); // small gap so back-to-back batches don't bunch into a rate-limit burst
                 try {
-                    const raw = await window.ferrettAI(kitSysPrompt(slots), ctx, { creative: true });
+                    const raw = await callWithRetry(kitSysPrompt(slots), ctx, { creative: true });
                     const parsed = extractJson(raw);
                     const got = Array.isArray(parsed?.instruments) ? parsed.instruments : [];
                     if (!got.length) throw new Error('no slots returned');
                     got.forEach(x => { if (x && x.slot) instruments.push(x); });
                 } catch (be) {
-                    // One bad batch shouldn't throw away the ones that already succeeded.
+                    // One bad batch shouldn't throw away the ones that already succeeded — but keep
+                    // the real error so a total failure can report what actually went wrong instead
+                    // of a useless generic message.
                     failed.push(slots.join(', '));
+                    if (!firstError) firstError = be;
                 }
             }
-            if (!instruments.length) throw new Error('Every batch failed — check the ⚙ AI setup, then try again.');
+            if (!instruments.length) throw (firstError || new Error('No slots came back.'));
 
             kitProgress(genre, batches.length, batches.length, 'overview');
             let overview = '';
             try {
-                overview = await window.ferrettAI(
+                overview = await callWithRetry(
                     'You are a veteran hip-hop producer. Reply with 2-3 plain sentences and nothing else — no JSON, no markdown, no preamble.',
                     `In 2-3 sentences, describe the overall sonic approach for producing in this style:\n\nGENRE: ${genre}\nTEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM\nMOOD: ${meta.mood}\nTEXTURE: ${meta.texture}`,
                     { creative: true });

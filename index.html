@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v52';
+window.APP_VERSION = 'v53';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5774,36 +5774,49 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // Derives an ordered arrangement section list straight from the CURRENT lyric lines — this is the
   // single source of truth for lyrics->arrangement sync, called both at initial paste and live on
   // every subsequent edit (see saveLyr below). A maximal run of consecutive lines sharing the same
-  // tag becomes one section (bars = lines in that run, one bar per line — the standard hip-hop
-  // convention); an untagged line breaks a run without creating a section of its own. Repeated tags
-  // get auto-numbered in order ("Verse 1", "Verse 2", ...); a tag used only once stays unnumbered.
+  // tag AND half-time flag becomes one section (bars = lines in that run, one bar per line — the
+  // standard hip-hop convention — or two bars per line for a Half Time section, since a half-time
+  // feel stretches every line across twice the underlying bar grid); an untagged line breaks a run
+  // without creating a section of its own. Repeated tags get auto-numbered in order ("Verse 1",
+  // "Verse 2", ...); a tag used only once stays unnumbered.
   function sectionsFromLines(lines){
-    const sections=[]; let current=null; let currentTag=null;
+    const sections=[]; let current=null; let currentTag=null; let currentHalf=null;
     lines.forEach(ln=>{
-      const tag=ln.tag||'';
-      if(tag && tag===currentTag){ current.bars++; }
-      else if(tag){ current={ name: tag.charAt(0)+tag.slice(1).toLowerCase(), bars:1, _tag:tag }; sections.push(current); currentTag=tag; }
-      else { currentTag=null; current=null; }
+      const tag=ln.tag||''; const half=!!ln.halfTime;
+      if(tag && tag===currentTag && half===currentHalf){ current.bars+=half?2:1; }
+      else if(tag){ current={ name: tag.charAt(0)+tag.slice(1).toLowerCase()+(half?' (Half Time)':''), bars: half?2:1, _tag:tag }; sections.push(current); currentTag=tag; currentHalf=half; }
+      else { currentTag=null; currentHalf=null; current=null; }
     });
     const countByTag={}; sections.forEach(s=>{ countByTag[s._tag]=(countByTag[s._tag]||0)+1; });
     const seen={};
     sections.forEach(s=>{ if(countByTag[s._tag]>1){ seen[s._tag]=(seen[s._tag]||0)+1; s.name+=' '+seen[s._tag]; } delete s._tag; });
     return sections;
   }
-  // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]")
-  // into per-line {text,tag} pairs — every non-blank line under a header inherits that header's tag,
-  // including parenthetical ad-libs. The numeral in the header itself is not kept (sectionsFromLines
-  // renumbers repeated tags from the actual line order), so structure stays correct even after later
-  // edits reshuffle things.
+  // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]",
+  // "[Chorus Half Time]") into per-line {text,tag,halfTime} triples — every non-blank line under a
+  // header inherits that header's tag, including parenthetical ad-libs and a lone "-" (an
+  // instrumental/rest bar with no words — it still counts toward the section's bar total since bars
+  // are counted per line regardless of text, but has no letters for Analyze mode to rhyme against).
+  // The numeral in the header itself is not kept (sectionsFromLines renumbers repeated tags from the
+  // actual line order), so structure stays correct even after later edits reshuffle things.
   function parseTaggedSongText(raw){
     const rawLines=(raw||'').split(/\r?\n/);
-    const lines=[]; let currentTag='';
+    const lines=[]; let currentTag=''; let currentHalfTime=false;
     for(const rl of rawLines){
       const trimmed=rl.trim();
       if(!trimmed) continue;
-      const m=trimmed.match(/^\[([A-Za-z]+)(\s+\d+)?\]$/);
-      if(m){ const base=m[1].toUpperCase(); currentTag = TAGS[base] ? base : ''; continue; }
-      lines.push({ text:trimmed, tag:currentTag });
+      const m=trimmed.match(/^\[(.+)\]$/);
+      if(m){
+        let inner=m[1].trim();
+        const halfTime=/half\s*time/i.test(inner);
+        inner=inner.replace(/\(?\s*half\s*time\s*\)?/i,'').trim();
+        const tm=inner.match(/^([A-Za-z]+)(?:\s+\d+)?$/);
+        const base=tm?tm[1].toUpperCase():'';
+        currentTag = TAGS[base] ? base : '';
+        currentHalfTime = halfTime;
+        continue;
+      }
+      lines.push({ text:trimmed, tag:currentTag, halfTime:currentHalfTime });
     }
     return { lines, sections: sectionsFromLines(lines) };
   }
@@ -5924,7 +5937,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // looks up a section's color the same way sectionsFromLines derives its tag — strip a trailing
   // numeral ("Verse 1" -> VERSE) and match against TAGS, so chips use the same palette as the
   // per-line tag glyphs/dropdown and (via the identical mapping in ARR_TYPES) the Arrangement Timeline
-  function colorForSection(name){ const base=(name||'').toUpperCase().replace(/\s+\d+$/,''); return (TAGS[base]||TAGS[''])[1]; }
+  function colorForSection(name){ const base=(name||'').toUpperCase().replace(/\s*\(HALF TIME\)/,'').replace(/\s+\d+$/,'').trim(); return (TAGS[base]||TAGS[''])[1]; }
   function renderStructureStrip(){
     const el=$('lyr-structure-strip'); if(!el) return;
     const sheet=activeSheet();
@@ -6485,7 +6498,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       }
     }
   }
-  function colorFor(name){ const base=(name||'').replace(/\s+\d+$/,''); const t=ARR_TYPES.find(x=>x[0]===base); return t?t[2]:'#B18CFF'; }
+  function colorFor(name){ const base=(name||'').replace(/\s*\(Half Time\)/i,'').replace(/\s+\d+$/,'').trim(); const t=ARR_TYPES.find(x=>x[0]===base); return t?t[2]:'#B18CFF'; }
   function fmtT(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m+':'+String(s).padStart(2,'0'); }
   function populateArrSongSelect(){
     const sel=$('arr-song-select'); if(!sel) return;

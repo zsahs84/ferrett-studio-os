@@ -54,7 +54,7 @@ then visit `https://<username>.github.io/<repo>/`.
 |-----|---------------|
 | **Beat & Vox Cookbook** | Genre/instrument recipes with signal-chain screenshots |
 | **Top Guitar/Bass Presets** | Tone DB (NAM/IR, tags, BPM/key, audio refs) |
-| **Hardware, Routing & Logic** | Patchbay + REAPER/LUNA routing, scripts |
+| **Hardware, Routing & Logic** | Patchbay + REAPER routing, scripts |
 | **Web Tools & Intel** | Link database of external tools |
 | **Track DB** | Per-track settings, plugins, references, images |
 | **Tone DB** | Tagged tone combos |
@@ -190,7 +190,7 @@ feedback** from a description of what you hear.
 
 - **MIDI export** — the Beat Sketch, each Chord Progression, and a recorded
   Melody all export as standard `.mid` files (type-0, 480 PPQ) you can drag
-  onto any DAW track (REAPER, LUNA, etc.).
+  onto any REAPER track.
 - **Arrangement → markers** — export your arrangement as a REAPER-compatible
   region CSV (`#,Name,Start,End,Length`) and import it in the Region/Marker
   Manager.

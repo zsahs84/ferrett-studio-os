@@ -31,7 +31,6 @@ This guide covers every tab and feature as of the current build. The version num
 - **No install required** — it's a static page. Open it in a browser and it works. Install it as a PWA (browser's "Add to Home Screen" / install-app prompt) to get offline access and an app icon.
 - **Everything saves locally first.** Every edit writes to the browser's local storage instantly. Nothing is lost if you're offline.
 - **Google Drive sync is optional but recommended** if you use the app on more than one device (e.g. Mac in the studio + phone on the go). Click the red comms icon top-right to authenticate; once connected it debounce-saves to a single JSON file in your Drive (`FERRETT_OS_VAULT.json`) a couple of seconds after each change.
-- **REAPER / BOTH / LUNA toggle** (top right) — if you switch between DAWs, this filters gear notes, chains, and templates written for one DAW vs. the other. "BOTH" shows everything.
 
 ---
 
@@ -52,7 +51,6 @@ Always visible at the top, regardless of which tab you're on:
 | **Drive icon** (red = disconnected, green = synced) | Click to authenticate Google Drive. Shows sync status; click again any time to force a sync. |
 | **VAULT** | Full JSON export of everything — your complete local backup file. |
 | **BACKUP / RESTORE** | Manual backup-to-file and restore-from-file, independent of Drive. |
-| **REAPER / BOTH / LUNA** | Filters DAW-specific content throughout the app. |
 | **REC / timecode** | Session timer — click the dot to pause/resume, click ⟲ to reset. Feeds Session Starter and Studio Analytics. |
 
 ---

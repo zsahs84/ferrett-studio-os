@@ -130,7 +130,6 @@ main { background: rgba(5,8,7,0.72); }
 .note-tab-close { opacity:0.4; padding:0 4px; font-size:12px; }
 .note-tab-close:hover { opacity:1; color:#FF4444; }
 
-.mode-reaper .show-luna { display:none !important; } .mode-luna .show-reaper { display:none !important; }
 .tab-section { display:none; } .tab-section.active { display:block; }
 .middle-tab { display:none; } .middle-tab.active { display:block; }
 
@@ -150,7 +149,7 @@ main { background: rgba(5,8,7,0.72); }
 .file-upload-btn { display: inline-block; cursor: pointer; }
 </style>
 </head>
-<body class="mode-both h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black">
+<body class="h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black">
 
 <div class="hud-grid"></div><div class="hud-scanlines"></div><div class="hud-flicker"></div><div class="hud-vignette"></div><div class="glitch-slice"></div>
 
@@ -162,7 +161,7 @@ main { background: rgba(5,8,7,0.72); }
     </button>
     <div class="leading-none min-w-0">
       <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">FERRETT_STUDIO_OS</h1>
-      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">DUAL DAW WORKSPACE v43</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
+      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">REAPER WORKSPACE v43</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
     </div>
     <div class="hidden lg:flex items-center gap-3 ml-4 pl-4 border-l border-[#00FF8814]">
       <div class="vu-wrap" id="vuLeft"><div class="vu-bar" style="height:4px"></div><div class="vu-bar" style="height:8px"></div><div class="vu-bar" style="height:6px"></div><div class="vu-bar" style="height:10px"></div></div>
@@ -207,11 +206,6 @@ main { background: rgba(5,8,7,0.72); }
         <span class="hidden sm:inline">RESTORE</span>
       </button>
       <input type="file" id="restore-vault-input" accept="application/json" class="hidden">
-    </div>
-    <div class="flex gap-1 p-1 bg-black/60 border border-[#00FF8818] rounded backdrop-blur">
-      <button id="btn-reaper" class="px-2.5 md:px-3.5 py-1 text-[9px] md:text-[10px] font-bold rounded text-[#7AFFBF]/45 hover:text-[#00FF88] uppercase tracking-wider transition-colors">REAPER</button>
-      <button id="btn-both" class="px-2.5 md:px-3.5 py-1 text-[9px] md:text-[10px] font-bold rounded bg-[#00FF88] text-black uppercase tracking-wider shadow-[0_0_10px_rgba(0,255,136,0.35)]">BOTH</button>
-      <button id="btn-luna" class="px-2.5 md:px-3.5 py-1 text-[9px] md:text-[10px] font-bold rounded text-[#7AFFBF]/45 hover:text-[#00E5FF] uppercase tracking-wider transition-colors">LUNA</button>
     </div>
   </div>
 </header>
@@ -292,10 +286,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">EFFORT / TIME</label><select id="cookbook-effort" class="input-ferrett"><option value="">— unset —</option><option value="Quick win">⚡ Quick win</option><option value="Medium">◐ Medium</option><option value="Deep dive">🌊 Deep dive</option></select></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DESCRIPTION & PHILOSOPHY</label><textarea id="cookbook-desc" class="input-ferrett h-16 resize-y"></textarea></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REAPER (NATIVE/VST) CHAIN</label><textarea id="cookbook-reaper" class="input-ferrett h-24 resize-y"></textarea></div>
-                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">LUNA (UAD DSP) CHAIN</label><textarea id="cookbook-luna" class="input-ferrett h-24 resize-y"></textarea></div>
-            </div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">SIGNAL CHAIN (PLUGINS)</label><textarea id="cookbook-reaper" class="input-ferrett h-24 resize-y"></textarea></div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">WORKFLOW & ROUTING NOTES</label><textarea id="cookbook-notes" class="input-ferrett h-16 resize-y"></textarea></div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#FFD60A]/70 block mb-1">💡 WHY IT WORKS (optional — the reasoning)</label><textarea id="cookbook-why" class="input-ferrett h-16 resize-y" placeholder="Why this chain achieves the sound — for future-you."></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40">
@@ -467,7 +458,6 @@ main { background: rgba(5,8,7,0.72); }
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">TOOL NAME</label><input type="text" id="link-title" class="input-ferrett"></div>
                 <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="link-category" class="input-ferrett"><option value="AI & MIDI Extraction">AI & MIDI Extraction</option><option value="Tones, Amps & IRs">Tones, Amps & IRs</option><option value="Mixing & Mastering">Mixing & Mastering</option><option value="Samples & Instruments">Samples & Instruments</option><option value="Audio Utilities">Audio Utilities</option></select></div>
-                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DAW CONTEXT</label><select id="link-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div>
                 <div class="md:col-span-3"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FULL URL</label><input type="text" id="link-url" class="input-ferrett"></div>
             </div>
             <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DESCRIPTION & WORKFLOW NOTES</label><textarea id="link-notes" class="input-ferrett h-16 resize-y"></textarea></div>
@@ -482,7 +472,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW CHANNEL SETTING</h3>
             <input type="hidden" id="track-id">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / CHANNEL</label><input type="text" id="track-inst" class="input-ferrett"></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DAW</label><select id="track-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / CHANNEL</label><input type="text" id="track-inst" class="input-ferrett"></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON TONE (optional)</label><select id="track-tone-ref" class="input-ferrett"><option value="">— none —</option></select></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON RECIPE (optional)</label><select id="track-recipe-ref" class="input-ferrett"><option value="">— none —</option></select></div></div>
             <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REFERENCE LINK (YouTube / Spotify — shows an inline player)</label><input type="text" id="track-reflink" placeholder="https://..." class="input-ferrett"></div>
@@ -503,7 +493,6 @@ main { background: rgba(5,8,7,0.72); }
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">PRESET NAME</label><input type="text" id="tone-name" class="input-ferrett"></div>
                 <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">GAIN STAGE</label><select id="tone-category" class="input-ferrett"><option value="CLEAN">CLEAN</option><option value="CRUNCH">CRUNCH</option><option value="DISTORTION">DISTORTION</option><option value="BASS">BASS</option></select></div>
-                <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DAW</label><select id="tone-daw" class="input-ferrett"><option value="both">Both</option><option value="reaper">REAPER</option><option value="luna">LUNA</option></select></div>
                 <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">NAM (AMP PROFILE)</label><input type="text" id="tone-nam" class="input-ferrett"></div>
                 <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">IR (CABINET)</label><input type="text" id="tone-ir" class="input-ferrett"></div>
                 <div class="lg:col-span-4"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">BRAND (optional — e.g. Marshall, Fender, Mesa)</label><input type="text" id="tone-brand" list="tone-brand-list" placeholder="e.g. Marshall" class="input-ferrett"><datalist id="tone-brand-list"><option value="Fender"><option value="Marshall"><option value="Mesa/Boogie"><option value="Vox"><option value="Orange"><option value="Peavey"><option value="EVH"><option value="Bogner"><option value="Friedman"><option value="Suhr"><option value="PRS"><option value="Soldano"><option value="Diezel"><option value="ENGL"><option value="Two-Rock"><option value="Matchless"><option value="Supro"><option value="Ampeg"><option value="Blackstar"><option value="Hiwatt"><option value="Kemper"><option value="Neural DSP"><option value="Line 6"></datalist></div>
@@ -1488,7 +1477,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="notes-footer-toggle" type="button" class="w-full flex items-center justify-between gap-3 px-4 md:px-8 py-2.5 cursor-pointer bg-transparent border-0 text-left">
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <svg id="notes-footer-chevron" class="w-3.5 h-3.5 text-[#00E5FF]/60 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
-        <span class="text-[11px] tracking-widest font-bold text-[#00E5FF] shrink-0">NOTES [<span id="note-context-label" class="text-white">BOTH</span>]</span>
+        <span class="text-[11px] tracking-widest font-bold text-[#00E5FF] shrink-0">NOTES [<span id="note-context-label" class="text-white">REAPER</span>]</span>
         <span id="notes-footer-active-title" class="text-[10px] text-[#00E5FF]/40 truncate">No active note</span>
       </div>
       <span id="save-status" class="text-[10px] font-bold tracking-widest text-[#00FF88] opacity-0 transition-opacity whitespace-nowrap shrink-0">SAVED LOCALLY</span>
@@ -1915,49 +1904,49 @@ const defaultDb = {
         // Baked-in starter recipes removed — the cookbook now starts empty; genres populate as you add or AI-generate recipes.
     ],
     links: [
-        { id: 1, title: 'Hookpad (Hooktheory)', url: 'https://hookpad.hooktheory.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Browser tool to map out complex jazz/neo-soul chord progressions. Analyzes scales and lets you export MIDI directly to Reaper.' },
-        { id: 2, title: 'Fadr AI', url: 'https://fadr.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'MIDI chord/stem extraction and mastering assistant. The MIDI extraction is the standout feature beyond simple vocal isolation.' },
-        { id: 3, title: 'Spotify Basic Pitch', url: 'http://basicpitch.spotify.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Converts audio to MIDI via Machine Learning.' },
-        { id: 6, title: 'RipX', url: 'https://hitnmix.com/', category: 'AI & MIDI Extraction', daw: 'both', notes: 'Deep Audio Manipulation. Turns full mixes into editable MIDI and audio stems, note-by-note — more than just vocal removal.' },
-        { id: 7, title: 'Tunebat', url: 'https://tunebat.com/', category: 'Samples & Instruments', daw: 'both', notes: 'The ultimate database for crate digging. Look up exact BPM, Key, and Camelot wheel position of almost any commercial song.' },
-        { id: 8, title: 'Splice', url: 'https://splice.com/', category: 'Samples & Instruments', daw: 'both', notes: 'The industry standard cloud sample, loop, and preset ecosystem.' },
-        { id: 9, title: 'Pianobook', url: 'https://www.pianobook.co.uk/', category: 'Samples & Instruments', daw: 'both', notes: 'Community-sourced free sample instruments for DecentSampler & Kontakt.' },
-        { id: 10, title: 'Spitfire LABS', url: 'https://labs.spitfireaudio.com/', category: 'Samples & Instruments', daw: 'both', notes: 'Free, professional-grade cinematic, orchestral, and organic VST instruments.' },
-        { id: 11, title: 'Tracklib', url: 'https://www.tracklib.com/', category: 'Samples & Instruments', daw: 'both', notes: 'Clearable, legal crate-digging. Sample actual vintage records without fear of copyright strikes.' },
-        { id: 12, title: 'Cymatics', url: 'https://cymatics.fm/', category: 'Samples & Instruments', daw: 'both', notes: 'Industry standard for modern Trap, Drill, and EDM drum kits.' },
-        { id: 13, title: 'Freesound.org', url: 'https://freesound.org/', category: 'Samples & Instruments', daw: 'both', notes: 'The rawest database of field recordings, foley, and weird noises. Perfect for granular synthesis.' },
-        { id: 14, title: 'Rhythm Roulette', url: 'https://www.youtube.com/playlist?list=PLB-XmXAB88c5r2U-H2HnZ1D_4Rj6E04Zg', category: 'Samples & Instruments', daw: 'both', notes: 'Video series. Watch legendary producers blindly pick 3 records and build a beat. Incredible workflow inspiration.' },
-        { id: 15, title: 'Mixchecker', url: 'https://www.mixchecker.com/', category: 'Mixing & Mastering', daw: 'both', notes: 'Simulates consumer devices (phones, laptops, car stereos) to verify mix translation.' },
-        { id: 16, title: 'Loudness Penalty', url: 'https://www.loudnesspenalty.com/', category: 'Mixing & Mastering', daw: 'both', notes: 'Check exactly how much streaming services (Spotify/Apple) will turn down your master due to LUFS limits.' },
-        { id: 17, title: 'Youlean Loudness Meter', url: 'https://youlean.co/', category: 'Mixing & Mastering', daw: 'both', notes: 'The industry standard free LUFS meter. Essential to have on your master bus.' },
-        { id: 18, title: 'Metric AB', url: 'https://www.plugin-alliance.com/en/products/adptr_metricab.html', category: 'Mixing & Mastering', daw: 'both', notes: 'The ultimate referencing tool. Instantly A/B your mix against commercial masters.' },
-        { id: 19, title: 'ToneHunt', url: 'https://tonehunt.org/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The largest community database for Neural Amp Modeler (NAM) profiles.' },
-        { id: 20, title: 'Tone3000', url: 'https://www.tone3000.com/', category: 'Tones, Amps & IRs', daw: 'both', notes: 'Aggregated search engine for specific JCM800 and high-gain NAM captures.' },
-        { id: 21, title: 'Gods Cab IRs', url: 'https://wilkinsonaudio.com/products/gods-cab', category: 'Tones, Amps & IRs', daw: 'both', notes: 'The legendary free Mesa OS Impulse Responses (700+ IRs). Essential for heavy guitars. Original signalsaudio.com site is defunct — this is the current, verified free download.' },
-        { id: 22, title: 'SoundGym', url: 'https://www.soundgym.co/', category: 'Audio Utilities', daw: 'both', notes: 'Daily ear training workouts for audio engineers. Improves frequency recognition and EQ skills.' },
-        { id: 23, title: 'Equipboard', url: 'https://equipboard.com/', category: 'Audio Utilities', daw: 'both', notes: 'Look up exactly what analog gear, synths, and plugins famous producers use.' },
-        { id: 24, title: 'KVR Audio', url: 'https://www.kvraudio.com/', category: 'Audio Utilities', daw: 'both', notes: 'The largest database of VST plugins, reviews, and audio developer forums.' },
-        { id: 25, title: 'Plugin Boutique', url: 'https://www.pluginboutique.com/', category: 'Audio Utilities', daw: 'both', notes: 'The best hub for tracking down free utility VSTs and plugin sales.' },
-        { id: 26, title: 'AutoEq Database', url: 'https://github.com/jaakkopasanen/AutoEq', category: 'Audio Utilities', daw: 'both', notes: 'Database of EQ curves to flatten consumer headphones (use with SoundSource).' },
-        { id: 27, title: 'Glicol', url: 'https://glicol.org/', category: 'Audio Utilities', daw: 'both', notes: 'Weird Edge Case: Live-coding beat engine in the browser. Type syntax to generate chaotic, glitchy IDM rhythms.' },
-        { id: 28, title: 'Pink Trombone', url: 'https://dood.al/pinktrombone/', category: 'Audio Utilities', daw: 'both', notes: 'Weird Edge Case: Interactive speech synthesizer. Manipulate a digital throat to create alien vocal formants.' },
-        { id: 29, title: 'Gearspace', url: 'https://gearspace.com/', category: 'Audio Utilities', daw: 'both', notes: 'The largest professional audio engineering forum. Great for hardware troubleshooting.' }
+        { id: 1, title: 'Hookpad (Hooktheory)', url: 'https://hookpad.hooktheory.com/', category: 'AI & MIDI Extraction', daw: 'reaper', notes: 'Browser tool to map out complex jazz/neo-soul chord progressions. Analyzes scales and lets you export MIDI directly to Reaper.' },
+        { id: 2, title: 'Fadr AI', url: 'https://fadr.com/', category: 'AI & MIDI Extraction', daw: 'reaper', notes: 'MIDI chord/stem extraction and mastering assistant. The MIDI extraction is the standout feature beyond simple vocal isolation.' },
+        { id: 3, title: 'Spotify Basic Pitch', url: 'http://basicpitch.spotify.com/', category: 'AI & MIDI Extraction', daw: 'reaper', notes: 'Converts audio to MIDI via Machine Learning.' },
+        { id: 6, title: 'RipX', url: 'https://hitnmix.com/', category: 'AI & MIDI Extraction', daw: 'reaper', notes: 'Deep Audio Manipulation. Turns full mixes into editable MIDI and audio stems, note-by-note — more than just vocal removal.' },
+        { id: 7, title: 'Tunebat', url: 'https://tunebat.com/', category: 'Samples & Instruments', daw: 'reaper', notes: 'The ultimate database for crate digging. Look up exact BPM, Key, and Camelot wheel position of almost any commercial song.' },
+        { id: 8, title: 'Splice', url: 'https://splice.com/', category: 'Samples & Instruments', daw: 'reaper', notes: 'The industry standard cloud sample, loop, and preset ecosystem.' },
+        { id: 9, title: 'Pianobook', url: 'https://www.pianobook.co.uk/', category: 'Samples & Instruments', daw: 'reaper', notes: 'Community-sourced free sample instruments for DecentSampler & Kontakt.' },
+        { id: 10, title: 'Spitfire LABS', url: 'https://labs.spitfireaudio.com/', category: 'Samples & Instruments', daw: 'reaper', notes: 'Free, professional-grade cinematic, orchestral, and organic VST instruments.' },
+        { id: 11, title: 'Tracklib', url: 'https://www.tracklib.com/', category: 'Samples & Instruments', daw: 'reaper', notes: 'Clearable, legal crate-digging. Sample actual vintage records without fear of copyright strikes.' },
+        { id: 12, title: 'Cymatics', url: 'https://cymatics.fm/', category: 'Samples & Instruments', daw: 'reaper', notes: 'Industry standard for modern Trap, Drill, and EDM drum kits.' },
+        { id: 13, title: 'Freesound.org', url: 'https://freesound.org/', category: 'Samples & Instruments', daw: 'reaper', notes: 'The rawest database of field recordings, foley, and weird noises. Perfect for granular synthesis.' },
+        { id: 14, title: 'Rhythm Roulette', url: 'https://www.youtube.com/playlist?list=PLB-XmXAB88c5r2U-H2HnZ1D_4Rj6E04Zg', category: 'Samples & Instruments', daw: 'reaper', notes: 'Video series. Watch legendary producers blindly pick 3 records and build a beat. Incredible workflow inspiration.' },
+        { id: 15, title: 'Mixchecker', url: 'https://www.mixchecker.com/', category: 'Mixing & Mastering', daw: 'reaper', notes: 'Simulates consumer devices (phones, laptops, car stereos) to verify mix translation.' },
+        { id: 16, title: 'Loudness Penalty', url: 'https://www.loudnesspenalty.com/', category: 'Mixing & Mastering', daw: 'reaper', notes: 'Check exactly how much streaming services (Spotify/Apple) will turn down your master due to LUFS limits.' },
+        { id: 17, title: 'Youlean Loudness Meter', url: 'https://youlean.co/', category: 'Mixing & Mastering', daw: 'reaper', notes: 'The industry standard free LUFS meter. Essential to have on your master bus.' },
+        { id: 18, title: 'Metric AB', url: 'https://www.plugin-alliance.com/en/products/adptr_metricab.html', category: 'Mixing & Mastering', daw: 'reaper', notes: 'The ultimate referencing tool. Instantly A/B your mix against commercial masters.' },
+        { id: 19, title: 'ToneHunt', url: 'https://tonehunt.org/', category: 'Tones, Amps & IRs', daw: 'reaper', notes: 'The largest community database for Neural Amp Modeler (NAM) profiles.' },
+        { id: 20, title: 'Tone3000', url: 'https://www.tone3000.com/', category: 'Tones, Amps & IRs', daw: 'reaper', notes: 'Aggregated search engine for specific JCM800 and high-gain NAM captures.' },
+        { id: 21, title: 'Gods Cab IRs', url: 'https://wilkinsonaudio.com/products/gods-cab', category: 'Tones, Amps & IRs', daw: 'reaper', notes: 'The legendary free Mesa OS Impulse Responses (700+ IRs). Essential for heavy guitars. Original signalsaudio.com site is defunct — this is the current, verified free download.' },
+        { id: 22, title: 'SoundGym', url: 'https://www.soundgym.co/', category: 'Audio Utilities', daw: 'reaper', notes: 'Daily ear training workouts for audio engineers. Improves frequency recognition and EQ skills.' },
+        { id: 23, title: 'Equipboard', url: 'https://equipboard.com/', category: 'Audio Utilities', daw: 'reaper', notes: 'Look up exactly what analog gear, synths, and plugins famous producers use.' },
+        { id: 24, title: 'KVR Audio', url: 'https://www.kvraudio.com/', category: 'Audio Utilities', daw: 'reaper', notes: 'The largest database of VST plugins, reviews, and audio developer forums.' },
+        { id: 25, title: 'Plugin Boutique', url: 'https://www.pluginboutique.com/', category: 'Audio Utilities', daw: 'reaper', notes: 'The best hub for tracking down free utility VSTs and plugin sales.' },
+        { id: 26, title: 'AutoEq Database', url: 'https://github.com/jaakkopasanen/AutoEq', category: 'Audio Utilities', daw: 'reaper', notes: 'Database of EQ curves to flatten consumer headphones (use with SoundSource).' },
+        { id: 27, title: 'Glicol', url: 'https://glicol.org/', category: 'Audio Utilities', daw: 'reaper', notes: 'Weird Edge Case: Live-coding beat engine in the browser. Type syntax to generate chaotic, glitchy IDM rhythms.' },
+        { id: 28, title: 'Pink Trombone', url: 'https://dood.al/pinktrombone/', category: 'Audio Utilities', daw: 'reaper', notes: 'Weird Edge Case: Interactive speech synthesizer. Manipulate a digital throat to create alien vocal formants.' },
+        { id: 29, title: 'Gearspace', url: 'https://gearspace.com/', category: 'Audio Utilities', daw: 'reaper', notes: 'The largest professional audio engineering forum. Great for hardware troubleshooting.' }
     ],
     tones: [
-        { id: 101, name: "Gods Cab Heavy Core", category: "DISTORTION", daw: "both", nam: "NAM JCM800 High Gain", ir: "Gods Cab 1960B TS9", notes: "The absolute standard. Push the input, HPF at 90Hz, wide scoop at 300Hz.", starred: true, images: [] },
-        { id: 102, name: "Mesa V30 Chug", category: "DISTORTION", daw: "both", nam: "NAM Dual Recto", ir: "Mesa OS 4x12 SM57", notes: "Tight bottom end. LPF at 8kHz to remove fizz. Fast gate up front.", starred: true, images: [] },
-        { id: 103, name: "Bogren Plexi Smash", category: "CRUNCH", daw: "both", nam: "NAM Marshall Plexi", ir: "Bogren BD-Heavy-01", notes: "Vintage rock tone. Roll guitar volume down to 7. Boost 2.5kHz.", starred: true, images: [] },
+        { id: 101, name: "Gods Cab Heavy Core", category: "DISTORTION", daw: "reaper", nam: "NAM JCM800 High Gain", ir: "Gods Cab 1960B TS9", notes: "The absolute standard. Push the input, HPF at 90Hz, wide scoop at 300Hz.", starred: true, images: [] },
+        { id: 102, name: "Mesa V30 Chug", category: "DISTORTION", daw: "reaper", nam: "NAM Dual Recto", ir: "Mesa OS 4x12 SM57", notes: "Tight bottom end. LPF at 8kHz to remove fizz. Fast gate up front.", starred: true, images: [] },
+        { id: 103, name: "Bogren Plexi Smash", category: "CRUNCH", daw: "reaper", nam: "NAM Marshall Plexi", ir: "Bogren BD-Heavy-01", notes: "Vintage rock tone. Roll guitar volume down to 7. Boost 2.5kHz.", starred: true, images: [] },
         { id: 104, name: "Orange 5150 Lead", category: "DISTORTION", daw: "reaper", nam: "NAM Peavey 5150", ir: "Orange 4x12 R121", notes: "Smooth, searing leads. Add short stereo delay (ping-pong) and plate reverb.", starred: true, images: [] },
-        { id: 105, name: "Modern Djent G-Drop", category: "DISTORTION", daw: "both", nam: "NAM Fortin Nameless", ir: "Zilla Cab 4x12", notes: "For 7/8 strings. Pre-EQ: Pull out 200Hz massively before hitting the amp to tighten low end.", starred: true, images: [] },
-        { id: 106, name: "Fender Twin Glass", category: "CLEAN", daw: "both", nam: "NAM Deluxe Reverb", ir: "Fender Twin Jensen", notes: "Crystal clean. Compress heavily with optical comp (LA-2A) for sustain.", starred: true, images: [] },
-        { id: 107, name: "Roland JC-120 Chorus", category: "CLEAN", daw: "both", nam: "NAM Roland JC-120", ir: "JC-120 Direct", notes: "80s Pop / Mac DeMarco vibe. Add wide Brigade chorus and subtle tape flutter.", starred: true, images: [] },
-        { id: 108, name: "Edge of Breakup Vox", category: "CRUNCH", daw: "luna", nam: "NAM Vox AC30", ir: "Vox Alnico Blue", notes: "Dig in to distort. Mid-heavy. Perfect for indie rock rhythm tracking.", starred: true, images: [] },
-        { id: 109, name: "Ampeg 8x10 Pocket", category: "BASS", daw: "both", nam: "NAM SVT", ir: "Ampeg 8x10 MD421", notes: "The ultimate rock bass. HPF at 28Hz, compress with 1176. Blend with DI.", starred: true, images: [] },
+        { id: 105, name: "Modern Djent G-Drop", category: "DISTORTION", daw: "reaper", nam: "NAM Fortin Nameless", ir: "Zilla Cab 4x12", notes: "For 7/8 strings. Pre-EQ: Pull out 200Hz massively before hitting the amp to tighten low end.", starred: true, images: [] },
+        { id: 106, name: "Fender Twin Glass", category: "CLEAN", daw: "reaper", nam: "NAM Deluxe Reverb", ir: "Fender Twin Jensen", notes: "Crystal clean. Compress heavily with optical comp (LA-2A) for sustain.", starred: true, images: [] },
+        { id: 107, name: "Roland JC-120 Chorus", category: "CLEAN", daw: "reaper", nam: "NAM Roland JC-120", ir: "JC-120 Direct", notes: "80s Pop / Mac DeMarco vibe. Add wide Brigade chorus and subtle tape flutter.", starred: true, images: [] },
+        { id: 108, name: "Edge of Breakup Vox", category: "CRUNCH", daw: "reaper", nam: "NAM Vox AC30", ir: "Vox Alnico Blue", notes: "Dig in to distort. Mid-heavy. Perfect for indie rock rhythm tracking.", starred: true, images: [] },
+        { id: 109, name: "Ampeg 8x10 Pocket", category: "BASS", daw: "reaper", nam: "NAM SVT", ir: "Ampeg 8x10 MD421", notes: "The ultimate rock bass. HPF at 28Hz, compress with 1176. Blend with DI.", starred: true, images: [] },
         { id: 110, name: "Fuzz Bass Monster", category: "BASS", daw: "reaper", nam: "NAM Rat Pedal + SVT", ir: "Ampeg 8x10 Mix", notes: "Aggressive grind. High-pass the distortion at 200Hz to protect the sub fundamentals.", starred: true, images: [] },
-        { id: 111, name: "Neo-Soul DI Smooth", category: "BASS", daw: "both", nam: "None (Neve Preamp)", ir: "None", notes: "No amp. Direct through 610-B or 1073. Boost 60Hz, soft knee compression.", starred: false, images: [] },
-        { id: 112, name: "G-Funk Clean Wah", category: "CLEAN", daw: "both", nam: "NAM Fender Twin", ir: "Fender 2x12", notes: "Route through an Auto-Wah or Envelope Filter pedal before the amp. Keep the high end tamed.", starred: false, images: [] },
-        { id: 113, name: "Boom Bap Upright DI", category: "BASS", daw: "both", nam: "Neve 1073", ir: "None", notes: "Mute the strings with your palm. Compress heavily with an 1176. Roll off tone knob to zero.", starred: false, images: [] },
-        { id: 114, name: "Aftermath Clean Strat", category: "CLEAN", daw: "both", nam: "NAM Roland JC-120", ir: "JC-120 Direct", notes: "Neck pickup. Completely dry. Pluck very hard with fingers for the percussive stab.", starred: false, images: [] }
+        { id: 111, name: "Neo-Soul DI Smooth", category: "BASS", daw: "reaper", nam: "None (Neve Preamp)", ir: "None", notes: "No amp. Direct through 610-B or 1073. Boost 60Hz, soft knee compression.", starred: false, images: [] },
+        { id: 112, name: "G-Funk Clean Wah", category: "CLEAN", daw: "reaper", nam: "NAM Fender Twin", ir: "Fender 2x12", notes: "Route through an Auto-Wah or Envelope Filter pedal before the amp. Keep the high end tamed.", starred: false, images: [] },
+        { id: 113, name: "Boom Bap Upright DI", category: "BASS", daw: "reaper", nam: "Neve 1073", ir: "None", notes: "Mute the strings with your palm. Compress heavily with an 1176. Roll off tone knob to zero.", starred: false, images: [] },
+        { id: 114, name: "Aftermath Clean Strat", category: "CLEAN", daw: "reaper", nam: "NAM Roland JC-120", ir: "JC-120 Direct", notes: "Neck pickup. Completely dry. Pluck very hard with fingers for the percussive stab.", starred: false, images: [] }
     ]
 };
 
@@ -1987,6 +1976,18 @@ try {
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
     }
     window.storageAvailable = true;
+} catch(e) {}
+
+// Reaper/Luna dual-DAW support has been retired — everything is Reaper now.
+// Fold any legacy LUNA chain text into the REAPER field and normalize old daw values.
+try {
+    (window.db.cookbook || []).forEach(r => {
+        if (r.luna) { r.reaper = [r.reaper, r.luna].filter(Boolean).join('\n\n'); delete r.luna; }
+        (r.history || []).forEach(h => { if (h.luna) { h.reaper = [h.reaper, h.luna].filter(Boolean).join('\n\n'); delete h.luna; } });
+    });
+    (window.db.tracks || []).forEach(t => { t.daw = 'reaper'; });
+    (window.db.tones || []).forEach(t => { t.daw = 'reaper'; });
+    (window.db.links || []).forEach(l => { l.daw = 'reaper'; });
 } catch(e) {}
 
 window.currentNoteId = window.db.multiNotes[0].id;
@@ -2269,11 +2270,6 @@ window.audioDbDelete = async (id) => { try { const db = await window.openAudioDB
 window.audioDbGetAll = async () => { try { const db = await window.openAudioDB(); return await new Promise((resolve, reject) => { const tx = db.transaction(window.AUDIO_STORE, 'readonly'); const store = tx.objectStore(window.AUDIO_STORE); const out = {}; const req = store.openCursor(); req.onsuccess = (e) => { const cur = e.target.result; if (cur) { out[cur.key] = cur.value; cur.continue(); } else resolve(out); }; req.onerror = () => reject(req.error); }); } catch (e) { return {}; } };
 
 window.tempToneAudio = null; // base64 data URL of the pending clip for the open tone form, or null
-
-// REAPER is the primary DAW here — anywhere REAPER/LUNA items are listed together, REAPER sorts first, then BOTH, then LUNA-only.
-// Array.prototype.sort is stable, so items within the same DAW keep their original relative order.
-window.DAW_RANK = { reaper: 0, both: 1, luna: 2 };
-window.dawSort = (arr) => [...arr].sort((a, b) => (window.DAW_RANK[a.daw] ?? 1) - (window.DAW_RANK[b.daw] ?? 1));
 
 window.formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -2685,8 +2681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
                 <button id="btn-toggle-chain-view" type="button" class="mb-4 text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF88FF40] text-[#FF88FF] hover:bg-[#FF88FF]/10 cursor-pointer">🔗 VISUALIZE CHAINS</button>
                 <div class="space-y-6">
-                    <div class="show-reaper bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> REAPER (NATIVE/VST)</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.reaper, '#00FF88')}</div></div>
-                    <div class="show-luna bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00E5FF30]"><h4 class="text-[#00E5FF] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00E5FF14] pb-2 flex items-center gap-2"><span class="bg-[#00E5FF] w-1.5 h-1.5 rounded-full"></span> LUNA (UAD DSP) CHAIN</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.luna}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.luna, '#00E5FF')}</div></div>
+                    <div class="bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> SIGNAL CHAIN</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.reaper, '#00FF88')}</div></div>
                     <div class="bg-[rgba(10,15,13,0.9)] p-5 rounded border border-[#E2E8F010]"><h4 class="text-[#E2E8F0]/50 text-[10px] font-bold tracking-widest uppercase mb-3">WORKFLOW & ROUTING NOTES</h4><p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${data.notes}</p></div>
                     ${data.why ? `<div class="bg-[rgba(255,214,10,0.05)] p-5 rounded border border-[#FFD60A25]"><h4 class="text-[#FFD60A] text-[10px] font-bold tracking-widest uppercase mb-3">💡 Why it works</h4><p class="text-[11px] md:text-[12px] text-[#FFE9A6]/85 leading-relaxed font-mono whitespace-pre-wrap">${data.why}</p></div>` : ''}
                     ${imagesHtml}
@@ -2816,7 +2811,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/70">${new Date(h.savedAt).toLocaleString()}</span>
                         <button data-recipe-id="${recipe.id}" data-history-idx="${i}" class="btn-restore-history text-[9px] font-bold px-2 py-1 rounded border border-[#00FF8850] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">↺ RESTORE</button>
                     </div>
-                    <div class="text-[10px] text-[#E2E8F0]/60 font-mono line-clamp-2">${(h.luna || '').slice(0, 90)}${(h.luna || '').length > 90 ? '…' : ''}</div>
+                    <div class="text-[10px] text-[#E2E8F0]/60 font-mono line-clamp-2">${(h.reaper || '').slice(0, 90)}${(h.reaper || '').length > 90 ? '…' : ''}</div>
                 </div>`).join('');
         }
         const modal = document.getElementById('history-modal'); if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
@@ -2825,9 +2820,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.restoreHistoryVersion = (recipeId, idx) => {
         const recipe = window.db.cookbook.find((r) => r.id === recipeId); if (!recipe || !recipe.history || !recipe.history[idx]) return;
         if (!confirm('Restore this version? Your current version will be saved into history first.')) return;
-        const snapshot = { desc: recipe.desc, luna: recipe.luna, reaper: recipe.reaper, notes: recipe.notes, savedAt: Date.now() };
+        const snapshot = { desc: recipe.desc, reaper: recipe.reaper, notes: recipe.notes, savedAt: Date.now() };
         const restored = recipe.history[idx];
-        recipe.desc = restored.desc; recipe.luna = restored.luna; recipe.reaper = restored.reaper; recipe.notes = restored.notes;
+        recipe.desc = restored.desc; recipe.reaper = restored.reaper; recipe.notes = restored.notes;
         recipe.history = [snapshot, ...recipe.history.filter((_, i) => i !== idx)].slice(0, 3);
         window.saveData();
         window.closeHistoryModal();
@@ -2844,10 +2839,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="meta">${recipe.genre} — printed ${new Date().toLocaleDateString()}</div>
             <h2>${recipe.inst}</h2>
             <p>${recipe.desc || ''}</p>
-            <h2>REAPER (NATIVE/VST)</h2>
+            <h2>SIGNAL CHAIN</h2>
             <p>${recipe.reaper || ''}</p>
-            <h2>LUNA (UAD DSP) CHAIN</h2>
-            <p>${recipe.luna || ''}</p>
             <h2>WORKFLOW & ROUTING NOTES</h2>
             <p>${recipe.notes || ''}</p>
         `;
@@ -2893,11 +2886,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const key = keyOf(l);
                 const match = existingByKey.get(key);
                 if (match) {
-                    if (doUpdate) { match.url = l.url || match.url; match.category = l.category || match.category; match.notes = l.notes || match.notes; match.daw = l.daw || match.daw || 'both'; updated++; }
+                    if (doUpdate) { match.url = l.url || match.url; match.category = l.category || match.category; match.notes = l.notes || match.notes; match.daw = 'reaper'; updated++; }
                     else { skipped++; }
                     return;
                 }
-                const fresh = { id: nextId++, title: l.title, url: l.url, category: l.category || 'Audio Utilities', daw: l.daw || 'both', notes: l.notes || '' };
+                const fresh = { id: nextId++, title: l.title, url: l.url, category: l.category || 'Audio Utilities', daw: 'reaper', notes: l.notes || '' };
                 existing.push(fresh); existingByKey.set(key, fresh); added++;
             });
             window.db.links = existing;
@@ -2970,7 +2963,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fresh objects each call so dragging never mutates the template.
     window.getDefaultPatchbay = () => ({
         devices: [
-            { id: 90001, name: 'DAW (Reaper/Luna)', x: 30,  y: 60 },
+            { id: 90001, name: 'DAW (Reaper)', x: 30,  y: 60 },
             { id: 90002, name: 'Volt 176',          x: 250, y: 240 },
             { id: 90003, name: 'Sansui — Tape 1',   x: 500, y: 60 },
             { id: 90004, name: 'Bose 301 Speakers', x: 740, y: 60 },
@@ -3113,12 +3106,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!r.genre || !r.inst) { skipped++; return; }
                 const key = keyOf(r);
                 const match = existingByKey.get(key);
+                const chain = [r.reaper, r.luna].filter(Boolean).join('\n\n');
                 if (match) {
-                    if (doUpdate) { match.desc = r.desc || match.desc; match.luna = r.luna || match.luna; match.reaper = r.reaper || match.reaper; match.notes = r.notes || match.notes; updated++; }
+                    if (doUpdate) { match.desc = r.desc || match.desc; match.reaper = chain || match.reaper; match.notes = r.notes || match.notes; updated++; }
                     else { skipped++; }
                     return;
                 }
-                const fresh = { id: nextId++, genre: r.genre, inst: r.inst, desc: r.desc || '', luna: r.luna || '', reaper: r.reaper || '', notes: r.notes || '', images: [] };
+                const fresh = { id: nextId++, genre: r.genre, inst: r.inst, desc: r.desc || '', reaper: chain, notes: r.notes || '', images: [] };
                 existing.push(fresh); existingByKey.set(key, fresh); added++;
             });
             window.db.cookbook = existing;
@@ -3669,7 +3663,7 @@ ${owned.join(', ')}`;
         const el = document.getElementById('plugin-coverage-content'); if (!el) return;
         el.innerHTML = 'Scanning...';
         const haystack = [
-            ...(window.db.cookbook || []).flatMap((r) => [r.luna, r.reaper, r.notes]),
+            ...(window.db.cookbook || []).flatMap((r) => [r.reaper, r.notes]),
             ...(window.db.tones || []).flatMap((t) => [t.nam, t.ir, t.notes]),
             ...(window.db.tracks || []).flatMap((t) => [t.plugins, t.notes])
         ].join(' \n ').toLowerCase();
@@ -3756,12 +3750,11 @@ ${owned.join(', ')}`;
         if (window.renderLinks) window.renderLinks(); if (window.renderNoteTabs) window.renderNoteTabs(); if (window.renderCookbookMenu) window.renderCookbookMenu();
     };
 
-    window.currentMode = 'both';
-    window.setDAW = (mode) => {
-        window.currentMode = mode; document.body.className = `mode-${mode} h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black`;
-        if(window.FERRETT_QUIET) document.body.classList.add('quiet'); 
-        ['reaper', 'both', 'luna'].forEach(m => { const btn = document.getElementById(`btn-${m}`); if(btn) { if (m === mode) btn.className = `px-4 py-1 text-[10px] font-bold rounded uppercase tracking-wider transition-colors ${m === 'luna' ? 'bg-[#00E5FF] text-black' : 'bg-[#00FF88] text-black'}`; else btn.className = `px-4 py-1 text-[10px] font-bold rounded text-[#7AFFBF]/40 hover:text-${m === 'luna' ? '[#00E5FF]' : '[#00FF88]'} uppercase tracking-wider transition-colors`; } });
-        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = mode === 'both' ? `DUAL DAW WORKSPACE ${window.APP_VERSION}` : `${mode.toUpperCase()} WORKSPACE ${window.APP_VERSION}`;
+    window.currentMode = 'reaper';
+    window.setDAW = () => {
+        document.body.className = `h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black`;
+        if(window.FERRETT_QUIET) document.body.classList.add('quiet');
+        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = `REAPER WORKSPACE ${window.APP_VERSION}`;
         window.refreshAllUI();
     };
 
@@ -3788,7 +3781,6 @@ ${owned.join(', ')}`;
         } else { if(formId === 'form-cookbook') document.getElementById('cookbook-split-view')?.classList.remove('hidden'); if(formId === 'form-tone') window.stopToneRecording(); }
     };
     
-    document.getElementById('btn-reaper')?.addEventListener('click', () => window.setDAW('reaper')); document.getElementById('btn-both')?.addEventListener('click', () => window.setDAW('both')); document.getElementById('btn-luna')?.addEventListener('click', () => window.setDAW('luna'));
     ['cookbook', 'guitars', 'hardware', 'links', 'tracks', 'tones', 'toolbox', 'lyrics'].forEach(tab => { const navBtn = document.getElementById(`nav-${tab}`); if (navBtn) navBtn.addEventListener('click', () => window.switchTab(tab)); });
 
     // Notes is a persistent footer under every tab, not a switchable tab — just expand/collapse it.
@@ -4204,31 +4196,31 @@ ${owned.join(', ')}`;
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());
     document.getElementById('btn-close-blend')?.addEventListener('click', () => document.getElementById('genre-blend-card')?.classList.add('hidden'));
-    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', effort: document.getElementById('cookbook-effort')?.value || '', desc: document.getElementById('cookbook-desc').value, luna: document.getElementById('cookbook-luna').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, why: document.getElementById('cookbook-why')?.value || '', images: [...window.tempCookbookImages] }; if (idStr) { const old = window.db.cookbook.find(r => r.id === recipe.id); if (old) { const snapshot = { desc: old.desc, luna: old.luna, reaper: old.reaper, notes: old.notes, savedAt: Date.now() }; recipe.history = [snapshot, ...(old.history || [])].slice(0, 3); } window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); } else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
+    document.getElementById('btn-save-cookbook')?.addEventListener('click', () => { const idStr = document.getElementById('cookbook-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const genre = document.getElementById('cookbook-genre').value || 'Uncategorized'; const recipe = { id: id, genre: genre, inst: document.getElementById('cookbook-inst').value || 'Unnamed Tool', effort: document.getElementById('cookbook-effort')?.value || '', desc: document.getElementById('cookbook-desc').value, reaper: document.getElementById('cookbook-reaper').value, notes: document.getElementById('cookbook-notes').value, why: document.getElementById('cookbook-why')?.value || '', images: [...window.tempCookbookImages] }; if (idStr) { const old = window.db.cookbook.find(r => r.id === recipe.id); if (old) { const snapshot = { desc: old.desc, reaper: old.reaper, notes: old.notes, savedAt: Date.now() }; recipe.history = [snapshot, ...(old.history || [])].slice(0, 3); } window.db.cookbook = window.db.cookbook.map(r => r.id === recipe.id ? recipe : r); } else window.db.cookbook.push(recipe); window.currentCookbookGenre = genre; window.saveData(); window.toggleForm('form-cookbook'); window.renderCookbookMenu(); });
 
     document.getElementById('btn-add-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('btn-cancel-link')?.addEventListener('click', () => window.toggleForm('form-link')); document.getElementById('search-link')?.addEventListener('keyup', () => window.renderLinks());
-    document.getElementById('btn-save-link')?.addEventListener('click', () => { const idStr = document.getElementById('link-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const link = { id: id, title: document.getElementById('link-title').value || 'Unnamed Tool', url: document.getElementById('link-url').value || '#', category: document.getElementById('link-category').value, daw: document.getElementById('link-daw').value, notes: document.getElementById('link-notes').value }; if (!link.url.startsWith('http') && link.url !== '#') link.url = 'https://' + link.url; if (idStr) window.db.links = window.db.links.map(l => l.id === link.id ? link : l); else window.db.links.unshift(link); window.saveData(); window.toggleForm('form-link'); window.renderLinks(); });
+    document.getElementById('btn-save-link')?.addEventListener('click', () => { const idStr = document.getElementById('link-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const link = { id: id, title: document.getElementById('link-title').value || 'Unnamed Tool', url: document.getElementById('link-url').value || '#', category: document.getElementById('link-category').value, daw: 'reaper', notes: document.getElementById('link-notes').value }; if (!link.url.startsWith('http') && link.url !== '#') link.url = 'https://' + link.url; if (idStr) window.db.links = window.db.links.map(l => l.id === link.id ? link : l); else window.db.links.unshift(link); window.saveData(); window.toggleForm('form-link'); window.renderLinks(); });
 
     document.getElementById('btn-add-track')?.addEventListener('click', () => window.toggleForm('form-track')); document.getElementById('btn-cancel-track')?.addEventListener('click', () => window.toggleForm('form-track'));
-    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: document.getElementById('track-daw').value, plugins: document.getElementById('track-plugins').value, toneRef: parseInt(document.getElementById('track-tone-ref')?.value, 10) || null, recipeRef: parseInt(document.getElementById('track-recipe-ref')?.value, 10) || null, reflink: document.getElementById('track-reflink')?.value || '', notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
+    document.getElementById('btn-save-track')?.addEventListener('click', () => { const idStr = document.getElementById('track-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const track = { id: id, inst: document.getElementById('track-inst').value || 'Unnamed', daw: 'reaper', plugins: document.getElementById('track-plugins').value, toneRef: parseInt(document.getElementById('track-tone-ref')?.value, 10) || null, recipeRef: parseInt(document.getElementById('track-recipe-ref')?.value, 10) || null, reflink: document.getElementById('track-reflink')?.value || '', notes: document.getElementById('track-notes').value, images: [...window.tempTrackImages] }; if (idStr) window.db.tracks = window.db.tracks.map(t => t.id === track.id ? track : t); else window.db.tracks.unshift(track); window.saveData(); window.toggleForm('form-track'); window.renderTracks(); });
 
     document.getElementById('btn-add-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('btn-cancel-tone')?.addEventListener('click', () => window.toggleForm('form-tone')); document.getElementById('search-tone')?.addEventListener('keyup', () => window.renderTones());
-    document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: document.getElementById('tone-daw').value, nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, brand: (document.getElementById('tone-brand')?.value || '').trim(), notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
+    document.getElementById('btn-save-tone')?.addEventListener('click', () => { const idStr = document.getElementById('tone-id').value; const id = idStr ? parseInt(idStr, 10) : Date.now(); const isStarred = document.getElementById('tone-starred').checked; if (isStarred && !idStr) { if (window.db.tones.filter(t => t.starred).length >= 10) { alert("You already have 10 Pinned Tones. Unpin an old tone first."); return; } } window.stopToneRecording(); const tone = { id: id, name: document.getElementById('tone-name').value || 'Unnamed Combo', category: document.getElementById('tone-category').value || 'CLEAN', daw: 'reaper', nam: document.getElementById('tone-nam').value, ir: document.getElementById('tone-ir').value, brand: (document.getElementById('tone-brand')?.value || '').trim(), notes: document.getElementById('tone-notes').value, starred: isStarred, images: [...window.tempToneImages], hasAudio: !!window.tempToneAudio }; if (idStr) window.db.tones = window.db.tones.map(t => t.id === tone.id ? tone : t); else window.db.tones.unshift(tone); window.saveData(); (async () => { if (window.tempToneAudio) { await window.audioDbSet(id, window.tempToneAudio); } else { await window.audioDbDelete(id); } window.scheduleAudioDriveSync(); })(); window.toggleForm('form-tone'); window.renderTones(); window.renderStarredTones(); });
 
     document.addEventListener('click', (e) => {
-        const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; { const ef=document.getElementById('cookbook-effort'); if(ef) ef.value = recipe.effort || ''; } document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-luna').value = recipe.luna; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; { const wy=document.getElementById('cookbook-why'); if(wy) wy.value = recipe.why || ''; } const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnEditCb = e.target.closest('.btn-edit-cookbook'); if(btnEditCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnEditCb.dataset.id, 10)); if(recipe) { document.getElementById('cookbook-id').value = recipe.id; document.getElementById('cookbook-genre').value = recipe.genre; document.getElementById('cookbook-inst').value = recipe.inst; { const ef=document.getElementById('cookbook-effort'); if(ef) ef.value = recipe.effort || ''; } document.getElementById('cookbook-desc').value = recipe.desc; document.getElementById('cookbook-reaper').value = recipe.reaper; document.getElementById('cookbook-notes').value = recipe.notes; { const wy=document.getElementById('cookbook-why'); if(wy) wy.value = recipe.why || ''; } const t=document.getElementById('cookbook-form-title'); if(t) t.innerText = 'EDIT RECIPE'; window.tempCookbookImages = recipe.images ? [...recipe.images] : []; window.renderImagePreviews('cookbook-image-preview-container', window.tempCookbookImages, 'cookbook'); document.getElementById('cookbook-split-view')?.classList.add('hidden'); document.getElementById('form-cookbook')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-cookbook')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelCb = e.target.closest('.btn-del-cookbook'); if(btnDelCb && confirm("Delete this recipe?")) { window.db.cookbook = window.db.cookbook.filter(r => r.id !== parseInt(btnDelCb.dataset.id, 10)); window.saveData(); window.renderCookbookMenu(); }
         const btnCloneTone = e.target.closest('.btn-clone-tone'); if(btnCloneTone) window.cloneTone(parseInt(btnCloneTone.dataset.id, 10));
-        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-daw').value = track.daw; document.getElementById('track-plugins').value = track.plugins; if(window.populateTrackRefs) window.populateTrackRefs(); { const tr=document.getElementById('track-tone-ref'); if(tr) tr.value = track.toneRef || ''; const rr=document.getElementById('track-recipe-ref'); if(rr) rr.value = track.recipeRef || ''; } const rl = document.getElementById('track-reflink'); if (rl) rl.value = track.reflink || ''; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnEditTrack = e.target.closest('.btn-edit-track'); if(btnEditTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnEditTrack.dataset.id, 10)); if(track) { document.getElementById('track-id').value = track.id; document.getElementById('track-inst').value = track.inst; document.getElementById('track-plugins').value = track.plugins; if(window.populateTrackRefs) window.populateTrackRefs(); { const tr=document.getElementById('track-tone-ref'); if(tr) tr.value = track.toneRef || ''; const rr=document.getElementById('track-recipe-ref'); if(rr) rr.value = track.recipeRef || ''; } const rl = document.getElementById('track-reflink'); if (rl) rl.value = track.reflink || ''; document.getElementById('track-notes').value = track.notes; const t=document.getElementById('track-form-title'); if(t) t.innerText = 'EDIT TRACK SETTING'; window.tempTrackImages = track.images ? [...track.images] : []; window.renderImagePreviews('track-image-preview-container', window.tempTrackImages, 'track'); document.getElementById('form-track')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelTrack = e.target.closest('.btn-del-track'); if(btnDelTrack && confirm("Delete this track config?")) { window.db.tracks = window.db.tracks.filter(t => t.id !== parseInt(btnDelTrack.dataset.id, 10)); window.saveData(); window.renderTracks(); }
         const btnCloneTrack = e.target.closest('.btn-clone-track'); if(btnCloneTrack) window.cloneTrack(parseInt(btnCloneTrack.dataset.id, 10));
         const btnExportTrack = e.target.closest('.btn-export-track'); if(btnExportTrack) { const track = window.db.tracks.find(t => t.id === parseInt(btnExportTrack.dataset.id, 10)); if (track) window.exportTrackHandoff(track); }
-        const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-daw').value = tone.daw; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; { const br=document.getElementById('tone-brand'); if(br) br.value = tone.brand || ''; } document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
+        const btnEditTone = e.target.closest('.btn-edit-tone'); if(btnEditTone) { const tone = window.db.tones.find(t => t.id === parseInt(btnEditTone.dataset.id, 10)); if(tone) { document.getElementById('tone-id').value = tone.id; document.getElementById('tone-name').value = tone.name; document.getElementById('tone-category').value = tone.category || 'CLEAN'; document.getElementById('tone-nam').value = tone.nam; document.getElementById('tone-ir').value = tone.ir; { const br=document.getElementById('tone-brand'); if(br) br.value = tone.brand || ''; } document.getElementById('tone-notes').value = tone.notes; const cb=document.getElementById('tone-starred'); if(cb) cb.checked = tone.starred || false; const t=document.getElementById('tone-form-title'); if(t) t.innerText = 'EDIT TONE COMBO'; window.tempToneImages = tone.images ? [...tone.images] : []; window.renderImagePreviews('tone-image-preview-container', window.tempToneImages, 'tone'); window.tempToneAudio = null; window.renderAudioPreview('tone-audio-preview-container', null); document.getElementById('form-tone')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-tone')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); if (tone.hasAudio) { window.audioDbGet(tone.id).then((b64) => { if (b64 && document.getElementById('tone-id').value == tone.id) { window.tempToneAudio = b64; window.renderAudioPreview('tone-audio-preview-container', b64); } }); } } }
         const btnDelTone = e.target.closest('.btn-del-tone'); if(btnDelTone && confirm("Delete this tone?")) { const delId = parseInt(btnDelTone.dataset.id, 10); window.db.tones = window.db.tones.filter(t => t.id !== delId); window.saveData(); window.audioDbDelete(delId).then(() => window.scheduleAudioDriveSync()); window.renderTones(); window.renderStarredTones(); }
         const btnCloneCb = e.target.closest('.btn-clone-cookbook'); if(btnCloneCb) window.cloneCookbook(parseInt(btnCloneCb.dataset.id, 10)); 
         const btnPrintCb = e.target.closest('.btn-print-cookbook'); if(btnPrintCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnPrintCb.dataset.id, 10)); if (recipe) window.printRecipeSheet(recipe); }
         const btnHistoryCb = e.target.closest('.btn-history-cookbook'); if(btnHistoryCb) { const recipe = window.db.cookbook.find(r => r.id === parseInt(btnHistoryCb.dataset.id, 10)); if (recipe) window.openHistoryModal(recipe); }
-        const btnEditLink = e.target.closest('.btn-edit-link'); if(btnEditLink) { const link = window.db.links.find(l => l.id === parseInt(btnEditLink.dataset.id, 10)); if(link) { document.getElementById('link-id').value = link.id; document.getElementById('link-title').value = link.title; document.getElementById('link-url').value = link.url; document.getElementById('link-category').value = link.category; document.getElementById('link-daw').value = link.daw; document.getElementById('link-notes').value = link.notes; const t=document.getElementById('link-form-title'); if(t) t.innerText = 'EDIT TOOL LINK'; document.getElementById('form-link')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-link')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
+        const btnEditLink = e.target.closest('.btn-edit-link'); if(btnEditLink) { const link = window.db.links.find(l => l.id === parseInt(btnEditLink.dataset.id, 10)); if(link) { document.getElementById('link-id').value = link.id; document.getElementById('link-title').value = link.title; document.getElementById('link-url').value = link.url; document.getElementById('link-category').value = link.category; document.getElementById('link-notes').value = link.notes; const t=document.getElementById('link-form-title'); if(t) t.innerText = 'EDIT TOOL LINK'; document.getElementById('form-link')?.classList.remove('hidden'); setTimeout(() => { document.getElementById('form-link')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50); } }
         const btnDelLink = e.target.closest('.btn-del-link'); if(btnDelLink && confirm("Delete this link?")) { window.db.links = window.db.links.filter(l => l.id !== parseInt(btnDelLink.dataset.id, 10)); window.saveData(); window.renderLinks(); }
         const btnTagLink = e.target.closest('.btn-tag-link'); if(btnTagLink) window.setLinkTag(btnTagLink.dataset.tag);
         const btnTagTone = e.target.closest('.btn-tag-tone'); if(btnTagTone) window.setToneTag(btnTagTone.dataset.tag);
@@ -4246,7 +4238,7 @@ ${owned.join(', ')}`;
         btn.innerText = origLabel;
     };
 
-    window.renderLinks = () => { const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.dawSort(window.db.links.filter(l => window.currentMode === 'both' || l.daw === window.currentMode || l.daw === 'both')); const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.linkCategoryColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.linkCategoryColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${l.title}">${l.title}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${l.notes}</p><a href="${l.url}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
+    window.renderLinks = () => { const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = [...window.db.links]; const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.linkCategoryColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.linkCategoryColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${l.title}">${l.title}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${l.notes}</p><a href="${l.url}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
     
     window.getImagesHtml = (imagesArray, colorClass, type, id) => { if (!imagesArray || imagesArray.length === 0) return ''; let html = `<div class="mt-4 p-3 bg-black/40 rounded border border-[${colorClass}20]"><div class="text-[9px] text-[${colorClass}]/70 tracking-widest mb-3 font-bold uppercase flex items-center gap-2">Signal Chain / Plugin Flow</div><div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide cursor-pointer group" onclick="window.openModalGallery('${type}', ${id})">`; imagesArray.forEach((imgB64, i) => { html += `<img src="${imgB64}" class="w-20 h-20 object-cover border border-[${colorClass}40] rounded shadow-[0_0_10px_rgba(0,0,0,0.5)] group-hover:border-[${colorClass}] transition-colors">`; if (i < imagesArray.length - 1) html += `<span class="text-[${colorClass}]/50 font-bold text-[18px] shrink-0">→</span>`; }); html += `</div></div>`; return html; };
 
@@ -4262,7 +4254,7 @@ p{font-size:13px;white-space:pre-wrap;}
 .chain{background:#000;padding:12px;border-radius:6px;border:1px solid #222;font-size:12px;}</style></head>
 <body>
 <h1>${track.inst}</h1>
-<div class="meta">DAW: ${track.daw} — Exported from FERRETT_STUDIO_OS on ${new Date().toLocaleDateString()}</div>
+<div class="meta">Exported from FERRETT_STUDIO_OS on ${new Date().toLocaleDateString()}</div>
 <h2>FX CHAIN</h2>
 <div class="chain">${track.plugins || 'None listed'}</div>
 <h2>NOTES</h2>
@@ -4289,9 +4281,9 @@ ${imagesHtml ? `<h2>SCREENSHOTS</h2>${imagesHtml}` : ''}
         return `<a href="${url}" target="_blank" rel="noopener" class="mt-3 inline-block text-[10px] font-bold text-[#00E5FF] hover:underline">🔗 Reference link ↗</a>`;
     };
 
-    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.dawSort(window.db.tracks.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both')); filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#A7DCC3'); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-export-track text-[10px] font-bold text-[#FF88FF] hover:text-white">📤 EXPORT</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getEmbedHtml(t.reflink)}${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
-    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = window.dawSort(window.db.tones.filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both')); const allBrands = [...new Set(filtered.map(t => t.brand).filter(Boolean))].sort(); window.renderTagBarGeneric('tone-tag-bar', allBrands, window.currentToneTag, window.toneBrandColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.brand === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search) || (t.brand||'').toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF'); const stageColor = window.toneCategoryColor(t.category); const brandColor = window.toneBrandColor(t.brand); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-tone-chain text-[10px] font-bold text-[#7FA8D9] hover:text-white" title="Visualize signal chain">🔗</button><button data-id="${t.id}" class="btn-export-tone text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this tone">📤</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color: ${c}; border-color: ${c}40;">${t.daw}</span><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color:${stageColor}; border-color:${stageColor}40; background:${stageColor}0A;" title="Gain stage">${t.category}</span>${t.brand ? `<button data-tag="${t.brand}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${brandColor}; border-color:${brandColor}40; background:${brandColor}0A;" title="Filter by ${t.brand}">${t.brand}</button>` : ''}${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${stageColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
-    window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.dawSort(window.db.tones.filter(t => t.starred && (window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'))).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = window.toneCategoryColor(t.category); const catBg = catColor; list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${t.name.toUpperCase()}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${t.nam} + ${t.ir}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${t.notes}</p></div>`; }); };
+    window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks; filtered.forEach(t => { const c = '#00FF88'; list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-export-track text-[10px] font-bold text-[#FF88FF] hover:text-white">📤 EXPORT</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><h4 class="font-bold text-[14px]" style="color: ${c};">${t.inst}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${t.plugins || 'None'}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getEmbedHtml(t.reflink)}${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
+    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = [...window.db.tones]; const allBrands = [...new Set(filtered.map(t => t.brand).filter(Boolean))].sort(); window.renderTagBarGeneric('tone-tag-bar', allBrands, window.currentToneTag, window.toneBrandColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.brand === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search) || (t.brand||'').toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = '#00FF88'; const stageColor = window.toneCategoryColor(t.category); const brandColor = window.toneBrandColor(t.brand); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-tone-chain text-[10px] font-bold text-[#7FA8D9] hover:text-white" title="Visualize signal chain">🔗</button><button data-id="${t.id}" class="btn-export-tone text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this tone">📤</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color:${stageColor}; border-color:${stageColor}40; background:${stageColor}0A;" title="Gain stage">${t.category}</span>${t.brand ? `<button data-tag="${t.brand}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${brandColor}; border-color:${brandColor}40; background:${brandColor}0A;" title="Filter by ${t.brand}">${t.brand}</button>` : ''}${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${t.name}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${stageColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${t.nam || 'None'}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${t.ir || 'None'}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${t.notes}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
+    window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.db.tones.filter(t => t.starred).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = window.toneCategoryColor(t.category); const catBg = catColor; list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${t.name.toUpperCase()}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${t.nam} + ${t.ir}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${t.notes}</p></div>`; }); };
 
     // Gesture: double-tap a tone card to instantly pin/unpin it (no need to open the edit form).
     window.toggleToneStar = (id) => {
@@ -4328,7 +4320,7 @@ window.cloneTone = (id) => {
     window.db.tones.unshift(clone); window.saveData(); window.renderTones(); window.renderStarredTones();
     if (orig.hasAudio) { window.audioDbGet(orig.id).then((b64) => { if (b64) { window.audioDbSet(clone.id, b64).then(() => window.scheduleAudioDriveSync()); } }); }
 };
-    window.renderCookbookMenu(); window.setDAW('both'); window.switchTab('cookbook'); window.renderNoteTabs();
+    window.renderCookbookMenu(); window.setDAW(); window.switchTab('cookbook'); window.renderNoteTabs();
 
     // HUD ANIMATIONS
     // Real session stopwatch — persisted across reloads, pausable via the REC/timecode control.
@@ -4859,11 +4851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return segs.map(s => s.replace(/\.$/, '').trim()).filter(Boolean);
         };
         const recipeToChecklist = (data) => {
-            const mode = window.currentMode;
-            const parts = [];
-            if (mode !== 'luna') parts.push(['REAPER', data.reaper]);
-            if (mode !== 'reaper') parts.push(['LUNA', data.luna]);
-            if (parts.length === 0) parts.push(['REAPER', data.reaper], ['LUNA', data.luna]);
+            const parts = [['REAPER', data.reaper]];
             let lines = [`// Checklist — ${data.inst} (${data.genre})`, ''];
             parts.forEach(([tag, txt]) => {
                 const steps = chainSteps(txt);
@@ -4905,7 +4893,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const toneToText = (t) => [
             `FERRETT TONE — ${t.name}`,
-            `Gain stage: ${t.category || '—'}   DAW: ${t.daw || '—'}${t.brand ? '   Brand: ' + t.brand : ''}`,
+            `Gain stage: ${t.category || '—'}${t.brand ? '   Brand: ' + t.brand : ''}`,
             `NAM (amp): ${t.nam || 'None'}`,
             `IR (cab): ${t.ir || 'None'}`,
             '', 'Notes:', (t.notes || '(none)'),
@@ -4915,8 +4903,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `FERRETT RECIPE — ${r.inst}`,
             `Genre: ${r.genre}`,
             r.desc ? `"${r.desc}"` : null,
-            '', 'REAPER (VST): ' + (r.reaper || '—'),
-            '', 'LUNA (UAD): ' + (r.luna || '—'),
+            '', 'CHAIN: ' + (r.reaper || '—'),
             '', 'Notes: ' + (r.notes || '(none)'),
             '', '— via FERRETT_STUDIO_OS'
         ].filter(x => x !== null).join('\n');
@@ -4953,13 +4940,11 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             document.getElementById('cookmode-prev').style.visibility = cook.i === 0 ? 'hidden' : 'visible';
         };
         const openCook = (data) => {
-            const mode = window.currentMode;
-            const src = mode === 'reaper' ? data.reaper : (mode === 'luna' ? data.luna : (data.reaper || data.luna));
-            const steps = chainSteps(src);
-            if (!steps.length) { alert('No chain steps to cook for this DAW mode.'); return; }
+            const steps = chainSteps(data.reaper);
+            if (!steps.length) { alert('No chain steps to cook for this recipe.'); return; }
             cook = { steps, i: 0, recipeId: data.id };
             document.getElementById('cookmode-capture-status').textContent = '';
-            document.getElementById('cookmode-tag').textContent = `${data.genre} · ${mode === 'luna' ? 'LUNA' : 'REAPER'} chain`;
+            document.getElementById('cookmode-tag').textContent = `${data.genre} · REAPER chain`;
             document.getElementById('cookmode-title').textContent = data.inst;
             renderCook(); openModal('cookmode-modal');
         };
@@ -5021,13 +5006,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const g = (re) => { const m = text.match(re); return m ? m[1].trim() : ''; };
             if (/^FERRETT TONE/i.test(text)) {
                 const category = (g(/Category:\s*([^\n]+?)(?:\s{2,}DAW:|\n)/) || 'CLEAN').toUpperCase();
-                const daw = (g(/DAW:\s*(\w+)/) || 'both').toLowerCase();
                 const key = g(/Key\s+([^\n]+?)\s*$/m);
                 let notes = ''; const nm = text.match(/Notes:\s*\n?([\s\S]*?)\n\n[—-] via/); if (nm) notes = nm[1].trim();
                 const tone = {
                     id: Date.now(), name: g(/FERRETT TONE\s*[—-]\s*(.+)/) || 'Imported Tone',
                     category: ['CLEAN','CRUNCH','DISTORTION','BASS'].includes(category) ? category : 'CLEAN',
-                    daw: ['both','reaper','luna'].includes(daw) ? daw : 'both',
+                    daw: 'reaper',
                     nam: g(/NAM \(amp\):\s*([^\n]+)/), ir: g(/IR \(cab\):\s*([^\n]+)/),
                     bpm: g(/(\d+)\s*BPM/), key: (key && !/None/i.test(key)) ? key : '',
                     notes, starred: false, images: [], hasAudio: false
@@ -5043,8 +5027,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                     id: Date.now(), genre: g(/Genre:\s*([^\n]+)/) || 'Imported',
                     inst: g(/FERRETT RECIPE\s*[—-]\s*(.+)/) || 'Imported Recipe',
                     desc: descM ? descM[1].trim() : '',
-                    luna: (g(/LUNA \(UAD\):\s*([\s\S]*?)\n\nREAPER/) || g(/LUNA \(UAD\):\s*([^\n]+)/)),
-                    reaper: (g(/REAPER \(VST\):\s*([\s\S]*?)\n\nNotes:/) || g(/REAPER \(VST\):\s*([^\n]+)/)),
+                    reaper: (g(/CHAIN:\s*([\s\S]*?)\n\nNotes:/) || g(/CHAIN:\s*([^\n]+)/) || g(/REAPER \(VST\):\s*([\s\S]*?)\n\nNotes:/) || g(/REAPER \(VST\):\s*([^\n]+)/)),
                     notes: (g(/Notes:\s*([\s\S]*?)\n\n[—-] via/) || ''), images: []
                 };
                 window.db.cookbook.push(r); window.saveData();
@@ -5107,7 +5090,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             if (!a || !b) { wrap.innerHTML = '<div class="text-white/40 text-[11px] italic p-2">Pick two tones.</div>'; return; }
             wrap.innerHTML = `<table class="w-full text-[11px] font-mono border-collapse">
                 <thead><tr><th class="text-left"></th><th class="text-left text-[#00E5FF] text-[10px] pb-2 pr-3">${a.name}</th><th class="text-left text-[#FFD60A] text-[10px] pb-2">${b.name}</th></tr></thead>
-                <tbody>${abRow('Category', a.category, b.category)}${abRow('DAW', a.daw, b.daw)}${abRow('BPM', a.bpm, b.bpm)}${abRow('Key', a.key, b.key)}${abRow('NAM', a.nam, b.nam)}${abRow('IR / Cab', a.ir, b.ir)}${abRow('Notes', a.notes, b.notes)}</tbody></table>`;
+                <tbody>${abRow('Category', a.category, b.category)}${abRow('BPM', a.bpm, b.bpm)}${abRow('Key', a.key, b.key)}${abRow('NAM', a.nam, b.nam)}${abRow('IR / Cab', a.ir, b.ir)}${abRow('Notes', a.notes, b.notes)}</tbody></table>`;
         };
         const openAB = (preA) => {
             const tones = window.db.tones || [];
@@ -5142,7 +5125,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const name = (document.getElementById('frank-name').value || '').trim() || 'Frankenstein Beat';
             const genre = (document.getElementById('frank-genre').value || '').trim() || 'Frankenstein Lab';
             const sec = (field) => picks.map(r => `### ${r.inst}  [${r.genre}]\n${r[field] || '—'}`).join('\n\n');
-            const recipe = { id: Date.now(), genre, inst: name, desc: 'Composite of: ' + picks.map(r => r.inst).join(' + '), luna: sec('luna'), reaper: sec('reaper'), notes: sec('notes'), images: [] };
+            const recipe = { id: Date.now(), genre, inst: name, desc: 'Composite of: ' + picks.map(r => r.inst).join(' + '), reaper: sec('reaper'), notes: sec('notes'), images: [] };
             window.db.cookbook.push(recipe); window.saveData();
             if (window.buildGenreColorMap) window.buildGenreColorMap();
             if (window.renderCookbookMenu) window.renderCookbookMenu();
@@ -5182,7 +5165,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 const slot = document.getElementById('tone-audio-slot-' + id); if (!slot || slot.querySelector('canvas.wf')) return;
                 const cv = document.createElement('canvas'); cv.className = 'wf'; cv.width = 300; cv.height = 34; cv.style.width = '100%'; cv.style.height = '26px'; cv.style.opacity = '0.85'; cv.style.marginBottom = '4px';
                 slot.prepend(cv);
-                const color = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF');
+                const color = '#00FF88';
                 getPeaks(id).then(p => { if (p) drawWave(cv, p, color); else cv.remove(); });
             });
         };
@@ -5304,7 +5287,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // =====================================================================
         const openToneChain = (t) => {
             const chainText = [t.nam, t.ir].filter(Boolean).join(' -> ') + (t.notes ? ' -> ' + t.notes : '');
-            const color = t.daw === 'luna' ? '#00E5FF' : (t.daw === 'reaper' ? '#00FF88' : '#7AE7FF');
+            const color = '#00FF88';
             document.getElementById('tonechain-title').textContent = '🔗 ' + t.name;
             document.getElementById('tonechain-flow').innerHTML = (window.renderChainFlow ? window.renderChainFlow(chainText, color) : `<div class="text-white/50 text-[11px]">${chainText || 'Nothing to visualize.'}</div>`);
             openModal('tonechain-modal');
@@ -5318,7 +5301,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         document.getElementById('btn-now-playing-track')?.addEventListener('click', () => {
             const txt = (document.getElementById('now-playing-input')?.value || '').trim();
             if (!txt) { document.getElementById('now-playing-input')?.focus(); return; }
-            const track = { id: Date.now(), inst: txt.slice(0, 60), daw: window.currentMode || 'both', plugins: '', reflink: '', notes: `Started ${new Date().toLocaleString()} — from Now Playing focus.`, images: [] };
+            const track = { id: Date.now(), inst: txt.slice(0, 60), daw: 'reaper', plugins: '', reflink: '', notes: `Started ${new Date().toLocaleString()} — from Now Playing focus.`, images: [] };
             (window.db.tracks = window.db.tracks || []).unshift(track);
             window.saveData();
             if (window.renderTracks) window.renderTracks();
@@ -5337,7 +5320,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // =====================================================================
         const gearCorpus = () => {
             const items = [];
-            (window.db.cookbook || []).forEach(r => items.push({ scope: 'cookbook', id: r.id, title: r.inst, sub: r.genre, text: `${r.luna || ''} ${r.reaper || ''} ${r.notes || ''}` }));
+            (window.db.cookbook || []).forEach(r => items.push({ scope: 'cookbook', id: r.id, title: r.inst, sub: r.genre, text: `${r.reaper || ''} ${r.notes || ''}` }));
             (window.db.tones || []).forEach(t => items.push({ scope: 'tones', id: t.id, title: t.name, sub: [t.brand, t.category].filter(Boolean).join(' · '), text: `${t.nam || ''} ${t.ir || ''} ${t.notes || ''}` }));
             (window.db.tracks || []).forEach(t => items.push({ scope: 'tracks', id: t.id, title: t.inst, sub: t.daw, text: `${t.plugins || ''} ${t.notes || ''}` }));
             return items;
@@ -5435,14 +5418,14 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const history = recipe.history || [];
             if (history.length === 0) { content.innerHTML = `<div class="text-[10px] text-[#E2E8F0]/30 italic">No previous versions saved yet.</div>`; }
             else {
-                const cur = { desc: recipe.desc, luna: recipe.luna, reaper: recipe.reaper, notes: recipe.notes };
+                const cur = { desc: recipe.desc, reaper: recipe.reaper, notes: recipe.notes };
                 const esc = (s) => (s || '').replace(/</g, '&lt;');
                 const row = (label, oldV, newV) => { const changed = (oldV || '') !== (newV || ''); if (!changed) return `<div class="text-[9px] text-white/25 mb-1">${label}: unchanged</div>`; return `<div class="mb-2"><div class="text-[8px] uppercase tracking-widest text-[#FFD60A] mb-0.5">${label} • changed</div><div class="text-[9px] font-mono text-[#FF8888]/80 whitespace-pre-wrap bg-[#FF444408] rounded px-1.5 py-1">− ${esc(oldV) || '(empty)'}</div><div class="text-[9px] font-mono text-[#00FF88]/90 whitespace-pre-wrap bg-[#00FF8808] rounded px-1.5 py-1 mt-0.5">+ ${esc(newV) || '(empty)'}</div></div>`; };
                 content.innerHTML = history.map((h, i) => {
-                    const same = (h.luna || '') === (cur.luna || '') && (h.reaper || '') === (cur.reaper || '') && (h.notes || '') === (cur.notes || '') && (h.desc || '') === (cur.desc || '');
+                    const same = (h.reaper || '') === (cur.reaper || '') && (h.notes || '') === (cur.notes || '') && (h.desc || '') === (cur.desc || '');
                     return `<div class="p-3 rounded border border-[#FF88FF20] bg-black/40 mb-3">
                         <div class="flex items-center justify-between mb-2"><span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/70">${new Date(h.savedAt).toLocaleString()} → now</span><button data-recipe-id="${recipe.id}" data-history-idx="${i}" class="btn-restore-history text-[9px] font-bold px-2 py-1 rounded border border-[#00FF8850] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">↺ RESTORE</button></div>
-                        ${same ? '<div class="text-[9px] text-white/30 italic">Identical to current version.</div>' : row('REAPER', h.reaper, cur.reaper) + row('LUNA', h.luna, cur.luna) + row('Notes', h.notes, cur.notes) + row('Desc', h.desc, cur.desc)}
+                        ${same ? '<div class="text-[9px] text-white/30 italic">Identical to current version.</div>' : row('CHAIN', h.reaper, cur.reaper) + row('Notes', h.notes, cur.notes) + row('Desc', h.desc, cur.desc)}
                     </div>`;
                 }).join('');
             }
@@ -5492,13 +5475,13 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const currentGenreRecipes = () => (window.db.cookbook || []).filter(r => r.genre === window.currentCookbookGenre);
         document.getElementById('btn-genre-pack')?.addEventListener('click', () => {
             const recs = currentGenreRecipes(); if (!recs.length) { alert('No recipes in this genre.'); return; }
-            const pack = recs.map(r => ({ genre: r.genre, inst: r.inst, effort: r.effort || '', desc: r.desc, luna: r.luna, reaper: r.reaper, notes: r.notes, why: r.why || '' }));
+            const pack = recs.map(r => ({ genre: r.genre, inst: r.inst, effort: r.effort || '', desc: r.desc, reaper: r.reaper, notes: r.notes, why: r.why || '' }));
             downloadFile(safeName(window.currentCookbookGenre) + '_pack.json', JSON.stringify(pack, null, 2), 'application/json');
         });
         document.getElementById('btn-genre-chapter')?.addEventListener('click', () => {
             const g = window.currentCookbookGenre; const recs = currentGenreRecipes(); if (!recs.length) { alert('No recipes in this genre.'); return; }
             let md = `# ${g}\n\n`;
-            recs.forEach(r => { md += `## ${r.inst}${r.effort ? `  _(${r.effort})_` : ''}\n\n`; if (r.desc) md += `> ${r.desc}\n\n`; md += `**REAPER:** ${r.reaper || '—'}\n\n**LUNA:** ${r.luna || '—'}\n\n`; if (r.notes) md += `**Notes:** ${r.notes}\n\n`; if (r.why) md += `**Why it works:** ${r.why}\n\n`; md += `---\n\n`; });
+            recs.forEach(r => { md += `## ${r.inst}${r.effort ? `  _(${r.effort})_` : ''}\n\n`; if (r.desc) md += `> ${r.desc}\n\n`; md += `**CHAIN:** ${r.reaper || '—'}\n\n`; if (r.notes) md += `**Notes:** ${r.notes}\n\n`; if (r.why) md += `**Why it works:** ${r.why}\n\n`; md += `---\n\n`; });
             md += `_Exported from FERRETT_STUDIO_OS_\n`;
             downloadFile(safeName(g) + '_chapter.md', md, 'text/markdown');
         });
@@ -5537,7 +5520,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             if (!chosen.length) { closeModal('selimport-modal'); return; }
             const existing = window.db.cookbook || []; const byKey = new Map(existing.map(r => [keyOf(r), r]));
             let nextId = existing.reduce((m, r) => Math.max(m, r.id || 0), 200) + 1; let added = 0, updated = 0;
-            chosen.forEach(r => { const m = byKey.get(keyOf(r)); if (m) { m.desc = r.desc || m.desc; m.luna = r.luna || m.luna; m.reaper = r.reaper || m.reaper; m.notes = r.notes || m.notes; if (r.why) m.why = r.why; if (r.effort) m.effort = r.effort; updated++; } else { window.db.cookbook.push({ id: nextId++, genre: r.genre, inst: r.inst, effort: r.effort || '', desc: r.desc || '', luna: r.luna || '', reaper: r.reaper || '', notes: r.notes || '', why: r.why || '', images: [] }); added++; } });
+            chosen.forEach(r => { const chain = [r.reaper, r.luna].filter(Boolean).join('\n\n'); const m = byKey.get(keyOf(r)); if (m) { m.desc = r.desc || m.desc; m.reaper = chain || m.reaper; m.notes = r.notes || m.notes; if (r.why) m.why = r.why; if (r.effort) m.effort = r.effort; updated++; } else { window.db.cookbook.push({ id: nextId++, genre: r.genre, inst: r.inst, effort: r.effort || '', desc: r.desc || '', reaper: chain, notes: r.notes || '', why: r.why || '', images: [] }); added++; } });
             window.saveData(); if (window.buildGenreColorMap) window.buildGenreColorMap(); if (window.renderCookbookMenu) window.renderCookbookMenu();
             closeModal('selimport-modal'); alert(`Merged: ${added} added, ${updated} updated.`);
         });
@@ -5569,7 +5552,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const STAGE_ORDER = [['CLEAN', '#00E5FF'], ['CRUNCH', '#FFA05C'], ['DISTORTION', '#FF5C5C'], ['BASS', '#FFD60A']];
         const renderStageView = () => {
             const wrap = document.getElementById('tone-stage-view'); if (!wrap) return;
-            const tones = window.dawSort((window.db.tones || []).filter(t => window.currentMode === 'both' || t.daw === window.currentMode || t.daw === 'both'));
+            const tones = window.db.tones || [];
             wrap.innerHTML = STAGE_ORDER.map(([cat, color]) => {
                 const items = tones.filter(t => (t.category || 'CLEAN') === cat);
                 return `<div class="rounded border p-3 bg-black/30" style="border-color:${color}30;"><div class="text-[10px] font-bold tracking-widest uppercase mb-2 flex items-center gap-2" style="color:${color};"><span class="w-2 h-2 rounded-full" style="background:${color};"></span>${cat} <span class="opacity-50">· ${items.length}</span></div><div class="flex flex-wrap gap-2">${items.length ? items.map(t => `<span class="text-[10px] px-2 py-1 rounded border" style="color:${color};border-color:${color}40;background:${color}0A;" title="${(t.nam || '')}${t.ir ? ' / ' + t.ir : ''}">${(t.name || 'Unnamed').replace(/</g, '')}${t.brand ? ` · ${t.brand.replace(/</g, '')}` : ''}</span>`).join('') : '<span class="text-white/25 text-[10px] italic">none</span>'}</div></div>`;
@@ -5830,7 +5813,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const bpmEl=$('lab-idea-bpm'); const bpm=bpmEl?bpmEl.textContent:'—';
     const name=($('lab-idea-name')?.value||'').trim()||'Untitled idea';
     const key=$('lab-idea-key')?.value||'';
-    const track={ id:Date.now(), inst:name, daw:'both', plugins:'', toneRef:null, recipeRef:null, reflink:'', notes:`Caught in Idea Catcher — ${bpm} BPM${key?' · '+key:''}. [TODO] flesh this out.`, images:[] };
+    const track={ id:Date.now(), inst:name, daw:'reaper', plugins:'', toneRef:null, recipeRef:null, reflink:'', notes:`Caught in Idea Catcher — ${bpm} BPM${key?' · '+key:''}. [TODO] flesh this out.`, images:[] };
     window.db.tracks = window.db.tracks || []; window.db.tracks.unshift(track);
     window.saveData?.(); window.renderTracks?.();
     const bmEl=$('lab-idea-name'); if(bmEl) bmEl.value='';
@@ -6047,7 +6030,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function exportRtt(){
     const id=parseInt($('lab-rtt-tone').value,10); const t=(window.db.tones||[]).find(x=>x.id===id); if(!t){ alert('Add a tone first.'); return; }
     const nm=(t.name||'Tone').replace(/"/g,"'");
-    const meta=[t.daw?('DAW:'+t.daw):'', t.nam?('NAM:'+t.nam):'', t.ir?('IR:'+t.ir):''].filter(Boolean).join(' | ');
+    const meta=[t.nam?('NAM:'+t.nam):'', t.ir?('IR:'+t.ir):''].filter(Boolean).join(' | ');
     const chunk=`<TRACK\nNAME "FERRETT · ${nm}${meta?' · '+meta:''}"\nPEAKCOL 33575679\nBEAT -1\nAUTOMODE 0\nVOLPAN 1 0 -1 -1 1\nMUTESOLO 0 0 0\nIPHASE 0\nPLAYOFFS 0 1\nISBUS 0 0\nBUSCOMP 0 0 0 0 0\nSHOWINMIX 1 0.6667 0.5 1 0.5 0 -1 0\nFREEMODE 0\nREC 0 0 1 0 0 0 0 0\nVU 2\nTRACKHEIGHT 0 0 0 0 0 0\nINQ 0 0 0 0.5 100 0 0 100\nNCHAN 2\nFX 1\nTRACKID ${guid()}\nPERF 0\n>\n`;
     const blob=new Blob([chunk],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(t.name||'tone').replace(/[^a-z0-9]+/gi,'_')+'.RTrackTemplate'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
@@ -7646,7 +7629,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   }
   function aiAsk(){ const q=$('ai-ask-in').value.trim(); if(!q) return; brainCall('You are a veteran recording/mixing engineer and producer. Answer concisely and practically — a few sentences or tight bullets, real moves not fluff.'+gearContext(), q, false); }
   function aiMood(){ const q=$('ai-mood-in').value.trim(); if(!q) return; brainCall('You suggest chord progressions for songwriters. Give 2-3 progressions as chord symbols (e.g. Am–F–C–G), each with a short why. No preamble.', 'Mood: '+q, true); }
-  function aiRecipe(){ const sel=$('ai-recipe-sel'); const id=+sel.value; const r=((window.db&&window.db.cookbook)||[]).find(x=>x.id===id); if(!r){ brainShow('Pick a recipe.'); return; } const genre=$('ai-recipe-genre').value.trim()||'a different genre'; brainCall('You are a music production expert. Reimagine the given production recipe for a new genre. Be practical and specific: key sonic moves, plugin/gear analogs, arrangement notes. Keep it tight.'+gearContext(), `Original (${r.genre} — ${r.inst}): ${r.desc||''} ${r.luna||''} ${r.reaper||''}\n\nReimagine for: ${genre}.`, true); }
+  function aiRecipe(){ const sel=$('ai-recipe-sel'); const id=+sel.value; const r=((window.db&&window.db.cookbook)||[]).find(x=>x.id===id); if(!r){ brainShow('Pick a recipe.'); return; } const genre=$('ai-recipe-genre').value.trim()||'a different genre'; brainCall('You are a music production expert. Reimagine the given production recipe for a new genre. Be practical and specific: key sonic moves, plugin/gear analogs, arrangement notes. Keep it tight.'+gearContext(), `Original (${r.genre} — ${r.inst}): ${r.desc||''} ${r.reaper||''}\n\nReimagine for: ${genre}.`, true); }
   function aiMix(){ const q=$('ai-mix-in').value.trim(); if(!q) return; brainCall('You are a mixing engineer. Given described mix problems, return a short prioritized fix list — each item a concrete move with frequency/dB/tool. No preamble.'+gearContext(), q, false); }
 
   window.stopToolsAudio=()=>{ ppStop(); rtaStop(); };

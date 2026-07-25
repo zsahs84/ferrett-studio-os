@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v61';
+window.APP_VERSION = 'v62';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1319,7 +1319,6 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex-1"></div>
             <button id="btn-lyr-export" type="button" class="btn-ferrett px-3 py-2 text-[10px]">↓ .TXT</button>
             <button id="btn-lyr-print" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
-            <button id="btn-lyr-totrack" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Send to Channel Settings as a new stub">→ TRACK</button>
         </div>
 
         <!-- paste-tagged panel: paste a full song written with [Section] headers, parse into tagged lines + arrangement -->
@@ -6415,12 +6414,6 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const s=activeSheet(); const txt=s.lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).join('\n');
     const blob=new Blob([`${s.title||'Untitled'}\n\n${txt}`],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(s.title||'lyrics').replace(/[^a-z0-9]+/gi,'_')+'.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
   }
-  function lyrToTrack(){
-    const s=activeSheet(); const body=s.lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n');
-    window.db.tracks=window.db.tracks||[]; window.db.tracks.unshift({ id:Date.now(), inst:'♪ '+(s.title||'Lyrics'), daw:'both', plugins:'', toneRef:null, recipeRef:null, reflink:'', notes:'LYRICS —\n'+body, images:[] });
-    window.saveData?.(); window.renderTracks?.();
-    const b=$('btn-lyr-totrack'); if(b){ const o=b.textContent; b.textContent='✓ SENT'; setTimeout(()=>b.textContent=o,1400); }
-  }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
   // Opens (or creates) the lyric sheet linked to a Song Board song, so "Open in Lyrics" on a
   // song card can jump straight to that song's own sheet instead of whatever was last active.
@@ -6716,7 +6709,6 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('btn-lyr-clear-selected')?.addEventListener('click',()=>{ lyrSelected.clear(); renderLines(); });
       $('lyr-show-syl')?.addEventListener('change',renderLines);
       $('btn-lyr-export')?.addEventListener('click',lyrExport);
-      $('btn-lyr-totrack')?.addEventListener('click',lyrToTrack);
       $('btn-lyr-rhyme')?.addEventListener('click',findRhymes);
       $('lyr-rhyme-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') findRhymes(); });
       // view mode toggle
@@ -6888,7 +6880,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('song-detail-lyr-btn').textContent = '📝 '+(song.lyricsSheetId!=null?'Open lyrics':'New lyrics');
     const list=$('song-detail-tracks-list');
     const linkedTracks=(song.trackIds||[]).map(id=>(window.db.tracks||[]).find(t=>t.id===id)).filter(Boolean);
-    list.innerHTML = linkedTracks.length ? linkedTracks.map(t=>`<div class="flex items-center justify-between text-[10px] text-white/70 bg-black/30 rounded px-2 py-1"><span class="truncate pr-2">${(t.inst||'Track').replace(/</g,'')}</span><button type="button" class="song-detail-track-del text-white/30 hover:text-[#FF5A5A] text-[12px]" data-id="${t.id}">×</button></div>`).join('') : '<div class="text-[9px] text-white/25 italic py-1">No tracks linked yet.</div>';
+    // A thumbnail of the FX chain screenshot (if any) so two same-instrument variants — e.g. two
+    // different snare chains you like — are tellable apart at a glance instead of just by name.
+    list.innerHTML = linkedTracks.length ? linkedTracks.map(t=>{
+      const thumb = (t.images&&t.images[0]) ? `<img src="${t.images[0]}" class="w-7 h-7 object-cover rounded border border-[#00E5FF40] shrink-0 cursor-pointer" title="View FX chain screenshot(s)" onclick="window.openModalGallery('tracks', ${t.id})">` : `<div class="w-7 h-7 rounded border border-white/10 shrink-0 flex items-center justify-center text-white/15 text-[10px]">·</div>`;
+      return `<div class="flex items-center gap-2 text-[10px] text-white/70 bg-black/30 rounded px-2 py-1">${thumb}<span class="truncate flex-1">${(t.inst||'Track').replace(/</g,'')}</span><button type="button" class="song-detail-track-del text-white/30 hover:text-[#FF5A5A] text-[12px] shrink-0" data-id="${t.id}">×</button></div>`;
+    }).join('') : '<div class="text-[9px] text-white/25 italic py-1">No tracks linked yet.</div>';
     populateSongDetailTrackSelect(song);
     const toneList=$('song-detail-tones-list');
     const linkedTones=(song.toneIds||[]).map(id=>(window.db.tones||[]).find(t=>t.id===id)).filter(Boolean);

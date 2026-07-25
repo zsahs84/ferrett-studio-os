@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v60';
+window.APP_VERSION = 'v61';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3243,6 +3243,11 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
     function songsForKit(kitId){ return (window.db.songBoard || []).filter(s => s.kitId === kitId); }
     window.kitHistory = kitHistory; window.findKit = findKit; window.songsForKit = songsForKit; // shared with the Song Board closure
 
+    // Which recipes are currently in inline-edit mode, keyed "kitId:slot:recipeIndex". Kept outside
+    // renderGenreKit so it survives the re-renders that happen while editing elsewhere on the page.
+    const kitRecipeEditSet = new Set();
+    const kitRecipeKey = (kitId, slot, ri) => kitId+':'+slot+':'+ri;
+
     function kitProgress(genre, done, total, label){
         const disp = document.getElementById('recipe-display'); if (!disp) return;
         const pct = Math.round((done/total)*100);
@@ -3384,15 +3389,36 @@ ${owned.join(', ')}`;
         }).join('');
 
         const recipeHtml = !active ? `<div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[11px] tracking-widest uppercase border-2 border-dashed border-[#FF88FF10] rounded-lg min-h-[300px] text-center px-6">This genre didn't come back with any usable instrument roles.</div>` :
-            (active.recipes || []).map((r, ri) => `
-                <div class="${ri>0?'pt-5 mt-5 border-t border-white/10':''}">
-                    <div class="text-[12px] font-bold text-[#00FF88] tracking-wide mb-2">${esc(r.name||'Chain '+(ri+1))}</div>
+            !(active.recipes||[]).length ? `<div class="text-[10px] text-white/25 italic py-4 text-center">No recipes left for this instrument — deleted them all.</div>` :
+            (active.recipes || []).map((r, ri) => {
+                const key = kitRecipeKey(kit.id, active.slot, ri);
+                if (kitRecipeEditSet.has(key)) {
+                    return `<div class="${ri>0?'pt-5 mt-5 border-t border-white/10':''}" data-ri="${ri}">
+                        <div class="flex items-center gap-2 mb-2">
+                            <input type="text" class="kit-r-name flex-1 bg-black/40 border border-[#00FF8840] rounded text-[12px] font-bold text-[#00FF88] px-2 py-1.5 focus:outline-none" value="${esc(r.name||'')}" placeholder="recipe name" data-ri="${ri}">
+                            <button type="button" class="kit-r-done text-[9px] font-bold tracking-widest text-[#00FF88] px-2 py-1.5 rounded border border-[#00FF8850] hover:bg-[#00FF88]/10 shrink-0" data-ri="${ri}">✓ DONE</button>
+                        </div>
+                        <div class="text-[8px] text-[#FF88FF]/40 tracking-widest uppercase mb-1">Chain — one step per line</div>
+                        <textarea class="kit-r-chain w-full bg-black/40 border border-[#FF88FF30] rounded text-[11px] font-mono text-[#E2E8F0]/85 px-2 py-1.5 mb-2 focus:outline-none" rows="${Math.max(3,(r.chain||[]).length)}" data-ri="${ri}">${esc((Array.isArray(r.chain)?r.chain:[]).join('\n'))}</textarea>
+                        <div class="text-[8px] text-[#FFD60A]/50 tracking-widest uppercase mb-1">Why it works</div>
+                        <textarea class="kit-r-why w-full bg-black/40 border border-[#FFD60A30] rounded text-[10px] text-[#FFE9A6]/80 italic px-2 py-1.5 focus:outline-none" rows="2" data-ri="${ri}">${esc(r.why||'')}</textarea>
+                    </div>`;
+                }
+                return `<div class="${ri>0?'pt-5 mt-5 border-t border-white/10':''}" data-ri="${ri}">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="text-[12px] font-bold text-[#00FF88] tracking-wide">${esc(r.name||'Chain '+(ri+1))}</div>
+                        <div class="flex gap-2 shrink-0">
+                            <button type="button" class="kit-r-edit text-[10px] text-white/30 hover:text-[#00FF88] cursor-pointer" data-ri="${ri}" title="Edit this recipe">✏️</button>
+                            <button type="button" class="kit-r-del text-[12px] leading-none text-white/30 hover:text-[#FF5A5A] cursor-pointer" data-ri="${ri}" title="Delete this recipe">×</button>
+                        </div>
+                    </div>
                     <ol class="space-y-1.5 mb-2">${(Array.isArray(r.chain)?r.chain:[]).map((step,si)=>`
                         <li class="flex gap-2 text-[12px] font-mono text-[#E2E8F0]/85 leading-relaxed">
                             <span class="text-[#FF88FF]/40 shrink-0 tabular-nums">${si+1}.</span><span>${esc(step)}</span>
                         </li>`).join('')}</ol>
                     ${r.why?`<div class="text-[10px] text-[#FFE9A6]/70 italic leading-relaxed border-l-2 border-[#FFD60A40] pl-2.5">${esc(r.why)}</div>`:''}
-                </div>`).join('');
+                </div>`;
+            }).join('');
 
         disp.innerHTML = `<div class="animate-fade-in">
             <div class="border-b border-[#FF88FF25] pb-4 mb-5">
@@ -3401,6 +3427,7 @@ ${owned.join(', ')}`;
                     <h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FF88FF] uppercase">${esc(genre)}</h2></div>
                     <div class="flex gap-2 flex-wrap">
                         <button id="btn-kit-md" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer">📄 .MD</button>
+                        <button id="btn-kit-del" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer" title="Delete this saved kit">🗑 DELETE</button>
                         <button id="btn-kit-back" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">← RECIPES</button>
                     </div>
                 </div>
@@ -3439,6 +3466,48 @@ ${owned.join(', ')}`;
             const b = document.getElementById('btn-kit-attach'); if (b) { const o=b.innerHTML; b.textContent = '✓ ATTACHED'; setTimeout(()=>{ if(document.body.contains(b)) b.innerHTML=o; }, 1500); }
         });
         disp.querySelectorAll('.kit-inst-btn').forEach(b => b.addEventListener('click', () => window.renderGenreKit(genre, { kitId: kit.id, slot: b.dataset.slot })));
+
+        document.getElementById('btn-kit-del')?.addEventListener('click', () => {
+            const affected = songsForKit(kit.id);
+            const warn = affected.length ? `\n\nThis kit is attached to: ${affected.map(s=>s.title||'Untitled').join(', ')}. Those songs will show "no kit attached" afterward — nothing else about them changes.` : '';
+            if (!confirm(`Delete this saved kit for ${genre}? This can't be undone.${warn}`)) return;
+            const h = kitHistory(genre);
+            const i = h.findIndex(k => k.id === kit.id);
+            if (i >= 0) h.splice(i, 1);
+            window.db.genreKits[genre] = h;
+            window.saveData();
+            if (h.length) window.renderGenreKit(genre, { kitId: 'new' });
+            else window.selectGenre(genre); // nothing left to browse — don't auto-trigger a fresh (paid) generation
+        });
+
+        // Edit/delete for individual recipes within the selected instrument. Text inputs autosave on
+        // every keystroke WITHOUT re-rendering (a re-render would blow away focus/cursor mid-type) —
+        // only the toggle buttons and delete trigger a redraw.
+        disp.querySelectorAll('.kit-r-edit').forEach(b => b.addEventListener('click', () => {
+            kitRecipeEditSet.add(kitRecipeKey(kit.id, active.slot, +b.dataset.ri));
+            window.renderGenreKit(genre, { kitId: kit.id, slot: active.slot });
+        }));
+        disp.querySelectorAll('.kit-r-done').forEach(b => b.addEventListener('click', () => {
+            kitRecipeEditSet.delete(kitRecipeKey(kit.id, active.slot, +b.dataset.ri));
+            window.renderGenreKit(genre, { kitId: kit.id, slot: active.slot });
+        }));
+        disp.querySelectorAll('.kit-r-del').forEach(b => b.addEventListener('click', () => {
+            const ri = +b.dataset.ri;
+            if (!confirm('Delete this recipe?')) return;
+            active.recipes.splice(ri, 1);
+            kitRecipeEditSet.delete(kitRecipeKey(kit.id, active.slot, ri));
+            window.saveData();
+            window.renderGenreKit(genre, { kitId: kit.id, slot: active.slot });
+        }));
+        disp.querySelectorAll('.kit-r-name').forEach(inp => inp.addEventListener('input', () => {
+            const ri = +inp.dataset.ri; if (active.recipes[ri]) { active.recipes[ri].name = inp.value; window.saveData(); }
+        }));
+        disp.querySelectorAll('.kit-r-chain').forEach(ta => ta.addEventListener('input', () => {
+            const ri = +ta.dataset.ri; if (active.recipes[ri]) { active.recipes[ri].chain = ta.value.split('\n').map(s=>s.trim()).filter(Boolean); window.saveData(); }
+        }));
+        disp.querySelectorAll('.kit-r-why').forEach(ta => ta.addEventListener('input', () => {
+            const ri = +ta.dataset.ri; if (active.recipes[ri]) { active.recipes[ri].why = ta.value; window.saveData(); }
+        }));
     };
 
     // References the kit by id rather than deep-copying it, since saved kits are now permanent history

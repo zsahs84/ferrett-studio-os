@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v62';
+window.APP_VERSION = 'v63';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3183,16 +3183,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Assistant rest_command timeout — HA then returns an error page with no CORS headers and the
     // browser reports it as a CORS failure. Batching keeps every call the same size/duration as the
     // lyrics tools' calls, which are known to work on both backends.
-    const KIT_BATCH = 2;
-    const KIT_RETRIES = 2; // extra attempts per batch, on top of the first try
+    const KIT_BATCH = 1; // one instrument per call — the smallest possible request, easiest for the model to get exactly right, cheapest single unit to retry
+    const KIT_RETRIES = 2; // extra attempts per batch within a single sweep, on top of the first try
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    // Retries a single batch with backoff — the flakiness isn't one-shot-or-nothing, it's transient
-    // (rate limits, a slow HA hop), so a batch that fails once is often fine on the very next try.
+    // Real exponential backoff with jitter, and if the server told us how long to wait (429
+    // Retry-After), honor that instead of guessing — a fixed short delay doesn't help if the account
+    // is actually rate-limited for several seconds.
     async function callWithRetry(sys, user, opts){
         let lastErr;
         for (let attempt = 0; attempt <= KIT_RETRIES; attempt++){
             try { return await window.ferrettAI(sys, user, opts); }
-            catch(e){ lastErr = e; if (attempt < KIT_RETRIES) await sleep(800 * (attempt + 1)); }
+            catch(e){
+                lastErr = e;
+                if (attempt < KIT_RETRIES) {
+                    const backoff = 700 * Math.pow(2, attempt) + Math.random()*300;
+                    await sleep(Math.min(e.retryAfterMs || backoff, 9000));
+                }
+            }
         }
         throw lastErr;
     }
@@ -3223,7 +3230,8 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
         t = t.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
         const first = t.indexOf('{'), last = t.lastIndexOf('}');
         if (first > 0 || last < t.length-1) { if (first >= 0 && last > first) t = t.slice(first, last+1); }
-        return JSON.parse(t);
+        try { return JSON.parse(t); }
+        catch(e){ return JSON.parse(t.replace(/,(\s*[}\]])/g, '$1')); } // common near-miss: a trailing comma before a closing bracket
     }
 
     // Every generated kit is kept — regenerating adds a new entry rather than overwriting, so past
@@ -3280,16 +3288,18 @@ ${owned.join(', ')}`;
         const batches = [];
         for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
 
-        const instruments = [];
-        const failed = [];
-        let firstError = null;
-        try {
-            for (let b = 0; b < batches.length; b++) {
-                const slots = batches[b];
-                kitProgress(genre, b, batches.length, slots.join(', '));
-                if (b > 0) await sleep(400); // small gap so back-to-back batches don't bunch into a rate-limit burst
+        // Runs one sweep over a list of slot-batches, appending anything that comes back into
+        // `instruments` and returning whichever batches still failed (as slot arrays, so they can be
+        // fed straight into a second sweep instead of re-parsing a display string).
+        async function runSweep(batchList, label){
+            const stillFailed = [];
+            let err = null;
+            for (let b = 0; b < batchList.length; b++) {
+                const slots = batchList[b];
+                kitProgress(genre, b, batchList.length, `${label} ${slots.join(', ')}`);
+                if (b > 0) await sleep(500); // small gap so back-to-back calls don't bunch into a rate-limit burst
                 try {
-                    const raw = await callWithRetry(kitSysPrompt(slots), ctx, { creative: true });
+                    const raw = await callWithRetry(kitSysPrompt(slots), ctx, { creative: true, json: true });
                     const parsed = extractJson(raw);
                     // A malformed shape (not an array at all) is a real failure — retry it. An empty
                     // or partial array is a legitimate "this genre doesn't use these roles" answer —
@@ -3297,13 +3307,30 @@ ${owned.join(', ')}`;
                     if (!parsed || !Array.isArray(parsed.instruments)) throw new Error('malformed response shape');
                     parsed.instruments.forEach(x => { if (x && x.slot && Array.isArray(x.recipes) && x.recipes.length) instruments.push(x); });
                 } catch (be) {
-                    // One bad batch shouldn't throw away the ones that already succeeded — but keep
-                    // the real error so a total failure can report what actually went wrong instead
-                    // of a useless generic message.
-                    failed.push(slots.join(', '));
-                    if (!firstError) firstError = be;
+                    stillFailed.push(slots);
+                    if (!err) err = be;
                 }
             }
+            return { stillFailed, err };
+        }
+
+        const instruments = [];
+        let firstError = null;
+        try {
+            let { stillFailed, err } = await runSweep(batches, 'building');
+            firstError = err;
+            // Anything that failed the first sweep gets one more full pass, after a longer pause —
+            // this is what actually gets a build to "basically always succeeds" instead of "usually
+            // succeeds": most real-world flakiness (rate limits, a slow hop, one bad JSON parse) clears
+            // up given a few extra seconds, and re-sweeping only the failures costs nothing extra for
+            // the roles that already came back clean.
+            if (stillFailed.length) {
+                await sleep(2500);
+                const second = await runSweep(stillFailed, 'retrying');
+                stillFailed = second.stillFailed;
+                if (!firstError) firstError = second.err;
+            }
+            const failed = stillFailed.map(slots => slots.join(', '));
             if (!instruments.length) throw (firstError || new Error('No slots came back.'));
 
             kitProgress(genre, batches.length, batches.length, 'overview');
@@ -7299,6 +7326,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   window.__aiIsConfigured = isConfigured; // shared so other script blocks gate exactly like the lyrics tools do
 
   // ---- core client: returns text, throws Error with a friendly message ----
+  // opts.json:true requests the API's native JSON mode (Groq/OpenAI-compatible response_format) so a
+  // structured-output caller gets back guaranteed-parseable JSON instead of hoping the model doesn't
+  // wrap it in a markdown fence or a chatty preamble — that inconsistency, not just network flakiness,
+  // is a real source of "some batches come back, some don't" for callers parsing JSON out of prose.
+  // Thrown errors carry .status and .retryAfterMs (when the server sends one) so a caller can back off
+  // intelligently on a 429 instead of guessing; existing callers that only read .message are unaffected.
   window.ferrettAI = async function(system, user, opts){
     opts=opts||{}; const c=loadCfg();
     const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(), 45000);
@@ -7306,14 +7339,18 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       let res, data, text;
       if(c.mode==='groq'){
         if(!c.groqKey) throw new Error('No Groq key set — open ⚙ setup.');
-        res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify({ model:c.groqModel||'openai/gpt-oss-120b', temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] }) });
-        if(!res.ok) throw new Error('Groq '+res.status+(res.status===401?' — bad key':''));
+        const body={ model:c.groqModel||'openai/gpt-oss-120b', temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] };
+        if(opts.json) body.response_format={ type:'json_object' };
+        res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify(body) });
+        if(!res.ok){ const err=new Error('Groq '+res.status+(res.status===401?' — bad key':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
         data=await res.json(); text=data?.choices?.[0]?.message?.content;
       } else {
         if(!c.url||!c.token) throw new Error('Set your HA URL + token in ⚙ setup.');
         const base=c.url.replace(/\/+$/,''); const cmd=opts.creative?'groq_creative_request':'groq_speed_request';
-        res=await fetch(base+'/api/services/rest_command/'+cmd+'?return_response',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.token}, body:JSON.stringify({ system_prompt:system, user_prompt:user }) });
-        if(!res.ok) throw new Error('HA '+res.status+(res.status===401?' — bad token':res.status===400?' — check rest_command exists':''));
+        const body={ system_prompt:system, user_prompt:user };
+        if(opts.json) body.response_format='json_object'; // passthrough — only helps if the HA automation forwards it to Groq
+        res=await fetch(base+'/api/services/rest_command/'+cmd+'?return_response',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.token}, body:JSON.stringify(body) });
+        if(!res.ok){ const err=new Error('HA '+res.status+(res.status===401?' — bad token':res.status===400?' — check rest_command exists':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
         data=await res.json();
         const sr=data?.service_response||data;
         text = sr?.content?.choices?.[0]?.message?.content ?? sr?.choices?.[0]?.message?.content ?? sr?.content;

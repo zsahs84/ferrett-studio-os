@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v63';
+window.APP_VERSION = 'v64';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3191,10 +3191,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // is actually rate-limited for several seconds.
     async function callWithRetry(sys, user, opts){
         let lastErr;
+        let useJson = !!opts.json;
         for (let attempt = 0; attempt <= KIT_RETRIES; attempt++){
-            try { return await window.ferrettAI(sys, user, opts); }
+            try { return await window.ferrettAI(sys, user, { ...opts, json: useJson }); }
             catch(e){
                 lastErr = e;
+                // A 400 while requesting JSON mode usually means this model/backend doesn't support
+                // response_format — retrying the identical request would just fail the same way again,
+                // so drop JSON mode for the rest of this call's attempts instead of burning retries on it.
+                if (e.status === 400 && useJson) useJson = false;
                 if (attempt < KIT_RETRIES) {
                     const backoff = 700 * Math.pow(2, attempt) + Math.random()*300;
                     await sleep(Math.min(e.retryAfterMs || backoff, 9000));
@@ -3288,15 +3293,15 @@ ${owned.join(', ')}`;
         const batches = [];
         for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
 
-        // Runs one sweep over a list of slot-batches, appending anything that comes back into
-        // `instruments` and returning whichever batches still failed (as slot arrays, so they can be
-        // fed straight into a second sweep instead of re-parsing a display string).
-        async function runSweep(batchList, label){
+        // Runs one sweep over a list of {slots} entries, appending anything that comes back into
+        // `instruments` and returning whichever entries still failed, each carrying the actual error
+        // message from its last attempt — not just which slot failed, but why, so a persistent failure
+        // is diagnosable instead of just "couldn't be reached".
+        async function runSweep(pending, label){
             const stillFailed = [];
-            let err = null;
-            for (let b = 0; b < batchList.length; b++) {
-                const slots = batchList[b];
-                kitProgress(genre, b, batchList.length, `${label} ${slots.join(', ')}`);
+            for (let b = 0; b < pending.length; b++) {
+                const slots = pending[b].slots;
+                kitProgress(genre, b, pending.length, `${label}: ${slots.join(', ')}`);
                 if (b > 0) await sleep(500); // small gap so back-to-back calls don't bunch into a rate-limit burst
                 try {
                     const raw = await callWithRetry(kitSysPrompt(slots), ctx, { creative: true, json: true });
@@ -3307,31 +3312,27 @@ ${owned.join(', ')}`;
                     if (!parsed || !Array.isArray(parsed.instruments)) throw new Error('malformed response shape');
                     parsed.instruments.forEach(x => { if (x && x.slot && Array.isArray(x.recipes) && x.recipes.length) instruments.push(x); });
                 } catch (be) {
-                    stillFailed.push(slots);
-                    if (!err) err = be;
+                    stillFailed.push({ slots, error: (be && be.message) || String(be) });
                 }
             }
-            return { stillFailed, err };
+            return stillFailed;
         }
 
         const instruments = [];
-        let firstError = null;
         try {
-            let { stillFailed, err } = await runSweep(batches, 'building');
-            firstError = err;
-            // Anything that failed the first sweep gets one more full pass, after a longer pause —
-            // this is what actually gets a build to "basically always succeeds" instead of "usually
-            // succeeds": most real-world flakiness (rate limits, a slow hop, one bad JSON parse) clears
-            // up given a few extra seconds, and re-sweeping only the failures costs nothing extra for
-            // the roles that already came back clean.
-            if (stillFailed.length) {
-                await sleep(2500);
-                const second = await runSweep(stillFailed, 'retrying');
-                stillFailed = second.stillFailed;
-                if (!firstError) firstError = second.err;
+            // Keeps re-sweeping whatever's still failing, with a longer cooldown each round, instead of
+            // a single fixed "one extra try" — most real flakiness (rate limits, a slow hop, one bad
+            // parse) clears up given enough space between attempts, and this scales to however much
+            // space it actually needs rather than a single guessed pause. Stops early once nothing's
+            // left, or after MAX_ROUNDS if something's genuinely, persistently broken (bad key, HA down).
+            const MAX_ROUNDS = 4;
+            let pending = batches.map(slots => ({ slots }));
+            for (let round = 0; round < MAX_ROUNDS && pending.length; round++) {
+                if (round > 0) await sleep(2500 * round); // 2.5s, 5s, 7.5s between rounds
+                pending = await runSweep(pending, round === 0 ? 'building' : `retry pass ${round+1}/${MAX_ROUNDS-1}`);
             }
-            const failed = stillFailed.map(slots => slots.join(', '));
-            if (!instruments.length) throw (firstError || new Error('No slots came back.'));
+            const failed = pending.map(p => ({ label: p.slots.join(', '), error: p.error }));
+            if (!instruments.length) throw new Error(failed[0]?.error || 'No slots came back.');
 
             kitProgress(genre, batches.length, batches.length, 'overview');
             let overview = '';
@@ -3461,7 +3462,17 @@ ${owned.join(', ')}`;
             </div>
             ${navBar}
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
-            ${kit.partial?`<div class="mb-5 p-3 rounded border border-[#FFD60A40] bg-[#FFD60A]/6 text-[10px] text-[#FFE9A6]/85 leading-relaxed">⚠ Some candidate roles couldn't be reached (not "doesn't apply" — an actual failed call): <b>${esc(kit.partial.join(' · '))}</b>. Hit + NEW to try building a fresh one.</div>`:''}
+            ${kit.partial?(()=>{
+                // Older kits stored partial as plain label strings; newer ones carry the actual error
+                // per slot too, which is what actually diagnoses a persistent failure.
+                const labels = kit.partial.map(f => typeof f==='string' ? f : f.label);
+                const errs = [...new Set(kit.partial.map(f => typeof f==='string' ? null : f.error).filter(Boolean))];
+                return `<div class="mb-5 p-3 rounded border border-[#FFD60A40] bg-[#FFD60A]/6 text-[10px] text-[#FFE9A6]/85 leading-relaxed">
+                    ⚠ Some candidate roles couldn't be reached after several retry rounds (not "doesn't apply" — an actual failed call): <b>${esc(labels.join(' · '))}</b>.
+                    ${errs.length ? `<div class="mt-1.5 font-mono text-[9px] text-[#FFE9A6]/60">${errs.map(e=>esc(e)).join('<br>')}</div>` : ''}
+                    Hit + NEW to try building a fresh one.
+                </div>`;
+            })():''}
             <div class="flex flex-wrap items-center gap-2 mb-5 p-3 rounded border border-[#00E5FF25] bg-[#00E5FF]/5">
                 <span class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">${attachedSongs.length?'ATTACH TO ANOTHER SONG':'ATTACH THIS KIT TO A SONG'}</span>
                 <select id="kit-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none">

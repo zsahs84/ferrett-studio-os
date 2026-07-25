@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v67';
+window.APP_VERSION = 'v68';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3211,9 +3211,10 @@ HARD RULES:
 - Give 1-3 recipes per included role — your call. More where the genre has genuinely distinct options worth having, one where the genre demands a specific sound.
 - Be genre-accurate. A Memphis horrorcore snare and a G-funk snare are not the same chain.
 - Keep each "why" to one sentence.
+- Give each recipe an evocative TITLE, not a technical description — the kind of 2-4 word phrase that names a vibe, like a mixtape or song title (e.g. "Crenshaw Cruisin'" for a laid-back G-Funk bassline, "Basement Static" for a lo-fi horrorcore snare). Never a literal description like "Distorted 808 Chain" or "Chain 1".
 
 Reply with ONLY valid JSON, no markdown fences, no commentary, in exactly this shape:
-{"instruments":[{"slot":"<exact candidate name>","recipes":[{"name":"short recipe name","chain":["Plugin Name — specific settings","Plugin Name — specific settings"],"why":"one sentence"}]}]}
+{"instruments":[{"slot":"<exact candidate name>","recipes":[{"name":"evocative vibe title","chain":["Plugin Name — specific settings","Plugin Name — specific settings"],"why":"one sentence"}]}]}
 
 Only slot names from this exact list may appear, and only if genuinely used: ${slots.join(', ')}.`;
     }
@@ -3421,10 +3422,11 @@ ${owned.join(', ')}`;
                 const key = kitRecipeKey(kit.id, active.slot, ri);
                 if (kitRecipeEditSet.has(key)) {
                     return `<div class="${ri>0?'pt-5 mt-5 border-t border-white/10':''}" data-ri="${ri}">
-                        <div class="flex items-center gap-2 mb-2">
-                            <input type="text" class="kit-r-name flex-1 bg-black/40 border border-[#00FF8840] rounded text-[12px] font-bold text-[#00FF88] px-2 py-1.5 focus:outline-none" value="${esc(r.name||'')}" placeholder="recipe name" data-ri="${ri}">
+                        <div class="flex justify-end mb-2">
                             <button type="button" class="kit-r-done text-[9px] font-bold tracking-widest text-[#00FF88] px-2 py-1.5 rounded border border-[#00FF8850] hover:bg-[#00FF88]/10 shrink-0" data-ri="${ri}">✓ DONE</button>
                         </div>
+                        <div class="text-[8px] text-[#FF88FF]/40 tracking-widest uppercase mb-1 text-center">Title — the vibe this chain is going for</div>
+                        <input type="text" class="kit-r-name w-full bg-black/40 border border-[#00FF8840] rounded text-[14px] font-black text-[#00FF88] text-center uppercase px-2 py-1.5 mb-3 focus:outline-none" value="${esc(r.name||'')}" placeholder="e.g. Crenshaw Cruisin'" data-ri="${ri}">
                         <div class="text-[8px] text-[#FF88FF]/40 tracking-widest uppercase mb-1">Chain — one step per line</div>
                         <textarea class="kit-r-chain w-full bg-black/40 border border-[#FF88FF30] rounded text-[11px] font-mono text-[#E2E8F0]/85 px-2 py-1.5 mb-2 focus:outline-none" rows="${Math.max(3,(r.chain||[]).length)}" data-ri="${ri}">${esc((Array.isArray(r.chain)?r.chain:[]).join('\n'))}</textarea>
                         <div class="text-[8px] text-[#FFD60A]/50 tracking-widest uppercase mb-1">Why it works</div>
@@ -3432,12 +3434,12 @@ ${owned.join(', ')}`;
                     </div>`;
                 }
                 return `<div class="${ri>0?'pt-5 mt-5 border-t border-white/10':''}" data-ri="${ri}">
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <div class="text-[12px] font-bold text-[#00FF88] tracking-wide">${esc(r.name||'Chain '+(ri+1))}</div>
-                        <div class="flex gap-2 shrink-0">
-                            <button type="button" class="kit-r-edit text-[10px] text-white/30 hover:text-[#00FF88] cursor-pointer" data-ri="${ri}" title="Edit this recipe">✏️</button>
-                            <button type="button" class="kit-r-del text-[12px] leading-none text-white/30 hover:text-[#FF5A5A] cursor-pointer" data-ri="${ri}" title="Delete this recipe">×</button>
-                        </div>
+                    <div class="flex justify-end gap-2 mb-1">
+                        <button type="button" class="kit-r-edit text-[10px] text-white/30 hover:text-[#00FF88] cursor-pointer" data-ri="${ri}" title="Edit this recipe">✏️</button>
+                        <button type="button" class="kit-r-del text-[12px] leading-none text-white/30 hover:text-[#FF5A5A] cursor-pointer" data-ri="${ri}" title="Delete this recipe">×</button>
+                    </div>
+                    <div class="text-center mb-4">
+                        <div class="text-[16px] md:text-[19px] font-black tracking-wide text-[#00FF88] uppercase" style="text-shadow:0 0 12px rgba(0,255,136,0.35);">${esc(r.name||'Untitled Vibe')}</div>
                     </div>
                     <ol class="space-y-1.5 mb-2">${(Array.isArray(r.chain)?r.chain:[]).map((step,si)=>`
                         <li class="flex gap-2 text-[12px] font-mono text-[#E2E8F0]/85 leading-relaxed">

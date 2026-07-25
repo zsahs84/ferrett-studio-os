@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v66';
+window.APP_VERSION = 'v67';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -2616,13 +2616,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renderCookbookCover = () => {
         const disp = document.getElementById('recipe-display'); if (!disp) return;
         document.getElementById('genre-info-bar')?.classList.add('hidden');
-        const genres = [...new Set((window.db.cookbook||[]).map(r=>r.genre))];
-        const total = (window.db.cookbook||[]).length;
+        const genres = window.allCookbookGenres();
+        const kitsByGenre = window.db.genreKits || {};
+        const total = Object.values(kitsByGenre).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : (arr ? 1 : 0)), 0);
         disp.innerHTML = `<div class="animate-fade-in flex flex-col items-center justify-center text-center py-16 px-4 min-h-[400px]">
             <div class="text-[9px] tracking-[0.35em] text-[#00FF88]/40 mb-4 uppercase">Ferrett_Studio_OS // Cookbook</div>
             <h1 class="text-[34px] md:text-[46px] font-black tracking-widest text-[#00FF88] leading-tight mb-3" style="text-shadow:0 0 24px rgba(0,255,136,0.45), 0 0 60px rgba(0,255,136,0.15);">THE ULTIMATE<br>RECIPE BOOK</h1>
             <div class="w-28 h-[2px] bg-gradient-to-r from-transparent via-[#00FF88]/70 to-transparent my-5"></div>
-            <div class="text-[10px] tracking-widest text-[#A7DCC3]/60 font-mono mb-8">${genres.length} GENRES &nbsp;·&nbsp; ${total} RECIPES &nbsp;·&nbsp; YOUR SIGNAL CHAINS, YOUR RULES</div>
+            <div class="text-[10px] tracking-widest text-[#A7DCC3]/60 font-mono mb-8">${genres.length} GENRES &nbsp;·&nbsp; ${total} AI KITS SAVED &nbsp;·&nbsp; YOUR SIGNAL CHAINS, YOUR RULES</div>
             <p class="text-[12px] text-[#E2E8F0]/45 max-w-sm leading-relaxed mb-8">Pick a vibe on the left to dive in — or let the book pick for you.</p>
             <div class="flex flex-wrap gap-3 justify-center">
                 <button id="btn-cover-surprise" type="button" class="btn-ferrett px-5 py-2.5 text-[11px]">🎲 SURPRISE ME</button>
@@ -2644,22 +2645,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('genre-info-bar')?.classList.remove('hidden');
         const kitBtn = document.getElementById('btn-genre-kit');
         if (kitBtn) { const n = kitHistory(genre).length; kitBtn.textContent = n ? `🤖 KITS (${n})` : '🤖 AI KIT'; kitBtn.title = n ? `${n} saved kit${n===1?'':'s'} for this genre — browse or build another` : 'Build a full per-instrument chain sheet for this genre using only the plugins you own'; }
+        // The instrument list is driven entirely by saved AI Kit generations for this genre now —
+        // no more hand-typed cookbook entries here. renderGenreKit fills in "2. Select Instrument"
+        // (left) itself once a kit is chosen; this only handles the "nothing generated yet" case.
         const instMenu = document.getElementById('inst-menu'); if(instMenu) instMenu.innerHTML = '';
-        const instruments = window.db.cookbook.filter(r => r.genre === genre);
-        if (instruments.length === 0) {
-            if (instMenu) instMenu.innerHTML = '<div class="text-[10px] text-[#E2E8F0]/30 italic px-1 py-2">None created, hit the AI button.</div>';
+        const hist = kitHistory(genre);
+        if (hist.length === 0) {
             const disp = document.getElementById('recipe-display');
             if (disp) disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-4 text-center px-8 border-2 border-dashed border-[#00FF8810] rounded-lg min-h-[400px]">
-                <div class="text-[12px] text-[#E2E8F0]/40 tracking-widest uppercase">None created, hit the AI button.</div>
+                <div class="text-[12px] text-[#E2E8F0]/40 tracking-widest uppercase">None made yet, hit the AI button.</div>
                 <button id="btn-empty-genre-kit" type="button" class="btn-ferrett" style="border-color:#FF88FF60;color:#FF88FF;background:rgba(255,136,255,0.08);">🤖 AI KIT</button>
             </div>`;
             document.getElementById('btn-empty-genre-kit')?.addEventListener('click', () => document.getElementById('btn-genre-kit')?.click());
             return;
         }
-        instruments.forEach((data, index) => {
-            const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold text-[#00FF88]/60 border border-transparent'; btn.innerText = data.inst; btn.dataset.id = data.id; btn.addEventListener('click', () => window.selectInst(data.id)); if(instMenu) instMenu.appendChild(btn);
-            if (index === 0) setTimeout(() => window.selectInst(data.id), 50);
-        });
+        const newest = hist[hist.length - 1];
+        window.renderGenreKit(genre, { kitId: newest.id });
     };
 
     window.selectInst = (id) => {
@@ -3342,10 +3343,27 @@ ${owned.join(', ')}`;
         }
     };
 
+    // Builds the "2. Select Instrument" list (left column) from a kit's instrument slots, since that
+    // list is now driven entirely by what the AI has generated and saved — no more hand-typed entries.
+    function renderKitInstMenu(genre, kit, activeSlot) {
+        const instMenuEl = document.getElementById('inst-menu'); if (!instMenuEl) return;
+        const esc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const insts = (kit && kit.instruments) || [];
+        if (!insts.length) { instMenuEl.innerHTML = '<div class="text-[10px] text-[#E2E8F0]/30 italic px-1 py-2">None created, hit the AI button.</div>'; return; }
+        instMenuEl.innerHTML = insts.map(inst => {
+            const on = inst.slot === activeSlot;
+            const n = (inst.recipes || []).length;
+            return `<button type="button" class="kit-inst-btn w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border transition-colors ${on ? 'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]' : 'border-transparent text-[#FF88FF]/60 hover:text-[#FF88FF] hover:bg-[#FF88FF]/5'}" data-slot="${esc(inst.slot)}">${esc(inst.slot)} <span class="opacity-50 normal-case">(${n})</span></button>`;
+        }).join('');
+        instMenuEl.querySelectorAll('.kit-inst-btn').forEach(b => b.addEventListener('click', () => window.renderGenreKit(genre, { kitId: kit.id, slot: b.dataset.slot })));
+    }
+
     // opts.kitId: 'new' shows the generate-a-fresh-one screen; a real id shows that saved kit;
     // undefined defaults to 'new' when history exists (so revisiting a genre invites building
     // another one rather than silently re-showing whatever was last generated). opts.slot lets an
-    // instrument click re-render just the right pane's selection.
+    // instrument click re-render just the right pane's selection. The left "2. Select Instrument"
+    // list always mirrors whichever kit is currently on screen (or the most recent one, while on
+    // the "generate new" screen) via renderKitInstMenu.
     window.renderGenreKit = (genre, opts) => {
         opts = opts || {};
         const disp = document.getElementById('recipe-display'); if (!disp) return;
@@ -3371,6 +3389,7 @@ ${owned.join(', ')}`;
         </div>`;
 
         if (isNew) {
+            renderKitInstMenu(genre, ordered[0], null);
             disp.innerHTML = `<div class="animate-fade-in">
                 <div class="border-b border-[#FF88FF25] pb-4 mb-5">
                     <div class="text-[9px] tracking-widest text-[#FF88FF]/60 uppercase mb-1">🤖 AI Kit · your gear only</div>
@@ -3381,10 +3400,8 @@ ${owned.join(', ')}`;
                     <div class="text-[11px] text-[#E2E8F0]/50 max-w-sm leading-relaxed">Build a fresh per-instrument chain sheet for ${esc(genre)} from the plugins you own.${total?` You've got ${total} saved kit${total===1?'':'s'} for this genre already — browse them with the arrows above.`:''}</div>
                     <button id="btn-kit-generate" class="btn-ferrett-green px-5 py-2.5 text-[11px]">🤖 GENERATE KIT</button>
                 </div>
-                <button id="btn-kit-back" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer mt-4">← RECIPES</button>
             </div>`;
             document.getElementById('btn-kit-generate')?.addEventListener('click', () => window.generateGenreKit(genre));
-            document.getElementById('btn-kit-back')?.addEventListener('click', () => window.selectGenre(genre));
             document.getElementById('kit-nav-older')?.addEventListener('click', () => olderId!=null && window.renderGenreKit(genre, { kitId: olderId }));
             document.getElementById('kit-nav-newer')?.addEventListener('click', () => newerId!=null && window.renderGenreKit(genre, { kitId: newerId }));
             return;
@@ -3396,11 +3413,7 @@ ${owned.join(', ')}`;
         const insts = kit.instruments || [];
         const active = insts.find(i => i.slot === opts.slot) || insts[0] || null;
 
-        const instMenu = insts.map(inst => {
-            const on = inst === active;
-            const n = (inst.recipes || []).length;
-            return `<button type="button" class="kit-inst-btn shrink-0 text-left px-3 py-1.5 text-[10px] rounded tracking-widest uppercase truncate font-bold border transition-colors ${on ? 'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]' : 'border-transparent text-[#FF88FF]/55 hover:text-[#FF88FF] hover:bg-[#FF88FF]/5'}" data-slot="${esc(inst.slot)}">${esc(inst.slot)} <span class="opacity-50 normal-case">(${n})</span></button>`;
-        }).join('');
+        renderKitInstMenu(genre, kit, active && active.slot);
 
         const recipeHtml = !active ? `<div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[11px] tracking-widest uppercase border-2 border-dashed border-[#FF88FF10] rounded-lg min-h-[300px] text-center px-6">This genre didn't come back with any usable instrument roles.</div>` :
             !(active.recipes||[]).length ? `<div class="text-[10px] text-white/25 italic py-4 text-center">No recipes left for this instrument — deleted them all.</div>` :
@@ -3442,12 +3455,9 @@ ${owned.join(', ')}`;
                     <div class="flex gap-2 flex-wrap">
                         <button id="btn-kit-md" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer">📄 .MD</button>
                         <button id="btn-kit-del" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer" title="Delete this saved kit">🗑 DELETE</button>
-                        <button id="btn-kit-back" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-white/15 text-white/50 hover:text-white cursor-pointer">← RECIPES</button>
                     </div>
                 </div>
-                <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest mb-3">GENERATED ${esc(when)} · ${insts.length} INSTRUMENT${insts.length===1?'':'S'} USED IN THIS GENRE${attachedSongs.length?` · 🔗 ${attachedSongs.map(s=>esc(s.title||'Untitled')).join(', ')}`:''}</div>
-                <div class="text-[9px] text-[#FF88FF]/50 font-bold tracking-widest uppercase mb-2 px-1">Instruments in this genre</div>
-                <div class="flex flex-wrap gap-1.5" id="kit-inst-menu">${instMenu || '<div class="text-[10px] text-white/25 italic px-1 py-2">None came back.</div>'}</div>
+                <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)} · ${insts.length} INSTRUMENT${insts.length===1?'':'S'} USED IN THIS GENRE${attachedSongs.length?` · 🔗 ${attachedSongs.map(s=>esc(s.title||'Untitled')).join(', ')}`:''}</div>
             </div>
             ${navBar}
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
@@ -3473,7 +3483,6 @@ ${owned.join(', ')}`;
             <div class="border border-[#FF88FF20] rounded-lg overflow-hidden bg-[#0A0A0F] p-5" id="kit-recipe-pane">${recipeHtml}</div>
         </div>`;
 
-        document.getElementById('btn-kit-back')?.addEventListener('click', () => window.selectGenre(genre));
         document.getElementById('btn-kit-md')?.addEventListener('click', () => window.exportKitMarkdown(genre, kit.id));
         document.getElementById('kit-nav-older')?.addEventListener('click', () => olderId!=null && window.renderGenreKit(genre, { kitId: olderId }));
         document.getElementById('kit-nav-newer')?.addEventListener('click', () => newerId!=null && window.renderGenreKit(genre, { kitId: newerId }));
@@ -3485,7 +3494,6 @@ ${owned.join(', ')}`;
             window.renderGenreKit(genre, { kitId: kit.id, slot: active && active.slot });
             const b = document.getElementById('btn-kit-attach'); if (b) { const o=b.innerHTML; b.textContent = '✓ ATTACHED'; setTimeout(()=>{ if(document.body.contains(b)) b.innerHTML=o; }, 1500); }
         });
-        disp.querySelectorAll('.kit-inst-btn').forEach(b => b.addEventListener('click', () => window.renderGenreKit(genre, { kitId: kit.id, slot: b.dataset.slot })));
 
         document.getElementById('btn-kit-del')?.addEventListener('click', () => {
             const affected = songsForKit(kit.id);

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v79';
+window.APP_VERSION = 'v80';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -877,6 +877,7 @@ main { background: rgba(5,8,7,0.72); }
                 <input type="text" id="songboard-title" placeholder="song title…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="songboard-note" placeholder="note (optional)…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="songboard-len" placeholder="m:ss (optional)" class="w-24 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
+                <input type="number" id="songboard-bpm" placeholder="bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1.5 focus:outline-none" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
                 <button id="btn-songboard-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
                 <button id="btn-songboard-paste-tagged" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once">📋 PASTE TAGGED SONG</button>
             </div>
@@ -901,6 +902,8 @@ main { background: rgba(5,8,7,0.72); }
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-[9px] text-white/40 tracking-widest">LENGTH</span>
                     <input type="text" id="song-detail-len" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="m:ss">
+                    <span class="text-[9px] text-white/40 tracking-widest ml-2">BPM</span>
+                    <input type="number" id="song-detail-bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="—" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-4">
                     <button id="song-detail-arr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
@@ -4886,9 +4889,9 @@ ${gear.join(', ')}`;
         // matching also means a section the arrangement doesn't know about simply goes untimed instead
         // of poisoning the rest.
         const arr = song.arrangement;
-        const bpm = arr && arr.bpm ? arr.bpm : null;
+        const bpm = song.bpm || (arr && arr.bpm) || null;
         let timeline = [], totalSecs = null;
-        if (bpm && Array.isArray(arr.sections) && arr.sections.length) {
+        if (bpm && arr && Array.isArray(arr.sections) && arr.sections.length) {
             const secPerBar = 4 * (60 / bpm);
             let t = 0;
             timeline = arr.sections.map(s => { const start = t; t += (s.bars || 0) * secPerBar; return { name: String(s.name||'').trim().toLowerCase(), start, used: false }; });
@@ -7856,11 +7859,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const songId=sheet.songId;
     const song=songId!=null ? (window.db&&window.db.songBoard||[]).find(x=>x.id===songId) : null;
     const sections=song&&song.arrangement&&song.arrangement.sections;
-    if(!song || !sections || !sections.length){ el.classList.add('hidden'); el.classList.remove('flex'); el.innerHTML=''; return; }
+    if(!song || ((!sections||!sections.length) && !song.bpm)){ el.classList.add('hidden'); el.classList.remove('flex'); el.innerHTML=''; return; }
     el.classList.remove('hidden'); el.classList.add('flex');
-    el.innerHTML = `<span class="text-[9px] text-white/30 tracking-widest mr-1">🎬 STRUCTURE:</span>`
-      + sections.map(s=>{ const c=colorForSection(s.name); return `<span class="text-[9px] font-bold px-2 py-0.5 rounded border" style="border-color:${c}40;color:${c}">${s.name}</span>`; }).join('')
-      + `<button id="btn-lyr-insert-structure" type="button" class="text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#B18CFF60] text-[#B18CFF] hover:bg-[#B18CFF20] ml-1">+ INSERT AS HEADERS</button>`;
+    const bpmChip = song.bpm ? `<span class="text-[9px] font-bold px-2 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] font-mono">${song.bpm} BPM</span>` : '';
+    el.innerHTML = `<span class="text-[9px] text-white/30 tracking-widest mr-1">🎬 STRUCTURE:</span>` + bpmChip
+      + (sections||[]).map(s=>{ const c=colorForSection(s.name); return `<span class="text-[9px] font-bold px-2 py-0.5 rounded border" style="border-color:${c}40;color:${c}">${s.name}</span>`; }).join('')
+      + ((sections&&sections.length) ? `<button id="btn-lyr-insert-structure" type="button" class="text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#B18CFF60] text-[#B18CFF] hover:bg-[#B18CFF20] ml-1">+ INSERT AS HEADERS</button>` : '');
     $('btn-lyr-insert-structure')?.addEventListener('click',()=>{ window.lyrAddLines(sections.map(s=>`[${s.name}]`)); });
   }
   function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); renderStructureStrip(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); }
@@ -8330,6 +8334,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             <div class="flex items-center gap-1 mb-1">
               <span class="song-drag-handle cursor-grab active:cursor-grabbing text-white/25 hover:text-white/60 text-[11px] select-none shrink-0" draggable="true" data-song-id="${s.id}" title="Drag to move stage">⠿</span>
               <input type="text" class="song-title-input flex-1 min-w-0 bg-transparent text-[10px] font-bold text-white focus:outline-none border-b border-transparent focus:border-white/20 truncate" value="${escSongText(s.title||'').replace(/"/g,'&quot;')}" placeholder="Untitled" data-song-id="${s.id}">
+              <input type="number" class="song-bpm-input w-9 shrink-0 bg-transparent text-[8px] text-[#00E5FF]/70 font-mono text-right focus:outline-none border-b border-transparent focus:border-white/20" value="${s.bpm||''}" placeholder="bpm" min="40" max="300" data-song-id="${s.id}" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
               <input type="text" class="song-len-input w-11 shrink-0 bg-transparent text-[8px] text-white/40 font-mono text-right focus:outline-none border-b border-transparent focus:border-white/20" value="${s.length?fmtT(s.length):''}" placeholder="m:ss" data-song-id="${s.id}" title="${s.arrangement?'Synced from Arrangement Timeline':'Song length (optional)'}"${s.arrangement?' readonly':''}>
             </div>
             <textarea class="song-note-input w-full bg-transparent text-[8px] text-white/40 focus:outline-none resize-none leading-tight" rows="2" placeholder="notes…" data-song-id="${s.id}">${escSongText(s.note||'')}</textarea>
@@ -8345,6 +8350,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     board.querySelectorAll('.song-title-input').forEach(inp=>inp.addEventListener('input',()=>{ const s=songs.find(x=>x.id===parseInt(inp.dataset.songId,10)); if(s){ s.title=inp.value; window.saveData(); } }));
     board.querySelectorAll('.song-note-input').forEach(ta=>ta.addEventListener('input',()=>{ const s=songs.find(x=>x.id===parseInt(ta.dataset.songId,10)); if(s){ s.note=ta.value; window.saveData(); } }));
     board.querySelectorAll('.song-len-input').forEach(inp=>inp.addEventListener('change',()=>{ const s=songs.find(x=>x.id===parseInt(inp.dataset.songId,10)); if(s){ s.length=parseSongLen(inp.value); inp.value=s.length?fmtT(s.length):''; window.saveData(); } }));
+    board.querySelectorAll('.song-bpm-input').forEach(inp=>inp.addEventListener('change',()=>{ const id=parseInt(inp.dataset.songId,10); const bpm=inp.value?Math.max(40,Math.min(300,parseInt(inp.value,10)||0))||null:null; window.setSongBpm(id,bpm); }));
   }
   window.renderSongBoard = renderSongBoard;
 
@@ -8371,6 +8377,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('song-detail-title').value=song.title||'';
     $('song-detail-note').value=song.note||'';
     const lenEl=$('song-detail-len'); lenEl.value=song.length?fmtT(song.length):''; lenEl.readOnly=!!song.arrangement; lenEl.title=song.arrangement?'Synced from Arrangement Timeline':'Song length (optional)';
+    const bpmEl=$('song-detail-bpm'); if(bpmEl) bpmEl.value=song.bpm||'';
     $('song-detail-arr-btn').textContent = '🎼 '+(song.arrangement?'Edit arrangement':'Attach arrangement');
     $('song-detail-lyr-btn').textContent = '📝 '+(song.lyricsSheetId!=null?'Open lyrics':'New lyrics');
     const list=$('song-detail-tracks-list');
@@ -8445,6 +8452,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       const song=(window.db.songBoard||[]).find(s=>s.id===songId);
       if(song){
         song.arrangement={bpm:arrData.bpm,sections:arrData.sections};
+        song.bpm=arrData.bpm; // arrangement tempo is the same master tempo shown everywhere else
         const bpm=arrData.bpm||90, secPerBar=4*(60/bpm);
         song.length=Math.round(arrData.sections.reduce((a,s)=>a+s.bars,0)*secPerBar);
         window.saveData();
@@ -8453,6 +8461,27 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       }
     }
   }
+  // Single place that changes a song's tempo, so every surface that shows it — the Song Board card,
+  // the song detail modal, the Arrangement workspace (if this song is loaded there), the Lyrics Lab
+  // structure strip, and the Lyria AI prompt panel (if this song is selected there) — stays in sync
+  // instead of drifting the moment BPM is edited from somewhere other than the arrangement.
+  window.setSongBpm=function(songId,bpm){
+    const song=(window.db.songBoard||[]).find(s=>s.id===songId); if(!song) return;
+    song.bpm=bpm;
+    if(song.arrangement) song.arrangement.bpm=bpm||song.arrangement.bpm||90;
+    if(arrData && arrData.attachedSongId===songId){
+      arrData.bpm=bpm||arrData.bpm||90;
+      try{ localStorage.setItem(ARR_KEY, JSON.stringify(arrData)); }catch(e){}
+      const bpmEl=$('arr-bpm'); if(bpmEl) bpmEl.value=arrData.bpm;
+      renderArr();
+    }
+    window.saveData();
+    renderSongBoard();
+    if(typeof renderSongDetail==='function') renderSongDetail();
+    if(typeof window.refreshLyrics==='function') window.refreshLyrics();
+    const lyriaSel=document.getElementById('lyria-song-select');
+    if(lyriaSel && lyriaSel.value===String(songId) && lyriaSel.onchange) lyriaSel.onchange();
+  };
   function colorFor(name){ const base=(name||'').replace(/\s*\(Half Time\)/i,'').replace(/\s+\d+$/,'').trim(); const t=ARR_TYPES.find(x=>x[0]===base); return t?t[2]:'#B18CFF'; }
   function fmtT(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m+':'+String(s).padStart(2,'0'); }
   function populateArrSongSelect(){
@@ -8473,9 +8502,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-arr-unlink')?.addEventListener('click',()=>{ arrData.attachedSongId=null; saveArr(); populateArrSongSelect(); updateArrAttachedLabel(); renderSongBoard(); });
   }
   function loadSongIntoArrWorkspace(song){
+    const bpm = song.bpm || (song.arrangement&&song.arrangement.bpm) || 90;
     arrData = song.arrangement
-      ? { bpm: song.arrangement.bpm||90, sections: JSON.parse(JSON.stringify(song.arrangement.sections||[])), attachedSongId: song.id }
-      : { bpm: 90, sections: [], attachedSongId: song.id };
+      ? { bpm, sections: JSON.parse(JSON.stringify(song.arrangement.sections||[])), attachedSongId: song.id }
+      : { bpm, sections: [], attachedSongId: song.id };
     const bpmEl=$('arr-bpm'); if(bpmEl) bpmEl.value=arrData.bpm;
     saveArr();
     populateArrSongSelect();
@@ -8493,10 +8523,11 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if(!sections || !sections.length) return;
     const song=(window.db.songBoard||[]).find(s=>s.id===songId);
     if(!song) return;
-    const bpm=(song.arrangement&&song.arrangement.bpm)||90, secPerBar=4*(60/bpm);
+    const bpm=song.bpm||(song.arrangement&&song.arrangement.bpm)||90, secPerBar=4*(60/bpm);
     const newSections=sections.map(s=>({name:s.name,bars:s.bars}));
     if(song.arrangement && song.arrangement.bpm===bpm && JSON.stringify(song.arrangement.sections)===JSON.stringify(newSections)) return;
     song.arrangement={ bpm, sections: newSections };
+    song.bpm=bpm;
     song.length=Math.round(newSections.reduce((a,s)=>a+s.bars,0)*secPerBar);
     window.saveData();
     if(arrData && arrData.attachedSongId===songId){
@@ -8671,10 +8702,11 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if($('songboard-board')){
       renderSongBoard();
       $('btn-songboard-add')?.addEventListener('click',()=>{
-        const t=$('songboard-title'), n=$('songboard-note'), l=$('songboard-len'); const title=(t.value||'').trim(); if(!title){ t.focus(); return; }
+        const t=$('songboard-title'), n=$('songboard-note'), l=$('songboard-len'), b=$('songboard-bpm'); const title=(t.value||'').trim(); if(!title){ t.focus(); return; }
         window.db.songBoard = window.db.songBoard || [];
-        window.db.songBoard.push({ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:(n.value||'').trim(), length:parseSongLen(l.value), status:'lyrics' });
-        t.value=''; n.value=''; l.value='';
+        const bpm=Math.max(40,Math.min(300,parseInt(b.value,10)||0))||null;
+        window.db.songBoard.push({ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:(n.value||'').trim(), length:parseSongLen(l.value), bpm, status:'lyrics' });
+        t.value=''; n.value=''; l.value=''; b.value='';
         window.saveData(); renderSongBoard(); populateArrSongSelect(); populateSetlistTracks();
       });
       $('songboard-title')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') $('btn-songboard-add')?.click(); });
@@ -8716,6 +8748,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('song-detail-title')?.addEventListener('input',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ song.title=$('song-detail-title').value; window.saveData(); renderSongBoard(); } });
       $('song-detail-note')?.addEventListener('input',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ song.note=$('song-detail-note').value; window.saveData(); renderSongBoard(); } });
       $('song-detail-len')?.addEventListener('change',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ song.length=parseSongLen($('song-detail-len').value); $('song-detail-len').value=song.length?fmtT(song.length):''; window.saveData(); renderSongBoard(); } });
+      $('song-detail-bpm')?.addEventListener('change',()=>{ const el=$('song-detail-bpm'); const bpm=el.value?Math.max(40,Math.min(300,parseInt(el.value,10)||0))||null:null; window.setSongBpm(songDetailId,bpm); el.value=bpm||''; });
       $('song-detail-arr-btn')?.addEventListener('click',()=>{ if(songDetailId!=null){ const id=songDetailId; closeSongDetail(); window.loadSongIntoArrWorkspace(id); } });
       $('song-detail-lyr-btn')?.addEventListener('click',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ closeSongDetail(); window.lyrOpenSheetForSong?.(song.id, song.title); $('nav-lyrics')?.click(); } });
       $('song-detail-track-add')?.addEventListener('click',()=>{

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v70';
+window.APP_VERSION = 'v71';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3491,7 +3491,10 @@ ${owned.join(', ')}`;
         const raw = Array.isArray(parsed && parsed.palette) ? parsed.palette : [];
         const picked = [];
         raw.forEach(n => { const o = snapToOwned(n, owned); if (o && !picked.includes(o)) picked.push(o); });
-        return picked;
+        // The cap was only ever a request in the prompt, and a model that ignores it hands back a
+        // palette twice the size it was asked for — which puts the whole point of phase 1 (small,
+        // coherent context on every batch call) straight back where it started. Enforce it here.
+        return picked.slice(0, PALETTE_TARGET + 8);
     }
 
     // Every generated kit is kept — regenerating adds a new entry rather than overwriting, so past
@@ -7701,11 +7704,16 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     // ceiling is in play and come back truncated.
     const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(), opts.timeoutMs || 45000);
     try{
-      let res, data, text;
+      let res, data, text, haFinish, haApiErr, emptyHint='';
       if(c.mode==='groq'){
         if(!c.groqKey) throw new Error('No Groq key set — open ⚙ setup.');
-        const body={ model:c.groqModel||'openai/gpt-oss-120b', temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] };
-        if(opts.maxTokens) body.max_completion_tokens=opts.maxTokens;
+        const model=c.groqModel||'openai/gpt-oss-120b';
+        const body={ model, temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] };
+        // gpt-oss and friends count reasoning against max_completion_tokens, so a ceiling sized for
+        // the answer alone gets spent before the answer starts and comes back as an empty content
+        // string with finish_reason 'length'. Same headroom rule the Gemini branch already applies.
+        if(opts.maxTokens) body.max_completion_tokens=Math.max(opts.maxTokens*2, 8000);
+        if(/gpt-oss/i.test(model)) body.reasoning_effort='low'; // keep the thinking short so the budget goes on the answer
         if(opts.json) body.response_format={ type:'json_object' };
         res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify(body) });
         if(!res.ok){ const err=new Error('Groq '+res.status+(res.status===401?' — bad key':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
@@ -7741,21 +7749,44 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         }
       } else {
         if(!c.url||!c.token) throw new Error('Set your HA URL + token in ⚙ setup.');
-        const base=c.url.replace(/\/+$/,''); const cmd=opts.creative?'groq_creative_request':'groq_speed_request';
-        const body={ system_prompt:system, user_prompt:user };
-        if(opts.json) body.response_format='json_object'; // passthrough — only helps if the HA automation forwards it to Groq
-        res=await fetch(base+'/api/services/rest_command/'+cmd+'?return_response',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.token}, body:JSON.stringify(body) });
+        const base=c.url.replace(/\/+$/,'');
+        const post=(cmd,body)=>fetch(base+'/api/services/rest_command/'+cmd+'?return_response',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.token}, body:JSON.stringify(body) });
+        const shared={ system_prompt:system, user_prompt:user };
+        // ferrett_ai_request is the hop that actually carries this app's parameters. The older
+        // groq_speed_request / groq_creative_request hardcode model, temperature and (creative) a
+        // "creative storyteller" persona in front of the system prompt, drop response_format on the
+        // floor, and — the killer — set no `timeout:`, so HA's 10s rest_command default aborts any
+        // call long enough to matter. opts.timeoutMs never had a say; HA gave up first.
+        res=await post('ferrett_ai_request', { ...shared,
+          temperature: opts.creative?0.8:0.3,
+          max_tokens: Math.max((opts.maxTokens||0)*2, 8000),
+          reasoning_effort: 'low',
+          response_format: opts.json?'json_object':'text' });
+        // 400 from HA means the service doesn't exist — this Home Assistant hasn't picked up the new
+        // rest_command yet. Fall back to the old pair so the app still works, just unparameterized.
+        if(res.status===400) res=await post(opts.creative?'groq_creative_request':'groq_speed_request', opts.json?{...shared, response_format:'json_object'}:shared);
         if(!res.ok){ const err=new Error('HA '+res.status+(res.status===401?' — bad token':res.status===400?' — check rest_command exists':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
         data=await res.json();
         const sr=data?.service_response||data;
-        text = sr?.content?.choices?.[0]?.message?.content ?? sr?.choices?.[0]?.message?.content ?? sr?.content;
+        const msg = sr?.content?.choices?.[0]?.message ?? sr?.choices?.[0]?.message ?? null;
+        // `??` treats an empty string as a present value and stops looking, which is exactly wrong
+        // here: a reasoning model that spent its whole budget thinking returns content:"" — a real,
+        // common outcome that has to fall through to the diagnostics below rather than read as an answer.
+        text = (msg && msg.content) || (typeof sr?.content==='string' ? sr.content : null);
+        // Read the failure reason out of the SAME envelope the text came from. Looking for it on the
+        // outer HA response (which has no `choices`) is why every failed batch reported a bare "Empty
+        // response from the model." and four rounds of retries taught us nothing about why.
+        haFinish = sr?.content?.choices?.[0]?.finish_reason ?? sr?.choices?.[0]?.finish_reason;
+        haApiErr = sr?.content?.error?.message ?? sr?.error?.message;
+        if(!text && msg && msg.reasoning) emptyHint='the model returned only its reasoning and no answer — it ran out of tokens before writing one';
+        else if(!text && !msg) emptyHint='Home Assistant returned no model response at all — usually the rest_command timing out';
       }
       if(!text||typeof text!=='string') {
         // finish_reason:'length' means the model got cut off mid-response (often a token-budget/rate
         // issue), 'content_filter' means it was blocked — surface whichever is available instead of a
         // bare "empty response" so a recurrence is diagnosable without digging through devtools.
-        const reason=data?.choices?.[0]?.finish_reason; const apiErr=data?.error?.message;
-        throw new Error('Empty response from the model.'+(reason?` (finish_reason: ${reason})`:'')+(apiErr?` — ${apiErr}`:''));
+        const reason=data?.choices?.[0]?.finish_reason ?? haFinish; const apiErr=data?.error?.message ?? haApiErr;
+        throw new Error('Empty response from the model.'+(reason?` (finish_reason: ${reason})`:'')+(apiErr?` — ${apiErr}`:'')+(emptyHint?` — ${emptyHint}`:''));
       }
       return text.trim();
     } catch(e){

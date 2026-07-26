@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v69';
+window.APP_VERSION = 'v70';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1423,8 +1423,9 @@ main { background: rgba(5,8,7,0.72); }
         <div>
           <label class="text-[9px] text-[#00E5FF]/70 font-bold tracking-widest block mb-1.5">CONNECTION</label>
           <div class="flex rounded overflow-hidden border border-[#00E5FF40]">
-            <button id="ai-mode-ha" type="button" class="flex-1 px-3 py-2 text-[10px] font-bold tracking-widest bg-[#00E5FF]/20 text-[#00E5FF]">HOME ASSISTANT</button>
-            <button id="ai-mode-groq" type="button" class="flex-1 px-3 py-2 text-[10px] font-bold tracking-widest text-[#00E5FF]/50">DIRECT GROQ</button>
+            <button id="ai-mode-ha" type="button" class="flex-1 px-2 py-2 text-[9px] font-bold tracking-widest bg-[#00E5FF]/20 text-[#00E5FF]">HOME ASSISTANT</button>
+            <button id="ai-mode-groq" type="button" class="flex-1 px-2 py-2 text-[9px] font-bold tracking-widest text-[#00E5FF]/50 border-l border-[#00E5FF40]">DIRECT GROQ</button>
+            <button id="ai-mode-gemini" type="button" class="flex-1 px-2 py-2 text-[9px] font-bold tracking-widest text-[#00E5FF]/50 border-l border-[#00E5FF40]">GOOGLE GEMINI</button>
           </div>
         </div>
         <div id="ai-cfg-ha" class="space-y-3">
@@ -1448,6 +1449,18 @@ main { background: rgba(5,8,7,0.72); }
             <input type="text" id="ai-groq-model" value="openai/gpt-oss-120b" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
           </div>
           <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed. Browser→Groq may be blocked by CORS; the HA route is more reliable.</p>
+        </div>
+        <div id="ai-cfg-gemini" class="space-y-3 hidden">
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">GOOGLE AI STUDIO API KEY</label>
+            <input type="password" id="ai-gemini-key" placeholder="AIza…" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
+            <input type="text" id="ai-gemini-model" value="gemini-3.6-flash" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+            <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed mt-1">Any model id from <span class="font-mono text-[#00E5FF]/70">ai.google.dev/gemini-api/docs/models</span> — e.g. <span class="font-mono">gemini-3.6-flash</span>, <span class="font-mono">gemini-3.5-flash-lite</span>, <span class="font-mono">gemini-2.5-flash</span>.</p>
+          </div>
+          <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed. Get one free at <span class="font-mono text-[#00E5FF]/70">aistudio.google.com/apikey</span>. Gemini allows a far bigger answer per call than the Groq free tier, which is what the AI Kit keeps running out of.</p>
         </div>
         <div id="ai-test-out" class="text-[11px] font-mono min-h-[18px]"></div>
       </div>
@@ -3516,7 +3529,7 @@ ${owned.join(', ')}`;
         const disp = document.getElementById('recipe-display'); if (!disp) return;
         // Gate exactly the way the lyrics tools do, using the co-pilot's own helper.
         const configured = window.__aiIsConfigured ? window.__aiIsConfigured()
-            : (()=>{ try { const c=JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}'); return c.mode==='groq'?!!c.groqKey:!!(c.url&&c.token); } catch(e){ return false; } })();
+            : (()=>{ try { const c=JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}'); return c.mode==='groq'?!!c.groqKey:c.mode==='gemini'?!!c.geminiKey:!!(c.url&&c.token); } catch(e){ return false; } })();
         if (!configured) { window.__openAiModal && window.__openAiModal(); return; }
         if (!window.ferrettAI) { alert('AI co-pilot not loaded.'); return; }
 
@@ -7670,7 +7683,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const DEFAULT_HA_URL='https://donita.ddns.net:8123'; // pre-filled; edit in ⚙ setup anytime. Must be https (mixed-content).
   const loadCfg=()=>{ try{ return JSON.parse(localStorage.getItem(AI_KEY)||'{}'); }catch(e){ return {}; } };
   const saveCfg=(c)=>{ try{ localStorage.setItem(AI_KEY, JSON.stringify(c)); }catch(e){} };
-  const isConfigured=()=>{ const c=loadCfg(); return c.mode==='groq' ? !!c.groqKey : !!(c.url && c.token); };
+  const isConfigured=()=>{ const c=loadCfg(); return c.mode==='groq' ? !!c.groqKey : c.mode==='gemini' ? !!c.geminiKey : !!(c.url && c.token); };
   window.__aiIsConfigured = isConfigured; // shared so other script blocks gate exactly like the lyrics tools do
 
   // ---- core client: returns text, throws Error with a friendly message ----
@@ -7697,6 +7710,35 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify(body) });
         if(!res.ok){ const err=new Error('Groq '+res.status+(res.status===401?' — bad key':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
         data=await res.json(); text=data?.choices?.[0]?.message?.content;
+      } else if(c.mode==='gemini'){
+        if(!c.geminiKey) throw new Error('No Google API key set — open ⚙ setup.');
+        const model=(c.geminiModel||'gemini-3.6-flash').replace(/^models\//,'');
+        const body={
+          contents:[{ role:'user', parts:[{ text:user }] }],
+          systemInstruction:{ parts:[{ text:system }] },
+          generationConfig:{ temperature: opts.creative?0.8:0.3 }
+        };
+        // Gemini counts any internal reasoning against maxOutputTokens, so a ceiling sized for the
+        // answer alone can be spent before the answer starts and come back empty with
+        // finishReason MAX_TOKENS. Give it real headroom rather than the caller's exact figure.
+        if(opts.maxTokens) body.generationConfig.maxOutputTokens=Math.max(opts.maxTokens*2, 8000);
+        if(opts.json) body.generationConfig.responseMimeType='application/json';
+        res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
+          method:'POST', signal:ctrl.signal,
+          headers:{'Content-Type':'application/json','x-goog-api-key':c.geminiKey}, // header, not ?key= — keeps the key out of the URL
+          body:JSON.stringify(body) });
+        if(!res.ok){
+          let detail=''; try{ detail=(await res.json())?.error?.message||''; }catch(e){}
+          const err=new Error('Gemini '+res.status+(res.status===400?' — bad key or model id':res.status===403?' — key rejected':res.status===404?' — no such model':res.status===429?' — rate limited':'')+(detail?' — '+detail:''));
+          err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err;
+        }
+        data=await res.json();
+        const cand=data?.candidates?.[0];
+        text=(cand?.content?.parts||[]).map(p=>p&&p.text).filter(Boolean).join('');
+        if(!text){
+          const fr=cand?.finishReason||data?.promptFeedback?.blockReason;
+          throw new Error('Empty response from Gemini.'+(fr?` (finishReason: ${fr})`:''));
+        }
       } else {
         if(!c.url||!c.token) throw new Error('Set your HA URL + token in ⚙ setup.');
         const base=c.url.replace(/\/+$/,''); const cmd=opts.creative?'groq_creative_request':'groq_speed_request';
@@ -7718,23 +7760,39 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       return text.trim();
     } catch(e){
       if(e.name==='AbortError') throw new Error(`Timed out (${Math.round((opts.timeoutMs||45000)/1000)}s).`);
-      if(e instanceof TypeError) throw new Error('Network/CORS blocked — check HTTPS + cors_allowed_origins.');
+      if(e instanceof TypeError) throw new Error(c.mode==='ha' ? 'Network/CORS blocked — check HTTPS + cors_allowed_origins.' : 'Network blocked — no connection, or the browser refused the call.');
       throw e;
     } finally { clearTimeout(to); }
   };
 
   // ---- helpers ----
   function toLines(txt){ return txt.split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').replace(/^["'“]|["'”]$/g,'').trim()).filter(l=>l && !/^\(.*\)$/.test(l)).slice(0,40); }
-  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const label= on?`● ${c.mode==='groq'?'Groq':'HA'} linked`:'○ not set up'; ['ai-status-lyr','ai-status-lab','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
+  const MODE_LABEL={ ha:'HA', groq:'Groq', gemini:'Gemini' };
+  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const label= on?`● ${MODE_LABEL[c.mode]||'HA'} linked`:'○ not set up'; ['ai-status-lyr','ai-status-lab','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
   window.__updateAiStatus = updateStatus;
 
   // ---- settings modal ----
+  const AI_MODES=['ha','groq','gemini'];
   let modalMode='ha';
-  function setModalMode(m){ modalMode=m; const ha=m==='ha'; $('ai-cfg-ha').classList.toggle('hidden',!ha); $('ai-cfg-groq').classList.toggle('hidden',ha); const bh=$('ai-mode-ha'),bg=$('ai-mode-groq'); bh.classList.toggle('bg-[#00E5FF]/20',ha); bh.classList.toggle('text-[#00E5FF]',ha); bh.classList.toggle('text-[#00E5FF]/50',!ha); bg.classList.toggle('bg-[#00E5FF]/20',!ha); bg.classList.toggle('text-[#00E5FF]',!ha); bg.classList.toggle('text-[#00E5FF]/50',ha); }
-  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode==='groq'?'groq':'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-test-out').textContent=''; const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+  function setModalMode(m){
+    modalMode = AI_MODES.includes(m) ? m : 'ha';
+    AI_MODES.forEach(k=>{
+      const on = k===modalMode;
+      $('ai-cfg-'+k)?.classList.toggle('hidden', !on);
+      const b=$('ai-mode-'+k); if(!b) return;
+      b.classList.toggle('bg-[#00E5FF]/20', on);
+      b.classList.toggle('text-[#00E5FF]', on);
+      b.classList.toggle('text-[#00E5FF]/50', !on);
+    });
+  }
+  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode||'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-gemini-key').value=c.geminiKey||''; $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; $('ai-test-out').textContent=''; const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
   window.__openAiModal = openAiModal;
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
-  function readModalCfg(){ return modalMode==='groq' ? { mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' } : { mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() }; }
+  function readModalCfg(){
+    if(modalMode==='groq') return { mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
+    if(modalMode==='gemini') return { mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash' };
+    return { mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() };
+  }
   async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
 
   // ---- lyrics AI ----
@@ -7819,8 +7877,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   function init(){
     // modal wiring
-    $('ai-mode-ha')?.addEventListener('click',()=>setModalMode('ha'));
-    $('ai-mode-groq')?.addEventListener('click',()=>setModalMode('groq'));
+    AI_MODES.forEach(k=>$('ai-mode-'+k)?.addEventListener('click',()=>setModalMode(k)));
     $('ai-modal-close')?.addEventListener('click',closeAiModal);
     $('ai-test-btn')?.addEventListener('click',testConn);
     $('ai-save-btn')?.addEventListener('click',()=>{ saveCfg(readModalCfg()); updateStatus(); closeAiModal(); });

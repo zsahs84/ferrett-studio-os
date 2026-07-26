@@ -3250,6 +3250,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // reads) stays legible next to the machine rules (which it never sees). `freqs` is a union across
     // bands; `skipIf` exists because a combo unit like the LA-6176 matches two entries and only one
     // half of it lacks the control being flagged.
+    //
+    // `ratios` and `times` are the same idea as `freqs`, applied to the other two things these units
+    // put on a switch rather than a sweep. A stepped attack is unreachable between its positions in
+    // exactly the way an off-selector frequency is, and it is the likeliest of the three to slip past
+    // a reader: "Attack 7ms" looks like a completely ordinary setting, and only the unit's front panel
+    // says otherwise. Both compare with a small tolerance so a rounded figure isn't called a fault,
+    // and `times` normalises ms/s before comparing so "release 400ms" is judged against a switch
+    // labelled in seconds. Each time is matched next to its OWN control word, so a unit with a stepped
+    // attack and a continuous release never judges one against the other's list.
     const MS = '[^.;,]*?\\d+(?:\\.\\d+)?\\s*ms';
     const PLUGIN_LINT = {
         'Teletronix LA-2A (all variants)': { skipIf: /6176/i, noControls: [[/\b(attack|release|ratio|threshold|knee)\b/i, 'an LA-2A has no attack, release, ratio or threshold — only Peak Reduction and Gain']] },
@@ -3272,12 +3281,32 @@ document.addEventListener('DOMContentLoaded', () => {
         'Manley Variable Mu': { noControls: [[/\bratio\b/i, 'the Variable Mu has no ratio control — the ratio moves with level']] },
         'Manley Massive Passive': { noControls: [[/\bQ\b/, 'the Massive Passive has a Bandwidth knob, not a Q']] },
         'SSL E Channel Strip': { noControls: [[new RegExp('attack' + MS, 'i'), "the E-Channel's attack is a Fast Attack button, not a time"]] },
-        'Tape machines (Studer A800, Oxide, Ampex ATR-102)': { noControls: [[/(wow|flutter)[^.;,]*?\d+\s*%/i, 'tape wow/flutter has no percentage setting — speed and tape stock are the controls']] },
+        // Both orders: "wow/flutter 2%" and "2% wow/flutter" are the same claim, and only the first
+        // was being caught.
+        'Tape machines (Studer A800, Oxide, Ampex ATR-102)': { noControls: [[/(wow|flutter)[^.;,]*?\d+\s*%|\d+\s*%[^.;,]*?(wow|flutter)/i, 'tape wow/flutter has no percentage setting — speed and tape stock are the controls']] },
         'Xfer OTT': { noControls: [[/\bamount\b/i, "OTT's control is Depth — there is no Amount"]] },
         'Valhalla Supermassive': { noControls: [
             [/\b(hall|plate|room)\b/i, "Supermassive's modes are named (Gemini, Hydra, Cirrus…) — there is no Hall, Plate or Room"],
             [/decay[^.;,]*?\d/i, 'Supermassive has Delay plus Feedback, not a decay time'] ] },
-        'Softube Saturation Knob': { noControls: [[/\bdrive\b/i, 'the control is called Saturation, not Drive']] }
+        'Softube Saturation Knob': { noControls: [[/\bdrive\b/i, 'the control is called Saturation, not Drive']] },
+        // Every one of these was documented for the AI to read but had no machine rule behind it, so a
+        // fabricated setting on the most switch-heavy units in the list passed silently.
+        'SSL G-Bus Compressor': {
+            ratios: [[2,4,10], 'the G-Bus ratio switch is 2:1, 4:1 or 10:1 — nothing in between'],
+            times: [
+                ['attack', 'ms', [0.1,0.3,1,3,10,30], 'G-Bus attack is a switch: 0.1, 0.3, 1, 3, 10 or 30 ms only'],
+                ['release', 's', [0.1,0.3,0.6,1.2], 'G-Bus release is a switch: 0.1, 0.3, 0.6, 1.2 s or Auto only', /auto/i] ] },
+        // Ratio only. The attack and release switches are six-position but their exact detents aren't
+        // documented here, and a rule built on a guess would fire on correct answers.
+        'API 2500': { ratios: [[1.5,2,3,4,6,10], 'the API 2500 ratio switch is 1.5, 2, 3, 4, 6 or 10:1'] },
+        'UA Minimoog': { noControls: [[/(filter|cutoff|emphasis|contour)[^.;,]{0,24}?\d+(?:\.\d+)?\s*k?\s*hz/i,
+            'the Minimoog filter is 0-10 dials with no frequency readout — give the dial position, not a Hz value']] },
+        'UA Waterfall Rotary Speaker': { noControls: [[/(rate|speed)[^.;,]{0,24}?\d+(?:\.\d+)?\s*k?\s*hz/i,
+            'rotor speed is a Slow / Fast / Brake switch — there is no rate in Hz']] },
+        // `strict` because "vinyl" is an ordinary word in this vocabulary: "tame the vinyl hiss at
+        // 8kHz" describes a different plugin entirely, and would otherwise be blamed on this one.
+        'iZotope Vinyl': { strict: true, noControls: [[/\d+(?:\.\d+)?\s*(dB|k?\s*hz|ms)\b/i,
+            'iZotope Vinyl has no dB, Hz or ms parameters — it has a Year, an RPM and five noise amount sliders']] }
     };
     window.PLUGIN_CONTROLS.forEach(e => { if (PLUGIN_LINT[e.name]) e.lint = PLUGIN_LINT[e.name]; });
 
@@ -3288,6 +3317,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return out;
     }
     const fmtHz = hz => hz >= 1000 ? `${hz/1000}kHz` : `${hz}Hz`;
+
+    // 2% of the step, so a legitimately rounded "0.1s" or "1.5:1" is never called a fault, but a value
+    // sitting between two positions always is. The floor keeps it working for sub-millisecond steps.
+    const onStep = (v, allowed) => allowed.some(a => Math.abs(a - v) <= Math.abs(a) * 0.02 + 1e-9);
+    const RATIO_RE = /(\d+(?:\.\d+)?)\s*:\s*1(?!\d)/g;
+    // Read every "<control> ... <number><unit>" pair in the part and return them in `want` units, so a
+    // switch labelled in seconds can still judge an answer written in milliseconds.
+    function timesNear(part, label, want){
+        const re = new RegExp(label + '[^.;,]{0,24}?(\\d+(?:\\.\\d+)?)\\s*(ms|msec|millisecond|s|sec|second)s?\\b', 'gi');
+        const out = []; let m;
+        while ((m = re.exec(part))) {
+            const ms = /^m/i.test(m[2]) ? parseFloat(m[1]) : parseFloat(m[1]) * 1000;
+            out.push(want === 'ms' ? ms : ms / 1000);
+        }
+        return out;
+    }
+    const fmtTime = (v, unit) => `${Math.round(v * 1000) / 1000}${unit}`;
 
     window.lintChainStep = (step) => {
         const s = String(step || ''); if (!s.trim()) return [];
@@ -3306,9 +3352,31 @@ document.addEventListener('DOMContentLoaded', () => {
             window.PLUGIN_CONTROLS.forEach(e => {
                 if (!e.lint || !e.match.test(part)) return;
                 if (e.lint.skipIf && e.lint.skipIf.test(part)) return;
+                // `strict` units are only judged when the part actually LEADS with their name, for
+                // names that double as ordinary words in this vocabulary. The test is that the name
+                // arrives before the settings do: "ReaEQ (tame the 2kHz vinyl resonance)" is a ReaEQ
+                // move that happens to say "vinyl", and blaming iZotope Vinyl for its 2kHz is exactly
+                // the kind of false alarm that gets the whole panel ignored.
+                if (e.lint.strict) {
+                    const t = part.trim(), at = t.search(e.match), head = t.search(/[(—–]|\s-\s|:\s/);
+                    if (at < 0 || at > 12 || (head >= 0 && at > head)) return;
+                }
                 (e.lint.noControls || []).forEach(([re, msg]) => { if (re.test(part)) out.push(msg); });
                 if (e.lint.freqs && !aside) parseHz(part).forEach(hz => {
                     if (!e.lint.freqs.includes(hz)) out.push(`${fmtHz(hz)} isn't on the ${e.name}'s frequency selector`);
+                });
+                // Same standing-down rule as `freqs`: a part saying "3:1 isn't on this one" is quoting
+                // the impossible value to rule it out, not asking for it.
+                if (e.lint.ratios && !aside) {
+                    const [allowed, msg] = e.lint.ratios;
+                    RATIO_RE.lastIndex = 0; let m;
+                    while ((m = RATIO_RE.exec(part))) if (!onStep(parseFloat(m[1]), allowed)) out.push(msg);
+                }
+                if (!aside) (e.lint.times || []).forEach(([label, unit, allowed, msg, escape]) => {
+                    if (escape && escape.test(part)) return;
+                    timesNear(part, label, unit).forEach(v => {
+                        if (!onStep(v, allowed)) out.push(`${fmtTime(v, unit)} ${label} — ${msg}`);
+                    });
                 });
             });
         });

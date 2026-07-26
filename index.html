@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v77';
+window.APP_VERSION = 'v78';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -4197,6 +4197,10 @@ ${owned.join(', ')}`;
         // a partial kit, which is strictly better than a build the user has to give up on.
         const startedAt = Date.now();
         const deadline = startedAt + KIT_TIME_BUDGET_MS;
+        // Opened here rather than around just the recipe calls: a build is the palette pick, four
+        // batches, every retry they needed and the overview, and the number is only honest if it
+        // covers all of them. Closed on the way out, including the failure path.
+        window.__aiUsage?.begin();
         kitStop = null;
         const windDown = () => kitStop || (Date.now() > deadline ? (kitStop = `gave up after ${Math.round(KIT_TIME_BUDGET_MS/60000)} minutes — the rest never came back`) : null);
 
@@ -4341,15 +4345,21 @@ ${gear.join(', ')}`;
             // Which model produced it, recorded on the kit itself. Without this a saved kit is an
             // anonymous artefact and any later comparison between models is guesswork.
             const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, palette: usingPalette ? palette : null, partial: failed.length ? failed : null,
-                model: window.__aiModelLabel ? window.__aiModelLabel() : null, buildSecs: Math.round((Date.now()-startedAt)/1000) };
+                model: window.__aiModelLabel ? window.__aiModelLabel() : null, buildSecs: Math.round((Date.now()-startedAt)/1000),
+                usage: window.__aiUsage?.end() || null };
             hist.push(newKit);
             window.db.genreKits[genre] = hist;
             window.saveData();
             if (!opts.quiet) window.renderGenreKit(genre, { kitId: newKit.id });
             return newKit;
         } catch(e) {
+            // A failed build still spent money, and leaving the scope open would silently fold that
+            // spend into whatever gets built next. Close it and report it on the error card, because
+            // "it broke AND it cost you 6¢" is the part worth knowing.
+            const spent = window.__aiUsage?.end();
+            const spentLine = window.__aiUsage?.summary(spent);
             if (opts.quiet) return null; // the A/B runner renders its own summary; don't stamp on it
-            disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center px-6"><div class="text-[12px] font-bold tracking-widest text-[#FF5A5A] uppercase">⚠ Kit build failed</div><div class="text-[11px] text-[#E2E8F0]/60 font-mono max-w-md">${(e.message||'Unknown error').replace(/</g,'')}</div><button id="btn-kit-retry" class="btn-ferrett px-4 py-2 text-[10px] mt-2" style="border-color:#FF88FF80;color:#FF88FF">↻ TRY AGAIN</button></div>`;
+            disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center px-6"><div class="text-[12px] font-bold tracking-widest text-[#FF5A5A] uppercase">⚠ Kit build failed</div><div class="text-[11px] text-[#E2E8F0]/60 font-mono max-w-md">${(e.message||'Unknown error').replace(/</g,'')}</div>${spentLine ? `<div class="text-[10px] text-[#FFD60A]/60 font-mono">spent anyway: ${spentLine}</div>` : ''}<button id="btn-kit-retry" class="btn-ferrett px-4 py-2 text-[10px] mt-2" style="border-color:#FF88FF80;color:#FF88FF">↻ TRY AGAIN</button></div>`;
             document.getElementById('btn-kit-retry')?.addEventListener('click', () => window.generateGenreKit(genre));
             return null;
         }
@@ -4391,6 +4401,7 @@ ${gear.join(', ')}`;
             return `<td class="align-top p-2 text-[10px] text-[#E2E8F0]/70 font-mono">
                 <div class="text-[#00FF88] font-bold mb-1">${roles} / ${window.KIT_SLOTS.length} roles</div>
                 <div>${r.kit.buildSecs}s · ${s.recipes} recipes · ${s.steps} steps</div>
+                ${r.kit.usage && r.kit.usage.calls ? `<div class="text-[#FFD60A]/70">${esc(window.__aiUsage.summary(r.kit.usage))}</div>` : ''}
                 <div class="mt-1">verifiable: <b>${s.checked}</b></div>
                 <div>committed: <b>${s.checkedSpecific}</b>${s.checked?` <span class="opacity-50">(${Math.round(s.checkedSpecific/s.checked*100)}%)</span>`:''}</div>
                 <div class="${s.impossible?'text-[#FF9E9E]':''}">impossible: <b>${s.impossible}</b></div>
@@ -4541,7 +4552,7 @@ ${gear.join(', ')}`;
                         ${hist.length > 1 ? `<button id="btn-kit-nuke" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A] text-[#FF5A5A] bg-[#FF5A5A]/10 hover:bg-[#FF5A5A]/25 cursor-pointer" title="Delete every saved kit for this genre — all ${hist.length} of them">☢ NUKE ALL ${hist.length}</button>` : ''}
                     </div>
                 </div>
-                <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)} · ${insts.length} INSTRUMENT${insts.length===1?'':'S'} USED IN THIS GENRE${attachedSongs.length?` · 🔗 ${attachedSongs.map(s=>esc(s.title||'Untitled')).join(', ')}`:''}</div>
+                <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)} · ${insts.length} INSTRUMENT${insts.length===1?'':'S'} USED IN THIS GENRE${attachedSongs.length?` · 🔗 ${attachedSongs.map(s=>esc(s.title||'Untitled')).join(', ')}`:''}${kit.usage && kit.usage.calls ? ` · 💲 ${esc(window.__aiUsage.summary(kit.usage))} over ${kit.usage.calls} call${kit.usage.calls===1?'':'s'}` : ''}</div>
             </div>
             ${navBar}
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
@@ -8635,6 +8646,65 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // read .exhausted to stop outright instead of working through their retry ladder for nothing.
   window.__aiIsDailyLimit = (msg) => /tokens per day|\bTPD\b|requests per day|\bRPD\b/i.test(String(msg||''));
 
+  // ==================== WHAT THE CALL ACTUALLY COST ====================
+  // Every backend reports its own token usage and the app was throwing all of it away, so the only
+  // answer to "what does a kit cost" was an estimate built from character counts — input guessable,
+  // output not, and output is where the money goes because thinking bills at the output rate. These
+  // are the provider's own counts, so they replace the guess entirely.
+  //
+  // Rates are per MILLION tokens and dated, because they change. Only models whose price was actually
+  // confirmed appear here: an unknown model reports its tokens with no dollar figure rather than a
+  // number that looks authoritative and is wrong — the same rule the plugin tables follow. Add a row
+  // when you check a price; don't guess one.
+  window.AI_PRICES = { // verified 2026-07-26 against ai.google.dev/gemini-api/docs/pricing
+      'gemini-3.6-flash':      { in: 1.50, out: 7.50, cachedIn: 0.15 },
+      'gemini-3.5-flash-lite': { in: 0.30, out: 2.50 }
+  };
+  window.__aiPriceFor = (model) => {
+      const m = String(model||'').replace(/^models\//,'').toLowerCase();
+      return window.AI_PRICES[m] || null;
+  };
+  // Thinking tokens bill as output on Gemini and are reported separately, so they are counted into
+  // `out` for the cost but kept in their own field — being able to see that the thinking was four
+  // times the answer is the whole point of measuring rather than estimating.
+  window.__aiUsage = {
+      session: { calls: 0, in: 0, out: 0, thoughts: 0, cached: 0, usd: 0, unpriced: 0 },
+      _scope: null,
+      blank() { return { calls: 0, in: 0, out: 0, thoughts: 0, cached: 0, usd: 0, unpriced: 0 }; },
+      begin() { this._scope = this.blank(); return this._scope; },
+      end() { const s = this._scope; this._scope = null; return s; },
+      // Called once per response, INCLUDING responses that turned out to be empty or were retried —
+      // a call that returned nothing usable was still billed, and a meter that hides those is exactly
+      // the meter that makes a build look cheaper than the invoice.
+      record(model, u) {
+          if (!u) return;
+          const price = window.__aiPriceFor(model);
+          const rec = {
+              in: u.in || 0, out: (u.out || 0) + (u.thoughts || 0), thoughts: u.thoughts || 0, cached: u.cached || 0
+          };
+          const billableIn = Math.max(0, rec.in - rec.cached);
+          const usd = price ? (billableIn * price.in + rec.cached * (price.cachedIn ?? price.in) + rec.out * price.out) / 1e6 : 0;
+          [this.session, this._scope].forEach(t => {
+              if (!t) return;
+              t.calls++; t.in += rec.in; t.out += rec.out; t.thoughts += rec.thoughts; t.cached += rec.cached;
+              if (price) t.usd += usd; else t.unpriced++;
+          });
+          // Lyrics, punch-ins and Lyria prompts have nowhere of their own to show a cost, and they
+          // are the calls most likely to be fired dozens of times without thinking about it. Pushing
+          // the running session total into the status line is the only place they become visible.
+          window.__updateAiStatus?.();
+      },
+      fmtUsd(n) { return n >= 1 ? `$${n.toFixed(2)}` : n >= 0.01 ? `${(n*100).toFixed(1)}¢` : `${(n*100).toFixed(2)}¢`; },
+      // One line for a badge. Says "tokens only" rather than showing $0.00 when no price is on file,
+      // because a confident zero is worse than an honest gap.
+      summary(t) {
+          if (!t || !t.calls) return '';
+          const tok = `${((t.in + t.out)/1000).toFixed(1)}k tokens`;
+          const think = t.thoughts ? ` · ${((t.thoughts)/1000).toFixed(1)}k thinking` : '';
+          return t.unpriced ? `${tok}${think} · no price on file` : `${this.fmtUsd(t.usd)} · ${tok}${think}`;
+      }
+  };
+
   // thinkingConfig is rejected outright by older Gemini models rather than ignored, which would turn
   // an optional quality knob into a hard failure for anyone pointed at one. First 400 that names it
   // switches it off for the session and the call is retried without it — the same
@@ -8718,6 +8788,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
           throw err;
         }
         data=await res.json(); text=data?.choices?.[0]?.message?.content;
+        // Groq reports OpenAI-shaped usage. No reasoning-token field, so `thoughts` stays 0 and the
+        // badge simply won't show a thinking figure rather than implying there wasn't any.
+        window.__aiUsage?.record(model, { in: data?.usage?.prompt_tokens, out: data?.usage?.completion_tokens });
       } else if(c.mode==='gemini'){
         if(!c.geminiKey) throw new Error('No Google API key set — open ⚙ setup.');
         const model=(c.geminiModel||'gemini-3.6-flash').replace(/^models\//,'');
@@ -8765,6 +8838,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
           throw err;
         }
         data=sent.payload; // already parsed by sendGemini — a body can only be read once
+        // Recorded before the text is extracted, so a response that comes back empty (thinking ate
+        // the whole budget) still lands on the meter. Those are billed exactly like a useful one.
+        window.__aiUsage?.record(model, { in: data?.usageMetadata?.promptTokenCount,
+                                          out: data?.usageMetadata?.candidatesTokenCount,
+                                          thoughts: data?.usageMetadata?.thoughtsTokenCount,
+                                          cached: data?.usageMetadata?.cachedContentTokenCount });
         const cand=data?.candidates?.[0];
         text=(cand?.content?.parts||[]).map(p=>p&&p.text).filter(Boolean).join('');
         if(!text){
@@ -8796,6 +8875,11 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         if(!res.ok){ const err=new Error('HA '+res.status+(res.status===401?' — bad token':res.status===400?' — check rest_command exists':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
         data=await res.json();
         const sr=data?.service_response||data;
+        // The HA hop forwards whatever the upstream returned, so usage may or may not survive the
+        // round trip. Recorded when it does; the model label is the hop itself, which has no price
+        // on file, so this shows tokens without pretending to know the rate.
+        window.__aiUsage?.record(c.haModel || 'HA hop', { in: (sr?.content?.usage || sr?.usage)?.prompt_tokens,
+                                                          out: (sr?.content?.usage || sr?.usage)?.completion_tokens });
         const msg = sr?.content?.choices?.[0]?.message ?? sr?.choices?.[0]?.message ?? null;
         // `??` treats an empty string as a present value and stops looking, which is exactly wrong
         // here: a reasoning model that spent its whole budget thinking returns content:"" — a real,
@@ -8841,7 +8925,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // ---- helpers ----
   function toLines(txt){ return txt.split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').replace(/^["'“]|["'”]$/g,'').trim()).filter(l=>l && !/^\(.*\)$/.test(l)).slice(0,40); }
   const MODE_LABEL={ ha:'HA', groq:'Groq', gemini:'Gemini' };
-  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const label= on?`● ${MODE_LABEL[c.mode]||'HA'} linked`:'○ not set up'; ['ai-status-lyr','ai-status-lab','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
+  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const spend=window.__aiUsage?.summary(window.__aiUsage.session); const label= on?`● ${MODE_LABEL[c.mode]||'HA'} linked${spend?` · ${spend} this session`:''}`:'○ not set up'; ['ai-status-lyr','ai-status-lab','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
   window.__updateAiStatus = updateStatus;
 
   // ---- settings modal ----

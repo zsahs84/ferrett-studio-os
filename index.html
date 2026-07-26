@@ -3204,8 +3204,94 @@ document.addEventListener('DOMContentLoaded', () => {
         { match: /minimoog/i, name: 'UA Minimoog',
           text: 'Three oscillators with range and waveform selectors, a mixer section, and a ladder filter whose Cutoff, Emphasis and Contour are 0-10 dials with NO frequency readout. Never give a Minimoog filter setting in Hz — give the dial position.' },
         { match: /rotary.?speaker/i, name: 'UA Waterfall Rotary Speaker',
-          text: 'Rotor speed is a Slow / Fast / Brake switch, plus acceleration time and horn/drum balance. There is no rate in Hz — name the speed and let it ramp.' }
+          text: 'Rotor speed is a Slow / Fast / Brake switch, plus acceleration time and horn/drum balance. There is no rate in Hz — name the speed and let it ramp.' },
+        { match: /\bOTT\b/, name: 'Xfer OTT',
+          text: 'Depth, Time, In Gain and Out Gain, plus upper/lower band depth and gain. There is no "Amount" control — Depth is the one you mean.' },
+        { match: /supermassive/i, name: 'Valhalla Supermassive',
+          text: 'Mode is a list of NAMED algorithms (Gemini, Hydra, Centaurus, Sagittarius, Great Annihilator, Andromeda, Lyra, Capricorn, Cassiopeia…) — there is no "Hall", "Plate" or "Room" mode. Tail length comes from Delay (ms) plus Feedback, NOT a decay time in seconds. Also Warp, Density, Mix and Width.' },
+        { match: /saturation.?knob/i, name: 'Softube Saturation Knob',
+          text: 'One knob, labelled Saturation, plus a three-way Keep High / Neutral / Keep Low switch. It has no Drive control and no mix.' }
     ];
+
+    // ==================== SETTINGS LINTER ====================
+    // The prompt rules cut the fabrication rate down but can never make it zero, and they do nothing
+    // at all for the kits already sitting in genreKits from before the rules existed. This runs
+    // deterministically at render time over every chain line, old and new alike, so a setting that
+    // can't physically be dialled in gets marked in the UI instead of quietly trusted.
+    //
+    // Deliberately conservative — it only fires on things that are certainly impossible, never on
+    // things that merely look unusual. `freqs` is the UNION of every band's stepped values, so a
+    // frequency that exists but is on the wrong band passes; only genuinely unreachable ones flag.
+    // A false alarm here would train you to ignore the warnings, which is worse than missing one.
+    // Keyed by the `name` above. Kept separate from the entries so the reference prose (which the AI
+    // reads) stays legible next to the machine rules (which it never sees). `freqs` is a union across
+    // bands; `skipIf` exists because a combo unit like the LA-6176 matches two entries and only one
+    // half of it lacks the control being flagged.
+    const MS = '[^.;,]*?\\d+(?:\\.\\d+)?\\s*ms';
+    const PLUGIN_LINT = {
+        'Teletronix LA-2A (all variants)': { skipIf: /6176/i, noControls: [[/\b(attack|release|ratio|threshold|knee)\b/i, 'an LA-2A has no attack, release, ratio or threshold — only Peak Reduction and Gain']] },
+        'UA LA-3A': { noControls: [[/\b(attack|release|ratio|threshold)\b/i, 'an LA-3A has no attack, release or ratio — only Peak Reduction and Gain']] },
+        'UA 1176 (Rev A, Rev E/LN, 1176AE)': { noControls: [
+            [/threshold/i, 'the 1176 has no threshold knob — Input is what sets how hard it works'],
+            [new RegExp('(attack|release)' + MS, 'i'), '1176 attack and release are 1-7 dial positions, not milliseconds (and 7 is the fast end)'] ] },
+        'Pultec EQP-1A': { freqs: [20,30,60,100,3000,4000,5000,8000,10000,12000,16000,20000],
+            noControls: [[/\bQ\b/, 'Pultecs have a Bandwidth knob, not a Q']] },
+        'Pultec MEQ-5': { freqs: [200,300,500,700,1000,1500,2000,3000,4000,5000,7000],
+            noControls: [[/shelf/i, 'the MEQ-5 is three peak/dip bands — it has no shelves'], [/\bQ\b/, 'Pultecs have a Bandwidth knob, not a Q']] },
+        'Pultec HLF-3C': { freqs: [50,80,100,150,200,300,500,1500,3000,4000,5000,8000,10000,12000,15000,20000],
+            noControls: [[/\d+\s*dB/i, 'the HLF-3C is filters only — it has no dB gain control']] },
+        'Neve 1073': { freqs: [35,50,60,80,110,160,220,300,360,700,1600,3200,4800,7200,12000] },
+        'Fairchild 660 / 670': { noControls: [
+            [/\bratio\b/i, 'a Fairchild has no ratio control'],
+            [new RegExp('(attack|release)' + MS, 'i'), 'Fairchild timing is a six-position Time Constant selector, not a millisecond value'] ] },
+        'UA dbx 160': { noControls: [[/\b(attack|release)\b/i, 'the dbx 160 has no attack or release control — both are fixed']] },
+        'Empirical Labs Distressor': { noControls: [[new RegExp('(attack|release)' + MS, 'i'), 'Distressor attack and release are 1-10 dials, not milliseconds']] },
+        'Manley Variable Mu': { noControls: [[/\bratio\b/i, 'the Variable Mu has no ratio control — the ratio moves with level']] },
+        'Manley Massive Passive': { noControls: [[/\bQ\b/, 'the Massive Passive has a Bandwidth knob, not a Q']] },
+        'SSL E Channel Strip': { noControls: [[new RegExp('attack' + MS, 'i'), "the E-Channel's attack is a Fast Attack button, not a time"]] },
+        'Tape machines (Studer A800, Oxide, Ampex ATR-102)': { noControls: [[/(wow|flutter)[^.;,]*?\d+\s*%/i, 'tape wow/flutter has no percentage setting — speed and tape stock are the controls']] },
+        'Xfer OTT': { noControls: [[/\bamount\b/i, "OTT's control is Depth — there is no Amount"]] },
+        'Valhalla Supermassive': { noControls: [
+            [/\b(hall|plate|room)\b/i, "Supermassive's modes are named (Gemini, Hydra, Cirrus…) — there is no Hall, Plate or Room"],
+            [/decay[^.;,]*?\d/i, 'Supermassive has Delay plus Feedback, not a decay time'] ] },
+        'Softube Saturation Knob': { noControls: [[/\bdrive\b/i, 'the control is called Saturation, not Drive']] }
+    };
+    window.PLUGIN_CONTROLS.forEach(e => { if (PLUGIN_LINT[e.name]) e.lint = PLUGIN_LINT[e.name]; });
+
+    const HZ_RE = /(\d+(?:\.\d+)?)\s*(k)?\s*hz/gi;
+    function parseHz(s){
+        const out = []; let m; HZ_RE.lastIndex = 0;
+        while ((m = HZ_RE.exec(s))) out.push(Math.round(parseFloat(m[1]) * (m[2] ? 1000 : 1)));
+        return out;
+    }
+    const fmtHz = hz => hz >= 1000 ? `${hz/1000}kHz` : `${hz}Hz`;
+
+    window.lintChainStep = (step) => {
+        const s = String(step || ''); if (!s.trim()) return [];
+        const out = [];
+        // Split on arrows AND sentence breaks first: a line like "Neve 1073 (80Hz) -> ReaEQ (HPF
+        // 200Hz)" would otherwise blame the 1073 for ReaEQ's 200Hz, which isn't on its selector.
+        // Each plugin only ever gets judged on the text that belongs to it.
+        s.split(/->|→|;|\.\s+/).forEach(part => {
+            if (!part.trim()) return;
+            // A part explaining what a plugin CAN'T do ("it has no band below 200Hz", "400Hz isn't on
+            // this unit") names frequencies as counterexamples, not as settings, so the freq check
+            // has to stand down or it flags the note for being right. It gates ONLY that check:
+            // gating the whole part would let "Attack 5 ms, Release 50 ms, ratio isn't important"
+            // through, since one stray negation would excuse every other error on the line.
+            const aside = /\b(isn't|aren't|has no|have no|there's no|there is no|can't reach|cannot reach|nearest (real )?step)\b/i.test(part);
+            window.PLUGIN_CONTROLS.forEach(e => {
+                if (!e.lint || !e.match.test(part)) return;
+                if (e.lint.skipIf && e.lint.skipIf.test(part)) return;
+                (e.lint.noControls || []).forEach(([re, msg]) => { if (re.test(part)) out.push(msg); });
+                if (e.lint.freqs && !aside) parseHz(part).forEach(hz => {
+                    if (!e.lint.freqs.includes(hz)) out.push(`${fmtHz(hz)} isn't on the ${e.name}'s frequency selector`);
+                });
+            });
+        });
+        return [...new Set(out)];
+    };
+    window.lintRecipe = (r) => (Array.isArray(r && r.chain) ? r.chain : []).reduce((n, s) => n + window.lintChainStep(s).length, 0);
 
     // Only the entries matching gear the producer actually owns get sent, so this stays small next to
     // the owned-plugins list that already gets resent on every batch call (see KIT_BATCH).
@@ -3573,10 +3659,13 @@ ${gear.join(', ')}`;
                     <div class="text-center mb-4">
                         <div class="text-[16px] md:text-[19px] font-black tracking-wide text-[#00FF88] uppercase" style="text-shadow:0 0 12px rgba(0,255,136,0.35);">${esc(r.name||'Untitled Vibe')}</div>
                     </div>
-                    <ol class="space-y-1.5 mb-2">${(Array.isArray(r.chain)?r.chain:[]).map((step,si)=>`
+                    <ol class="space-y-1.5 mb-2">${(Array.isArray(r.chain)?r.chain:[]).map((step,si)=>{
+                        const bad = window.lintChainStep(step);
+                        return `
                         <li class="flex gap-2 text-[12px] font-mono text-[#E2E8F0]/85 leading-relaxed">
-                            <span class="text-[#FF88FF]/40 shrink-0 tabular-nums">${si+1}.</span><span>${esc(step)}</span>
-                        </li>`).join('')}</ol>
+                            <span class="text-[#FF88FF]/40 shrink-0 tabular-nums">${si+1}.</span>
+                            <span>${esc(step)}${bad.length?`<span class="block mt-1 text-[10px] not-italic text-[#FF9E9E]/90 font-sans leading-snug">${bad.map(b=>`⚠ ${esc(b)}`).join('<br>')}</span>`:''}</span>
+                        </li>`;}).join('')}</ol>
                     ${r.why?`<div class="text-[10px] text-[#FFE9A6]/70 italic leading-relaxed border-l-2 border-[#FFD60A40] pl-2.5">${esc(r.why)}</div>`:''}
                 </div>`;
             }).join('');
@@ -3595,6 +3684,15 @@ ${gear.join(', ')}`;
             </div>
             ${navBar}
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
+            ${(()=>{
+                // Kits generated before the settings rules existed still carry invented values, and
+                // they can't be retro-fixed without regenerating — so say so plainly at the top
+                // rather than letting them read as trustworthy.
+                const n = (kit.instruments||[]).reduce((a,i)=>a+(i.recipes||[]).reduce((b,r)=>b+window.lintRecipe(r),0),0);
+                return n ? `<div class="mb-5 p-3 rounded border border-[#FF9E9E40] bg-[#FF9E9E]/8 text-[10px] text-[#FFD6D6]/90 leading-relaxed">
+                    ⚠ <b>${n} setting${n===1?'':'s'} in this kit can't be dialled in</b> — the control doesn't exist on that plugin, or the value is off its stepped range. Each one is marked in red below. Kits built before the settings rules landed are the usual cause; hit + NEW to regenerate this genre with the current rules.
+                </div>` : '';
+            })()}
             ${Array.isArray(kit.palette)&&kit.palette.length?`<div class="mb-5 p-3 rounded border border-[#FF88FF25] bg-[#FF88FF]/5">
                 <div class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold mb-2">🎛 PALETTE · ${kit.palette.length} PLUGINS CHOSEN FOR THIS GENRE</div>
                 <div class="flex flex-wrap gap-1.5">${kit.palette.map(p=>`<span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 border border-[#FF88FF20] text-[#E2E8F0]/60">${esc(p)}</span>`).join('')}</div>

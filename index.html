@@ -27,7 +27,7 @@ const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
 const DRIVE_FILE_NAME = 'FERRETT_OS_VAULT.json';
 
 window.gapiLoadComplete = function() { gapi.load('client', async () => { try { await gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] }); } catch (err) { console.error(err); } }); };
-window.gisLoadComplete = function() { try { window.tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file', login_hint: 'zsahs84@gmail.com', callback: async (resp) => { if (resp.error) { window.setDriveStatus(false); return; } window.setDriveStatus(true); await window.findOrPullDriveFile(); } }); } catch (err) { console.error(err); } };
+window.gisLoadComplete = function() { try { window.tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file', login_hint: 'zsahs84@gmail.com', callback: async (resp) => { if (resp.error) { window.setDriveStatus(false); return; } window.setDriveStatus(true); await (window.syncWithDrive ? window.syncWithDrive() : window.findOrPullDriveFile()); } }); window.trySilentDriveConnect?.(); } catch (err) { console.error(err); } };
 </script>
 <script async defer src="https://apis.google.com/js/api.js" onload="window.gapiLoadComplete()"></script>
 <script async defer src="https://accounts.google.com/gsi/client" onload="window.gisLoadComplete()"></script>
@@ -1913,7 +1913,10 @@ const defaultDb = {
         'kHs Gain', 'kHs Comb Filter', 'kHs Phase Distortion', 'kHs Flanger', 'kHs Trance Gate',
         'kHs Transient Shaper', 'kHs Tape Stop', 'kHs 3-Band EQ', 'kHs Haas', 'kHs Ladder Filter', 'kHs Chorus',
         'kHs Ensemble', 'kHs Stereo', 'kHs Bitcrush', 'kHs Reverser', 'kHs Frequency Shifter', 'kHs Ring Mod',
-        'kHs Limiter', 'kHs Reverb', 'kHs Filter', 'NeuralAmpModeler', 'Woodrow Amp', 'Verve', 'Ravel',
+        // UA renamed Verve to Vibe on 2026-04-14. The DAW now shows the new name, but every kit
+        // written before then says "Verve", so the entry carries both — snapToOwned matches by
+        // containment, which resolves either spelling to this one palette entry.
+        'kHs Limiter', 'kHs Reverb', 'kHs Filter', 'NeuralAmpModeler', 'Woodrow Amp', 'Vibe Analog Machines (formerly Verve)', 'Ravel',
         'Surge XT Effects', 'Neutone FX', 'Surge XT', 'Melodyne', 'Studio D Chorus', 'SSL E-Channel Strip',
         'Lion Amp', 'bx_opto Pedal', 'ChordAXE Lite', '1176LN Rev E', 'Avalon VT-737SP', 'TDR Kotelnikov',
         'Siren', 'Manley VoxBox', 'Opal', 'Ampeg SVTVR Classic', 'bx_meter', 'Drawmer S73', 'dbx 160',
@@ -1995,6 +1998,13 @@ try {
         if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
         if (parsed.songBoard) window.db.songBoard = parsed.songBoard;
         if (parsed.ownedPlugins) window.db.ownedPlugins = parsed.ownedPlugins;
+        // The palette is saved data, so a defaultDb edit never reaches an existing install. UA renamed
+        // Verve to Vibe in April 2026 and the DAW now shows the new name, so a saved list still saying
+        // "Verve" sends the model a name that is no longer on screen. Rewrite that one entry in place;
+        // it keeps both spellings so kits written under either name still resolve.
+        // (normPluginName is defined in a later script block, so this compares on a plain trim.)
+        window.db.ownedPlugins = (window.db.ownedPlugins || []).map(p =>
+            String(p).trim().toLowerCase() === 'verve' ? 'Vibe Analog Machines (formerly Verve)' : p);
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
     }
@@ -2035,6 +2045,26 @@ window.renderDriveSyncBadge = () => {
     dot.className = `w-1.5 h-1.5 rounded-full shrink-0 ${s.dot} ${s.pulse ? 'animate-pulse' : ''}`;
     label.textContent = s.label;
     btn.title = s.title;
+    window.renderRescueChip?.();
+};
+
+// A rescue copy only exists after the cloud has deliberately replaced local work, and it has to be
+// visible for it to be worth anything — a recovery path nobody can find is the same as none.
+window.renderRescueChip = () => {
+    const host = document.getElementById('drive-sync-badge')?.parentElement; if (!host) return;
+    const existing = document.getElementById('drive-rescue-chip');
+    const r = window.readRescueCopy?.();
+    if (!r) { existing?.remove(); return; }
+    const when = new Date(r.savedAt).toLocaleString();
+    if (existing) { existing.title = `Local version saved ${when}, replaced by the cloud copy. Click to restore it.`; return; }
+    const chip = document.createElement('button');
+    chip.id = 'drive-rescue-chip';
+    chip.type = 'button';
+    chip.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded border transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase border-[#FF88FF50] bg-[#FF88FF]/10 text-[#FF88FF]';
+    chip.textContent = '⤺ RESTORE LOCAL';
+    chip.title = `Local version saved ${when}, replaced by the cloud copy. Click to restore it.`;
+    chip.addEventListener('click', () => window.restoreRescueCopy());
+    host.appendChild(chip);
 };
 window.setDriveSyncState = (state) => { window.driveSyncState = state; window.renderDriveSyncBadge(); };
 
@@ -2103,9 +2133,33 @@ window.saveDataLocally = () => {
     try { window.localStorage.setItem('ferrett_os_db_v22.4', JSON.stringify(window.db)); const status = document.getElementById('save-status'); if(status) { status.classList.remove('opacity-0'); clearTimeout(window.saveTimeout); window.saveTimeout = setTimeout(() => status.classList.add('opacity-0'), 1500); } } catch(e) { }
 };
 
-window.saveData = () => { window.saveDataLocally(); if (window.isDriveConnected) { window.setDriveSyncState('unsynced'); clearTimeout(window.dbTimeout); window.dbTimeout = setTimeout(() => { window.uploadToDrive(window.db); }, 2000); } };
+// markLocalEdit runs whether or not Drive is connected: an edit made offline is exactly the kind
+// that used to be lost, so it has to be recorded as pending regardless of the connection state.
+//
+// The debounce only exists to keep a burst of keystrokes from becoming a burst of uploads. Two
+// seconds was long enough that "type a line, lock the phone" reliably lost the race; 500ms still
+// collapses a burst but is short enough that a normal pause between edits already pushes.
+window.DRIVE_PUSH_DEBOUNCE_MS = 500;
+window.saveData = () => { window.saveDataLocally(); window.markLocalEdit?.(); if (window.isDriveConnected) { window.setDriveSyncState('unsynced'); clearTimeout(window.dbTimeout); window.dbTimeout = setTimeout(() => { window.uploadToDrive(window.db); }, window.DRIVE_PUSH_DEBOUNCE_MS); } };
+
+// Even 500ms loses to a screen lock if the lock happens inside the window, and a backgrounded tab
+// has its timers throttled or frozen outright, so the pending timer may simply never fire. Pushing
+// the moment the page goes away removes the wait instead of shortening it. Nothing here is
+// guaranteed to finish — the tab can be killed mid-request — but a dropped request costs nothing:
+// syncedRev never advances, so localDirty is still true and the next open pushes it.
+window.flushPendingDriveUpload = () => {
+    if (!window.isDriveConnected) return;
+    if (window.dbTimeout) { clearTimeout(window.dbTimeout); window.dbTimeout = null; }
+    if (window.audioDbTimeout) { clearTimeout(window.audioDbTimeout); window.audioDbTimeout = null; window.uploadAudioToDrive?.(); }
+    if (!window.hasUnsyncedLocalEdits?.()) return;
+    if (window.driveSyncState === 'conflict' || window.driveSyncState === 'syncing') return;
+    window.uploadToDrive(window.db);
+};
 
 window.setDriveStatus = function(connected) { 
+    // Remember that this device has successfully granted the scope at least once, so the next
+    // session can ask for a token silently instead of making you tap the button again.
+    if (connected) { try { localStorage.setItem(window.DRIVE_AUTOCONNECT_KEY || 'ferrett_os_drive_autoconnect_v1', '1'); } catch (e) {} }
     window.isDriveConnected = connected; const btn = document.getElementById('drive-auth-btn'); const txt = document.getElementById('drive-status-text'); const iconDown = document.getElementById('drive-icon-down'); const iconUp = document.getElementById('drive-icon-up'); 
     if (connected) { btn?.classList.replace('border-[#FF2A2A]', 'border-[#00FF88]'); btn?.classList.replace('bg-[#FF2A2A]/10', 'bg-[#00FF88]/10'); btn?.classList.replace('text-[#FF2A2A]', 'text-[#00FF88]'); btn?.classList.replace('hover:bg-[#FF2A2A]/20', 'hover:bg-[#00FF88]/20'); if(txt) txt.innerText = 'INTEL COMM LINK EST'; iconDown?.classList.add('hidden'); iconUp?.classList.remove('hidden'); }
     else { btn?.classList.replace('border-[#00FF88]', 'border-[#FF2A2A]'); btn?.classList.replace('bg-[#00FF88]/10', 'bg-[#FF2A2A]/10'); btn?.classList.replace('text-[#00FF88]', 'text-[#FF2A2A]'); btn?.classList.replace('hover:bg-[#00FF88]/20', 'hover:bg-[#FF2A2A]/20'); if(txt) txt.innerText = 'INTEL COMMS DOWN'; iconUp?.classList.add('hidden'); iconDown?.classList.remove('hidden'); }
@@ -2117,8 +2171,42 @@ window.setDriveStatus = function(connected) {
 // against the last one we actually saw. A mismatch means it changed elsewhere (another
 // device/tab) since we last synced here, so we pause the push and warn instead of overwriting.
 window.DRIVE_SYNC_META_KEY = 'ferrett_os_drive_sync_meta_v1';
-window.driveSyncMeta = (() => { try { const raw = window.localStorage.getItem(window.DRIVE_SYNC_META_KEY); if (raw) return JSON.parse(raw); } catch (e) {} return { lastKnownModifiedTime: null }; })();
+window.driveSyncMeta = (() => { try { const raw = window.localStorage.getItem(window.DRIVE_SYNC_META_KEY); if (raw) return JSON.parse(raw); } catch (e) {} return { lastKnownModifiedTime: null, localRev: 0, syncedRev: 0 }; })();
+if (typeof window.driveSyncMeta.localRev !== 'number') window.driveSyncMeta.localRev = 0;
+if (typeof window.driveSyncMeta.syncedRev !== 'number') window.driveSyncMeta.syncedRev = 0;
 window.saveDriveSyncMeta = () => { try { window.localStorage.setItem(window.DRIVE_SYNC_META_KEY, JSON.stringify(window.driveSyncMeta)); } catch (e) {} };
+
+// driveSyncState lives in memory, so a reload always came back believing it was 'synced' — even
+// when the 2-second upload timer had been killed by the tab closing and local was genuinely ahead
+// of the cloud. On a phone that is the normal way a session ends, not an edge case. These two
+// counters survive the reload: every local write bumps localRev, every completed sync sets
+// syncedRev to match. They disagree if and only if local holds something the cloud has not seen.
+window.markLocalEdit = () => { window.driveSyncMeta.localRev = (window.driveSyncMeta.localRev || 0) + 1; window.saveDriveSyncMeta(); };
+window.markSynced = () => { window.driveSyncMeta.syncedRev = window.driveSyncMeta.localRev || 0; window.saveDriveSyncMeta(); };
+window.hasUnsyncedLocalEdits = () => (window.driveSyncMeta.localRev || 0) !== (window.driveSyncMeta.syncedRev || 0);
+
+// A rescue copy of whatever local held right before the cloud replaced it. Written only on the one
+// destructive path (choosing the cloud's side in a genuine both-changed conflict), so it costs a
+// duplicate of the vault in localStorage only at the moment it is actually needed, never routinely.
+window.DRIVE_RESCUE_KEY = 'ferrett_os_pre_sync_rescue_v1';
+window.writeRescueCopy = () => {
+    try {
+        window.localStorage.setItem(window.DRIVE_RESCUE_KEY, JSON.stringify({ savedAt: Date.now(), db: window.db }));
+        return true;
+    } catch (e) { return false; } // quota — the caller decides whether to proceed without one
+};
+window.readRescueCopy = () => { try { const r = window.localStorage.getItem(window.DRIVE_RESCUE_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
+window.discardRescueCopy = () => { try { window.localStorage.removeItem(window.DRIVE_RESCUE_KEY); } catch (e) {} };
+window.restoreRescueCopy = () => {
+    const r = window.readRescueCopy(); if (!r || !r.db) { alert('No rescue copy available.'); return; }
+    if (!confirm(`Restore the local version saved ${new Date(r.savedAt).toLocaleString()}?\n\nThis replaces what is on screen now and then pushes it to Drive, so the cloud will match it too.`)) return;
+    window.db = r.db;
+    window.discardRescueCopy();
+    window.saveDataLocally();
+    window.markLocalEdit();
+    if (window.isDriveConnected) window.uploadToDriveRaw(window.db);
+    location.reload();
+};
 window.pendingSyncDbData = null;
 window.showConflictBanner = () => { document.getElementById('drive-conflict-banner')?.classList.remove('hidden'); document.getElementById('drive-conflict-banner')?.classList.add('flex'); };
 window.hideConflictBanner = () => { document.getElementById('drive-conflict-banner')?.classList.add('hidden'); document.getElementById('drive-conflict-banner')?.classList.remove('flex'); };
@@ -2147,9 +2235,11 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.ownedPlugins) window.db.ownedPlugins = cloudDb.ownedPlugins;
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
-                window.saveDataLocally(); if(window.refreshAllUI) window.refreshAllUI();
-            } 
-        } 
+                window.saveDataLocally();
+                window.markSynced?.(); // local is now a copy of the cloud, so nothing is pending
+                if(window.refreshAllUI) window.refreshAllUI();
+            }
+        }
         try {
             let audioRes = await gapi.client.drive.files.list({ q: `name='${DRIVE_AUDIO_FILE_NAME}' and trashed=false`, spaces: 'drive', fields: 'files(id, modifiedTime)' });
             if (audioRes.result.files && audioRes.result.files.length > 0) {
@@ -2171,6 +2261,7 @@ window.uploadToDriveRaw = async function(dbData) {
         const file = new Blob([JSON.stringify(dbData)], {type: 'application/json'}); const form = new FormData(); form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })], { type: 'application/json' })); form.append('file', file); const token = gapi.client.getToken().access_token; let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime'; let method = 'POST'; if (window.driveFileId) { url = `https://www.googleapis.com/upload/drive/v3/files/${window.driveFileId}?uploadType=multipart&fields=id,modifiedTime`; method = 'PATCH'; } let res = await fetch(url, { method: method, headers: { 'Authorization': 'Bearer ' + token }, body: form }); let jsonRes = await res.json(); if (!window.driveFileId) window.driveFileId = jsonRes.id;
         if (jsonRes.modifiedTime) { window.driveSyncMeta.lastKnownModifiedTime = jsonRes.modifiedTime; window.saveDriveSyncMeta(); }
         window.pendingSyncDbData = null; window.hideConflictBanner();
+        window.markSynced?.(); // cloud now holds everything local does
         window.setDriveSyncState('synced');
     } catch (err) { window.setDriveSyncState('error'); }
 }
@@ -2193,7 +2284,94 @@ window.uploadToDrive = async function(dbData) {
 }
 
 window.resolveConflictKeepMine = async () => { const data = window.pendingSyncDbData || window.db; window.hideConflictBanner(); await window.uploadToDriveRaw(data); };
-window.resolveConflictReloadTheirs = async () => { if (!confirm('This discards any local changes made since your last sync and reloads the version currently on Drive. Continue?')) return; window.hideConflictBanner(); await window.findOrPullDriveFile(); };
+window.resolveConflictReloadTheirs = async () => {
+    // The only path in the app that deliberately destroys local work, so it is the only one that
+    // takes a rescue copy first. If localStorage cannot fit one, say so plainly and let the choice
+    // be made with that known — silently overwriting with no way back is what we are fixing.
+    const rescued = window.writeRescueCopy();
+    const warn = rescued
+        ? '\n\nA rescue copy of your local version is being kept — you can restore it afterwards from the sync badge.'
+        : '\n\n⚠ There is NOT enough local storage room to keep a rescue copy, so this cannot be undone.';
+    if (!confirm('This discards any local changes made since your last sync and reloads the version currently on Drive. Continue?' + warn)) { if (rescued) window.discardRescueCopy(); return; }
+    window.hideConflictBanner();
+    await window.findOrPullDriveFile();
+};
+
+// Ask Google for a token WITHOUT a consent popup. This only succeeds if the account has already
+// granted the scope on this device, which is exactly the case we want to make effortless — the
+// second and every subsequent session. A first run, a revoked grant or an expired session simply
+// does nothing and leaves the Drive button to be tapped, so this can never block startup or throw
+// a dialog at you unprompted.
+window.DRIVE_AUTOCONNECT_KEY = 'ferrett_os_drive_autoconnect_v1';
+window.trySilentDriveConnect = function() {
+    try {
+        if (window.isDriveConnected || !window.tokenClient) return;
+        if (localStorage.getItem(window.DRIVE_AUTOCONNECT_KEY) !== '1') return; // never connected here before
+        window.tokenClient.requestAccessToken({ prompt: '' });
+    } catch (e) {}
+};
+
+// Coming back to a tab that has been sitting open on the MacBook while you worked on the iPad is
+// the other half of "seamless" — without this the MacBook keeps showing yesterday's data until it
+// is reloaded. Throttled so app-switching on a phone does not fire a request every few seconds.
+window.DRIVE_REFOCUS_MIN_MS = 30000;
+window.__lastFocusSync = 0;
+window.syncOnRefocus = function() {
+    if (document.visibilityState !== 'visible' || !window.isDriveConnected) return;
+    const now = Date.now();
+    if (now - window.__lastFocusSync < window.DRIVE_REFOCUS_MIN_MS) return;
+    window.__lastFocusSync = now;
+    window.syncWithDrive?.();
+};
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { window.flushPendingDriveUpload?.(); return; }
+    window.syncOnRefocus();
+});
+window.addEventListener('focus', () => window.syncOnRefocus());
+// pagehide is the last event Android reliably fires before a tab is discarded, and unlike
+// visibilitychange it also covers a straight close. Both can fire for one departure; the flush
+// is idempotent (the first one clears the timer and marks 'syncing', the second returns early).
+window.addEventListener('pagehide', () => window.flushPendingDriveUpload?.());
+
+// === THE ACTUAL SYNC DECISION ===
+// Cloud stays the source of truth, but only where that is safe. The old behaviour pulled and
+// overwrote unconditionally the moment Drive connected, which is correct in three of the four
+// possible states and silently destroys work in the fourth. Reading both sides first costs one
+// cheap metadata request and turns that fourth case into a question instead of a loss.
+//
+//   local clean, cloud unchanged -> nothing to do
+//   local clean, cloud moved     -> pull. This is the device-to-device handoff, and it stays silent.
+//   local dirty, cloud unchanged -> push. The 2s upload timer that a closing tab killed.
+//   local dirty, cloud moved     -> genuinely divergent. Ask, and keep a way back.
+window.syncWithDrive = async function() {
+    if (!window.isDriveConnected || !window.gapi?.client?.drive) return;
+    if (window.driveSyncState === 'conflict') return; // already waiting on an answer
+    window.setDriveSyncState('syncing');
+    try {
+        let cloudModified = null;
+        if (!window.driveFileId) {
+            const res = await gapi.client.drive.files.list({ q: `name='${DRIVE_FILE_NAME}' and trashed=false`, spaces: 'drive', fields: 'files(id, modifiedTime)' });
+            if (res.result.files && res.result.files.length > 0) { window.driveFileId = res.result.files[0].id; cloudModified = res.result.files[0].modifiedTime; }
+        } else {
+            const meta = await gapi.client.drive.files.get({ fileId: window.driveFileId, fields: 'modifiedTime' });
+            cloudModified = meta.result && meta.result.modifiedTime;
+        }
+        // Nothing on Drive yet — first run on this account. Local is all there is, so it becomes the
+        // cloud copy rather than being wiped by an empty one.
+        if (!window.driveFileId) { await window.uploadToDriveRaw(window.db); return; }
+
+        const cloudMoved = !!cloudModified && cloudModified !== window.driveSyncMeta.lastKnownModifiedTime;
+        const localDirty = window.hasUnsyncedLocalEdits();
+
+        if (!cloudMoved && !localDirty) { window.setDriveSyncState('synced'); return; }
+        if (!cloudMoved && localDirty)  { await window.uploadToDriveRaw(window.db); return; }
+        if (cloudMoved && !localDirty)  { await window.findOrPullDriveFile(); return; }
+
+        window.pendingSyncDbData = window.db;
+        window.showConflictBanner();
+        window.setDriveSyncState('conflict');
+    } catch (err) { window.setDriveSyncState('error'); }
+};
 
 const DRIVE_AUDIO_FILE_NAME = 'FERRETT_OS_AUDIO_CLIPS.json';
 window.uploadAudioToDrive = async function() {
@@ -2457,7 +2635,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-chain-modal')?.addEventListener('click', () => document.getElementById('chain-modal')?.classList.replace('flex', 'hidden'));
     document.getElementById('drive-auth-btn')?.addEventListener('click', () => { if (!window.isDriveConnected && window.tokenClient) { window.tokenClient.requestAccessToken({prompt: 'consent'}); } else if (!window.tokenClient) { alert("Google Auth script is blocked or still loading. Check your AdBlocker."); } });
     document.getElementById('drive-sync-badge')?.addEventListener('click', () => {
-        if (window.driveSyncState === 'unsynced' || window.driveSyncState === 'error') { clearTimeout(window.dbTimeout); window.uploadToDrive(window.db); }
+        // Route through the full decision rather than straight to a push: tapping the badge after
+        // an edit on another device should be able to PULL, which the old upload-only path could not.
+        if (window.driveSyncState === 'unsynced' || window.driveSyncState === 'error' || window.driveSyncState === 'synced') { clearTimeout(window.dbTimeout); window.syncWithDrive(); }
         else if (window.driveSyncState === 'conflict') { document.getElementById('drive-conflict-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     });
     window.addEventListener('beforeunload', (e) => {
@@ -2704,6 +2884,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-8 border-l-2 border-[#00FF8840] pl-4 leading-relaxed font-mono">"${data.desc}"</p>
                 <button id="btn-toggle-chain-view" type="button" class="mb-4 text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF88FF40] text-[#FF88FF] hover:bg-[#FF88FF]/10 cursor-pointer">🔗 VISUALIZE CHAINS</button>
                 <div class="space-y-6">
+                    ${(() => {
+                        // Same linter the AI kits get. Imported packs and hand-typed recipes both land
+                        // here, and neither has ever been checked — a pack downloaded from anywhere is
+                        // exactly as likely to have invented a knob as a model is.
+                        if (!window.lintFreeText) return '';
+                        const bad = [...new Set([...window.lintFreeText(data.reaper), ...window.lintFreeText(data.notes)])];
+                        if (!bad.length) return '';
+                        const e = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        return `<div class="p-4 rounded border border-[#FF9E9E40] bg-[#FF9E9E]/[0.07]">
+                            <div class="text-[9px] tracking-widest font-bold text-[#FF9E9E] mb-2">🔬 ${bad.length} SETTING${bad.length===1?'':'S'} THAT CAN'T BE DIALLED IN</div>
+                            <div class="text-[10px] leading-snug text-[#FFD6D6]/85 font-sans space-y-1">${bad.map(b=>`<div>⚠ ${e(b)}</div>`).join('')}</div>
+                        </div>`;
+                    })()}
                     <div class="bg-[rgba(5,8,7,0.9)] p-5 rounded border border-[#00FF8830]"><h4 class="text-[#00FF88] text-[10px] font-bold tracking-widest uppercase mb-3 border-b border-[#00FF8814] pb-2 flex items-center gap-2"><span class="bg-[#00FF88] w-1.5 h-1.5 rounded-full"></span> SIGNAL CHAIN</h4><p class="chain-text-view text-[11px] md:text-[12px] text-[#E2E8F0]/90 leading-relaxed font-mono whitespace-pre-wrap">${data.reaper}</p><div class="chain-flow-view hidden">${window.renderChainFlow(data.reaper, '#00FF88')}</div></div>
                     <div class="bg-[rgba(10,15,13,0.9)] p-5 rounded border border-[#E2E8F010]"><h4 class="text-[#E2E8F0]/50 text-[10px] font-bold tracking-widest uppercase mb-3">WORKFLOW & ROUTING NOTES</h4><p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${data.notes}</p></div>
                     ${data.why ? `<div class="bg-[rgba(255,214,10,0.05)] p-5 rounded border border-[#FFD60A25]"><h4 class="text-[#FFD60A] text-[10px] font-bold tracking-widest uppercase mb-3">💡 Why it works</h4><p class="text-[11px] md:text-[12px] text-[#FFE9A6]/85 leading-relaxed font-mono whitespace-pre-wrap">${data.why}</p></div>` : ''}
@@ -3233,7 +3426,60 @@ document.addEventListener('DOMContentLoaded', () => {
         { match: /supermassive/i, name: 'Valhalla Supermassive',
           text: 'Mode is a list of NAMED algorithms (Gemini, Hydra, Centaurus, Sagittarius, Great Annihilator, Andromeda, Lyra, Capricorn, Cassiopeia…) — there is no "Hall", "Plate" or "Room" mode. Tail length comes from Delay (ms) plus Feedback, NOT a decay time in seconds. Also Warp, Density, Mix and Width.' },
         { match: /saturation.?knob/i, name: 'Softube Saturation Knob',
-          text: 'One knob, labelled Saturation, plus a three-way Keep High / Neutral / Keep Low switch. It has no Drive control and no mix.' }
+          text: 'One knob, labelled Saturation, plus a three-way Keep High / Neutral / Keep Low switch. It has no Drive control and no mix.' },
+        { match: /kotelnikov/i, name: 'TDR Kotelnikov',
+          text: 'Threshold, Ratio, Soft Knee, Peak Crest, Attack, Release Peak, Release RMS, Low Frequency Relax (25-500Hz with a 0/3/6/12 dB/Oct slope), Stereo Sensitivity (0-100% DIFF), Makeup, Dry Mix and Output Gain. Ratio is continuous but STOPS AT 7:1 — it is a mastering bus compressor, not a limiter, so never ask it for 10:1 or 20:1. There is no single Release knob: peak and RMS recovery are separate controls, so say which one you mean. Attack and the two releases ARE in real milliseconds, unlike the vintage emulations above.' },
+
+        // ---- Identified 2026-07-26 -------------------------------------------------------------
+        // Everything below was read off the installed plugins rather than looked up: the control
+        // names, ranges and every list of selector values came from the units' own published
+        // parameters (auval on the AU builds, bundle strings for the amp names). That matters most
+        // for the ones whose palette entry is a bare word — "Anthem", "Opal", "Siren" and "Verve"
+        // name nothing on their own, and four of the twelve turned out to be a different category
+        // of plugin than the name suggests. Vendors, for the record: Anthem, Hemisphere, Electra,
+        // Opal, Ravel, Verve/Vibe and Paradise are Universal Audio; VD-DEEP and FIN-MICRO are UJAM;
+        // Diablo Lite is Cymatics; Filterjam is AudioThing; Flow is Softube; Siren is Fadr.
+
+        { match: /\banthem\b/i, name: 'UA Anthem Analog Synthesizer',
+          text: 'Two oscillators, each with Octave, Coarse Tune, Fine Tune and a CONTINUOUS Shape knob that sweeps triangle -> saw -> pulse (to a very narrow PULSE99) — the waveform is a knob, not a set of buttons, so there is no "square wave" to select. Osc 1 adds Sub Level and a Sub Octave switch that is -1 or -2 only; Osc 2 adds Warp with a SYNC/RING mode switch. Noise is PINK or WHITE. One filter: Cutoff, Resonance, Env Amt, Drive, Growl, Key Follow, plus a separate HP Cutoff. Two ADSRs (Amp and Filter, each with a Velocity amount), one LFO (Rate, Sync, Tilt, Retrigger, Shape = TRIANGLE / SQUARE / STEPPED RAND / SMOOTH RAND). Voice Mode is PARA / MONO / UNISON — it is NOT a polysynth, so never write a chord pad part for it without saying paraphonic. 16-step sequencer with per-step semitone, octave, gate, velocity and on/off, Direction FORWARD / REVERSE / PING PONG 1 / PING PONG 2 / RANDOM. Effects are three fixed slots and nothing else: Chorus (MONO/STEREO), Mod FX (PHASER / FLANGE+ / FLANGE- / WARBLE) and Space FX (ECHO / SPRING / HALL) with an Amount and two generic params — there is no reverb decay time or delay time in ms.' },
+
+        { match: /\bopal\b/i, name: 'UA Opal Morphing Synthesizer',
+          text: 'The big one — three oscillators, each with Coarse/Fine Tune, Keytrack, Ensemble and a continuous Shape (sine -> saw -> PULSE99); Osc 1 has FM Amount, Osc 2 has AM Amount and Sync, Osc 3 has Sub Level and Sub Octave. Noise has a Color control. Each source has its own Volume and its own filter routing. TWO filters, each with Cutoff, Resonance, Env Amt, LFO2 Amt, Key Follow, Vel Amt, a morphing Mode (a continuous morph, not an LP/BP/HP switch) and a Slope that is continuous from 1 to 4 poles — so do NOT specify "24 dB/oct", give the pole count. Filter routing is SERIES or PARALLEL. One Insert FX inside the filter section: BYPASS / DISTORTION / OVERDRIVE / FOLD / SIGN / COMB+ / COMB-. Two Output FX slots chosen from one 29-entry list of NAMED algorithms (DLY FASTMOD, ALIENVERB, COMB-FLANGER, NOTCH-PHASER, OVERDRIVE, DISTORTION, EQ, ENSEMBLER M/ST, COMP76 BASIC/SLAM, HALL, AMBIENCE, CATHEDRAL, ROOM, DELAY M/ST/PING-PONG each with and without BPM sync, TAPE DLY in the same variants, SPRING SHORT/LONG), each with an Amount and three params, plus an Output FX Routing selector (SERIES-SERIES / SERIES-PARALLEL / PARALLEL-BACK / PARALLEL-SERIES / PARALLEL-PARALLEL). Modulation is three envelopes (Amp, Filter, Aux), two LFOs, two 32-step multi-segment envelopes, a 16-slot matrix with Source/Via/Dest, four Macros and a sample-and-hold. Polyphony is stepped: 12, 8, 6, 4 or MONO. Anthem is the two-oscillator analog one; Opal is the wavetable/morphing one — do not swap them.' },
+
+        { match: /\bravel\b/i, name: 'UA Ravel Grand Piano',
+          text: 'A Steinway B, and a deliberately short control set. Volume (-inf to +12 dB), Mics (0-100%, a single blend from close to room — there are NOT separate mic channels to balance), Tone (-10 to +10) and Dynamics (-10 to +10). Tone is one tilt control, not an EQ, so never give Ravel a frequency or a dB per band. The Reverse feature is Reverse Mix (0-100%) with a Rev Length stepped at 300, 500, 700, 900, 1100, 1300, 1500, 1800, 2000, 2500, 3000 or 3500 ms — no other length exists — plus a Res To Rev switch. Housekeeping controls: Tuning (410.0-470.0 Hz), Polyphony (Large / Medium / Eco), Highest Dynamic (OFF / LIMIT / FULL), Pedal Type, Pedal Sound Volume (FULL / MEDIUM / LOW / MIN / OFF), Key Noise Volume and Silent Note Velocity. There is no onboard EQ, compressor or reverb — anything like that is a separate plugin after it.' },
+
+        { match: /\belectra\b/i, name: 'UA Electra 88 Vintage Keyboard Studio',
+          text: 'A 1974 Rhodes Suitcase plus a whole studio, and almost every part of it is a named list rather than a free value. Amp Model is Direct / Suitcase / Rotary Speaker / Silver Double — four choices, not an amp collection. Suitcase gives Preamp Volume, Treble and Bass and a Vibrato with Speed and Intensity; Rotary gives Speed, Horn Angle, Drum Angle, Volume, Drive and separate horn and drum mic positions; Silver Double gives Volume, Treble, Middle, Bass, Reverb, Speed, Intensity, Bright and a Stock or JBF 120 speaker. Mic choices are CON 67 / DYN 57 / DYN 421 / RIB 121 (the rotary horn also offers CON 84 and RIB 4038), each with Axis, HP and Level. Three pedal slots, and they are not interchangeable: Pedal FX 1 is None / Fil-Tron / Wah ONLY, while Pedal FX 2 and 3 are None / Chorus / Compressor / Flanger / Phaser / Spring Verb / Tape Echo. The studio rack is five fixed processors: EQ (five fixed bands — Low, Low-Mid, Mid, High-Mid, High — gain only, with Low Cut and High Cut frequencies and a Post Comp switch, but NO per-band frequency and no Q), Comp (Compression amount, Style = Smooth / Punchy / Fast / Aggro, and Mix — there is no threshold, ratio, attack or release), Delay (Amount, Style = Digital / Tape (New) / Tape (Old), Time or Time Sync, Feedback, Low Pass, High Pass, To Reverb), Reverb (Amount, Type = Ambience / Cathedral / Hall / Plate / Room, Decay, Pre Delay, Bass, Treble) and Mod (Chorus / Flanger / Phaser / Wow + Flutter with Mix, Intensity and Rate). Playing feel comes from Tuning Condition (New / Vintage / Worn), Tuning Stretch, Dynamics (50-200%) and Velocity Shape / S-Curve / Sensitivity (each -50 to +50%).' },
+
+        { match: /\bhemisphere\b/i, name: 'UA Hemisphere Mic Collection',
+          text: 'Mic MODELLING, not a general tone shaper — it re-voices a signal recorded through a UA Standard-series mic, so Source Mic (NONE / SC-1 / SP-1 / SD-1 / SD-3 / SD-5 / SD-7) has to name the mic actually used or the model is being applied to the wrong starting point. Mic Type is the model, and there are eight: LD-47K, LD-67 NOS, LD-87 Vintage, LD-103, LD-12, LD-251, LD-414 US and LD-800. They are all large-diaphragm — there is no ribbon and no small-diaphragm model in the list. Mic Filter is Off / Low / Med / High: a stepped position per model, NOT a frequency, so never give it a Hz value. The rest is Proximity (a percentage), Mic Axis Shift (in degrees), Output and a Phase Normal/Invert. There is no polar pattern control, no pad and no EQ.' },
+
+        // Same plugin, two names — see the ownedPlugins note. The regex has to catch both because
+        // old recipes say Verve and the DAW now says Vibe.
+        { match: /\bverve\b|\bvibe analog\b/i, name: 'UA Vibe Analog Machines (formerly Verve)',
+          text: 'Renamed from Verve to Vibe by UA in April 2026 — same plugin, and it will show in the DAW as Vibe. Pick one of TEN machines: THICKEN, VINTAGIZE, OVERDRIVE, EDGE, SPUTTER, GLOW, DISTORT, SWEETEN, WARM or FIRE. Those are the only machines; there is no "tape" or "saturation" mode by name. Each machine then has exactly TWO knobs (0-100), whose labels change with the machine — drive and either tone or warble depending on which one is loaded — plus an Output Trim of ±12 dB and a Power switch. That is the whole plugin: no mix or blend control, no EQ, no tape speed, no frequency of any kind. Specify it as a machine name and two knob amounts.' },
+
+        { match: /paradise/i, name: 'UA Paradise Guitar Studio',
+          text: 'A whole guitar rig in one plugin, and it IS a tone source — an amp sim with stompboxes, not an effect to put after one. Six amps: Dream \'65, Ruby \'63, Lion \'68, Woodrow \'55, Showtime \'64 and Enigmatic \'82 (some have more than one channel, which is where the "11 amps" count comes from). Signal flow is five PreFX slots -> amp -> Cab and Mic -> five PostFX slots. Cab and Mic is ONE stepped selector of 35 entries — Direct plus 34 named cab-and-mic pairings such as 1x12 GB25, 2x12 Boutique D65, 4x12 UK V30, 4x10 Tweed B-Man and 2x12 Twin Vintage — you choose a pairing, never a cab and a mic separately, and there is no mic distance or angle control (Room, 0-100%, is the only ambience). Stompboxes include TS OD, Gold OD, Nashville OD, RAW Distortion, Big Fuzz, Vintage Fuzz, Brigade Chorus, Multi-Chorus, Orange Phaser, Blue Flanger, Vintage Vibrato, Trem 65, Micropitch and a Compressor. Utility controls are Input Trim (±24 dB), Amp Output and PreFX Output (±14 dB each), a Gate whose Threshold, Attack, Release, Hold and Attenuation are all 0-100 scales and NOT milliseconds, a Limiter and a Tuner (Reference A 430-450 Hz). Amp and pedal knobs are not individually named to automation, so name the amp, the channel and the pedal and give knob positions rather than dB or ms.' },
+
+        { match: /vd-?deep|virtual drummer/i, name: 'UJAM Virtual Drummer DEEP',
+          text: 'A drummer, not a drum machine, and it runs in one of two modes: Player mode, where MIDI keys trigger whole phrases and fills, or Instrument mode, where keys are individual drums. You pick a Style from a list of 30, a kit and a Mix preset — the Mix preset swaps an entire effect chain per channel, so it is a name to quote, not a set of values. Grit is the signature control and it is NOT a distortion or drive: it crossfades between modern close-miking and a vintage room technique. Swing delays the offbeats (8ths or 16ths depending on the style) up to a full triplet feel. The mixer is per-kit-piece volumes plus overheads, room and a reverb amount. There is no threshold, ratio, attack, release, tuning or ms value anywhere in it — specify a Style name, a Grit and Swing amount and a Mix preset.' },
+
+        { match: /fin-?micro|finisher/i, name: 'UJAM Finisher MICRO',
+          text: 'Deliberately a two-control plugin: a Mode selector holding 20-plus named multi-effect algorithms (chorus, multiband distortion, convolution, grain pitch, multimode filters, multitap delays and so on, each a designed combination rather than a single effect) and one big Amount knob wired to many parameters at once inside whichever mode is loaded. It exposes NO individual effect parameters — there is no delay time, no filter frequency, no reverb decay, no feedback to set. Specify a Mode name and how far up the Amount knob goes, and nothing else.' },
+
+        { match: /diablo/i, name: 'Cymatics Diablo Lite',
+          text: 'A drum transient shaper and clipper — despite the name it is not an amp or a distortion pedal. Two stages in series, each with its own bypass: Punch (0-100, transient shaping) then Clip (0-100) with a Soft/Hard mode switch. Around them: Input and Output, each -20 to +20 dB, a Mix (0-100%, defaults to 100) and a Power switch. Punch and Clip are 0-100 AMOUNTS, not dB. There is no threshold, no ratio, no attack and no release anywhere in this plugin, and no drive or saturation control — those two amounts are the whole thing.' },
+
+        { match: /filterjam/i, name: 'AudioThing Filterjam',
+          text: 'Splits the input into four resonant bands which are then summed or multiplied according to a Mode selector. The controls are Frequency, Emphasis (its name for resonance — it is not called Q or Resonance), the Mode selector, and gain and mix. The four bands are NOT individually addressable: there is no per-band frequency, no per-band level, no Q, no filter slope and no envelope or LFO. Describe it as a frequency position, an emphasis amount and a mode.' },
+
+        { match: /\bsiren\b/i, name: 'Fadr Siren',
+          text: 'An AI instrument, not a synth: you type a text prompt describing a sound and it generates playable instruments from it. There is no oscillator, wavetable, sample or preset bank to specify — a "patch" for Siren is a PROMPT. What it does expose after the fact is an amplitude ADSR and a filter with four types (low-pass, high-pass, band-pass, notch) at 12 or 24 dB/oct. Two practical constraints: it needs a Fadr subscription and it generates in the cloud, so it is not an offline instrument and not the thing to lean on for a whole part. Specify it as a prompt plus any ADSR or filter move.' },
+
+        { match: /flow mixing/i, name: 'Softube Flow Mixing Suite',
+          text: 'A HOST, not a processor. It loads "Flows" — prebuilt Softube plugin chains organised by task (Drums, Vocals, Guitars, Keys, Creative, MixBus, Sends) — and the individual Softube plugins inside a Flow are unlocked by subscription credits rather than owned outright. So naming Flow alone says nothing about what is actually processing the signal, and naming a Softube module inside it is only safe if that module is genuinely available. The Softube plugins installed separately on this rig are Amplifiers, Drawmer S73, Marshall Plexi Classic, Saturation Knob, TSAR-1R Reverb and Tube Delay — treat anything outside that set as unavailable unless told otherwise, and name the module you mean rather than saying "a Flow chain".' }
     ];
 
     // ==================== SETTINGS LINTER ====================
@@ -3277,9 +3523,56 @@ document.addEventListener('DOMContentLoaded', () => {
         'Valhalla Supermassive': { noControls: [
             [/\b(hall|plate|room)\b/i, "Supermassive's modes are named (Gemini, Hydra, Cirrus…) — there is no Hall, Plate or Room"],
             [/decay[^.;,]*?\d/i, 'Supermassive has Delay plus Feedback, not a decay time'] ] },
-        'Softube Saturation Knob': { noControls: [[/\bdrive\b/i, 'the control is called Saturation, not Drive']] }
+        'Softube Saturation Knob': { noControls: [[/\bdrive\b/i, 'the control is called Saturation, not Drive']] },
+        // Ratio is the only hard bound on this one worth checking. Its two releases are a real trap
+        // ("Release 200ms" names neither), but "release" alone is ordinary shorthand a producer would
+        // write themselves, so flagging it would be the false alarm the rest of this file avoids.
+        'TDR Kotelnikov': { ratio: [1.1, 7] },
+
+        // Rules for the units documented on 2026-07-26. Same restraint as everything above: each one
+        // fires only on a control the plugin provably does not have. The four worth having are the
+        // ones where the plugin's category invites the wrong vocabulary — a transient shaper that
+        // sounds like a compressor, a mic model that sounds like an EQ, a gate whose knobs look like
+        // they should be in ms, and two synths that are easy to mistake for each other.
+        'Cymatics Diablo Lite': { noControls: [
+            [/\b(threshold|ratio|attack|release)\b/i, 'Diablo Lite has no threshold, ratio, attack or release — Punch and Clip are 0-100 amounts'] ] },
+        'UA Hemisphere Mic Collection': { noControls: [
+            [/\d+\s*k?\s*hz/i, "Hemisphere's Mic Filter is Off / Low / Med / High — it has no frequency control"],
+            [/\b(polar|cardioid|omni|omnidirectional|figure.?8)\b/i, 'Hemisphere has no polar pattern control — Mic Type, Mic Filter, Axis Shift and Proximity are the controls'] ] },
+        'UA Vibe Analog Machines (formerly Verve)': { noControls: [
+            [/\d+\s*k?\s*hz/i, 'Vibe/Verve has no frequency control of any kind — a machine name and two 0-100 knobs is the whole plugin'],
+            [new RegExp(MS, 'i'), 'Vibe/Verve has no time control — nothing in it is set in milliseconds'] ] },
+        'UA Paradise Guitar Studio': { noControls: [
+            [new RegExp('(attack|release|hold)' + MS, 'i'), "Paradise's gate is set on 0-100 scales, not in milliseconds"],
+            [/\bmic (distance|position|angle)\b/i, 'Paradise picks the cab and mic as one stepped pairing — there is no separate mic distance or angle'] ] },
+        'AudioThing Filterjam': { noControls: [
+            [/\bQ\b/, 'Filterjam calls its resonance Emphasis — there is no Q'],
+            [/\bband\s*[1-4]\b/i, "Filterjam's four bands are not individually addressable — Frequency, Emphasis and Mode are the controls"] ] },
+        'UJAM Finisher MICRO': { noControls: [
+            [new RegExp(MS, 'i'), 'Finisher MICRO exposes no individual effect parameters — only a Mode and the Amount knob'],
+            [/\bcutoff\b/i, 'Finisher MICRO has no cutoff control — the Amount knob moves whatever the Mode contains'] ] },
+        'UJAM Virtual Drummer DEEP': { noControls: [
+            [/\b(threshold|ratio)\b/i, 'Virtual Drummer DEEP has no threshold or ratio — the Mix preset is a named chain, not a set of values'] ] },
+        'UA Electra 88 Vintage Keyboard Studio': { noControls: [
+            [/\b(threshold|ratio)\b/i, "Electra 88's Studio Comp has only Compression, a Style (Smooth/Punchy/Fast/Aggro) and Mix"],
+            [/\bQ\b/, "Electra 88's Studio EQ is five fixed bands with gain only — no frequency and no Q"] ] },
+        'UA Anthem Analog Synthesizer': { noControls: [
+            [/\bwavetable\b/i, 'Anthem is the two-oscillator analog model — Opal is the wavetable/morphing synth'] ] }
     };
     window.PLUGIN_CONTROLS.forEach(e => { if (PLUGIN_LINT[e.name]) e.lint = PLUGIN_LINT[e.name]; });
+
+    // Models type like a word processor, not like a plugin list: "SSL G‑Bus Compressor" comes back
+    // with U+2011 where the palette has a plain ASCII hyphen, and the two never compare equal. That
+    // one character was enough to report a plugin sitting in the palette as invented gear — the
+    // false alarm this whole file is built to avoid. Fold the typographic characters back to ASCII
+    // before any name comparison or rule match. NFKC first so ligatures and full-width forms go too.
+    window.normPluginName = (s) => String(s == null ? '' : s)
+        .normalize('NFKC')
+        .replace(/[\u2010-\u2015\u2212]/g, '-')
+        .replace(/[\u2018\u2019\u02BC]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"')
+        .replace(/\s+/g, ' ')
+        .trim();
 
     const HZ_RE = /(\d+(?:\.\d+)?)\s*(k)?\s*hz/gi;
     function parseHz(s){
@@ -3288,9 +3581,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return out;
     }
     const fmtHz = hz => hz >= 1000 ? `${hz/1000}kHz` : `${hz}Hz`;
+    const RATIO_RE = /(\d+(?:\.\d+)?)\s*:\s*1\b/g;
+    function parseRatios(s){
+        const out = []; let m; RATIO_RE.lastIndex = 0;
+        while ((m = RATIO_RE.exec(s))) out.push(parseFloat(m[1]));
+        return out;
+    }
 
     window.lintChainStep = (step) => {
-        const s = String(step || ''); if (!s.trim()) return [];
+        // Normalized before matching for the same reason as the name comparison: "Teletronix LA‑2A"
+        // with a non-breaking hyphen does not match /LA-?2A/, so the unit would be silently skipped
+        // rather than checked — a miss that looks identical to a pass on the scorecard.
+        const s = window.normPluginName(step); if (!s.trim()) return [];
         const out = [];
         // Split on arrows AND sentence breaks first: a line like "Neve 1073 (80Hz) -> ReaEQ (HPF
         // 200Hz)" would otherwise blame the 1073 for ReaEQ's 200Hz, which isn't on its selector.
@@ -3310,11 +3612,71 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (e.lint.freqs && !aside) parseHz(part).forEach(hz => {
                     if (!e.lint.freqs.includes(hz)) out.push(`${fmtHz(hz)} isn't on the ${e.name}'s frequency selector`);
                 });
+                // A continuous ratio knob that simply stops. Unlike `freqs` this is a range, not a
+                // list, so an arbitrary 3.7:1 passes and only genuinely out-of-reach figures flag.
+                if (e.lint.ratio && !aside) parseRatios(part).forEach(r => {
+                    const [lo, hi] = e.lint.ratio;
+                    if (r > hi || r < lo) out.push(`the ${e.name}'s ratio only goes from ${lo}:1 to ${hi}:1 — ${r}:1 is off the knob`);
+                });
             });
         });
         return [...new Set(out)];
     };
     window.lintRecipe = (r) => (Array.isArray(r && r.chain) ? r.chain : []).reduce((n, s) => n + window.lintChainStep(s).length, 0);
+
+    // ==================== ONE TONE SOURCE PER PATH ====================
+    // An amp sim and a NAM capture are two SEPARATE ways of getting a recorded electric instrument's
+    // sound, not two stages of one chain. Stacking them is two amps in series — nobody's target tone,
+    // and unlike a wrong knob value it is invisible per-step: each plugin is real, owned, and sensibly
+    // set. It only reads as wrong when you look at the whole chain, so it needs its own pass.
+    //
+    // Deliberately narrow, same as the step linter. A cab IR (NadIR) and a room (Ocean Way) are the
+    // legitimate stages that FOLLOW either route, so they are not tone sources and never flag.
+    // The space stages that may legitimately follow a tone source. Kept as DATA rather than baked into
+    // the prompt prose, because this is the list most likely to be wrong or incomplete — add an entry
+    // here and the kit prompt picks it up automatically. Nothing here is named to the model unless it
+    // is actually in the palette for that kit, so an entry for gear that isn't owned costs nothing.
+    window.SPACE_PLUGINS = [
+        { name: 'Ocean Way Studios Deluxe', kind: 'a tracking ROOM with real mic placement' },
+        { name: 'Hitsville Chambers',       kind: 'the Motown ECHO CHAMBER — a send-style space, not a room capture' }
+    ];
+
+    // Gateway is the NAM route on this rig — it hosts the capture AND its own impulse responses, so a
+    // separate IR loader after it is redundancy rather than a stage. That makes NadIR+Gateway its own
+    // distinct mistake, separate from the two-amps one.
+    window.TONE_SOURCES = [
+        { cls: 'NAM',      name: 'Gateway/NAM', re: /\b(gateway|neural\s*amp\s*model\w*)\b/i, altRe: /\bNAM\b/ },
+        { cls: 'amp',      name: 'an amp sim',  re: /\b(ampeg|svt-?vr|dream amp|ruby amp|woodrow amp|lion amp|marshall plexi|emissary|bx_rockrack|paradise guitar)\b/i }
+    ];
+    const IR_LOADER_RE = /\bnadir\b/i;
+    window.lintChainStack = (chain) => {
+        const steps = (Array.isArray(chain) ? chain : []).map(s => ({ raw: s, n: window.normPluginName(s) }));
+        const head = (s) => String(s).split(/\s+[—–]\s+|\s+-\s+|:\s/)[0].trim();
+        const found = new Map();
+        steps.forEach(({ raw, n }) => window.TONE_SOURCES.forEach(t => {
+            if ((t.re.test(n) || (t.altRe && t.altRe.test(n))) && !found.has(t.cls)) found.set(t.cls, head(raw));
+        }));
+        const out = [];
+        if (found.size >= 2) {
+            out.push(`${[...found.values()].join(' and ')} are in the same chain — an amp sim and a NAM capture are two different ways to get the sound, not two stages. Pick one route, or split them into two recipes.`);
+        }
+        if (found.has('NAM')) {
+            const ir = steps.find(({ n }) => IR_LOADER_RE.test(n));
+            if (ir) out.push(`${head(ir.raw)} after ${found.get('NAM')} is redundant — Gateway loads its own impulse responses, so a separate IR plugin is never needed on a NAM chain.`);
+        }
+        return out;
+    };
+
+    // Cookbook recipes are free prose in two fields rather than an array of steps, and both of them
+    // carry settings — the imported packs put "Studer A800 (7.5 ips)" in the chain and "gate with a
+    // 0ms release" in the notes, and until now neither was looked at. Feed it a line at a time so a
+    // paragraph break acts as a divider the way an arrow does; without that, one plugin gets blamed
+    // for a figure that belongs to another three lines down.
+    window.lintFreeText = (txt) => {
+        const out = [];
+        String(txt || '').split(/\n+/).forEach(line => out.push(...window.lintChainStep(line)));
+        return [...new Set(out)];
+    };
 
     // ==================== IS IT REAL, OR JUST CONFIDENT? ====================
     // Scores a whole kit for whether its settings could actually be dialled in. Three independent
@@ -3352,17 +3714,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // With no palette recorded (older kits, or a build that fell back to the whole owned list) the
         // owned list is the honest reference — flagging everything as invented would be a lie.
         const known = palette.length ? palette : owned;
-        const out = { recipes: 0, steps: 0, checked: 0, impossible: 0, offPalette: 0, empty: 0,
-                      specific: 0, offPaletteNames: [], impossibleNotes: [] };
+        const out = { recipes: 0, steps: 0, checked: 0, checkedSpecific: 0, impossible: 0, offPalette: 0,
+                      empty: 0, specific: 0, stacked: 0, offPaletteNames: [], impossibleNotes: [], stackedNotes: [] };
         (kit && kit.instruments || []).forEach(inst => (inst.recipes || []).forEach(r => {
             out.recipes++;
+            const stackNotes = window.lintChainStack(r.chain);
+            if (stackNotes.length) { out.stacked += stackNotes.length; out.stackedNotes.push(...stackNotes); }
             (Array.isArray(r.chain) ? r.chain : []).forEach(step => {
                 out.steps++;
                 const notes = window.lintChainStep(step);
                 if (notes.length) { out.impossible += notes.length; out.impossibleNotes.push(...notes); }
                 // "Checked" means a unit we hold documented controls for actually appeared in this
                 // step — the only steps where a clean result is evidence rather than absence of it.
-                if (window.PLUGIN_CONTROLS.some(e => e.lint && e.match.test(step))) out.checked++;
+                // But naming the unit is not the same as committing to a setting on it: "Neve 1073 —
+                // just the preamp colour" is checked, clean, and says nothing a linter could have
+                // caught. So track the subset that actually put a number next to the documented unit.
+                // checkedSpecific/checked is the one ratio a model can't improve by staying vague.
+                const nstep = window.normPluginName(step);
+                if (window.PLUGIN_CONTROLS.some(e => e.lint && e.match.test(nstep))) {
+                    out.checked++;
+                    if (/\d/.test(stepSettings(step))) out.checkedSpecific++;
+                }
                 const name = stepPlugin(step);
                 if (name && !REAPER_STOCK_RE.test(name) && !snapToOwned(name, known)) {
                     out.offPalette++;
@@ -3374,6 +3746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }));
         out.impossibleNotes = [...new Set(out.impossibleNotes)];
+        out.stackedNotes = [...new Set(out.stackedNotes)];
         return out;
     };
 
@@ -3532,7 +3905,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // `controls` is computed once per kit from the selected palette (see selectPalette) rather than
     // per call from the whole owned list, so what ships here is only the gear actually in play.
-    function kitSysPrompt(slots, controls){
+    function kitSysPrompt(slots, controls, gear){
+        // Only name the spaces this kit's palette actually contains. Listing one the model can't use
+        // would contradict the palette-only rule two lines above it.
+        const have = (window.SPACE_PLUGINS || []).filter(sp =>
+            (gear || []).some(g => window.normPluginName(g).toLowerCase() === window.normPluginName(sp.name).toLowerCase()));
+        const spaceRule = have.length
+            ? `- What may legitimately follow a tone source is a SPACE, not another amp and not another cabinet. ${have.length === 1 ? 'You have one:' : `You have ${have.length}, and they are different things:`} ${have.map(sp => `${sp.name} is ${sp.kind}`).join(', and ')}. Pick whichever the sound actually calls for instead of reaching for the same one every time.`
+            : `- What may legitimately follow a tone source is a SPACE, not another amp and not another cabinet — and only if the palette actually contains one.`;
         return `You are a veteran hip-hop producer and mix engineer with deep, specific knowledge of how each sub-genre gets its sound — the actual processing moves, not generic advice.
 
 You will be given a genre with its tempo/mood/texture, and the COMPLETE list of plugins the producer owns. These are CANDIDATE instrument roles, not a required checklist: ${slots.join(', ')}.
@@ -3542,6 +3922,9 @@ HARD RULES:
 - It's completely normal, and expected for narrower genres, to return fewer entries than candidates given — even zero, if none of these specific candidates genuinely apply.
 - For roles you DO include: use ONLY plugins from the palette you are given, plus Reaper's own stock effects (${REAPER_STOCK}). Never invent or suggest anything else. Match the names exactly as given.
 - SETTINGS MUST BE REAL. Only name a control the plugin genuinely has, and only a value that control can genuinely reach. Many of these are emulations of hardware, so the control set is the hardware's: often only two knobs, and often a stepped selector that stops at a fixed list of frequencies instead of sweeping. A setting that reads plausibly but doesn't exist on the knob is WORSE than no setting — the producer only finds out once they're sat in front of the plugin trying to dial it in.
+- ONE TONE SOURCE PER SIGNAL PATH. A real recorded electric instrument (bass, guitar) gets its sound ONE of three ways, and they are alternatives, not stages of a chain: (a) clean DI straight into the FX chain, (b) an amp-sim plugin, or (c) a NAM capture loaded in Gateway. NEVER put an amp sim and Gateway/NAM in the same chain — that is two amps in series, which is not a sound anyone is going for. Pick one route per recipe. If both routes genuinely suit the instrument, make them two SEPARATE recipes and say which route each one is.
+- Gateway is the NAM route, and it loads its own impulse responses internally. NEVER follow Gateway with NadIR or any other IR loader — the cabinet is already handled inside Gateway, so a separate IR plugin is pure redundancy. NadIR is only for a chain that has no Gateway in it.
+${spaceRule}
 - If you are not certain of a plugin's exact control name or its range, DESCRIBE THE MOVE using what that plugin actually exposes rather than inventing a figure: "Pultec MEQ-5 — dip the low-mid band, dial around 6" beats a made-up "cut 3dB at 420Hz". Prefer the nearest real stepped value over an arbitrary one. Never write a bare "to taste" — always say which knob and which direction.
 - Where you ARE certain (ReaEQ, ReaComp, TDR Nova, Kilohearts, Vital and other plain digital tools with continuous parameters), stay fully specific: exact Hz, dB, ms, ratios.
 - Order the chain the way it should sit in the insert slots, first to last.
@@ -3626,14 +4009,18 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
     // with a length floor so a 2-character entry can't swallow everything. Anything that still doesn't
     // resolve was invented, and gets dropped rather than quietly passed through to the next phase.
     function snapToOwned(name, owned){
-        const n = String(name || '').trim(); if (n.length < 2) return null;
+        const norm = window.normPluginName || (s => String(s || '').trim());
+        const n = norm(name); if (n.length < 2) return null;
         const low = n.toLowerCase();
-        const exact = owned.find(o => o === n) || owned.find(o => o.toLowerCase() === low);
-        if (exact) return exact;
+        // Compare on the normalized form, but always hand back the owned list's own spelling — that
+        // string is what gets shown and re-sent to the model, so it has to stay exactly as recorded.
+        const pairs = owned.map(o => ({ o, n: norm(o) }));
+        const exact = pairs.find(p => p.n === n) || pairs.find(p => p.n.toLowerCase() === low);
+        if (exact) return exact.o;
         if (low.length < 4) return null;
-        return owned.find(o => o.length >= 4 && o.toLowerCase().includes(low))
-            || owned.find(o => o.length >= 4 && low.includes(o.toLowerCase()))
-            || null;
+        const hit = pairs.find(p => p.n.length >= 4 && p.n.toLowerCase().includes(low))
+                 || pairs.find(p => p.n.length >= 4 && low.includes(p.n.toLowerCase()));
+        return hit ? hit.o : null;
     }
 
     async function selectPalette(genre, meta, owned){
@@ -3787,7 +4174,7 @@ ${gear.join(', ')}`;
                 const what = `${label}: ${slots.join(', ')}`;
                 kitProgress(genre, have.size, what, startedAt);
                 try {
-                    const raw = await callWithRetry(kitSysPrompt(slots, controls), ctx, {
+                    const raw = await callWithRetry(kitSysPrompt(slots, controls, gear), ctx, {
                         creative: true, json: true,
                         // Multi-slot gets one blip retry, then the splitter shrinks it. Single slots get
                         // none — the round loop below already retries them, with far better spacing than
@@ -3925,6 +4312,7 @@ ${gear.join(', ')}`;
                 <div class="text-[#00FF88] font-bold mb-1">${roles} / ${window.KIT_SLOTS.length} roles</div>
                 <div>${r.kit.buildSecs}s · ${s.recipes} recipes · ${s.steps} steps</div>
                 <div class="mt-1">verifiable: <b>${s.checked}</b></div>
+                <div>committed: <b>${s.checkedSpecific}</b>${s.checked?` <span class="opacity-50">(${Math.round(s.checkedSpecific/s.checked*100)}%)</span>`:''}</div>
                 <div class="${s.impossible?'text-[#FF9E9E]':''}">impossible: <b>${s.impossible}</b></div>
                 <div class="${s.offPalette?'text-[#FF9E9E]':''}">not your gear: <b>${s.offPalette}</b></div>
                 <div class="${s.empty?'text-[#FF9E9E]':''}">no setting: <b>${s.empty}</b></div>
@@ -3942,6 +4330,7 @@ ${gear.join(', ')}`;
             </table></div>
             <div class="text-[9px] text-[#E2E8F0]/45 leading-relaxed mt-4 p-3 rounded border border-white/10">
                 <b>impossible</b> = a control that unit doesn't have, or a value off its stepped range — measured only over the <b>verifiable</b> steps, so read those two together.
+                <b>committed</b> = of those verifiable steps, how many put a real figure on the documented unit instead of hedging. The percentage is the honest comparison between models: raising <b>verifiable</b> is easy, raising <b>committed</b> without raising <b>impossible</b> is the hard part.
                 <b>not your gear</b> = a plugin named that isn't in the palette it was given and isn't Reaper stock, i.e. invented.
                 <b>no setting</b> = a plugin named with nothing to actually do to it.
                 All ${rows.length} kits were saved — browse them with the arrows and keep whichever won.
@@ -4056,6 +4445,7 @@ ${gear.join(', ')}`;
                             <span class="text-[#FF88FF]/40 shrink-0 tabular-nums">${si+1}.</span>
                             <span>${esc(step)}${bad.length?`<span class="block mt-1 text-[10px] not-italic text-[#FF9E9E]/90 font-sans leading-snug">${bad.map(b=>`⚠ ${esc(b)}`).join('<br>')}</span>`:''}</span>
                         </li>`;}).join('')}</ol>
+                    ${(()=>{const st=window.lintChainStack(r.chain); return st.length?`<div class="text-[10px] text-[#FF9E9E]/90 leading-snug border-l-2 border-[#FF9E9E60] pl-2.5 mb-2">${st.map(n=>`⚠ ${esc(n)}`).join('<br>')}</div>`:'';})()}
                     ${r.why?`<div class="text-[10px] text-[#FFE9A6]/70 italic leading-relaxed border-l-2 border-[#FFD60A40] pl-2.5">${esc(r.why)}</div>`:''}
                 </div>`;
             }).join('');
@@ -4068,6 +4458,7 @@ ${gear.join(', ')}`;
                     <div class="flex gap-2 flex-wrap">
                         <button id="btn-kit-md" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer">📄 .MD</button>
                         <button id="btn-kit-del" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer" title="Delete this whole saved kit — every instrument in it">🗑 DELETE KIT</button>
+                        ${hist.length > 1 ? `<button id="btn-kit-nuke" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A] text-[#FF5A5A] bg-[#FF5A5A]/10 hover:bg-[#FF5A5A]/25 cursor-pointer" title="Delete every saved kit for this genre — all ${hist.length} of them">☢ NUKE ALL ${hist.length}</button>` : ''}
                     </div>
                 </div>
                 <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)} · ${insts.length} INSTRUMENT${insts.length===1?'':'S'} USED IN THIS GENRE${attachedSongs.length?` · 🔗 ${attachedSongs.map(s=>esc(s.title||'Untitled')).join(', ')}`:''}</div>
@@ -4080,7 +4471,7 @@ ${gear.join(', ')}`;
                 // next to the count is what keeps a quiet model from reading as a careful one.
                 const s = window.scoreKit(kit);
                 if (!s.steps) return '';
-                const bad = s.impossible + s.offPalette;
+                const bad = s.impossible + s.offPalette + s.stacked;
                 const tone = bad ? ['#FF9E9E40','#FF9E9E','#FFD6D6'] : ['#00FF8830','#00FF88','#A7DCC3'];
                 const cell = (v, lab, warn) => `<div class="text-center px-2">
                     <div class="text-[15px] font-black ${warn&&v?'text-[#FF9E9E]':'text-[#E2E8F0]/80'}">${v}</div>
@@ -4088,13 +4479,15 @@ ${gear.join(', ')}`;
                 return `<div class="mb-5 p-3 rounded border" style="border-color:${tone[0]};background:${tone[1]}12">
                     <div class="text-[9px] tracking-widest font-bold mb-2.5" style="color:${tone[1]}">🔬 SETTINGS CHECK · ${bad?'FOUND PROBLEMS':'NOTHING IMPOSSIBLE FOUND'}</div>
                     <div class="flex flex-wrap justify-center gap-x-1 gap-y-2 mb-2">
-                        ${cell(s.steps,'chain steps')}${cell(s.checked,'verifiable')}${cell(s.impossible,'impossible',1)}${cell(s.offPalette,'not your gear',1)}${cell(s.empty,'no setting',1)}${cell(s.specific,'with numbers')}
+                        ${cell(s.steps,'chain steps')}${cell(s.checked,'verifiable')}${cell(s.checkedSpecific,'committed')}${cell(s.impossible,'impossible',1)}${cell(s.offPalette,'not your gear',1)}${cell(s.empty,'no setting',1)}${cell(s.stacked,'two amps',1)}${cell(s.specific,'with numbers')}
                     </div>
                     <div class="text-[9px] leading-relaxed" style="color:${tone[2]}bb">
                         <b>${s.checked}</b> of ${s.steps} steps named a unit with documented controls, so only those could be checked — a low <b>impossible</b> count over a low <b>verifiable</b> count is not evidence of care.
+                        <br><b>Committed</b> is the number that can't be gamed: <b>${s.checkedSpecific}</b> of those ${s.checked} put an actual figure on the documented unit${s.checked?` (${Math.round(s.checkedSpecific/s.checked*100)}%)`:''}. Naming an LA-2A and saying "to taste, gentle" passes every check without risking anything.
                         ${s.impossible?`<br>Impossible settings are marked in red below.`:''}
                         ${s.offPalette?`<br><b>Not your gear:</b> ${esc(s.offPaletteNames.slice(0,6).join(', '))}${s.offPaletteNames.length>6?` +${s.offPaletteNames.length-6} more`:''} — invented outright, or named too loosely to match anything you own.`:''}
                         ${s.empty?`<br><b>${s.empty}</b> step${s.empty===1?'':'s'} name a plugin without saying what to do with it.`:''}
+                        ${s.stacked?`<br><b>Two amps:</b> ${s.stackedNotes.map(esc).join('<br>')}`:''}
                     </div>
                 </div>`;
             })()}
@@ -4153,6 +4546,27 @@ ${gear.join(', ')}`;
             window.saveData();
             if (h.length) window.renderGenreKit(genre, { kitId: 'new' });
             else window.selectGenre(genre); // nothing left to browse — don't auto-trigger a fresh (paid) generation
+        });
+
+        // The nuclear option: every kit ever generated for this genre, gone in one go. Kits cost real
+        // tokens and real minutes to rebuild and there is no undo, so unlike every other delete in
+        // here this one is NOT a plain confirm() — a mis-aimed click on a button sitting next to the
+        // single-kit delete would wipe an afternoon's work. Typing the genre name is deliberately
+        // tedious: it makes you read which genre you're actually pointed at before anything happens.
+        document.getElementById('btn-kit-nuke')?.addEventListener('click', () => {
+            const all = kitHistory(genre);
+            const hit = all.filter(k => songsForKit(k.id).length);
+            const songs = [...new Set(hit.flatMap(k => songsForKit(k.id).map(s => s.title || 'Untitled')))];
+            const warn = songs.length ? `\n\n${songs.length} song${songs.length===1?'':'s'} will lose their attached kit: ${songs.join(', ')}. Nothing else about those songs changes.` : '';
+            const typed = prompt(`☢ DELETE ALL ${all.length} SAVED KITS for "${genre}"?\n\nThis wipes every kit you have ever generated for this genre, including the ones you are not currently looking at. It cannot be undone and rebuilding them costs tokens.${warn}\n\nType the genre name exactly to confirm:`);
+            if (typed == null) return; // cancelled — say nothing
+            if (window.normPluginName(typed).toLowerCase() !== window.normPluginName(genre).toLowerCase()) {
+                alert('That did not match the genre name — nothing was deleted.');
+                return;
+            }
+            delete window.db.genreKits[genre];
+            window.saveData();
+            window.selectGenre(genre);
         });
 
         // Deleting a whole instrument — the level between "the entire kit" and "one recipe at a time".
@@ -4247,25 +4661,133 @@ ${gear.join(', ')}`;
         return byCategory;
     };
 
+    // ==================== LYRIA PROMPT ====================
+    // The roles a prompt can fill, each mapped to the cookbook categories that feed it and the words
+    // that mean "I am handling this one myself". ORDER IS THE CLASSIFIER: the first role whose regex
+    // hits a clause wins it, so the specific ones come before the general. `bass` sits above `synths`
+    // and `drums` on purpose — "moog bass line" and "808 bass" are bass, not a synth and not a drum,
+    // and getting that wrong is exactly the double-up this is here to stop.
+    window.LYRIA_ROLES = [
+        { role: 'bass',    label: 'bass',       cats: ['Bass'],                   re: /\b(bass|sub|808s?|upright|contrabass)\b/i },
+        { role: 'drums',   label: 'drums',      cats: ['Beats'],                  re: /\b(drum\w*|beat|kick|snare|hats?|hi-?hats?|percussion|breaks?|rimshot|clap)\b/i },
+        { role: 'keys',    label: 'keys',       cats: ['Keys'],                   re: /\b(piano|rhodes|wurli\w*|organ|clav\w*|keys|harpsichord)\b/i },
+        { role: 'guitars', label: 'guitar',     cats: ['Guitars'],                re: /\b(guitars?|riffs?|strat\w*|telecaster|les paul|wah)\b/i },
+        { role: 'strings', label: 'strings',    cats: ['Strings'],                re: /\b(strings?|violin|cello|viola|orchestr\w*|pizzicato)\b/i },
+        { role: 'horns',   label: 'horns',      cats: ['Horns', 'Brass'],         re: /\b(horns?|brass|trumpet|sax\w*|trombone|flute)\b/i },
+        { role: 'vox',     label: 'vocals',     cats: ['Vox', 'Vocals'],          re: /\b(vocals?|vox|rap\w*|sung|singing|chant\w*|ad-?libs?|hook|choir)\b/i },
+        { role: 'samples', label: 'samples',    cats: ['Samples'],                re: /\b(samples?|vinyl|chops?|loops?|scratch\w*|crackle)\b/i },
+        { role: 'synths',  label: 'synths',     cats: ['Synths', 'Synths/Samples'], re: /\b(synths?|pads?|arps?|leads?|moog|juno|prophet|vocoder|wavetable)\b/i }
+    ];
+
+    // A clause that negates ("no strings", "without guitars") should suppress that role AND say so in
+    // the prompt — Lyria responds to an explicit absence far better than to silence about it.
+    const LYRIA_NEG_RE = /\b(no|not|without|avoid|skip|drop|omit|zero|minus|never)\b/i;
+
+    // Cookbook descriptions are written for a producer reading a recipe card, not for a music model.
+    // Two things in them actively hurt the prompt: mixing instructions, which Lyria cannot act on and
+    // which crowd out the musical content, and named artists, which it is trained to refuse. Strip
+    // both, keep the sentences that actually describe a sound.
+    const LYRIA_PROD_JARGON = /\b(reverb|compress\w*|eq\b|-?\d+\s*d[bB]\b|\d+\s*k?[hH]z|plugin|vst|sidechain\w*|saturat\w*|limiter|gate[ds]?\b|high-?pass|low-?pass|filter\w*|mix bus|panned?|velocit\w*|quantiz\w*|midi|dry\/wet|bus\b|preamp|transient)\b/i;
+    const lyriaClean = (raw) => {
+        // Protect the abbreviations that would otherwise be mistaken for sentence ends.
+        const guarded = String(raw == null ? '' : raw)
+            .replace(/\b(Dr|Mr|Mrs|Ms|St|Jr|Sr|vs|feat|e\.g|i\.e)\./gi, '$1\u0001');
+        const sentences = guarded.split(/\.\s+/)
+            .map(s => s.replace(/\u0001/g, '.').trim())
+            .filter(Boolean);
+        const musical = sentences.filter(s => !LYRIA_PROD_JARGON.test(s));
+        let t = (musical.length ? musical : sentences.slice(0, 1)).join('. ');
+        return t
+            .replace(/\([^)]*\)/g, ' ')                                                          // "(e.g., 'Still D.R.E.')"
+            .replace(/\bThe\s+[A-Z][\w.]*(?:\s+[A-Z][\w.]*)*\s+(signature|sound)\b\s*\.?/g, '')  // "The Scott Storch signature."
+            // A capitalised name in the possessive, leading a description, is a producer or artist
+            // every time here ("Dr. Dre's signature snare", "Eminem's vocal technique"). Lyria is
+            // trained to refuse prompts that name real artists, so the whole fragment is wasted if
+            // it survives — drop the name and keep the description that follows it.
+            .replace(/\b[A-Z][\w.]*(?:\s+[A-Z][\w.]*)*'s\s+(signature|classic|trademark)?\s*/g, '')
+            .replace(/[\s,;.]+$/, '')                                                            // no trailing dot — the join adds it
+            .replace(/\s{2,}/g, ' ')
+            .replace(/\s+([,.])/g, '$1')
+            .trim();
+    };
+
+    // Classify a fragment the same way a user clause is classified — first role whose regex hits.
+    // The cookbook's own category is not enough on its own: "Synths: Pizzicato Strings" is filed
+    // under Synths, so "no strings" would sail straight past a category-only check and hand back the
+    // exact instrument that was just ruled out.
+    const lyriaRoleOf = (text) => {
+        const hit = window.LYRIA_ROLES.find(r => r.re.test(String(text || '')));
+        return hit ? hit.role : null;
+    };
+
+    const lyriaCap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+    const lyriaPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    // Splitting the user's direction into clauses is what makes role detection work at all: "use a
+    // 5 string electric bass, minimal kick/snare kit, no strings" is three separate statements and
+    // classifying the whole blob at once would smear them together.
+    window.parseLyriaDirection = (customNotes) => {
+        const claimed = new Set(), excluded = new Set();
+        String(customNotes || '').split(/[,;.\n]|\band\b|\bplus\b/i).forEach(clause => {
+            const c = clause.trim(); if (!c) return;
+            const hit = window.LYRIA_ROLES.find(r => r.re.test(c));
+            if (!hit) return;
+            (LYRIA_NEG_RE.test(c) ? excluded : claimed).add(hit.role);
+        });
+        return { claimed, excluded };
+    };
+
     window.buildLyriaPrompt = (genre, customNotes, bpmOverride) => {
         const meta = window.getGenreMeta(genre);
         const bpm = bpmOverride || window.getGenreBpmMid(genre);
         const elements = window.extractGenreElements(genre);
-        const order = ['Beats', 'Bass', 'Synths', 'Synths/Samples', 'Keys', 'Guitars', 'Samples', 'Vox'];
-        const fragments = [];
-        order.forEach((cat) => {
-            const list = elements[cat];
-            if (list && list.length) {
-                const pick = list[Math.floor(Math.random() * list.length)];
-                if (pick) fragments.push(pick.replace(/\.$/, '').trim());
+        const { claimed, excluded } = window.parseLyriaDirection(customNotes);
+
+        const fragments = [], dropped = [], seen = new Set();
+        window.LYRIA_ROLES.forEach(({ role, label, cats }) => {
+            // The whole point: if the direction already names a bass, this must not go and describe a
+            // different one. Same for a role explicitly ruled out.
+            if (claimed.has(role) || excluded.has(role)) { if (elements && cats.some(c => (elements[c]||[]).length)) dropped.push(label); return; }
+            const pool = cats.flatMap(c => elements[c] || []);
+            if (!pool.length) return;
+            const frag = lyriaClean(lyriaPick(pool));
+            if (!frag) return;
+            // Second gate, on what the fragment actually describes rather than where it is filed.
+            const actual = lyriaRoleOf(frag);
+            if (actual && actual !== role && (claimed.has(actual) || excluded.has(actual))) {
+                const lab = (window.LYRIA_ROLES.find(r => r.role === actual) || {}).label;
+                if (lab && !dropped.includes(lab)) dropped.push(lab);
+                return;
             }
+            // Two categories can describe the same instrument in near-identical words; keep one.
+            const key = frag.toLowerCase().replace(/[^a-z0-9]+/g, ' ').split(' ').slice(0, 5).join(' ');
+            if (seen.has(key)) return;
+            seen.add(key);
+            fragments.push(frag);
         });
+
+        // Four openers rather than one, so the 🎲 gives a genuinely different prompt instead of the
+        // same sentence with one clause swapped.
         const shortGenre = genre.split('/')[0].trim();
-        let prompt = `An instrumental ${shortGenre} beat at ${bpm} BPM. ${meta.mood.charAt(0).toUpperCase() + meta.mood.slice(1)}. `;
-        if (fragments.length) prompt += fragments.map((f) => f.charAt(0).toUpperCase() + f.slice(1)).join('. ') + '. ';
-        prompt += `Production style: ${meta.texture}.`;
-        if (customNotes && customNotes.trim()) prompt += ` Additional direction: ${customNotes.trim()}.`;
-        return prompt;
+        const opener = lyriaPick([
+            `An instrumental ${shortGenre} beat at ${bpm} BPM. ${lyriaCap(meta.mood)}.`,
+            `${lyriaCap(meta.mood)} instrumental ${shortGenre}, ${bpm} BPM.`,
+            `A ${bpm} BPM ${shortGenre} instrumental — ${meta.mood}.`,
+            `Instrumental ${shortGenre} at ${bpm} BPM, ${meta.mood}.`
+        ]);
+
+        const parts = [opener];
+        if (fragments.length) parts.push(fragments.map(lyriaCap).join('. ') + '.');
+        if (customNotes && customNotes.trim()) parts.push(`${lyriaCap(customNotes.trim().replace(/\.$/, ''))}.`);
+        const negatives = window.LYRIA_ROLES.filter(r => excluded.has(r.role)).map(r => r.label);
+        if (negatives.length) parts.push(`No ${negatives.join(', no ')}.`);
+        parts.push(lyriaPick([
+            `Production style: ${meta.texture}.`,
+            `Overall texture: ${meta.texture}.`,
+            `${lyriaCap(meta.texture)} throughout.`
+        ]));
+
+        return { prompt: parts.join(' ').replace(/\s{2,}/g, ' ').trim(), dropped, claimed: [...claimed], excluded: [...excluded] };
     };
 
     window.populateLyriaGenreSelect = (preselect) => {
@@ -4286,17 +4808,61 @@ ${gear.join(', ')}`;
     };
     window.closeLyriaModal = () => document.getElementById('lyria-modal')?.classList.replace('flex', 'hidden');
 
-    window.runLyriaGenerate = () => {
+    // The local builder is still what runs first: it is instant, free, works with no key, and its
+    // role analysis is what tells the model which instruments are already spoken for. When a key IS
+    // configured the draft becomes the AI's brief rather than the final answer — the model writes the
+    // prose, but it is writing from this genre's real recipes and this producer's real direction,
+    // not from the genre name alone.
+    window.runLyriaGenerate = async () => {
         const genre = document.getElementById('lyria-genre-select')?.value; if (!genre) return;
         const bpm = parseInt(document.getElementById('lyria-bpm')?.value, 10) || undefined;
         const notes = document.getElementById('lyria-custom-notes')?.value || '';
-        const prompt = window.buildLyriaPrompt(genre, notes, bpm);
-        const out = document.getElementById('lyria-output'); if (out) out.value = prompt;
+        const built = window.buildLyriaPrompt(genre, notes, bpm);
+        window.__lyriaLastBuilt = built;
+        const out = document.getElementById('lyria-output'); if (out) out.value = built.prompt;
         document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
         document.getElementById('btn-lyria-hide')?.classList.remove('hidden');
         const lh = document.getElementById('btn-lyria-hide'); if (lh) lh.textContent = 'HIDE';
-        const note = document.getElementById('lyria-ai-note'); if (note) note.textContent = '';
+        // Say out loud which roles your own direction took over. Silently dropping a whole instrument
+        // from the description looks like a bug unless the reason is on screen next to it.
+        const note = document.getElementById('lyria-ai-note');
+        const setNote = (msg, ok) => { if (note) { note.textContent = msg; note.className = `text-[10px] mt-1 ${ok ? 'text-[#7AFFBF]/80' : 'text-[#FF5A5A]/80'}`; } };
+        const covers = built.dropped.length ? ` Your direction covers ${built.dropped.join(', ')}, so those were left out to avoid doubling up.` : '';
+        if (!window.__aiIsConfigured || !window.__aiIsConfigured() || !window.ferrettAI) {
+            setNote(('Offline draft — add an API key for a written prompt.' + covers).trim(), !!covers);
+            return;
+        }
+        const gen = document.getElementById('btn-lyria-generate');
+        if (gen) { gen.disabled = true; gen.textContent = '…writing'; }
+        setNote('Writing a prompt from this genre’s recipes…', true);
+        try {
+            const sys = [
+                'You write prompts for Google Lyria / MusicFX, which generates INSTRUMENTAL music from a short text description.',
+                'Reply with ONE paragraph of 40-70 words. No lyrics, no quotes, no headings, no preamble, no bullet points.',
+                'Describe INSTRUMENTATION, RHYTHM, MOOD and SONIC TEXTURE. Name real instruments and playing styles.',
+                'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole prompt is wasted.',
+                'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ or reverb settings. Lyria cannot act on any of that and it crowds out the musical detail that matters.',
+                'The brief lists roles the producer is playing THEMSELVES. Use exactly the instrument they named for that role and never propose an alternative for it — do not offer a synth bass when they said electric bass.',
+                'Roles listed as excluded must not appear at all; state their absence plainly if it shapes the sound.'
+            ].join(' ');
+            const roleLines = [
+                built.claimed.length ? `PRODUCER IS PLAYING THESE THEMSELVES (use their instrument, suggest no alternative): ${built.claimed.join(', ')}` : '',
+                built.excluded.length ? `MUST NOT APPEAR: ${built.excluded.join(', ')}` : '',
+                notes.trim() ? `PRODUCER'S DIRECTION (honour exactly): ${notes.trim()}` : ''
+            ].filter(Boolean).join('\n');
+            const meta = window.getGenreMeta(genre);
+            const user = `GENRE: ${genre}\nTEMPO: ${bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${meta.mood}\nTEXTURE: ${meta.texture}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
+            const written = await window.ferrettAI(sys, user, { creative: true });
+            if (written && written.trim() && out) out.value = written.trim().replace(/^["'\s]+|["'\s]+$/g, '');
+            setNote(('Written from this genre’s recipes.' + covers).trim(), true);
+        } catch (e) {
+            // The draft is already in the box and is a perfectly usable prompt — say what happened
+            // rather than blanking it, so a rate limit costs nothing.
+            setNote('⚠ ' + e.message + ' — showing the offline draft instead.', false);
+        } finally {
+            if (gen) { gen.disabled = false; gen.textContent = 'GENERATE PROMPT'; }
+        }
     };
 
     // Sends the free/offline draft above (built from real recipe data) to the
@@ -4305,17 +4871,20 @@ ${gear.join(', ')}`;
     window.runLyriaAIEnhance = async () => {
         const out = document.getElementById('lyria-output'); const draft = out?.value || ''; if (!draft.trim()) return;
         const note = document.getElementById('lyria-ai-note'); const btn = document.getElementById('btn-lyria-ai');
+        // This element is shared with the "your direction covers X" line, which styles itself green.
+        // Always restate the colour here or an error inherits it and reads as a success message.
+        const setNote = (msg) => { if (note) { note.textContent = msg; note.className = 'text-[10px] text-[#FF5A5A]/80 mt-1'; } };
         let cfg = {}; try { cfg = JSON.parse(localStorage.getItem('ferrett_os_ai_v1') || '{}'); } catch (e) {}
         if (!(cfg.mode === 'groq' ? cfg.groqKey : (cfg.url && cfg.token))) { if (window.__openAiModal) window.__openAiModal(); return; }
-        if (!window.ferrettAI) { if (note) note.textContent = 'AI co-pilot not loaded.'; return; }
+        if (!window.ferrettAI) { setNote('AI co-pilot not loaded.'); return; }
         if (btn) { btn.disabled = true; btn.textContent = '…thinking'; }
-        if (note) note.textContent = '';
+        setNote('');
         try {
             const sys = 'You write vivid, concise instrumental music-generation prompts for Google Lyria / MusicFX. Rewrite the given draft into ONE dense paragraph (max ~50 words) of genre, instrumentation, production and mood descriptors. Keep every specific gear/technique detail from the draft — they matter — but tighten the prose and cut filler words. No lyrics, no quotes, no preamble, no headers.';
             const enhanced = await window.ferrettAI(sys, draft, { creative: true });
             if (out) out.value = enhanced.trim();
         } catch (e) {
-            if (note) { note.textContent = '⚠ ' + e.message; }
+            setNote('⚠ ' + e.message);
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = '✨ AI ENHANCE'; }
         }

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v68';
+window.APP_VERSION = 'v69';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3327,18 +3327,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Real exponential backoff with jitter, and if the server told us how long to wait (429
     // Retry-After), honor that instead of guessing — a fixed short delay doesn't help if the account
     // is actually rate-limited for several seconds.
+    // A 400 while requesting JSON mode means this model/backend doesn't support response_format at all,
+    // so once one call has found that out, no later call in the build should pay to rediscover it.
+    let kitJsonMode = true;
+
     async function callWithRetry(sys, user, opts){
         let lastErr;
-        let useJson = !!opts.json;
-        for (let attempt = 0; attempt <= KIT_RETRIES; attempt++){
+        let useJson = !!opts.json && kitJsonMode;
+        // opts.retries lets a caller cut this short. A request that's too long to come back inside the
+        // timeout fails identically every attempt, so for those the useful next move is to make the
+        // request smaller (see the retry rounds below), not to fire the same one twice more.
+        const retries = opts.retries == null ? KIT_RETRIES : opts.retries;
+        for (let attempt = 0; attempt <= retries; attempt++){
             try { return await window.ferrettAI(sys, user, { ...opts, json: useJson }); }
             catch(e){
                 lastErr = e;
-                // A 400 while requesting JSON mode usually means this model/backend doesn't support
-                // response_format — retrying the identical request would just fail the same way again,
-                // so drop JSON mode for the rest of this call's attempts instead of burning retries on it.
-                if (e.status === 400 && useJson) useJson = false;
-                if (attempt < KIT_RETRIES) {
+                // Dropping JSON mode changes the request, so it earns a free attempt that isn't
+                // counted against `retries` — and it can only ever happen once, since useJson is
+                // false from here on.
+                if (e.status === 400 && useJson) { useJson = false; kitJsonMode = false; attempt--; continue; }
+                if (attempt < retries) {
                     const backoff = 700 * Math.pow(2, attempt) + Math.random()*300;
                     await sleep(Math.min(e.retryAfterMs || backoff, 9000));
                 }
@@ -3362,7 +3370,7 @@ HARD RULES:
 - If you are not certain of a plugin's exact control name or its range, DESCRIBE THE MOVE using what that plugin actually exposes rather than inventing a figure: "Pultec MEQ-5 — dip the low-mid band, dial around 6" beats a made-up "cut 3dB at 420Hz". Prefer the nearest real stepped value over an arbitrary one. Never write a bare "to taste" — always say which knob and which direction.
 - Where you ARE certain (ReaEQ, ReaComp, TDR Nova, Kilohearts, Vital and other plain digital tools with continuous parameters), stay fully specific: exact Hz, dB, ms, ratios.
 - Order the chain the way it should sit in the insert slots, first to last.
-- Give 1-3 recipes per included role — your call. More where the genre has genuinely distinct options worth having, one where the genre demands a specific sound.
+- ${slots.length === 1 ? 'Give 1-2 recipes for this role — two only if the genre has a genuinely distinct second option worth having. Keep the whole reply compact; a short complete answer beats a long truncated one.' : 'Give 1-3 recipes per included role — your call. More where the genre has genuinely distinct options worth having, one where the genre demands a specific sound.'}
 - Be genre-accurate. A Memphis horrorcore snare and a G-funk snare are not the same chain.
 - Keep each "why" to one sentence.
 - Give each recipe an evocative TITLE, not a technical description — the kind of 2-4 word phrase that names a vibe, like a mixtape or song title (e.g. "Crenshaw Cruisin'" for a laid-back G-Funk bassline, "Basement Static" for a lo-fi horrorcore snare). Never a literal description like "Distorted 808 Chain" or "Chain 1".
@@ -3381,6 +3389,46 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
         if (first > 0 || last < t.length-1) { if (first >= 0 && last > first) t = t.slice(first, last+1); }
         try { return JSON.parse(t); }
         catch(e){ return JSON.parse(t.replace(/,(\s*[}\]])/g, '$1')); } // common near-miss: a trailing comma before a closing bracket
+    }
+
+    // When a response gets cut off mid-way (the model hits its output ceiling, or the hop times out
+    // just after the first instrument came back), the JSON is unparseable and the WHOLE batch used to
+    // be thrown away — including the instruments that arrived intact before the cut. That's the single
+    // biggest reason a batch like "Guitars, Kick, Snare" fails over and over: it's a long answer, it
+    // gets truncated, and every retry truncates in the same place.
+    //
+    // So: walk the "instruments" array by hand, tracking string/escape state and brace depth, and keep
+    // every element that closed properly. A trailing half-written element is simply dropped, and its
+    // slot goes back on the pending list to be asked for on its own.
+    function salvageInstruments(text){
+        const t = String(text || '');
+        const key = t.indexOf('"instruments"');
+        if (key < 0) return [];
+        const arr = t.indexOf('[', key);
+        if (arr < 0) return [];
+        const out = [];
+        let depth = 0, start = -1, inStr = false, esc = false;
+        for (let i = arr + 1; i < t.length; i++){
+            const ch = t[i];
+            if (inStr){
+                if (esc) esc = false;
+                else if (ch === '\\') esc = true;
+                else if (ch === '"') inStr = false;
+                continue;
+            }
+            if (ch === '"') { inStr = true; continue; }
+            if (ch === '{') { if (depth === 0) start = i; depth++; continue; }
+            if (ch === '}') {
+                depth--;
+                if (depth === 0 && start >= 0){
+                    try { out.push(JSON.parse(t.slice(start, i + 1))); } catch(e){}
+                    start = -1;
+                }
+                continue;
+            }
+            if (ch === ']' && depth === 0) break; // end of the instruments array
+        }
+        return out;
     }
 
     // ==================== PHASE 1: PICK THE PALETTE ====================
@@ -3504,20 +3552,65 @@ ${gear.join(', ')}`;
         // `instruments` and returning whichever entries still failed, each carrying the actual error
         // message from its last attempt — not just which slot failed, but why, so a persistent failure
         // is diagnosable instead of just "couldn't be reached".
+        // Slots that have already produced recipes, so a later round never asks for them again and a
+        // salvaged duplicate can't land twice.
+        const have = new Set();
+        // The model is told to copy slot names exactly, and mostly does — but "Guitar" for "Guitars" or
+        // "Keys/Synths" for "Keys / Synths" happens, and those have to land on the canonical slot or
+        // the same role gets asked for again and comes back twice under two spellings. Anything that
+        // still doesn't resolve is kept under its own name rather than thrown away.
+        const norm = (s) => String(s||'').toLowerCase().replace(/[^a-z]/g,'').replace(/s$/,'');
+        function keep(list){
+            let n = 0;
+            (list || []).forEach(x => {
+                if (!x || !x.slot || !Array.isArray(x.recipes) || !x.recipes.length) return;
+                const raw = String(x.slot).trim();
+                const slot = window.KIT_SLOTS.find(s => s.toLowerCase() === raw.toLowerCase())
+                    || window.KIT_SLOTS.find(s => norm(s) === norm(raw))
+                    || raw;
+                if (have.has(slot)) return;
+                have.add(slot); instruments.push({ ...x, slot }); n++;
+            });
+            return n;
+        }
+
         async function runSweep(pending, label){
             const stillFailed = [];
             for (let b = 0; b < pending.length; b++) {
-                const slots = pending[b].slots;
+                const slots = pending[b].slots.filter(s => !have.has(s));
+                if (!slots.length) continue; // an earlier round already covered these
                 kitProgress(genre, b + 1, pending.length + 1, `${label}: ${slots.join(', ')}`);
                 if (b > 0) await sleep(3000); // real spacing — free-tier token-per-minute caps need the calls spread across the minute, not bunched at its start
                 try {
-                    const raw = await callWithRetry(kitSysPrompt(slots, controls), ctx, { creative: true, json: true });
-                    const parsed = extractJson(raw);
-                    // A malformed shape (not an array at all) is a real failure — retry it. An empty
-                    // or partial array is a legitimate "this genre doesn't use these roles" answer —
-                    // accept it as-is, don't retry just because the model correctly said "none of these".
-                    if (!parsed || !Array.isArray(parsed.instruments)) throw new Error('malformed response shape');
-                    parsed.instruments.forEach(x => { if (x && x.slot && Array.isArray(x.recipes) && x.recipes.length) instruments.push(x); });
+                    const raw = await callWithRetry(kitSysPrompt(slots, controls), ctx, {
+                        creative: true, json: true,
+                        // Multi-slot gets one blip retry, then the splitter shrinks it. Single slots get
+                        // none — the round loop below already retries them up to 4 times with far better
+                        // spacing (5s/10s/15s) than an inner backoff, and stacking the two meant a slot
+                        // that was simply never coming back cost 9 calls against the rate cap.
+                        retries: slots.length > 1 ? 1 : 0,
+                        timeoutMs: 90000,
+                        maxTokens: slots.length > 1 ? 4000 : 1800,
+                    });
+                    let parsed = null, salvaged = false;
+                    try { parsed = extractJson(raw); }
+                    catch (pe) {
+                        // Truncated or otherwise unparseable — rescue whatever came back whole rather
+                        // than binning the entire batch, then requeue only the slots still missing.
+                        const rescued = salvageInstruments(raw);
+                        if (!rescued.length) throw new Error('unreadable response (likely cut off mid-answer)');
+                        keep(rescued); salvaged = true;
+                    }
+                    if (!salvaged) {
+                        // A malformed shape (not an array at all) is a real failure — retry it. An empty
+                        // or partial array is a legitimate "this genre doesn't use these roles" answer —
+                        // accept it as-is, don't retry just because the model correctly said "none of these".
+                        if (!parsed || !Array.isArray(parsed.instruments)) throw new Error('malformed response shape');
+                        keep(parsed.instruments);
+                        continue; // a clean parse is the final word on every slot it covered
+                    }
+                    const missing = slots.filter(s => !have.has(s));
+                    if (missing.length) stillFailed.push({ slots: missing, error: 'response was cut off before these came back' });
                 } catch (be) {
                     stillFailed.push({ slots, error: (be && be.message) || String(be) });
                 }
@@ -3532,10 +3625,17 @@ ${gear.join(', ')}`;
             // parse) clears up given enough space between attempts, and this scales to however much
             // space it actually needs rather than a single guessed pause. Stops early once nothing's
             // left, or after MAX_ROUNDS if something's genuinely, persistently broken (bad key, HA down).
+            // Every retry round after the first asks for ONE slot per call instead of three. Re-sending
+            // an identical 3-slot request is what made failures look permanent: a batch that's too long
+            // to come back inside the timeout is too long every single time, so three identical attempts
+            // buy nothing. One slot is a third of the answer, and gets through where the trio never did.
             const MAX_ROUNDS = 4;
             let pending = batches.map(slots => ({ slots }));
             for (let round = 0; round < MAX_ROUNDS && pending.length; round++) {
-                if (round > 0) await sleep(5000 * round); // 5s, 10s, 15s — enough for a per-minute cap to meaningfully refill, not just a network blip to clear
+                if (round > 0) {
+                    await sleep(5000 * round); // 5s, 10s, 15s — enough for a per-minute cap to meaningfully refill, not just a network blip to clear
+                    pending = pending.flatMap(p => p.slots.map(s => ({ slots: [s], error: p.error })));
+                }
                 pending = await runSweep(pending, round === 0 ? 'building' : `retry pass ${round+1}/${MAX_ROUNDS-1}`);
             }
             const failed = pending.map(p => ({ label: p.slots.join(', '), error: p.error }));
@@ -3634,8 +3734,8 @@ ${gear.join(', ')}`;
 
         renderKitInstMenu(genre, kit, active && active.slot);
 
-        const recipeHtml = !active ? `<div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[11px] tracking-widest uppercase border-2 border-dashed border-[#FF88FF10] rounded-lg min-h-[300px] text-center px-6">This genre didn't come back with any usable instrument roles.</div>` :
-            !(active.recipes||[]).length ? `<div class="text-[10px] text-white/25 italic py-4 text-center">No recipes left for this instrument — deleted them all.</div>` :
+        const recipeHtml = !active ? `<div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[11px] tracking-widest uppercase border-2 border-dashed border-[#FF88FF10] rounded-lg min-h-[300px] text-center px-6">${insts.length===0?'This kit has no instruments left — delete the kit itself, or hit + NEW to build another.':"This genre didn't come back with any usable instrument roles."}</div>` :
+            !(active.recipes||[]).length ? `<div class="text-[10px] text-white/25 italic py-4 text-center">No recipes left for this instrument — deleted them all. Use 🗑 DELETE INSTRUMENT above to drop the slot too.</div>` :
             (active.recipes || []).map((r, ri) => {
                 const key = kitRecipeKey(kit.id, active.slot, ri);
                 if (kitRecipeEditSet.has(key)) {
@@ -3677,7 +3777,7 @@ ${gear.join(', ')}`;
                     <h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FF88FF] uppercase">${esc(genre)}</h2></div>
                     <div class="flex gap-2 flex-wrap">
                         <button id="btn-kit-md" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer">📄 .MD</button>
-                        <button id="btn-kit-del" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer" title="Delete this saved kit">🗑 DELETE</button>
+                        <button id="btn-kit-del" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer" title="Delete this whole saved kit — every instrument in it">🗑 DELETE KIT</button>
                     </div>
                 </div>
                 <div class="text-[8px] text-[#E2E8F0]/30 font-mono tracking-widest">GENERATED ${esc(when)} · ${insts.length} INSTRUMENT${insts.length===1?'':'S'} USED IN THIS GENRE${attachedSongs.length?` · 🔗 ${attachedSongs.map(s=>esc(s.title||'Untitled')).join(', ')}`:''}</div>
@@ -3716,7 +3816,13 @@ ${gear.join(', ')}`;
                 </select>
                 <button id="btn-kit-attach" class="btn-ferrett-green px-3 py-1.5 text-[10px]">🔗 ATTACH<span class="hidden sm:inline"> (+ COOKBOOK RECIPES)</span></button>
             </div>
-            <div class="border border-[#FF88FF20] rounded-lg overflow-hidden bg-[#0A0A0F] p-5" id="kit-recipe-pane">${recipeHtml}</div>
+            <div class="border border-[#FF88FF20] rounded-lg overflow-hidden bg-[#0A0A0F] p-5" id="kit-recipe-pane">
+                ${active?`<div class="flex items-center justify-between gap-3 pb-3 mb-4 border-b border-[#FF88FF20]">
+                    <div class="text-[10px] font-bold tracking-widest text-[#FF88FF] uppercase truncate">${esc(active.slot)} <span class="text-[#FF88FF]/40 normal-case">· ${(active.recipes||[]).length} recipe${(active.recipes||[]).length===1?'':'s'}</span></div>
+                    <button id="btn-kit-inst-del" type="button" class="shrink-0 text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer" title="Remove this whole instrument — every recipe under it — from this kit">🗑 DELETE INSTRUMENT</button>
+                </div>`:''}
+                ${recipeHtml}
+            </div>
         </div>`;
 
         document.getElementById('btn-kit-md')?.addEventListener('click', () => window.exportKitMarkdown(genre, kit.id));
@@ -3742,6 +3848,20 @@ ${gear.join(', ')}`;
             window.saveData();
             if (h.length) window.renderGenreKit(genre, { kitId: 'new' });
             else window.selectGenre(genre); // nothing left to browse — don't auto-trigger a fresh (paid) generation
+        });
+
+        // Deleting a whole instrument — the level between "the entire kit" and "one recipe at a time".
+        // Drops the slot and every recipe under it, then falls through to whatever instrument is next
+        // in the list so the pane never lands on nothing.
+        document.getElementById('btn-kit-inst-del')?.addEventListener('click', () => {
+            const n = (active.recipes || []).length;
+            if (!confirm(`Delete ${active.slot} from this kit — all ${n} recipe${n===1?'':'s'} under it? This can't be undone.`)) return;
+            const i = kit.instruments.findIndex(x => x.slot === active.slot);
+            if (i >= 0) kit.instruments.splice(i, 1);
+            [...kitRecipeEditSet].forEach(k => { if (k.startsWith(kit.id+':'+active.slot+':')) kitRecipeEditSet.delete(k); });
+            window.saveData();
+            const next = kit.instruments[Math.min(i, kit.instruments.length - 1)];
+            window.renderGenreKit(genre, { kitId: kit.id, slot: next && next.slot });
         });
 
         // Edit/delete for individual recipes within the selected instrument. Text inputs autosave on
@@ -7562,12 +7682,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // intelligently on a 429 instead of guessing; existing callers that only read .message are unaffected.
   window.ferrettAI = async function(system, user, opts){
     opts=opts||{}; const c=loadCfg();
-    const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(), 45000);
+    // 45s suits the short lyrics calls; a long structured answer (the AI Kit's per-instrument chain
+    // sheets) needs longer or it gets aborted mid-stream and reads as a hard failure, so callers can
+    // ask for more. maxTokens likewise: leaving it unset lets the model run past whatever default
+    // ceiling is in play and come back truncated.
+    const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(), opts.timeoutMs || 45000);
     try{
       let res, data, text;
       if(c.mode==='groq'){
         if(!c.groqKey) throw new Error('No Groq key set — open ⚙ setup.');
         const body={ model:c.groqModel||'openai/gpt-oss-120b', temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] };
+        if(opts.maxTokens) body.max_completion_tokens=opts.maxTokens;
         if(opts.json) body.response_format={ type:'json_object' };
         res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify(body) });
         if(!res.ok){ const err=new Error('Groq '+res.status+(res.status===401?' — bad key':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
@@ -7592,7 +7717,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       }
       return text.trim();
     } catch(e){
-      if(e.name==='AbortError') throw new Error('Timed out (45s).');
+      if(e.name==='AbortError') throw new Error(`Timed out (${Math.round((opts.timeoutMs||45000)/1000)}s).`);
       if(e instanceof TypeError) throw new Error('Network/CORS blocked — check HTTPS + cors_allowed_origins.');
       throw e;
     } finally { clearTimeout(to); }

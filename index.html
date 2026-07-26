@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v76';
+window.APP_VERSION = 'v77';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -4954,8 +4954,10 @@ ${gear.join(', ')}`;
         // This element is shared with the "your direction covers X" line, which styles itself green.
         // Always restate the colour here or an error inherits it and reads as a success message.
         const setNote = (msg) => { if (note) { note.textContent = msg; note.className = 'text-[10px] text-[#FF5A5A]/80 mt-1'; } };
-        let cfg = {}; try { cfg = JSON.parse(localStorage.getItem('ferrett_os_ai_v1') || '{}'); } catch (e) {}
-        if (!(cfg.mode === 'groq' ? cfg.groqKey : (cfg.url && cfg.token))) { if (window.__openAiModal) window.__openAiModal(); return; }
+        // Was a hand-rolled two-way check written before the Gemini backend existed: in gemini mode it
+        // fell through to the HA branch, found no url/token, and sent you to the setup modal even
+        // though the co-pilot was configured and working. __aiIsConfigured knows all three modes.
+        if (!(window.__aiIsConfigured?.())) { if (window.__openAiModal) window.__openAiModal(); return; }
         if (!window.ferrettAI) { setNote('AI co-pilot not loaded.'); return; }
         if (btn) { btn.disabled = true; btn.textContent = '…thinking'; }
         setNote('');
@@ -9115,7 +9117,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   }
   function brainBusy(on){ const s=$('ai-brain-spinner'); if(s) s.classList.toggle('hidden',!on); }
   function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } const c=$('ai-brain-out-controls'); if(c && txt){ c.classList.remove('hidden'); c.classList.add('flex'); } }
-  async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
+  async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } /* same pre-Gemini gate as the Lyria one — see the note there; this one silently disabled every Toolbox AI tool in gemini mode */ if(!(window.__aiIsConfigured?.())){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
   function brainRedo(){ if(lastBrainArgs) brainCall(...lastBrainArgs); }
   function brainHide(){ const o=$('ai-brain-out'), c=$('ai-brain-out-controls'), h=$('btn-ai-brain-hide'); if(!o) return; const nowHidden=o.classList.toggle('hidden'); if(h) h.textContent=nowHidden?'SHOW':'HIDE'; }
   function brainSaveNote(){

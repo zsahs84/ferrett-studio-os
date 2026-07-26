@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v72';
+window.APP_VERSION = 'v73';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3336,6 +3336,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // and response length depends on slots-per-call, not on how much context went in.
     const KIT_BATCH = 3;
     const KIT_RETRIES = 2; // extra attempts per batch within a single sweep, on top of the first try
+    const KIT_TIME_BUDGET_MS = 6 * 60 * 1000; // hard ceiling on a whole build — see the deadline note in generateGenreKit
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
     // ---------- THE ACTUAL CEILING: TOKENS PER MINUTE ----------
@@ -3358,8 +3359,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const tpmLog = [];         // { t, tokens } reservations made within the last minute
     // Deliberately pessimistic: over-reserving costs a pause, under-reserving costs a refused call.
     const estTokens = (s) => Math.ceil(String(s || '').length / 3.5);
+    // Set to a reason while a build should wind down — the deadline passing, or the user pressing
+    // stop. Checked inside the pacer as well as by the loops, because most of a stuck build's life is
+    // spent asleep in here: without this, "stop" wouldn't take effect until the current pause ended.
+    let kitStop = null;
     async function tpmReserve(tokens, onWait){
         for (;;){
+            if (kitStop) throw new Error(kitStop);
             const now = Date.now();
             while (tpmLog.length && now - tpmLog[0].t >= TPM_WINDOW) tpmLog.shift();
             const used = tpmLog.reduce((a, e) => a + e.tokens, 0);
@@ -3368,7 +3374,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!tpmLog.length || used + tokens <= TPM_BUDGET) { const e = { t: now, tokens }; tpmLog.push(e); return e; }
             const waitMs = Math.max(1000, TPM_WINDOW - (now - tpmLog[0].t) + 300);
             if (onWait) onWait(Math.ceil(waitMs / 1000));
-            await sleep(Math.min(waitMs, 15000));
+            // Wake often even when the wait is long: the countdown and the elapsed clock only refresh
+            // on these ticks, and a screen frozen for fifteen seconds at a time is precisely what made
+            // the old progress display look like it had hung.
+            await sleep(Math.min(waitMs, 5000));
         }
     }
     // A rejection means the server's own accounting disagrees with ours, so make the window believe
@@ -3409,15 +3418,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             catch(e){
                 lastErr = e;
-                // A 400 that's really about SIZE has nothing to do with JSON mode. Turning JSON mode
-                // off wouldn't shrink the request by a single token — it would just cost the rest of
-                // the kit its guaranteed-parseable output in exchange for nothing.
-                const sizeOrRate = /too large|tokens per minute|\bTPM\b|rate limit/i.test(e.message || '');
+                // A refused call consumed NOTHING — the server rejected it before the model ran — so
+                // its reservation has to come back off the window. Leaving it charged the minute for
+                // tokens nobody spent, and tpmPenalize then parked the full budget on top of it, so
+                // every single refusal cost the build two minutes of imaginary usage. That
+                // double-counting is what turned a retry ladder into a forty-minute grind.
+                // A 400 that's really about SIZE has nothing to do with JSON mode either. Turning JSON
+                // mode off wouldn't shrink the request by a single token — it would just cost the rest
+                // of the kit its guaranteed-parseable output in exchange for nothing.
+                const refused = e.status === 429 || /too large|tokens per minute|\bTPM\b|rate limit/i.test(e.message || '');
+                if (held) held.tokens = refused ? 0 : promptCost;
+                // The DAILY budget being gone is not a wait-and-retry situation — it comes back in
+                // hours, not seconds, so the rest of the ladder is guaranteed to fail. Wind the whole
+                // build down now and keep whatever already came back, rather than spending minutes
+                // proving the same point once per outstanding slot.
+                if (e.exhausted || (window.__aiIsDailyLimit && window.__aiIsDailyLimit(e.message))) {
+                    // Short and distinct on purpose. The call that actually hit the wall reports the
+                    // server's full message; the slots that never got asked carry this instead, so the
+                    // summary reads as one cause and a list of casualties rather than the same
+                    // paragraph printed twice.
+                    kitStop = 'skipped — the daily token budget was already gone by this point';
+                    throw e;
+                }
+                if (kitStop) throw e; // winding down: don't retry, don't back off, just get out
                 // Dropping JSON mode changes the request, so it earns a free attempt that isn't
                 // counted against `retries` — and it can only ever happen once, since useJson is
                 // false from here on.
-                if (e.status === 400 && useJson && !sizeOrRate) { useJson = false; kitJsonMode = false; attempt--; continue; }
-                if (e.status === 429 || sizeOrRate) tpmPenalize(e.retryAfterMs);
+                if (e.status === 400 && useJson && !refused) { useJson = false; kitJsonMode = false; attempt--; continue; }
+                if (refused) tpmPenalize(e.retryAfterMs);
                 if (attempt < retries) {
                     const backoff = 700 * Math.pow(2, attempt) + Math.random()*300;
                     await sleep(Math.min(e.retryAfterMs || backoff, 9000));
@@ -3580,14 +3608,27 @@ ${owned.join(', ')}`;
     const kitRecipeEditSet = new Set();
     const kitRecipeKey = (kitId, slot, ri) => kitId+':'+slot+':'+ri;
 
-    function kitProgress(genre, done, total, label){
+    // Progress is reported against the KIT, not against whichever sweep happens to be running. The old
+    // "3 / 4 batches" renumbered itself every retry round — it counted up, reset, counted up again —
+    // so a build that was genuinely making progress and one that was spinning looked identical, and
+    // the number meant nothing either way. Instrument roles filled, out of the twelve candidates, only
+    // ever moves forward. The clock and the stop button are there because the honest answer to "how
+    // long is this going to take" on a rate-capped tier is "minutes", and that's only alarming when
+    // nothing on screen admits it.
+    function kitProgress(genre, done, label, startedAt){
         const disp = document.getElementById('recipe-display'); if (!disp) return;
-        const pct = Math.round((done/total)*100);
+        const total = window.KIT_SLOTS.length;
+        const pct = Math.round((done / total) * 100);
+        const secs = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+        const clock = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
         disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-4 min-h-[400px] text-center px-8">
             <div class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase animate-pulse">🤖 Building the ${String(genre).replace(/</g,'')} kit…</div>
             <div class="w-full max-w-xs h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-[#FF88FF] transition-all duration-300" style="width:${pct}%"></div></div>
-            <div class="text-[10px] text-[#E2E8F0]/45 font-mono">${done} / ${total} batches · now doing <span class="text-[#FF88FF]/80">${String(label).replace(/</g,'')}</span></div>
+            <div class="text-[10px] text-[#E2E8F0]/45 font-mono">${done} / ${total} instrument roles · ${clock} elapsed</div>
+            <div class="text-[10px] text-[#E2E8F0]/45 font-mono max-w-sm">now doing <span class="text-[#FF88FF]/80">${String(label).replace(/</g,'')}</span></div>
+            <button id="btn-kit-stop" type="button" class="text-[9px] font-bold tracking-widest px-3 py-1.5 rounded border border-[#FF5A5A40] text-[#FF5A5A]/70 hover:text-[#FF5A5A] hover:bg-[#FF5A5A]/10 cursor-pointer mt-1">■ STOP &amp; KEEP WHAT'S DONE</button>
         </div>`;
+        document.getElementById('btn-kit-stop')?.addEventListener('click', () => { kitStop = 'stopped — kept the roles that had already come back'; });
     }
 
     window.generateGenreKit = async (genre) => {
@@ -3605,11 +3646,20 @@ ${owned.join(', ')}`;
 
         const batches = [];
         for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
-        const totalSteps = batches.length + 1; // phase 1 counts as a step so the bar doesn't sit at 0 through it
+
+        // A hard wall-clock budget for the whole build, because the retry ladder has no idea what it
+        // costs any more. Four rounds over twelve slots is up to forty-odd calls, and every one of
+        // them now waits its turn for token budget — so what used to be a quick flurry of failures
+        // became a grind with no visible end. Whatever is done when the clock runs out gets saved as
+        // a partial kit, which is strictly better than a build the user has to give up on.
+        const startedAt = Date.now();
+        const deadline = startedAt + KIT_TIME_BUDGET_MS;
+        kitStop = null;
+        const windDown = () => kitStop || (Date.now() > deadline ? (kitStop = `gave up after ${Math.round(KIT_TIME_BUDGET_MS/60000)} minutes — the rest never came back`) : null);
 
         // Phase 1. A failed or too-thin pick isn't fatal — fall back to the old behaviour of handing
         // over the whole owned list, which still produces a kit, just a more expensive one.
-        kitProgress(genre, 0, totalSteps, 'picking the palette for this genre');
+        kitProgress(genre, 0, 'picking the palette for this genre', startedAt);
         let palette = [];
         try { palette = await selectPalette(genre, meta, owned); } catch (pe) { palette = []; }
         const usingPalette = palette.length >= PALETTE_MIN;
@@ -3657,25 +3707,26 @@ ${gear.join(', ')}`;
             for (let b = 0; b < pending.length; b++) {
                 const slots = pending[b].slots.filter(s => !have.has(s));
                 if (!slots.length) continue; // an earlier round already covered these
+                if (windDown()) { stillFailed.push({ slots, error: kitStop }); continue; }
                 const what = `${label}: ${slots.join(', ')}`;
-                kitProgress(genre, b + 1, pending.length + 1, what);
+                kitProgress(genre, have.size, what, startedAt);
                 try {
                     const raw = await callWithRetry(kitSysPrompt(slots, controls), ctx, {
                         creative: true, json: true,
                         // Multi-slot gets one blip retry, then the splitter shrinks it. Single slots get
-                        // none — the round loop below already retries them up to 4 times with far better
-                        // spacing than an inner backoff, and stacking the two meant a slot that was
-                        // simply never coming back cost 9 calls against the rate cap.
+                        // none — the round loop below already retries them, with far better spacing than
+                        // an inner backoff, and stacking the two meant a slot that was simply never
+                        // coming back cost 9 calls against the rate cap.
                         retries: slots.length > 1 ? 1 : 0,
                         timeoutMs: 90000,
-                        // Sized so prompt + ceiling clears the per-minute cap with room to spare. The
-                        // old 4000/1800 were guesses at how long an answer might run; with
-                        // reasoning_effort low the real answers are far shorter than either, and every
-                        // token of ceiling asked for is a token reserved against the minute.
-                        maxTokens: slots.length > 1 ? 2600 : 1400,
+                        // Big enough that a real answer fits, small enough that prompt + ceiling clears
+                        // the per-minute cap. Both matter: too high and the request is refused before
+                        // the model runs, too low and it truncates and the slot has to be asked for
+                        // again — which costs a whole extra call at this rate limit.
+                        maxTokens: slots.length > 1 ? 3000 : 1800,
                         // The pacer holds calls back to stay inside the cap, which can mean a genuine
                         // half-minute of nothing happening. Say so, rather than looking hung.
-                        onWait: (secs) => kitProgress(genre, b + 1, pending.length + 1, `${what} — pausing ${secs}s for the token-per-minute cap`),
+                        onWait: (secs) => kitProgress(genre, have.size, `${what} — pausing ${secs}s for the token-per-minute cap`, startedAt),
                     });
                     let parsed = null, salvaged = false;
                     try { parsed = extractJson(raw); }
@@ -3714,9 +3765,12 @@ ${gear.join(', ')}`;
             // an identical 3-slot request is what made failures look permanent: a batch that's too long
             // to come back inside the timeout is too long every single time, so three identical attempts
             // buy nothing. One slot is a third of the answer, and gets through where the trio never did.
-            const MAX_ROUNDS = 4;
+            // Three, not four. Each round costs a call per outstanding slot and every call now queues
+            // for token budget, so rounds are minutes rather than seconds — and a slot that has failed
+            // three times over several minutes is not one round away from working.
+            const MAX_ROUNDS = 3;
             let pending = batches.map(slots => ({ slots }));
-            for (let round = 0; round < MAX_ROUNDS && pending.length; round++) {
+            for (let round = 0; round < MAX_ROUNDS && pending.length && !windDown(); round++) {
                 if (round > 0) {
                     // No cooldown here any more. Spacing calls out across the minute is the pacer's
                     // job now, and it does it from the actual token budget rather than a guessed
@@ -3728,13 +3782,16 @@ ${gear.join(', ')}`;
             const failed = pending.map(p => ({ label: p.slots.join(', '), error: p.error }));
             if (!instruments.length) throw new Error(failed[0]?.error || 'No slots came back.');
 
-            kitProgress(genre, totalSteps, totalSteps, 'overview');
+            kitProgress(genre, have.size, 'writing the overview', startedAt);
             let overview = '';
-            try {
+            // Skip it entirely when winding down: the roles are what the user is waiting for, and
+            // spending another paced call on a nice-to-have paragraph after the clock has already run
+            // out is the opposite of what stopping means.
+            if (!kitStop) try {
                 overview = await callWithRetry(
                     'You are a veteran hip-hop producer. Reply with 2-3 plain sentences and nothing else — no JSON, no markdown, no preamble.',
                     `In 2-3 sentences, describe the overall sonic approach for producing in this style:\n\nGENRE: ${genre}\nTEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM\nMOOD: ${meta.mood}\nTEXTURE: ${meta.texture}`,
-                    { creative: true });
+                    { creative: true, maxTokens: 700 });
             } catch (oe) { overview = ''; }
 
             const hist = kitHistory(genre);
@@ -7760,6 +7817,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const isConfigured=()=>{ const c=loadCfg(); return c.mode==='groq' ? !!c.groqKey : c.mode==='gemini' ? !!c.geminiKey : !!(c.url && c.token); };
   window.__aiIsConfigured = isConfigured; // shared so other script blocks gate exactly like the lyrics tools do
 
+  // A per-DAY quota is a different animal to a per-minute one and has to be told apart from it. The
+  // per-minute cap refills while you watch and is worth pausing for; the daily one comes back in
+  // hours, so every retry against it is guaranteed to fail and just burns the user's time. Callers
+  // read .exhausted to stop outright instead of working through their retry ladder for nothing.
+  window.__aiIsDailyLimit = (msg) => /tokens per day|\bTPD\b|requests per day|\bRPD\b/i.test(String(msg||''));
+
   // ---- core client: returns text, throws Error with a friendly message ----
   // opts.json:true requests the API's native JSON mode (Groq/OpenAI-compatible response_format) so a
   // structured-output caller gets back guaranteed-parseable JSON instead of hoping the model doesn't
@@ -7791,7 +7854,16 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         if(/gpt-oss/i.test(model)) body.reasoning_effort='low'; // keep the thinking short so the budget goes on the answer
         if(opts.json) body.response_format={ type:'json_object' };
         res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify(body) });
-        if(!res.ok){ const err=new Error('Groq '+res.status+(res.status===401?' — bad key':res.status===429?' — rate limited':'')); err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err; }
+        if(!res.ok){
+          // Groq puts the useful part in the body — which limit, how much is left, how long to wait.
+          // A bare "Groq 429 — rate limited" hides whether this is a per-minute blip worth retrying
+          // or the daily budget being gone for hours, and those need opposite responses.
+          let detail=''; try{ detail=(await res.json())?.error?.message||''; }catch(e){}
+          const err=new Error('Groq '+res.status+(res.status===401?' — bad key':res.status===429?' — rate limited':'')+(detail?' — '+detail:''));
+          err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000;
+          if(window.__aiIsDailyLimit(detail)) err.exhausted=true;
+          throw err;
+        }
         data=await res.json(); text=data?.choices?.[0]?.message?.content;
       } else if(c.mode==='gemini'){
         if(!c.geminiKey) throw new Error('No Google API key set — open ⚙ setup.');
@@ -7865,6 +7937,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
           if(/rate limit|tokens per minute|\bTPM\b|too large/i.test(haApiErr)) err.status=429;
           const m=/try again in ([\d.]+)\s*s/i.exec(haApiErr);
           if(m) err.retryAfterMs=Math.ceil(parseFloat(m[1])*1000)+500;
+          if(window.__aiIsDailyLimit(haApiErr)) err.exhausted=true;
           throw err;
         }
         if(!text && msg && msg.reasoning) emptyHint='the model returned only its reasoning and no answer — it ran out of tokens before writing one';

@@ -3323,8 +3323,13 @@ document.addEventListener('DOMContentLoaded', () => {
     //   invented CONTROLS  — a knob that unit doesn't have, or a value off its stepped range. This is
     //                        the lint pass, and it's the sharpest signal: getting it wrong requires
     //                        confidently describing hardware you don't know.
-    //   invented GEAR      — a plugin name that isn't in the palette it was handed and isn't Reaper
+    //   invented GEAR      — a plugin name that matches nothing in the owned list and isn't Reaper
     //                        stock. Pure fabrication, and free to detect exactly.
+    //   strayed GEAR       — owned, but outside the palette this kit was built from. A different
+    //                        failure with a different cost: the chain still opens, it just ignored the
+    //                        working set it was handed. Reporting it as fabrication was a lie — the
+    //                        producer opens their plugin list, finds the thing sitting right there,
+    //                        and stops believing the rest of the scorecard.
     //   no CONTENT         — "to taste", or a plugin named with no move attached. Not wrong, just
     //                        empty; the prompt explicitly forbids it, so it also measures instruction
     //                        adherence.
@@ -3352,8 +3357,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // With no palette recorded (older kits, or a build that fell back to the whole owned list) the
         // owned list is the honest reference — flagging everything as invented would be a lie.
         const known = palette.length ? palette : owned;
-        const out = { recipes: 0, steps: 0, checked: 0, impossible: 0, offPalette: 0, empty: 0,
-                      specific: 0, offPaletteNames: [], impossibleNotes: [] };
+        const out = { recipes: 0, steps: 0, checked: 0, impossible: 0, invented: 0, strayed: 0, empty: 0,
+                      specific: 0, hasPalette: palette.length > 0, inventedNames: [], strayedNames: [],
+                      impossibleNotes: [] };
         (kit && kit.instruments || []).forEach(inst => (inst.recipes || []).forEach(r => {
             out.recipes++;
             (Array.isArray(r.chain) ? r.chain : []).forEach(step => {
@@ -3365,8 +3371,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.PLUGIN_CONTROLS.some(e => e.lint && e.match.test(step))) out.checked++;
                 const name = stepPlugin(step);
                 if (name && !REAPER_STOCK_RE.test(name) && !snapToOwned(name, known)) {
-                    out.offPalette++;
-                    if (!out.offPaletteNames.includes(name)) out.offPaletteNames.push(name);
+                    // Off the palette is not the same finding as off the whole rig. Check the owned
+                    // list before calling anything invented: with a palette in play `known` is only 24
+                    // of 150+ plugins, so most misses are gear the producer has and can open.
+                    const strayed = out.hasPalette && !!snapToOwned(name, owned);
+                    if (strayed) { out.strayed++; if (!out.strayedNames.includes(name)) out.strayedNames.push(name); }
+                    else { out.invented++; if (!out.inventedNames.includes(name)) out.inventedNames.push(name); }
                 }
                 const set = stepSettings(step);
                 if (!set || set.length < 8 || /\bto taste\b/i.test(set)) out.empty++;
@@ -3926,7 +3936,8 @@ ${gear.join(', ')}`;
                 <div>${r.kit.buildSecs}s · ${s.recipes} recipes · ${s.steps} steps</div>
                 <div class="mt-1">verifiable: <b>${s.checked}</b></div>
                 <div class="${s.impossible?'text-[#FF9E9E]':''}">impossible: <b>${s.impossible}</b></div>
-                <div class="${s.offPalette?'text-[#FF9E9E]':''}">not your gear: <b>${s.offPalette}</b></div>
+                <div class="${s.invented?'text-[#FF9E9E]':''}">not your gear: <b>${s.invented}</b></div>
+                ${s.hasPalette?`<div>off palette: <b>${s.strayed}</b></div>`:''}
                 <div class="${s.empty?'text-[#FF9E9E]':''}">no setting: <b>${s.empty}</b></div>
                 <div>with numbers: <b>${s.specific}</b></div>
             </td>`;
@@ -3942,7 +3953,8 @@ ${gear.join(', ')}`;
             </table></div>
             <div class="text-[9px] text-[#E2E8F0]/45 leading-relaxed mt-4 p-3 rounded border border-white/10">
                 <b>impossible</b> = a control that unit doesn't have, or a value off its stepped range — measured only over the <b>verifiable</b> steps, so read those two together.
-                <b>not your gear</b> = a plugin named that isn't in the palette it was given and isn't Reaper stock, i.e. invented.
+                <b>not your gear</b> = a plugin named that matches nothing you own and isn't Reaper stock, i.e. invented.
+                <b>off palette</b> = owned, but outside the palette that kit was built from — usable, just not the working set it was handed.
                 <b>no setting</b> = a plugin named with nothing to actually do to it.
                 All ${rows.length} kits were saved — browse them with the arrows and keep whichever won.
             </div>
@@ -4080,7 +4092,9 @@ ${gear.join(', ')}`;
                 // next to the count is what keeps a quiet model from reading as a careful one.
                 const s = window.scoreKit(kit);
                 if (!s.steps) return '';
-                const bad = s.impossible + s.offPalette;
+                // Strayed gear stays out of `bad`: it's an instruction miss, not an unbuildable chain,
+                // and the headline is about whether what's below can actually be dialled in.
+                const bad = s.impossible + s.invented;
                 const tone = bad ? ['#FF9E9E40','#FF9E9E','#FFD6D6'] : ['#00FF8830','#00FF88','#A7DCC3'];
                 const cell = (v, lab, warn) => `<div class="text-center px-2">
                     <div class="text-[15px] font-black ${warn&&v?'text-[#FF9E9E]':'text-[#E2E8F0]/80'}">${v}</div>
@@ -4088,12 +4102,13 @@ ${gear.join(', ')}`;
                 return `<div class="mb-5 p-3 rounded border" style="border-color:${tone[0]};background:${tone[1]}12">
                     <div class="text-[9px] tracking-widest font-bold mb-2.5" style="color:${tone[1]}">🔬 SETTINGS CHECK · ${bad?'FOUND PROBLEMS':'NOTHING IMPOSSIBLE FOUND'}</div>
                     <div class="flex flex-wrap justify-center gap-x-1 gap-y-2 mb-2">
-                        ${cell(s.steps,'chain steps')}${cell(s.checked,'verifiable')}${cell(s.impossible,'impossible',1)}${cell(s.offPalette,'not your gear',1)}${cell(s.empty,'no setting',1)}${cell(s.specific,'with numbers')}
+                        ${cell(s.steps,'chain steps')}${cell(s.checked,'verifiable')}${cell(s.impossible,'impossible',1)}${cell(s.invented,'not your gear',1)}${s.hasPalette?cell(s.strayed,'off palette'):''}${cell(s.empty,'no setting',1)}${cell(s.specific,'with numbers')}
                     </div>
                     <div class="text-[9px] leading-relaxed" style="color:${tone[2]}bb">
                         <b>${s.checked}</b> of ${s.steps} steps named a unit with documented controls, so only those could be checked — a low <b>impossible</b> count over a low <b>verifiable</b> count is not evidence of care.
                         ${s.impossible?`<br>Impossible settings are marked in red below.`:''}
-                        ${s.offPalette?`<br><b>Not your gear:</b> ${esc(s.offPaletteNames.slice(0,6).join(', '))}${s.offPaletteNames.length>6?` +${s.offPaletteNames.length-6} more`:''} — invented outright, or named too loosely to match anything you own.`:''}
+                        ${s.invented?`<br><b>Not your gear:</b> ${esc(s.inventedNames.slice(0,6).join(', '))}${s.inventedNames.length>6?` +${s.inventedNames.length-6} more`:''} — matches nothing in your plugin list: invented outright, or named too loosely to recognise.`:''}
+                        ${s.strayed?`<br><b>Off palette:</b> ${esc(s.strayedNames.slice(0,6).join(', '))}${s.strayedNames.length>6?` +${s.strayedNames.length-6} more`:''} — you own these, they just aren't in the ${kit.palette.length}-plugin palette this kit was built from. Usable as written.`:''}
                         ${s.empty?`<br><b>${s.empty}</b> step${s.empty===1?'':'s'} name a plugin without saying what to do with it.`:''}
                     </div>
                 </div>`;

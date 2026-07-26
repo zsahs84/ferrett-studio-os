@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v73';
+window.APP_VERSION = 'v74';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1459,6 +1459,16 @@ main { background: rgba(5,8,7,0.72); }
             <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
             <input type="text" id="ai-gemini-model" value="gemini-3.6-flash" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
             <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed mt-1">Any model id from <span class="font-mono text-[#00E5FF]/70">ai.google.dev/gemini-api/docs/models</span> — e.g. <span class="font-mono">gemini-3.6-flash</span>, <span class="font-mono">gemini-3.5-flash-lite</span>, <span class="font-mono">gemini-2.5-flash</span>.</p>
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">THINKING LEVEL</label>
+            <select id="ai-gemini-think" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+              <option value="minimal">minimal — fastest, cheapest</option>
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high — best on gear it has to reason about</option>
+            </select>
+            <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed mt-1">Thinking is billed as <b>output</b>, so this is the main cost lever — and the main quality one for chains that need real knowledge of a unit's controls. Left unset, each model uses its own default (3.6 Flash: medium, the Flash-Lites: minimal), which makes two models impossible to compare fairly.</p>
           </div>
           <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed. Get one free at <span class="font-mono text-[#00E5FF]/70">aistudio.google.com/apikey</span>. Gemini allows a far bigger answer per call than the Groq free tier, which is what the AI Kit keeps running out of.</p>
         </div>
@@ -3306,6 +3316,67 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.lintRecipe = (r) => (Array.isArray(r && r.chain) ? r.chain : []).reduce((n, s) => n + window.lintChainStep(s).length, 0);
 
+    // ==================== IS IT REAL, OR JUST CONFIDENT? ====================
+    // Scores a whole kit for whether its settings could actually be dialled in. Three independent
+    // things go wrong when a model is out of its depth on this task, and they fail differently:
+    //
+    //   invented CONTROLS  — a knob that unit doesn't have, or a value off its stepped range. This is
+    //                        the lint pass, and it's the sharpest signal: getting it wrong requires
+    //                        confidently describing hardware you don't know.
+    //   invented GEAR      — a plugin name that isn't in the palette it was handed and isn't Reaper
+    //                        stock. Pure fabrication, and free to detect exactly.
+    //   no CONTENT         — "to taste", or a plugin named with no move attached. Not wrong, just
+    //                        empty; the prompt explicitly forbids it, so it also measures instruction
+    //                        adherence.
+    //
+    // `checked` is reported alongside all of it and matters as much as the counts do. Only 24 units
+    // have documented control sets, so a model can score zero impossible settings by simply never
+    // naming one of them. A low impossible-count over a low checked-count says nothing; the rate is
+    // only meaningful against the coverage it was measured over, so both always travel together.
+    const REAPER_STOCK_RE = /^(rea[a-z]*|js[:\s]|video processor)/i;
+    // "Plugin Name — settings" is the format the prompt asks for; take the head as the unit, and treat
+    // an en/em dash, a colon or a hyphen-with-spaces as the divider. Anything before a divider that's
+    // longer than a plugin name is probably prose, so cap it.
+    const stepPlugin = (s) => {
+        const head = String(s || '').split(/\s+[—–]\s+|\s+-\s+|:\s/)[0].trim();
+        return head.length > 0 && head.length <= 48 ? head : '';
+    };
+    const stepSettings = (s) => {
+        const str = String(s || '');
+        const i = str.search(/\s+[—–]\s+|\s+-\s+|:\s/);
+        return i < 0 ? '' : str.slice(i).replace(/^\s*[—–:-]\s*/, '').trim();
+    };
+    window.scoreKit = (kit) => {
+        const palette = Array.isArray(kit && kit.palette) ? kit.palette : [];
+        const owned = (window.db && window.db.ownedPlugins) || [];
+        // With no palette recorded (older kits, or a build that fell back to the whole owned list) the
+        // owned list is the honest reference — flagging everything as invented would be a lie.
+        const known = palette.length ? palette : owned;
+        const out = { recipes: 0, steps: 0, checked: 0, impossible: 0, offPalette: 0, empty: 0,
+                      specific: 0, offPaletteNames: [], impossibleNotes: [] };
+        (kit && kit.instruments || []).forEach(inst => (inst.recipes || []).forEach(r => {
+            out.recipes++;
+            (Array.isArray(r.chain) ? r.chain : []).forEach(step => {
+                out.steps++;
+                const notes = window.lintChainStep(step);
+                if (notes.length) { out.impossible += notes.length; out.impossibleNotes.push(...notes); }
+                // "Checked" means a unit we hold documented controls for actually appeared in this
+                // step — the only steps where a clean result is evidence rather than absence of it.
+                if (window.PLUGIN_CONTROLS.some(e => e.lint && e.match.test(step))) out.checked++;
+                const name = stepPlugin(step);
+                if (name && !REAPER_STOCK_RE.test(name) && !snapToOwned(name, known)) {
+                    out.offPalette++;
+                    if (!out.offPaletteNames.includes(name)) out.offPaletteNames.push(name);
+                }
+                const set = stepSettings(step);
+                if (!set || set.length < 8 || /\bto taste\b/i.test(set)) out.empty++;
+                else if (/\d/.test(set)) out.specific++;
+            });
+        }));
+        out.impossibleNotes = [...new Set(out.impossibleNotes)];
+        return out;
+    };
+
     // Only the entries matching gear the producer actually owns get sent, so this stays small next to
     // the owned-plugins list that already gets resent on every batch call (see KIT_BATCH).
     window.pluginControlsBrief = (owned) => {
@@ -3354,7 +3425,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // then re-refuse for the same reason — which is exactly what "Vocals · Cymbals · Toms" was.
     // So spend the minute deliberately: reserve each call's cost in a rolling 60s window and wait for
     // room BEFORE sending. A kit is a few minutes' work on this tier; that's fine, failing isn't.
-    const TPM_BUDGET = 7200;   // headroom under the 8000 cap for the estimate running light
+    // Whose minute we're spending depends entirely on which backend is configured — Groq's free 8000
+    // and a paid Gemini tier are orders of magnitude apart. Hardcoding Groq's figure throttled every
+    // backend to Groq's worst case, which on paid Gemini turns a 30-second build into a 3-minute one
+    // for nothing. Read it live rather than caching: the user can change backend between builds.
+    const tpmBudget = () => (window.__aiTpmBudget ? window.__aiTpmBudget() : 7200);
     const TPM_WINDOW = 60000;
     const tpmLog = [];         // { t, tokens } reservations made within the last minute
     // Deliberately pessimistic: over-reserving costs a pause, under-reserving costs a refused call.
@@ -3371,7 +3446,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const used = tpmLog.reduce((a, e) => a + e.tokens, 0);
             // The empty-log case also has to pass unconditionally: a call bigger than the whole budget
             // would otherwise wait for room that can never appear, and hang the build forever.
-            if (!tpmLog.length || used + tokens <= TPM_BUDGET) { const e = { t: now, tokens }; tpmLog.push(e); return e; }
+            if (!tpmLog.length || used + tokens <= tpmBudget()) { const e = { t: now, tokens }; tpmLog.push(e); return e; }
             const waitMs = Math.max(1000, TPM_WINDOW - (now - tpmLog[0].t) + 300);
             if (onWait) onWait(Math.ceil(waitMs / 1000));
             // Wake often even when the wait is long: the countdown and the elapsed clock only refresh
@@ -3386,7 +3461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // An entry expires at t + TPM_WINDOW, so back-date t to land the expiry exactly where the
         // server asked. That puts it out of order, and both the eviction loop and the wait maths read
         // tpmLog[0] as the oldest entry — so re-sort rather than quietly corrupting the window.
-        tpmLog.push({ t: Date.now() - TPM_WINDOW + Math.max(1000, Math.min(ms || 15000, TPM_WINDOW)), tokens: TPM_BUDGET });
+        tpmLog.push({ t: Date.now() - TPM_WINDOW + Math.max(1000, Math.min(ms || 15000, TPM_WINDOW)), tokens: tpmBudget() });
         tpmLog.sort((a, b) => a.t - b.t);
     }
 
@@ -3631,8 +3706,9 @@ ${owned.join(', ')}`;
         document.getElementById('btn-kit-stop')?.addEventListener('click', () => { kitStop = 'stopped — kept the roles that had already come back'; });
     }
 
-    window.generateGenreKit = async (genre) => {
-        const disp = document.getElementById('recipe-display'); if (!disp) return;
+    window.generateGenreKit = async (genre, opts) => {
+        opts = opts || {}; // opts.quiet: build and return the kit without taking over the display (the A/B runner)
+        const disp = document.getElementById('recipe-display'); if (!disp) return null;
         // Gate exactly the way the lyrics tools do, using the co-pilot's own helper.
         const configured = window.__aiIsConfigured ? window.__aiIsConfigured()
             : (()=>{ try { const c=JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}'); return c.mode==='groq'?!!c.groqKey:c.mode==='gemini'?!!c.geminiKey:!!(c.url&&c.token); } catch(e){ return false; } })();
@@ -3795,15 +3871,82 @@ ${gear.join(', ')}`;
             } catch (oe) { overview = ''; }
 
             const hist = kitHistory(genre);
-            const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, palette: usingPalette ? palette : null, partial: failed.length ? failed : null };
+            // Which model produced it, recorded on the kit itself. Without this a saved kit is an
+            // anonymous artefact and any later comparison between models is guesswork.
+            const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, palette: usingPalette ? palette : null, partial: failed.length ? failed : null,
+                model: window.__aiModelLabel ? window.__aiModelLabel() : null, buildSecs: Math.round((Date.now()-startedAt)/1000) };
             hist.push(newKit);
             window.db.genreKits[genre] = hist;
             window.saveData();
-            window.renderGenreKit(genre, { kitId: newKit.id });
+            if (!opts.quiet) window.renderGenreKit(genre, { kitId: newKit.id });
+            return newKit;
         } catch(e) {
+            if (opts.quiet) return null; // the A/B runner renders its own summary; don't stamp on it
             disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center px-6"><div class="text-[12px] font-bold tracking-widest text-[#FF5A5A] uppercase">⚠ Kit build failed</div><div class="text-[11px] text-[#E2E8F0]/60 font-mono max-w-md">${(e.message||'Unknown error').replace(/</g,'')}</div><button id="btn-kit-retry" class="btn-ferrett px-4 py-2 text-[10px] mt-2" style="border-color:#FF88FF80;color:#FF88FF">↻ TRY AGAIN</button></div>`;
             document.getElementById('btn-kit-retry')?.addEventListener('click', () => window.generateGenreKit(genre));
+            return null;
         }
+    };
+
+    // ==================== MODEL A/B ====================
+    // Builds the SAME genre on each model in turn and puts the scorecards side by side. Sequential on
+    // purpose: the pacer's token window is shared, and running these concurrently would have them
+    // rate-limiting each other and scoring the contention rather than the models.
+    // Every kit produced is a real saved kit — nothing here is throwaway, so a winner can just be kept.
+    const AB_DEFAULTS = {
+        gemini: ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
+        groq:   ['openai/gpt-oss-120b', 'llama-3.3-70b-versatile'],
+        ha:     ['openai/gpt-oss-120b', 'llama-3.3-70b-versatile'],
+    };
+    window.kitModelAB = async (genre, models) => {
+        const disp = document.getElementById('recipe-display'); if (!disp) return;
+        const mode = window.__aiGetMode ? window.__aiGetMode() : 'ha';
+        const list = (models && models.length) ? models : AB_DEFAULTS[mode] || AB_DEFAULTS.ha;
+        const restore = window.__aiGetModel();
+        const rows = [];
+        try {
+            for (let i = 0; i < list.length; i++) {
+                window.__aiSetModel(list[i]);
+                const kit = await window.generateGenreKit(genre, { quiet: true });
+                rows.push({ model: list[i], kit, score: kit ? window.scoreKit(kit) : null });
+            }
+        } finally {
+            // Always hand the setting back — including when a build throws or the user hits stop.
+            // Leaving the app silently pointed at whichever model the comparison happened to end on
+            // is a nasty surprise the next time they build a kit for real.
+            window.__aiSetModel(restore);
+        }
+        const esc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const cols = rows.map(r => {
+            if (!r.kit) return `<td class="align-top p-2 text-[10px] text-[#FF5A5A]/80">build failed</td>`;
+            const s = r.score;
+            const roles = (r.kit.instruments||[]).length;
+            return `<td class="align-top p-2 text-[10px] text-[#E2E8F0]/70 font-mono">
+                <div class="text-[#00FF88] font-bold mb-1">${roles} / ${window.KIT_SLOTS.length} roles</div>
+                <div>${r.kit.buildSecs}s · ${s.recipes} recipes · ${s.steps} steps</div>
+                <div class="mt-1">verifiable: <b>${s.checked}</b></div>
+                <div class="${s.impossible?'text-[#FF9E9E]':''}">impossible: <b>${s.impossible}</b></div>
+                <div class="${s.offPalette?'text-[#FF9E9E]':''}">not your gear: <b>${s.offPalette}</b></div>
+                <div class="${s.empty?'text-[#FF9E9E]':''}">no setting: <b>${s.empty}</b></div>
+                <div>with numbers: <b>${s.specific}</b></div>
+            </td>`;
+        }).join('');
+        disp.innerHTML = `<div class="animate-fade-in">
+            <div class="border-b border-[#FF88FF25] pb-4 mb-5">
+                <div class="text-[9px] tracking-widest text-[#FF88FF]/60 uppercase mb-1">⚖ Model comparison · ${esc(genre)}</div>
+                <h2 class="text-[16px] font-bold tracking-widest text-[#FF88FF] uppercase">Same genre, ${rows.length} model${rows.length===1?'':'s'}</h2>
+            </div>
+            <div class="overflow-x-auto"><table class="w-full border-collapse">
+                <tr>${rows.map(r=>`<th class="text-left p-2 text-[9px] tracking-widest uppercase text-[#00E5FF] border-b border-[#00E5FF25] font-mono">${esc(r.model)}</th>`).join('')}</tr>
+                <tr>${cols}</tr>
+            </table></div>
+            <div class="text-[9px] text-[#E2E8F0]/45 leading-relaxed mt-4 p-3 rounded border border-white/10">
+                <b>impossible</b> = a control that unit doesn't have, or a value off its stepped range — measured only over the <b>verifiable</b> steps, so read those two together.
+                <b>not your gear</b> = a plugin named that isn't in the palette it was given and isn't Reaper stock, i.e. invented.
+                <b>no setting</b> = a plugin named with nothing to actually do to it.
+                All ${rows.length} kits were saved — browse them with the arrows and keep whichever won.
+            </div>
+        </div>`;
     };
 
     // Builds the "2. Select Instrument" list (left column) from a kit's instrument slots, since that
@@ -3862,9 +4005,12 @@ ${gear.join(', ')}`;
                 <div class="h-full flex flex-col items-center justify-center gap-4 min-h-[320px] text-center px-8 border-2 border-dashed border-[#FF88FF15] rounded-lg py-10">
                     <div class="text-[11px] text-[#E2E8F0]/50 max-w-sm leading-relaxed">Build a fresh per-instrument chain sheet for ${esc(genre)} from the plugins you own.${total?` You've got ${total} saved kit${total===1?'':'s'} for this genre already — browse them with the arrows above.`:''}</div>
                     <button id="btn-kit-generate" class="btn-ferrett-green px-5 py-2.5 text-[11px]">🤖 GENERATE KIT</button>
+                    <button id="btn-kit-ab" class="btn-ferrett px-4 py-2 text-[10px]" style="border-color:#00E5FF60;color:#00E5FF">⚖ COMPARE MODELS</button>
+                    <div class="text-[9px] text-[#E2E8F0]/35 max-w-xs leading-relaxed">Compare builds the same genre on each model in turn and scores them for settings that can't actually be dialled in. Every kit is saved, so keep whichever wins.</div>
                 </div>
             </div>`;
             document.getElementById('btn-kit-generate')?.addEventListener('click', () => window.generateGenreKit(genre));
+            document.getElementById('btn-kit-ab')?.addEventListener('click', () => window.kitModelAB(genre));
             document.getElementById('kit-nav-older')?.addEventListener('click', () => olderId!=null && window.renderGenreKit(genre, { kitId: olderId }));
             document.getElementById('kit-nav-newer')?.addEventListener('click', () => newerId!=null && window.renderGenreKit(genre, { kitId: newerId }));
             return;
@@ -3929,13 +4075,28 @@ ${gear.join(', ')}`;
             ${navBar}
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
             ${(()=>{
-                // Kits generated before the settings rules existed still carry invented values, and
-                // they can't be retro-fixed without regenerating — so say so plainly at the top
-                // rather than letting them read as trustworthy.
-                const n = (kit.instruments||[]).reduce((a,i)=>a+(i.recipes||[]).reduce((b,r)=>b+window.lintRecipe(r),0),0);
-                return n ? `<div class="mb-5 p-3 rounded border border-[#FF9E9E40] bg-[#FF9E9E]/8 text-[10px] text-[#FFD6D6]/90 leading-relaxed">
-                    ⚠ <b>${n} setting${n===1?'':'s'} in this kit can't be dialled in</b> — the control doesn't exist on that plugin, or the value is off its stepped range. Each one is marked in red below. Kits built before the settings rules landed are the usual cause; hit + NEW to regenerate this genre with the current rules.
-                </div>` : '';
+                // The whole scorecard, not just the impossible count — because "0 impossible settings"
+                // means one thing over 40 checked steps and nothing at all over 2. Showing coverage
+                // next to the count is what keeps a quiet model from reading as a careful one.
+                const s = window.scoreKit(kit);
+                if (!s.steps) return '';
+                const bad = s.impossible + s.offPalette;
+                const tone = bad ? ['#FF9E9E40','#FF9E9E','#FFD6D6'] : ['#00FF8830','#00FF88','#A7DCC3'];
+                const cell = (v, lab, warn) => `<div class="text-center px-2">
+                    <div class="text-[15px] font-black ${warn&&v?'text-[#FF9E9E]':'text-[#E2E8F0]/80'}">${v}</div>
+                    <div class="text-[8px] tracking-widest uppercase text-[#E2E8F0]/40 mt-0.5">${lab}</div></div>`;
+                return `<div class="mb-5 p-3 rounded border" style="border-color:${tone[0]};background:${tone[1]}12">
+                    <div class="text-[9px] tracking-widest font-bold mb-2.5" style="color:${tone[1]}">🔬 SETTINGS CHECK · ${bad?'FOUND PROBLEMS':'NOTHING IMPOSSIBLE FOUND'}</div>
+                    <div class="flex flex-wrap justify-center gap-x-1 gap-y-2 mb-2">
+                        ${cell(s.steps,'chain steps')}${cell(s.checked,'verifiable')}${cell(s.impossible,'impossible',1)}${cell(s.offPalette,'not your gear',1)}${cell(s.empty,'no setting',1)}${cell(s.specific,'with numbers')}
+                    </div>
+                    <div class="text-[9px] leading-relaxed" style="color:${tone[2]}bb">
+                        <b>${s.checked}</b> of ${s.steps} steps named a unit with documented controls, so only those could be checked — a low <b>impossible</b> count over a low <b>verifiable</b> count is not evidence of care.
+                        ${s.impossible?`<br>Impossible settings are marked in red below.`:''}
+                        ${s.offPalette?`<br><b>Not your gear:</b> ${esc(s.offPaletteNames.slice(0,6).join(', '))}${s.offPaletteNames.length>6?` +${s.offPaletteNames.length-6} more`:''} — invented outright, or named too loosely to match anything you own.`:''}
+                        ${s.empty?`<br><b>${s.empty}</b> step${s.empty===1?'':'s'} name a plugin without saying what to do with it.`:''}
+                    </div>
+                </div>`;
             })()}
             ${Array.isArray(kit.palette)&&kit.palette.length?`<div class="mb-5 p-3 rounded border border-[#FF88FF25] bg-[#FF88FF]/5">
                 <div class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold mb-2">🎛 PALETTE · ${kit.palette.length} PLUGINS CHOSEN FOR THIS GENRE</div>
@@ -7823,6 +7984,47 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   // read .exhausted to stop outright instead of working through their retry ladder for nothing.
   window.__aiIsDailyLimit = (msg) => /tokens per day|\bTPD\b|requests per day|\bRPD\b/i.test(String(msg||''));
 
+  // thinkingConfig is rejected outright by older Gemini models rather than ignored, which would turn
+  // an optional quality knob into a hard failure for anyone pointed at one. First 400 that names it
+  // switches it off for the session and the call is retried without it — the same
+  // learn-once-and-stop-paying-for-it shape the kit uses for JSON mode.
+  let geminiThinkOk = true;
+
+  // What the pacer is allowed to spend per minute, per backend. This is NOT a property of the app —
+  // it's a property of whichever account is on the other end, and the two differ by orders of
+  // magnitude. Groq's free tier is 8000 TPM, so the kit has to be paced call by call; paid Gemini is
+  // far above anything a kit needs, and applying Groq's figure there would throttle a 30-second build
+  // into a three-minute one for no reason. If a Groq Dev Tier or a bigger Gemini tier is in play these
+  // are simply too low — they're floors chosen to never exceed a limit, not measurements of one.
+  window.__aiTpmBudget = () => {
+    const c = loadCfg();
+    if (c.mode === 'gemini') return 250000;
+    return 7200; // Groq free tier: 8000 TPM, minus headroom for our own token estimate running light
+  };
+
+  // Which model is actually answering, and a way to point at a different one for a single run. The
+  // HA hop has its own model default baked into the rest_command, so it reports as the backend rather
+  // than pretending to know — better an honest "HA hop" than a confident wrong model id on a kit.
+  window.__aiModelLabel = () => {
+    const c = loadCfg();
+    return c.mode === 'gemini' ? (c.geminiModel || 'gemini-3.6-flash')
+         : c.mode === 'groq'   ? (c.groqModel   || 'openai/gpt-oss-120b')
+         : 'HA hop (' + (c.haModel || 'openai/gpt-oss-120b') + ')';
+  };
+  // Raw stored value, undefined included — that's what has to go back after a comparison run, because
+  // writing a concrete id where there wasn't one silently pins a model the user never chose.
+  window.__aiGetModel = () => {
+    const c = loadCfg();
+    return c.mode === 'gemini' ? c.geminiModel : c.mode === 'groq' ? c.groqModel : c.haModel;
+  };
+  window.__aiSetModel = (id) => {
+    const c = loadCfg();
+    const key = c.mode === 'gemini' ? 'geminiModel' : c.mode === 'groq' ? 'groqModel' : 'haModel';
+    if (id == null) delete c[key]; else c[key] = id;
+    saveCfg(c); updateStatus();
+  };
+  window.__aiGetMode = () => loadCfg().mode || 'ha';
+
   // ---- core client: returns text, throws Error with a friendly message ----
   // opts.json:true requests the API's native JSON mode (Groq/OpenAI-compatible response_format) so a
   // structured-output caller gets back guaranteed-parseable JSON instead of hoping the model doesn't
@@ -7878,16 +8080,40 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // finishReason MAX_TOKENS. Give it real headroom rather than the caller's exact figure.
         if(opts.maxTokens) body.generationConfig.maxOutputTokens=Math.max(opts.maxTokens*2, 8000);
         if(opts.json) body.generationConfig.responseMimeType='application/json';
-        res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
-          method:'POST', signal:ctrl.signal,
-          headers:{'Content-Type':'application/json','x-goog-api-key':c.geminiKey}, // header, not ?key= — keeps the key out of the URL
-          body:JSON.stringify(body) });
-        if(!res.ok){
-          let detail=''; try{ detail=(await res.json())?.error?.message||''; }catch(e){}
-          const err=new Error('Gemini '+res.status+(res.status===400?' — bad key or model id':res.status===403?' — key rejected':res.status===404?' — no such model':res.status===429?' — rate limited':'')+(detail?' — '+detail:''));
-          err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000; throw err;
+        // How hard the model is allowed to think, and therefore most of what separates a chain that
+        // understands the gear from one that pattern-matches a plausible-looking answer. It matters
+        // that this is set explicitly rather than left alone: the per-model DEFAULTS differ (3.6 Flash
+        // defaults to medium, the Flash-Lites to minimal), so comparing two models without pinning it
+        // compares thinking budgets as much as it compares models.
+        const think = opts.think || c.geminiThink;
+        if(think && geminiThinkOk) body.generationConfig.thinkingConfig={ thinkingLevel: think };
+        // A response body can only be read once, so send/read is one helper and the retry below reuses
+        // it rather than trying to re-read a consumed body.
+        const sendGemini = async () => {
+          const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
+            method:'POST', signal:ctrl.signal,
+            headers:{'Content-Type':'application/json','x-goog-api-key':c.geminiKey}, // header, not ?key= — keeps the key out of the URL
+            body:JSON.stringify(body) });
+          let payload=null; try{ payload=await r.json(); }catch(e){}
+          return { r, payload, detail: payload?.error?.message || '' };
+        };
+        let sent=await sendGemini();
+        // Older models reject thinkingConfig outright rather than ignoring it, which would turn an
+        // optional quality knob into a hard failure. Drop it, remember that for the session, and send
+        // the same request again rather than losing a build over a parameter we didn't need.
+        if(!sent.r.ok && sent.r.status===400 && geminiThinkOk && /thinking/i.test(sent.detail)){
+          geminiThinkOk=false; delete body.generationConfig.thinkingConfig;
+          sent=await sendGemini();
         }
-        data=await res.json();
+        res=sent.r;
+        if(!res.ok){
+          const detail=sent.detail;
+          const err=new Error('Gemini '+res.status+(res.status===400?' — bad key or model id':res.status===403?' — key rejected':res.status===404?' — no such model':res.status===429?' — rate limited':'')+(detail?' — '+detail:''));
+          err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000;
+          if(window.__aiIsDailyLimit(detail)) err.exhausted=true;
+          throw err;
+        }
+        data=sent.payload; // already parsed by sendGemini — a body can only be read once
         const cand=data?.candidates?.[0];
         text=(cand?.content?.parts||[]).map(p=>p&&p.text).filter(Boolean).join('');
         if(!text){
@@ -7908,7 +8134,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         res=await post('ferrett_ai_request', { ...shared,
           temperature: opts.creative?0.8:0.3,
           max_tokens: opts.maxTokens || 1500,
-          reasoning_effort: 'low',
+          reasoning_effort: opts.think || 'low',
+          // Only sent when something has explicitly chosen one; otherwise the rest_command's own
+          // default stands, so an un-updated Home Assistant keeps behaving exactly as it did.
+          ...(c.haModel ? { model: c.haModel } : {}),
           response_format: opts.json?'json_object':'text' });
         // 400 from HA means the service doesn't exist — this Home Assistant hasn't picked up the new
         // rest_command yet. Fall back to the old pair so the app still works, just unparameterized.
@@ -7978,12 +8207,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       b.classList.toggle('text-[#00E5FF]/50', !on);
     });
   }
-  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode||'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-gemini-key').value=c.geminiKey||''; $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; $('ai-test-out').textContent=''; const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode||'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-gemini-key').value=c.geminiKey||''; $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; $('ai-gemini-think').value=c.geminiThink||'low'; $('ai-test-out').textContent=''; const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
   window.__openAiModal = openAiModal;
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
   function readModalCfg(){
     if(modalMode==='groq') return { mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
-    if(modalMode==='gemini') return { mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash' };
+    if(modalMode==='gemini') return { mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
     return { mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() };
   }
   async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v71';
+window.APP_VERSION = 'v72';
 document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3337,9 +3337,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const KIT_BATCH = 3;
     const KIT_RETRIES = 2; // extra attempts per batch within a single sweep, on top of the first try
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    // Real exponential backoff with jitter, and if the server told us how long to wait (429
-    // Retry-After), honor that instead of guessing — a fixed short delay doesn't help if the account
-    // is actually rate-limited for several seconds.
+
+    // ---------- THE ACTUAL CEILING: TOKENS PER MINUTE ----------
+    // Groq's free tier meters tokens per MINUTE (8000 for gpt-oss-120b), and it costs a request at
+    // prompt + max_completion_tokens — the ceiling you ASK for is reserved up front, whether the
+    // answer ends up using it or not. Two things follow, and the kit used to get both wrong.
+    //
+    // One: no single call may ask for more than the whole minute. A request with a padded 8000-token
+    // completion ceiling is by itself larger than the entire budget and is refused outright with
+    // "Request too large", however short the real answer would have been. So every ceiling below is
+    // sized for the answer, and nothing is padded "just in case".
+    //
+    // Two: firing calls and reacting to the 429s afterwards cannot work here. A refused call burns
+    // the same wall-clock time as a successful one and comes back with nothing, and the retry rounds
+    // then re-refuse for the same reason — which is exactly what "Vocals · Cymbals · Toms" was.
+    // So spend the minute deliberately: reserve each call's cost in a rolling 60s window and wait for
+    // room BEFORE sending. A kit is a few minutes' work on this tier; that's fine, failing isn't.
+    const TPM_BUDGET = 7200;   // headroom under the 8000 cap for the estimate running light
+    const TPM_WINDOW = 60000;
+    const tpmLog = [];         // { t, tokens } reservations made within the last minute
+    // Deliberately pessimistic: over-reserving costs a pause, under-reserving costs a refused call.
+    const estTokens = (s) => Math.ceil(String(s || '').length / 3.5);
+    async function tpmReserve(tokens, onWait){
+        for (;;){
+            const now = Date.now();
+            while (tpmLog.length && now - tpmLog[0].t >= TPM_WINDOW) tpmLog.shift();
+            const used = tpmLog.reduce((a, e) => a + e.tokens, 0);
+            // The empty-log case also has to pass unconditionally: a call bigger than the whole budget
+            // would otherwise wait for room that can never appear, and hang the build forever.
+            if (!tpmLog.length || used + tokens <= TPM_BUDGET) { const e = { t: now, tokens }; tpmLog.push(e); return e; }
+            const waitMs = Math.max(1000, TPM_WINDOW - (now - tpmLog[0].t) + 300);
+            if (onWait) onWait(Math.ceil(waitMs / 1000));
+            await sleep(Math.min(waitMs, 15000));
+        }
+    }
+    // A rejection means the server's own accounting disagrees with ours, so make the window believe
+    // what the server said: park the full budget for as long as it asked to be left alone.
+    function tpmPenalize(ms){
+        // An entry expires at t + TPM_WINDOW, so back-date t to land the expiry exactly where the
+        // server asked. That puts it out of order, and both the eviction loop and the wait maths read
+        // tpmLog[0] as the oldest entry — so re-sort rather than quietly corrupting the window.
+        tpmLog.push({ t: Date.now() - TPM_WINDOW + Math.max(1000, Math.min(ms || 15000, TPM_WINDOW)), tokens: TPM_BUDGET });
+        tpmLog.sort((a, b) => a.t - b.t);
+    }
+
     // A 400 while requesting JSON mode means this model/backend doesn't support response_format at all,
     // so once one call has found that out, no later call in the build should pay to rediscover it.
     let kitJsonMode = true;
@@ -3351,14 +3392,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // timeout fails identically every attempt, so for those the useful next move is to make the
         // request smaller (see the retry rounds below), not to fire the same one twice more.
         const retries = opts.retries == null ? KIT_RETRIES : opts.retries;
+        const promptCost = estTokens(sys) + estTokens(user);
+        const cost = promptCost + (opts.maxTokens || 1500);
         for (let attempt = 0; attempt <= retries; attempt++){
-            try { return await window.ferrettAI(sys, user, { ...opts, json: useJson }); }
+            const held = await tpmReserve(cost, opts.onWait);
+            try {
+                const out = await window.ferrettAI(sys, user, { ...opts, json: useJson });
+                // Admission and consumption are metered differently, and conflating them costs real
+                // minutes. Getting IN needs prompt + the whole ceiling to fit under the cap, which is
+                // why `cost` is reserved above — but what the window then carries for the next 60s is
+                // only what was actually spent, and an answer is routinely a fraction of its ceiling.
+                // Holding the unused ceiling reserved throttles the build to roughly one call a
+                // minute for no reason at all.
+                if (held) held.tokens = promptCost + estTokens(out);
+                return out;
+            }
             catch(e){
                 lastErr = e;
+                // A 400 that's really about SIZE has nothing to do with JSON mode. Turning JSON mode
+                // off wouldn't shrink the request by a single token — it would just cost the rest of
+                // the kit its guaranteed-parseable output in exchange for nothing.
+                const sizeOrRate = /too large|tokens per minute|\bTPM\b|rate limit/i.test(e.message || '');
                 // Dropping JSON mode changes the request, so it earns a free attempt that isn't
                 // counted against `retries` — and it can only ever happen once, since useJson is
                 // false from here on.
-                if (e.status === 400 && useJson) { useJson = false; kitJsonMode = false; attempt--; continue; }
+                if (e.status === 400 && useJson && !sizeOrRate) { useJson = false; kitJsonMode = false; attempt--; continue; }
+                if (e.status === 429 || sizeOrRate) tpmPenalize(e.retryAfterMs);
                 if (attempt < retries) {
                     const backoff = 700 * Math.pow(2, attempt) + Math.random()*300;
                     await sleep(Math.min(e.retryAfterMs || backoff, 9000));
@@ -3477,7 +3536,7 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
     async function selectPalette(genre, meta, owned){
         const sys = `You are a veteran hip-hop producer. You will be given a genre and the COMPLETE list of plugins a producer owns. Choose the working palette you would actually reach for to produce a whole track in this genre — sound sources AND processing, between them covering every one of these roles: ${window.KIT_SLOTS.join(', ')}.
 
-Pick around ${PALETTE_TARGET} plugins and never more than ${PALETTE_TARGET + 8}. Choose ONLY from the list you are given, and copy each name EXACTLY as it appears there — do not rename, expand, abbreviate or tidy it. ${REAPER_STOCK}, so don't spend picks on those. Favour a tight, coherent set that a producer would keep loaded for this style over a broad survey of everything owned; genre accuracy matters far more than coverage.
+Pick around ${PALETTE_TARGET} plugins and never more than ${PALETTE_TARGET}. Choose ONLY from the list you are given, and copy each name EXACTLY as it appears there — do not rename, expand, abbreviate or tidy it. ${REAPER_STOCK}, so don't spend picks on those. Favour a tight, coherent set that a producer would keep loaded for this style over a broad survey of everything owned; genre accuracy matters far more than coverage.
 
 Reply with ONLY valid JSON, no markdown fences, no commentary: {"palette":["exact name","exact name"]}`;
         const user = `GENRE: ${genre}
@@ -3494,7 +3553,10 @@ ${owned.join(', ')}`;
         // The cap was only ever a request in the prompt, and a model that ignores it hands back a
         // palette twice the size it was asked for — which puts the whole point of phase 1 (small,
         // coherent context on every batch call) straight back where it started. Enforce it here.
-        return picked.slice(0, PALETTE_TARGET + 8);
+        // It's a hard cap rather than a nicety on a per-minute token budget: the palette is resent,
+        // with the control docs for everything in it, on every single batch call, so each plugin over
+        // the line is paid for four or five times over.
+        return picked.slice(0, PALETTE_TARGET);
     }
 
     // Every generated kit is kept — regenerating adds a new entry rather than overwriting, so past
@@ -3595,18 +3657,25 @@ ${gear.join(', ')}`;
             for (let b = 0; b < pending.length; b++) {
                 const slots = pending[b].slots.filter(s => !have.has(s));
                 if (!slots.length) continue; // an earlier round already covered these
-                kitProgress(genre, b + 1, pending.length + 1, `${label}: ${slots.join(', ')}`);
-                if (b > 0) await sleep(3000); // real spacing — free-tier token-per-minute caps need the calls spread across the minute, not bunched at its start
+                const what = `${label}: ${slots.join(', ')}`;
+                kitProgress(genre, b + 1, pending.length + 1, what);
                 try {
                     const raw = await callWithRetry(kitSysPrompt(slots, controls), ctx, {
                         creative: true, json: true,
                         // Multi-slot gets one blip retry, then the splitter shrinks it. Single slots get
                         // none — the round loop below already retries them up to 4 times with far better
-                        // spacing (5s/10s/15s) than an inner backoff, and stacking the two meant a slot
-                        // that was simply never coming back cost 9 calls against the rate cap.
+                        // spacing than an inner backoff, and stacking the two meant a slot that was
+                        // simply never coming back cost 9 calls against the rate cap.
                         retries: slots.length > 1 ? 1 : 0,
                         timeoutMs: 90000,
-                        maxTokens: slots.length > 1 ? 4000 : 1800,
+                        // Sized so prompt + ceiling clears the per-minute cap with room to spare. The
+                        // old 4000/1800 were guesses at how long an answer might run; with
+                        // reasoning_effort low the real answers are far shorter than either, and every
+                        // token of ceiling asked for is a token reserved against the minute.
+                        maxTokens: slots.length > 1 ? 2600 : 1400,
+                        // The pacer holds calls back to stay inside the cap, which can mean a genuine
+                        // half-minute of nothing happening. Say so, rather than looking hung.
+                        onWait: (secs) => kitProgress(genre, b + 1, pending.length + 1, `${what} — pausing ${secs}s for the token-per-minute cap`),
                     });
                     let parsed = null, salvaged = false;
                     try { parsed = extractJson(raw); }
@@ -3649,7 +3718,9 @@ ${gear.join(', ')}`;
             let pending = batches.map(slots => ({ slots }));
             for (let round = 0; round < MAX_ROUNDS && pending.length; round++) {
                 if (round > 0) {
-                    await sleep(5000 * round); // 5s, 10s, 15s — enough for a per-minute cap to meaningfully refill, not just a network blip to clear
+                    // No cooldown here any more. Spacing calls out across the minute is the pacer's
+                    // job now, and it does it from the actual token budget rather than a guessed
+                    // 5s/10s/15s that was always either too short to matter or dead time.
                     pending = pending.flatMap(p => p.slots.map(s => ({ slots: [s], error: p.error })));
                 }
                 pending = await runSweep(pending, round === 0 ? 'building' : `retry pass ${round+1}/${MAX_ROUNDS-1}`);
@@ -7709,10 +7780,14 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         if(!c.groqKey) throw new Error('No Groq key set — open ⚙ setup.');
         const model=c.groqModel||'openai/gpt-oss-120b';
         const body={ model, temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] };
-        // gpt-oss and friends count reasoning against max_completion_tokens, so a ceiling sized for
-        // the answer alone gets spent before the answer starts and comes back as an empty content
-        // string with finish_reason 'length'. Same headroom rule the Gemini branch already applies.
-        if(opts.maxTokens) body.max_completion_tokens=Math.max(opts.maxTokens*2, 8000);
+        // Exactly what the caller asked for, deliberately — do NOT pad this the way the Gemini branch
+        // does. Groq charges a request against the tokens-per-minute cap as prompt +
+        // max_completion_tokens, reserving the ceiling whether the answer uses it or not, so padding
+        // for reasoning headroom is self-defeating: on the free tier's 8000 TPM a request asking for
+        // 8000 completion tokens is bigger than the entire minute and is refused outright with
+        // "Request too large", however short the real answer would have been. Callers size their own
+        // headroom; reasoning_effort is what keeps the amount needed small.
+        if(opts.maxTokens) body.max_completion_tokens=opts.maxTokens;
         if(/gpt-oss/i.test(model)) body.reasoning_effort='low'; // keep the thinking short so the budget goes on the answer
         if(opts.json) body.response_format={ type:'json_object' };
         res=await fetch('https://api.groq.com/openai/v1/chat/completions',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.groqKey}, body:JSON.stringify(body) });
@@ -7757,9 +7832,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // "creative storyteller" persona in front of the system prompt, drop response_format on the
         // floor, and — the killer — set no `timeout:`, so HA's 10s rest_command default aborts any
         // call long enough to matter. opts.timeoutMs never had a say; HA gave up first.
+        // Sized, never padded — see the max_completion_tokens note on the direct-Groq branch above.
         res=await post('ferrett_ai_request', { ...shared,
           temperature: opts.creative?0.8:0.3,
-          max_tokens: Math.max((opts.maxTokens||0)*2, 8000),
+          max_tokens: opts.maxTokens || 1500,
           reasoning_effort: 'low',
           response_format: opts.json?'json_object':'text' });
         // 400 from HA means the service doesn't exist — this Home Assistant hasn't picked up the new
@@ -7778,6 +7854,19 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // response from the model." and four rounds of retries taught us nothing about why.
         haFinish = sr?.content?.choices?.[0]?.finish_reason ?? sr?.choices?.[0]?.finish_reason;
         haApiErr = sr?.content?.error?.message ?? sr?.error?.message;
+        // Groq's own 400s and 429s arrive INSIDE a 200 from Home Assistant — HA reports that it
+        // successfully made a request, and the rejection is just the body it got back. So without
+        // this, a rate-limit refusal reached the caller as an anonymous "empty response" with no
+        // status to switch on: callWithRetry couldn't tell it from a fluke, backed off by guesswork,
+        // and re-sent the same over-budget request until the rounds ran out. Rethrow it as the rate
+        // limit it is, carrying the server's own "try again in 14.2275s" as the delay.
+        if(!text && haApiErr){
+          const err=new Error(haApiErr);
+          if(/rate limit|tokens per minute|\bTPM\b|too large/i.test(haApiErr)) err.status=429;
+          const m=/try again in ([\d.]+)\s*s/i.exec(haApiErr);
+          if(m) err.retryAfterMs=Math.ceil(parseFloat(m[1])*1000)+500;
+          throw err;
+        }
         if(!text && msg && msg.reasoning) emptyHint='the model returned only its reasoning and no answer — it ran out of tokens before writing one';
         else if(!text && !msg) emptyHint='Home Assistant returned no model response at all — usually the rest_command timing out';
       }

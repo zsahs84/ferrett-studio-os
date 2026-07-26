@@ -3148,6 +3148,74 @@ document.addEventListener('DOMContentLoaded', () => {
     window.getGenreMeta = (genre) => window.LYRIA_GENRE_META[genre] || window.LYRIA_GENRE_META['__default__'];
     window.getGenreBpmMid = (genre) => { const m = window.getGenreMeta(genre); return Math.round((m.bpm[0] + m.bpm[1]) / 2); };
 
+    // ==================== KNOWN PLUGIN CONTROL SETS ====================
+    // ownedPlugins constrains WHICH plugins the AI may name. It says nothing about what knobs those
+    // plugins have — so the AI would happily hand back an LA-2A attack time or a Pultec MEQ-5 dip at
+    // 400Hz. Both read as authoritative and neither exists, which you only discover once you're sat
+    // in front of the plugin trying to dial it in.
+    //
+    // Hardware emulations are the worst offenders, because their control set is the HARDWARE's — often
+    // just two knobs, often stepped to a fixed list of frequencies rather than a continuous sweep.
+    // Anything listed below gets stated to the model as fact so it can't guess; anything NOT listed
+    // falls under the describe-the-move rule in kitSysPrompt. Deliberately kept to gear whose real
+    // controls are certain — a wrong entry here would be the same bug with more authority behind it.
+    window.PLUGIN_CONTROLS = [
+        { match: /teletronix|\bLA-?2A?\b|6176/i, name: 'Teletronix LA-2A (all variants)',
+          text: 'Peak Reduction, Gain, and a Compress/Limit switch. That is the ENTIRE control set. It has no attack, no release, no ratio, no threshold, no knee — the timing is fixed and program-dependent. Specify it as an amount of Peak Reduction and the resulting gain reduction in dB, nothing else.' },
+        { match: /\bLA-?3A\b/i, name: 'UA LA-3A',
+          text: 'Peak Reduction, Gain, Compress/Limit switch. Like the LA-2A it has no attack, release or ratio control.' },
+        // No \b after the digits: "1176AE" and "1176LN Rev E" have a word character straight after
+        // the number, so \b1176\b silently misses two of the three variants. 6176 is in here too
+        // because the LA-6176's compressor section is an 1176 (its opto half hits the LA-2A entry).
+        { match: /1176|6176/i, name: 'UA 1176 (Rev A, Rev E/LN, 1176AE)',
+          text: 'Input, Output, Attack, Release, and ratio buttons at 4:1 / 8:1 / 12:1 / 20:1 (holding several in at once is "all-buttons" mode). There is NO threshold knob — you set how hard it works with Input. Attack and Release are numbered 1-7 dials, and they are REVERSED: 7 is fastest, 1 is slowest. Never give an 1176 attack or release in milliseconds; give the dial position or just "fastest"/"slowest".' },
+        { match: /EQP-?1A/i, name: 'Pultec EQP-1A',
+          text: 'Low Boost and Low Atten share one stepped frequency selector: 20, 30, 60 or 100 Hz — no other value exists. High Boost frequency is stepped 3, 4, 5, 8, 10, 12 or 16 kHz. High Atten frequency is stepped 5, 10 or 20 kHz. The Boost/Atten dials are 0-10, NOT calibrated in dB, so ask for "Low Boost to about 4" rather than "+3dB". Bandwidth is a continuous Sharp-to-Broad knob affecting the high boost only.' },
+        { match: /MEQ-?5/i, name: 'Pultec MEQ-5',
+          text: 'Three stepped bands and nothing else. Low Peak: 200, 300, 500, 700 or 1000 Hz. Dip: 200, 300, 500, 700, 1k, 1.5k, 2k, 3k, 4k, 5k or 7k Hz. High Peak: 1.5k, 2k, 3k, 4k or 5k Hz. The boost/atten dials are 0-10, not dB. Any frequency not on those lists is unreachable.' },
+        { match: /HLF-?3C/i, name: 'Pultec HLF-3C',
+          text: 'Filters only — it cannot boost or cut a band at all. High-pass stepped at 50, 80, 100, 150, 200, 300 or 500 Hz; low-pass stepped at 1.5k, 3k, 4k, 5k, 8k, 10k, 12k, 15k or 20 kHz, each with a slope switch. There is no gain control of any kind.' },
+        { match: /fairchild/i, name: 'Fairchild 660 / 670',
+          text: 'Input Gain, Threshold, and a six-position Time Constant selector (each position is a fixed attack/release pair — quote the position number, never a millisecond value). No ratio control, no attack or release knob. The 670 adds a Lat/Vert (mid-side) vs Left/Right mode switch.' },
+        { match: /dbx.?160/i, name: 'UA dbx 160',
+          text: 'Threshold, Compression (ratio) and Output Gain. Three knobs. Attack and release are fixed and program-dependent — it has no control for either.' },
+        { match: /distressor/i, name: 'Empirical Labs Distressor',
+          text: 'Input, Output, Attack, Release, ratio buttons at 1:1, 2, 3, 4, 6, 10, 20 and Nuke, a Detector HP/HP2 switch, and Dist 2 / Dist 3 / British Mode buttons. Attack and Release are 1-10 dials — do NOT state them in milliseconds.' },
+        { match: /api.?2500/i, name: 'API 2500',
+          text: 'Threshold and Make-Up are continuous; Ratio is stepped at 1.5, 2, 3, 4, 6 and 10:1; Attack and Release are six-position stepped switches (attack roughly 0.03-30 ms, release roughly 0.05-3 s plus Auto) — quote a real step, not an arbitrary number. Also Thrust (Norm/Med/Loud), Type (Old/New), Knee (Soft/Med/Hard) and a Mix knob.' },
+        { match: /ssl.?g.?bus|g.?bus.?comp/i, name: 'SSL G-Bus Compressor',
+          text: 'Everything except Threshold and Make-Up is a stepped switch. Ratio: 2:1, 4:1 or 10:1 only. Attack: 0.1, 0.3, 1, 3, 10 or 30 ms only. Release: 0.1, 0.3, 0.6, 1.2 s or Auto only. Any other attack or release figure is unreachable.' },
+        { match: /ssl.?e.?channel|e.?channel.?strip/i, name: 'SSL E Channel Strip',
+          text: 'Its compressor has Threshold, Ratio and Release plus a Fast Attack BUTTON — there is no continuous attack knob, so say "Fast Attack in" or "out" rather than an attack time. Separate gate/expander section with its own threshold and release.' },
+        { match: /variable.?mu/i, name: 'Manley Variable Mu',
+          text: 'Input, Output, Threshold, stepped Attack and Recovery switches, a Limit/Compress mode switch and a HIP filter. It has NO ratio control — the ratio varies with level, which is the whole point of the design. Quote Attack/Recovery as switch positions, not milliseconds.' },
+        { match: /massive.?passive/i, name: 'Manley Massive Passive',
+          text: 'Four bands, each with an ELEVEN-POSITION stepped frequency selector — the frequencies are not continuous and each band covers a different set, so an arbitrary figure like "820Hz" is usually unreachable. Per band: Gain (±20dB), continuous Bandwidth, a Shelf/Bell switch and a Boost/Cut switch. Describe the band and direction rather than guessing an exact frequency.' },
+        { match: /1073/i, name: 'Neve 1073',
+          text: 'Every EQ frequency is stepped. Low shelf: 35, 60, 110 or 220 Hz. Mid bell: 360 Hz, 700 Hz, 1.6k, 3.2k, 4.8k or 7.2 kHz. High shelf is fixed at 12 kHz. High-pass: 50, 80, 160 or 300 Hz. Gains are continuous to about ±16dB. No other centre frequency exists on this unit.' },
+        { match: /helios|type.?69/i, name: 'UA Helios Type 69',
+          text: 'Bass and treble frequencies are stepped selectors, not continuous sweeps, and the mid section is a fixed lift rather than a fully parametric band. Name the band and the direction rather than inventing a centre frequency.' },
+        { match: /studer|oxide|atr-?102|ampex/i, name: 'Tape machines (Studer A800, Oxide, Ampex ATR-102)',
+          text: 'Controls are tape speed (7.5 / 15 / 30 ips), tape formulation selector, record and repro level calibration in dB, bias trim and an IEC/NAB EQ switch. Wow, flutter and hiss are modelled behaviours toggled on or off — there is NO percentage or depth value for them, so never write "2% wow/flutter". Speed and tape stock are what you actually change.' },
+        { match: /\bvinyl\b/i, name: 'iZotope Vinyl',
+          text: 'Year selector (1930-2000), RPM (33 / 45 / 78), and amount sliders for Mechanical Noise, Electrical Noise, Dust, Scratch and Warp. It has no frequency, dB or time parameters at all — specify a year, an RPM and which noise sliders to raise.' },
+        { match: /lexicon.?224/i, name: 'UA Lexicon 224',
+          text: 'Program selector (plates, halls, rooms, chorus), Decay time in real seconds, Pre-Delay in ms, and Bass/Treble decay multipliers. Decay in seconds IS a genuine setting on this one — quote it normally.' },
+        { match: /minimoog/i, name: 'UA Minimoog',
+          text: 'Three oscillators with range and waveform selectors, a mixer section, and a ladder filter whose Cutoff, Emphasis and Contour are 0-10 dials with NO frequency readout. Never give a Minimoog filter setting in Hz — give the dial position.' },
+        { match: /rotary.?speaker/i, name: 'UA Waterfall Rotary Speaker',
+          text: 'Rotor speed is a Slow / Fast / Brake switch, plus acceleration time and horn/drum balance. There is no rate in Hz — name the speed and let it ramp.' }
+    ];
+
+    // Only the entries matching gear the producer actually owns get sent, so this stays small next to
+    // the owned-plugins list that already gets resent on every batch call (see KIT_BATCH).
+    window.pluginControlsBrief = (owned) => {
+        const hay = (owned || []).join(' | ');
+        const hits = window.PLUGIN_CONTROLS.filter(e => e.match.test(hay));
+        if (!hits.length) return '';
+        return `KNOWN CONTROL SETS — the real controls on gear in this list. These are facts; never contradict them and never name a control not mentioned here for these units:\n${hits.map(e => `- ${e.name}: ${e.text}`).join('\n')}`;
+    };
+
     // ==================== AI GENRE KIT ====================
     // Builds a full per-instrument chain sheet for a genre, constrained to the plugins the user
     // actually owns (window.db.ownedPlugins). Stored per-genre in window.db.genreKits so it survives
@@ -3159,12 +3227,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Assistant rest_command timeout — HA then returns an error page with no CORS headers and the
     // browser reports it as a CORS failure. Batching keeps every call the same size/duration as the
     // lyrics tools' calls, which are known to work on both backends.
-    // The full owned-plugins list (can easily be 800-1000+ tokens on its own) gets resent as context on
-    // EVERY batch call, not just once — so more/smaller batches means MORE total tokens burned per kit,
-    // not less. That's the opposite of what you want against a free-tier tokens-per-minute cap. 3 keeps
-    // each individual response modest (the original reason for batching at all — avoiding an HA
-    // rest_command timeout on one giant request) while quartering the number of times that plugin list
-    // gets repeated, versus one-slot-per-call.
+    // Whatever gear context a batch carries gets resent on EVERY batch call, not just once, so more and
+    // smaller batches means MORE total tokens burned per kit, not less — the opposite of what you want
+    // against a free-tier tokens-per-minute cap. Phase 1 (selectPalette) is what actually fixed the
+    // size of that context: batches now carry ~24 chosen plugins and only the control docs for those,
+    // instead of the full 100+ owned list plus every control doc that matched it.
+    // 3 stays the right batch size regardless, because the constraint it was chosen for hasn't moved:
+    // it's the RESPONSE that has to stay small enough to come back before the HA rest_command times out,
+    // and response length depends on slots-per-call, not on how much context went in.
     const KIT_BATCH = 3;
     const KIT_RETRIES = 2; // extra attempts per batch within a single sweep, on top of the first try
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -3191,7 +3261,9 @@ document.addEventListener('DOMContentLoaded', () => {
         throw lastErr;
     }
 
-    function kitSysPrompt(slots){
+    // `controls` is computed once per kit from the selected palette (see selectPalette) rather than
+    // per call from the whole owned list, so what ships here is only the gear actually in play.
+    function kitSysPrompt(slots, controls){
         return `You are a veteran hip-hop producer and mix engineer with deep, specific knowledge of how each sub-genre gets its sound — the actual processing moves, not generic advice.
 
 You will be given a genre with its tempo/mood/texture, and the COMPLETE list of plugins the producer owns. These are CANDIDATE instrument roles, not a required checklist: ${slots.join(', ')}.
@@ -3199,14 +3271,17 @@ You will be given a genre with its tempo/mood/texture, and the COMPLETE list of 
 HARD RULES:
 - The genre is a blank slate — it does NOT necessarily use every candidate role. If a role genuinely isn't part of how this genre is actually produced (e.g. no live Guitars in a pure 808/trap style, no Toms in a genre built entirely on programmed kick/snare/hats, no separate Ad-Libs in a genre that doesn't typically use them), OMIT it from your response entirely. Do not invent a generic chain just to fill the slot.
 - It's completely normal, and expected for narrower genres, to return fewer entries than candidates given — even zero, if none of these specific candidates genuinely apply.
-- For roles you DO include: use ONLY plugins from the owned list. Never invent or suggest a plugin that is not on it. Match the names exactly as given.
-- Give real, specific settings (ratios, frequencies in Hz, attack/release in ms, dB amounts, drive amounts). No vague "to taste".
+- For roles you DO include: use ONLY plugins from the palette you are given, plus Reaper's own stock effects (${REAPER_STOCK}). Never invent or suggest anything else. Match the names exactly as given.
+- SETTINGS MUST BE REAL. Only name a control the plugin genuinely has, and only a value that control can genuinely reach. Many of these are emulations of hardware, so the control set is the hardware's: often only two knobs, and often a stepped selector that stops at a fixed list of frequencies instead of sweeping. A setting that reads plausibly but doesn't exist on the knob is WORSE than no setting — the producer only finds out once they're sat in front of the plugin trying to dial it in.
+- If you are not certain of a plugin's exact control name or its range, DESCRIBE THE MOVE using what that plugin actually exposes rather than inventing a figure: "Pultec MEQ-5 — dip the low-mid band, dial around 6" beats a made-up "cut 3dB at 420Hz". Prefer the nearest real stepped value over an arbitrary one. Never write a bare "to taste" — always say which knob and which direction.
+- Where you ARE certain (ReaEQ, ReaComp, TDR Nova, Kilohearts, Vital and other plain digital tools with continuous parameters), stay fully specific: exact Hz, dB, ms, ratios.
 - Order the chain the way it should sit in the insert slots, first to last.
 - Give 1-3 recipes per included role — your call. More where the genre has genuinely distinct options worth having, one where the genre demands a specific sound.
 - Be genre-accurate. A Memphis horrorcore snare and a G-funk snare are not the same chain.
 - Keep each "why" to one sentence.
 - Give each recipe an evocative TITLE, not a technical description — the kind of 2-4 word phrase that names a vibe, like a mixtape or song title (e.g. "Crenshaw Cruisin'" for a laid-back G-Funk bassline, "Basement Static" for a lo-fi horrorcore snare). Never a literal description like "Distorted 808 Chain" or "Chain 1".
 
+${controls ? '\n' + controls + '\n' : ''}
 Reply with ONLY valid JSON, no markdown fences, no commentary, in exactly this shape:
 {"instruments":[{"slot":"<exact candidate name>","recipes":[{"name":"evocative vibe title","chain":["Plugin Name — specific settings","Plugin Name — specific settings"],"why":"one sentence"}]}]}
 
@@ -3220,6 +3295,56 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
         if (first > 0 || last < t.length-1) { if (first >= 0 && last > first) t = t.slice(first, last+1); }
         try { return JSON.parse(t); }
         catch(e){ return JSON.parse(t.replace(/,(\s*[}\]])/g, '$1')); } // common near-miss: a trailing comma before a closing bracket
+    }
+
+    // ==================== PHASE 1: PICK THE PALETTE ====================
+    // The kit used to resend the ENTIRE owned list on every batch call, and once the control-set
+    // reference arrived it was resending that too — both of them four times over, for gear that
+    // mostly never gets used in the genre being built. So: ask once which plugins this genre actually
+    // calls for, then every batch carries only that shortlist and only the control docs belonging to
+    // it. One extra call up front pays for itself several times over, and the reference block can
+    // afford to be properly detailed because only the selected handful ever ships.
+    //
+    // It also makes for a better kit. Choosing the palette once, up front, gives every instrument in
+    // the sheet the same working set — which is what a producer's template actually looks like —
+    // instead of each batch independently rummaging through 150 plugins.
+    const REAPER_STOCK = 'ReaEQ, ReaComp, ReaGate, ReaDelay, ReaVerbate, ReaXcomp, ReaPitch and the bundled JS effects are always available in Reaper and never need to be in the palette';
+    const PALETTE_TARGET = 24;
+    const PALETTE_MIN = 8; // fewer survivors than this means the pick genuinely failed, not that the genre is narrow
+
+    // The model hands names back as prose, so "1176 Rev A" has to resolve to whatever the owned list
+    // actually calls it before we trust it. Exact, then case-insensitive, then containment either way
+    // with a length floor so a 2-character entry can't swallow everything. Anything that still doesn't
+    // resolve was invented, and gets dropped rather than quietly passed through to the next phase.
+    function snapToOwned(name, owned){
+        const n = String(name || '').trim(); if (n.length < 2) return null;
+        const low = n.toLowerCase();
+        const exact = owned.find(o => o === n) || owned.find(o => o.toLowerCase() === low);
+        if (exact) return exact;
+        if (low.length < 4) return null;
+        return owned.find(o => o.length >= 4 && o.toLowerCase().includes(low))
+            || owned.find(o => o.length >= 4 && low.includes(o.toLowerCase()))
+            || null;
+    }
+
+    async function selectPalette(genre, meta, owned){
+        const sys = `You are a veteran hip-hop producer. You will be given a genre and the COMPLETE list of plugins a producer owns. Choose the working palette you would actually reach for to produce a whole track in this genre — sound sources AND processing, between them covering every one of these roles: ${window.KIT_SLOTS.join(', ')}.
+
+Pick around ${PALETTE_TARGET} plugins and never more than ${PALETTE_TARGET + 8}. Choose ONLY from the list you are given, and copy each name EXACTLY as it appears there — do not rename, expand, abbreviate or tidy it. ${REAPER_STOCK}, so don't spend picks on those. Favour a tight, coherent set that a producer would keep loaded for this style over a broad survey of everything owned; genre accuracy matters far more than coverage.
+
+Reply with ONLY valid JSON, no markdown fences, no commentary: {"palette":["exact name","exact name"]}`;
+        const user = `GENRE: ${genre}
+TEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM
+MOOD: ${meta.mood}
+TEXTURE: ${meta.texture}
+
+OWNED PLUGINS (${owned.length}):
+${owned.join(', ')}`;
+        const parsed = extractJson(await callWithRetry(sys, user, { creative: false, json: true }));
+        const raw = Array.isArray(parsed && parsed.palette) ? parsed.palette : [];
+        const picked = [];
+        raw.forEach(n => { const o = snapToOwned(n, owned); if (o && !picked.includes(o)) picked.push(o); });
+        return picked;
     }
 
     // Every generated kit is kept — regenerating adds a new entry rather than overwriting, so past
@@ -3265,16 +3390,29 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
         if (!owned.length) { alert('Add the plugins you own first — Toolbox → AI Assistant → your gear list.'); return; }
 
         const meta = window.getGenreMeta(genre);
+
+        const batches = [];
+        for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
+        const totalSteps = batches.length + 1; // phase 1 counts as a step so the bar doesn't sit at 0 through it
+
+        // Phase 1. A failed or too-thin pick isn't fatal — fall back to the old behaviour of handing
+        // over the whole owned list, which still produces a kit, just a more expensive one.
+        kitProgress(genre, 0, totalSteps, 'picking the palette for this genre');
+        let palette = [];
+        try { palette = await selectPalette(genre, meta, owned); } catch (pe) { palette = []; }
+        const usingPalette = palette.length >= PALETTE_MIN;
+        const gear = usingPalette ? palette : owned;
+
         const ctx = `GENRE: ${genre}
 TEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM
 MOOD: ${meta.mood}
 TEXTURE: ${meta.texture}
 
-OWNED PLUGINS (${owned.length}) — use only these:
-${owned.join(', ')}`;
+${usingPalette ? `YOUR PALETTE FOR THIS GENRE (${gear.length}) — build every chain from these` : `OWNED PLUGINS (${gear.length}) — use only these`}:
+${gear.join(', ')}`;
 
-        const batches = [];
-        for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
+        // Phase 2 context, built once and reused by every batch and every retry.
+        const controls = window.pluginControlsBrief(gear);
 
         // Runs one sweep over a list of {slots} entries, appending anything that comes back into
         // `instruments` and returning whichever entries still failed, each carrying the actual error
@@ -3284,10 +3422,10 @@ ${owned.join(', ')}`;
             const stillFailed = [];
             for (let b = 0; b < pending.length; b++) {
                 const slots = pending[b].slots;
-                kitProgress(genre, b, pending.length, `${label}: ${slots.join(', ')}`);
+                kitProgress(genre, b + 1, pending.length + 1, `${label}: ${slots.join(', ')}`);
                 if (b > 0) await sleep(3000); // real spacing — free-tier token-per-minute caps need the calls spread across the minute, not bunched at its start
                 try {
-                    const raw = await callWithRetry(kitSysPrompt(slots), ctx, { creative: true, json: true });
+                    const raw = await callWithRetry(kitSysPrompt(slots, controls), ctx, { creative: true, json: true });
                     const parsed = extractJson(raw);
                     // A malformed shape (not an array at all) is a real failure — retry it. An empty
                     // or partial array is a legitimate "this genre doesn't use these roles" answer —
@@ -3317,7 +3455,7 @@ ${owned.join(', ')}`;
             const failed = pending.map(p => ({ label: p.slots.join(', '), error: p.error }));
             if (!instruments.length) throw new Error(failed[0]?.error || 'No slots came back.');
 
-            kitProgress(genre, batches.length, batches.length, 'overview');
+            kitProgress(genre, totalSteps, totalSteps, 'overview');
             let overview = '';
             try {
                 overview = await callWithRetry(
@@ -3327,7 +3465,7 @@ ${owned.join(', ')}`;
             } catch (oe) { overview = ''; }
 
             const hist = kitHistory(genre);
-            const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, partial: failed.length ? failed : null };
+            const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, palette: usingPalette ? palette : null, partial: failed.length ? failed : null };
             hist.push(newKit);
             window.db.genreKits[genre] = hist;
             window.saveData();
@@ -3457,6 +3595,10 @@ ${owned.join(', ')}`;
             </div>
             ${navBar}
             ${kit.overview?`<p class="text-[11px] md:text-[12px] text-[#A7DCC3]/80 italic mb-5 border-l-2 border-[#FF88FF40] pl-4 leading-relaxed font-mono">${esc(kit.overview)}</p>`:''}
+            ${Array.isArray(kit.palette)&&kit.palette.length?`<div class="mb-5 p-3 rounded border border-[#FF88FF25] bg-[#FF88FF]/5">
+                <div class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold mb-2">🎛 PALETTE · ${kit.palette.length} PLUGINS CHOSEN FOR THIS GENRE</div>
+                <div class="flex flex-wrap gap-1.5">${kit.palette.map(p=>`<span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-black/40 border border-[#FF88FF20] text-[#E2E8F0]/60">${esc(p)}</span>`).join('')}</div>
+            </div>`:''}
             ${kit.partial?(()=>{
                 // Older kits stored partial as plain label strings; newer ones carry the actual error
                 // per slot too, which is what actually diagnoses a persistent failure.
@@ -3555,6 +3697,7 @@ ${owned.join(', ')}`;
         const kit = findKit(genre, kitId); if (!kit) return;
         let md = `# ${genre} — AI Kit\n\n_Generated ${new Date(kit.generatedAt).toLocaleString()} from your owned plugins._\n\n`;
         if (kit.overview) md += `${kit.overview}\n\n`;
+        if (Array.isArray(kit.palette) && kit.palette.length) md += `**Palette (${kit.palette.length}):** ${kit.palette.join(', ')}\n\n`;
         kit.instruments.forEach(inst => {
             md += `## ${inst.slot}\n\n`;
             (inst.recipes||[]).forEach(r => {
@@ -7608,7 +7751,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 
   // ---------- AI STUDIO BRAIN ----------
   let lastBrainArgs=null;
-  function gearContext(){ const p=(window.db&&window.db.ownedPlugins)||[]; if(!p.length) return ''; return ` You only own these plugins/VSTs — when you name a specific tool, pick one from this list, or suggest a free/stock alternative if nothing here fits. Never recommend a paid plugin that isn't on this list: ${p.join(', ')}.`; }
+  // Same fabricated-settings guard as the AI Kit (see window.PLUGIN_CONTROLS): naming only owned
+  // plugins isn't enough on its own, because the model will still invent knobs those plugins don't
+  // have. aiMix in particular asks for a frequency/dB on every item, which is exactly the pressure
+  // that produces an LA-2A "attack time".
+  function gearContext(){
+    const p=(window.db&&window.db.ownedPlugins)||[]; if(!p.length) return '';
+    const controls = (window.pluginControlsBrief && window.pluginControlsBrief(p)) || '';
+    return ` You only own these plugins/VSTs — when you name a specific tool, pick one from this list, or suggest a free/stock alternative if nothing here fits. Never recommend a paid plugin that isn't on this list: ${p.join(', ')}.`
+      + ` Only ever name a control the plugin actually has, and a value it can actually reach — many of these are hardware emulations with just a couple of knobs, often stepped to fixed frequencies rather than sweeping. If you're not certain of a control's name or range, describe the move using what the plugin does expose instead of inventing a Hz/ms/dB figure; a plausible-looking setting that doesn't exist wastes the user's time at the screen.`
+      + (controls ? `\n\n${controls}` : '');
+  }
   function brainBusy(on){ const s=$('ai-brain-spinner'); if(s) s.classList.toggle('hidden',!on); }
   function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } const c=$('ai-brain-out-controls'); if(c && txt){ c.classList.remove('hidden'); c.classList.add('flex'); } }
   async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } const cfg=(()=>{try{return JSON.parse(localStorage.getItem('ferrett_os_ai_v1')||'{}');}catch(e){return {};}})(); if(!(cfg.mode==='groq'?cfg.groqKey:(cfg.url&&cfg.token))){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }

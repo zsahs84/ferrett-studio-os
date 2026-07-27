@@ -1976,7 +1976,7 @@ const defaultDb = {
         'Ample Bass P Lite II (ABPL2)', 'Ample Guitar M Lite II (AGML2)',
         'Ample Percussion Cloudrum (APC)', 'VB-DANDY'
     ],
-    multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// FERRETT OS: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
+    multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// EUTERPE: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
     tracks: [],
     cookbook: [
         // Baked-in starter recipes removed — the cookbook now starts empty; genres populate as you add or AI-generate recipes.
@@ -2884,7 +2884,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const kitsByGenre = window.db.genreKits || {};
         const total = Object.values(kitsByGenre).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : (arr ? 1 : 0)), 0);
         disp.innerHTML = `<div class="animate-fade-in flex flex-col items-center justify-center text-center py-16 px-4 min-h-[400px]">
-            <div class="text-[9px] tracking-[0.35em] text-[#00FF88]/40 mb-4 uppercase">Ferrett_Studio_OS // Cookbook</div>
+            <div class="text-[9px] tracking-[0.35em] text-[#00FF88]/40 mb-4 uppercase">Euterpe Studio // Cookbook</div>
             <h1 class="text-[34px] md:text-[46px] font-black tracking-widest text-[#00FF88] leading-tight mb-3" style="text-shadow:0 0 24px rgba(0,255,136,0.45), 0 0 60px rgba(0,255,136,0.15);">THE ULTIMATE<br>RECIPE BOOK</h1>
             <div class="w-28 h-[2px] bg-gradient-to-r from-transparent via-[#00FF88]/70 to-transparent my-5"></div>
             <div class="text-[10px] tracking-widest text-[#A7DCC3]/60 font-mono mb-8">${genres.length} GENRES &nbsp;·&nbsp; ${total} AI KITS SAVED &nbsp;·&nbsp; YOUR SIGNAL CHAINS, YOUR RULES</div>
@@ -6276,7 +6276,7 @@ window.exportToReaper = (songId) => {
     const blob = new Blob([rpp], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${(song.title || 'Ferrett_Track').replace(/\s+/g, '_')}_Skeleton.rpp`;
+    a.download = `${(song.title || 'Euterpe_Track').replace(/\s+/g, '_')}_Skeleton.rpp`;
     a.click();
 };
 </script>
@@ -6373,7 +6373,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 // =========================================================================
-// FERRETT ADD-ONS: Now Playing, Color Map + health, Recipe→Checklist,
+// EUTERPE ADD-ONS: Now Playing, Color Map + health, Recipe→Checklist,
 // Chain export (clipboard / download / QR). Self-contained; hooks the
 // existing window.* API and uses event delegation so it survives re-renders.
 // =========================================================================
@@ -7673,7 +7673,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const id=parseInt($('lab-rtt-tone').value,10); const t=(window.db.tones||[]).find(x=>x.id===id); if(!t){ alert('Add a tone first.'); return; }
     const nm=(t.name||'Tone').replace(/"/g,"'");
     const meta=[t.nam?('NAM:'+t.nam):'', t.ir?('IR:'+t.ir):''].filter(Boolean).join(' | ');
-    const chunk=`<TRACK\nNAME "FERRETT · ${nm}${meta?' · '+meta:''}"\nPEAKCOL 33575679\nBEAT -1\nAUTOMODE 0\nVOLPAN 1 0 -1 -1 1\nMUTESOLO 0 0 0\nIPHASE 0\nPLAYOFFS 0 1\nISBUS 0 0\nBUSCOMP 0 0 0 0 0\nSHOWINMIX 1 0.6667 0.5 1 0.5 0 -1 0\nFREEMODE 0\nREC 0 0 1 0 0 0 0 0\nVU 2\nTRACKHEIGHT 0 0 0 0 0 0\nINQ 0 0 0 0.5 100 0 0 100\nNCHAN 2\nFX 1\nTRACKID ${guid()}\nPERF 0\n>\n`;
+    const chunk=`<TRACK\nNAME "EUTERPE · ${nm}${meta?' · '+meta:''}"\nPEAKCOL 33575679\nBEAT -1\nAUTOMODE 0\nVOLPAN 1 0 -1 -1 1\nMUTESOLO 0 0 0\nIPHASE 0\nPLAYOFFS 0 1\nISBUS 0 0\nBUSCOMP 0 0 0 0 0\nSHOWINMIX 1 0.6667 0.5 1 0.5 0 -1 0\nFREEMODE 0\nREC 0 0 1 0 0 0 0 0\nVU 2\nTRACKHEIGHT 0 0 0 0 0 0\nINQ 0 0 0 0.5 100 0 0 100\nNCHAN 2\nFX 1\nTRACKID ${guid()}\nPERF 0\n>\n`;
     const blob=new Blob([chunk],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(t.name||'tone').replace(/[^a-z0-9]+/gi,'_')+'.RTrackTemplate'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
 
@@ -7715,7 +7715,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   async function encImportFile(ev){
     const file=ev.target.files[0]; ev.target.value=''; if(!file) return;
     let parsed; try{ parsed=JSON.parse(await file.text()); }catch(e){ alert('Not a valid backup file.'); return; }
-    if(!parsed.fenc){ alert('That is not a FERRETT encrypted (.fenc) file.'); return; }
+    if(!parsed.fenc){ alert('That is not a EUTERPE encrypted (.fenc) file.'); return; }
     const pass=prompt('Passphrase to decrypt:'); if(!pass) return;
     try{
       const key=await deriveKey(pass,b64dec(parsed.salt));
@@ -8270,7 +8270,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   };
   window.downloadMidi = function(notes, opts, filename){
     const data=window.buildMidiFile(notes, opts); const blob=new Blob([data],{type:'audio/midi'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(filename||'ferrett')+'.mid'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(filename||'feuterpe')+'.mid'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
   };
   const GM_DRUM={ KICK:36, SNARE:38, HAT:42, OHAT:46, CLAP:39, TOM:45 };
   function beatToMidi(){
@@ -8278,7 +8278,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const div=480, sixteenth=div/4; const notes=[];
     KITS.forEach(k=>{ beatPattern[k].forEach((v,i)=>{ if(v) notes.push({pitch:GM_DRUM[k], start:i*sixteenth, dur:sixteenth*0.9, vel: v===2?115:80, ch:9}); }); });
     if(!notes.length){ alert('Add some hits first.'); return; }
-    window.downloadMidi(notes, {division:div, bpm:beatBpm||90}, 'ferrett-beat-'+(beatBpm||90)+'bpm');
+    window.downloadMidi(notes, {division:div, bpm:beatBpm||90}, 'euterpe-beat-'+(beatBpm||90)+'bpm');
   }
 
   // ==================== CHORD PROGRESSION BOOK ====================
@@ -8292,7 +8292,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function progToMidi(degs){
     const ri=NOTES.indexOf($('prog-key').value), tonality=$('prog-tonality').value, div=480, bar=div*4;
     const notes=[]; degs.forEach((d,i)=>{ triadMidi(ri,tonality,d).forEach(p=>notes.push({pitch:p, start:i*bar, dur:bar*0.95, vel:88, ch:0})); });
-    window.downloadMidi(notes, {division:div, bpm:90}, 'ferrett-chords-'+$('prog-key').value+tonality);
+    window.downloadMidi(notes, {division:div, bpm:90}, 'euterpe-chords-'+$('prog-key').value+tonality);
   }
   function buildProg(){
     const key=$('prog-key'), ton=$('prog-tonality'), list=$('prog-list'); if(!list) return;
@@ -8770,7 +8770,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if(!kbTake.length){ $('kb-status').textContent='record a lick first'; return; }
     const bpm=120, div=480, tickPerMs=(bpm/60)*div/1000;
     const notes=kbTake.map(n=>({pitch:n.midi, start:n.t*tickPerMs, dur:0.4*(bpm/60)*div, vel:96, ch:0}));
-    if(window.downloadMidi) window.downloadMidi(notes, {division:div, bpm}, 'ferrett-melody');
+    if(window.downloadMidi) window.downloadMidi(notes, {division:div, bpm}, 'euterpe-melody');
     $('kb-status').textContent='exported MIDI';
   }
 
@@ -8781,7 +8781,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const tc=(s)=>{ const m=Math.floor(s/60), sec=(s%60); return m+':'+sec.toFixed(3).padStart(6,'0'); };
     let t=0; const rows=['#,Name,Start,End,Length'];
     arrData.sections.forEach((s,i)=>{ const dur=s.bars*secPerBar; rows.push(`R${i+1},${s.name},${tc(t)},${tc(t+dur)},${tc(dur)}`); t+=dur; });
-    const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ferrett-arrangement-'+bpm+'bpm.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
+    const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='euterpe-arrangement-'+bpm+'bpm.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
   }
 
   // ==================== TRANSPOSE & CAPO ====================

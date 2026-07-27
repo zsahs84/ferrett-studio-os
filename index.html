@@ -160,8 +160,8 @@ main { background: rgba(5,8,7,0.72); }
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <div class="leading-none min-w-0">
-      <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">EUTERPE_OS</h1>
-      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">REAPER WORKSPACE v43</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
+      <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">EUTERPE</h1>
+      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">Euterpe Creativity Workbench</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
     </div>
     <div class="hidden lg:flex items-center gap-3 ml-4 pl-4 border-l border-[#00FF8814]">
       <div class="vu-wrap" id="vuLeft"><div class="vu-bar" style="height:4px"></div><div class="vu-bar" style="height:8px"></div><div class="vu-bar" style="height:6px"></div><div class="vu-bar" style="height:10px"></div></div>
@@ -5311,7 +5311,7 @@ window.lyriaSongBlock = (songId) => {
     window.setDAW = () => {
         document.body.className = `h-screen flex flex-col overflow-hidden text-sm selection:bg-[#00FF88] selection:text-black`;
         if(window.FERRETT_QUIET) document.body.classList.add('quiet');
-        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = `REAPER WORKSPACE ${window.APP_VERSION}`;
+        const dn = document.getElementById('daw-display-name'); if(dn) dn.innerText = `EUTERPE WORKSPACE ${window.APP_VERSION}`;
         window.refreshAllUI();
     };
 

@@ -1386,12 +1386,13 @@ main { background: rgba(5,8,7,0.72); }
        Lives at the top level (like ai-modal/lyria-modal below), NOT inside a tab or Toolbox panel — it was previously nested inside
        #tbx-panel-arrange, which is only shown when that Toolbox pill is selected, so the modal could never actually display. -->
   <div id="song-detail-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
-      <div class="card border-[#00E5FF40] w-full max-w-lg relative">
-          <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center">×</button>
-          <button id="song-detail-export-rpp" type="button" class="text-[10px] bg-[#FFD60A20] border border-[#FFD60A40] text-[#FFD60A] px-2 py-1 rounded hover:bg-[#FFD60A40] transition uppercase font-bold tracking-wider shadow-[0_0_8px_rgba(255,214,10,0.15)]">
+      <div class="w-full max-w-lg relative">
+          <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 z-10 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center">×</button>
+          <button id="song-detail-export-rpp" type="button" class="absolute -top-3 right-7 z-10 text-[10px] bg-[#FFD60A20] border border-[#FFD60A40] text-[#FFD60A] px-2 py-1 rounded hover:bg-[#FFD60A40] transition uppercase font-bold tracking-wider shadow-[0_0_8px_rgba(255,214,10,0.15)] whitespace-nowrap">
               🎛️ Export .RPP
           </button>
-          <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🗂️ SONG DETAILS</h4>
+          <div class="card border-[#00E5FF40] w-full max-h-[78vh] overflow-y-auto" style="overflow-y:auto;">
+          <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2 pr-24">🗂️ SONG DETAILS</h4>
           <input type="text" id="song-detail-title" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[14px] text-white font-bold px-2 py-1.5 mb-2 focus:outline-none" placeholder="Untitled">
           <textarea id="song-detail-note" rows="3" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 mb-3 focus:outline-none resize-none" placeholder="notes…"></textarea>
           <div class="flex items-center gap-2 mb-3">
@@ -1400,30 +1401,31 @@ main { background: rgba(5,8,7,0.72); }
               <span class="text-[9px] text-white/40 tracking-widest ml-2">BPM</span>
               <input type="number" id="song-detail-bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="—" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
           </div>
-          <div class="grid grid-cols-2 gap-2 mb-2">
+          <div class="grid grid-cols-2 gap-2 mb-3">
               <button id="song-detail-arr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
               <button id="song-detail-lyr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
           </div>
-          <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-4" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
-          <div class="border-t border-[#00E5FF20] pt-3 mb-4">
+          <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-5" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
+          <div class="border-t border-[#00E5FF20] pt-4 mb-5">
               <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
-              <div id="song-detail-tracks-list" class="space-y-1 mb-2"></div>
+              <div id="song-detail-tracks-list" class="space-y-1.5 mb-3"></div>
               <div class="flex gap-2">
                   <select id="song-detail-track-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a track —</option></select>
                   <button id="song-detail-track-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
               </div>
           </div>
-          <div class="border-t border-[#00E5FF20] pt-3">
+          <div class="border-t border-[#00E5FF20] pt-4 mb-5">
               <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎛️ LINKED TONES (TONE DB)</div>
-              <div id="song-detail-tones-list" class="space-y-1 mb-2"></div>
+              <div id="song-detail-tones-list" class="space-y-1.5 mb-3"></div>
               <div class="flex gap-2">
                   <select id="song-detail-tone-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a tone —</option></select>
                   <button id="song-detail-tone-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
               </div>
           </div>
-          <div id="song-detail-kit-wrap" class="border-t border-[#FF88FF20] pt-3 mt-4">
+          <div id="song-detail-kit-wrap" class="border-t border-[#FF88FF20] pt-4 pb-1">
               <div class="text-[9px] text-[#FF88FF]/60 tracking-widest mb-2">🤖 ATTACHED AI KIT</div>
               <div id="song-detail-kit" class="text-[10px]"></div>
+          </div>
           </div>
       </div>
       <div class="mt-4 border-t border-[#00E5FF20] pt-3 w-full card border-[#00E5FF40] max-w-lg" onclick="event.stopPropagation()">
@@ -8830,7 +8832,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     // arrangement (loaded before song board so the board can reflect the attached song on first paint)
     if($('arr-list')){
       const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-euterpe px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
-      $('arr-bpm')?.addEventListener('input',renderArr);
+      $('arr-bpm')?.addEventListener('input',()=>{ renderArr(); saveArr(); renderSongBoard(); if(typeof renderSongDetail==='function') renderSongDetail(); });
       $('btn-arr-markers')?.addEventListener('click',arrToMarkers);
       $('btn-arr-attach')?.addEventListener('click',()=>{
         const sel=$('arr-song-select'); const id=sel.value?parseInt(sel.value,10):null;

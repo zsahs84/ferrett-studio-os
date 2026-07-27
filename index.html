@@ -4969,11 +4969,19 @@ window.lyriaSongBlock = (songId) => {
     });
 
     const uniqueTags = [...new Set(blocks.map(b => lyriaTagCase(b.tag)))];
+    // The structure line the AI sees lists the WHOLE arrangement, including sections with no words
+    // in them — an instrumental intro is part of the shape it is being asked to write to.
+    const structureLine = timeline.length
+        ? timeline.map(s => `${s.tag} at ${lyriaFmtTime(s.time)}`).join(', ')
+        : blocks.map(b => lyriaTagCase(b.tag) || 'section').join(', ');
     return {
+        title: song.title || 'Untitled',
         lyricsBlock: lyricText.trim(),
+        structure: structureLine,
         sections: uniqueTags.length,
         bpm: bpm,
         timed: !!timeline.length,
+        totalSecs: totalSecs,
         duration: totalSecs
     };
 };

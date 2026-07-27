@@ -4861,67 +4861,91 @@ ${gear.join(', ')}`;
     // The one thing here I could not verify: exactly how Lyria wants a timestamp written alongside a
     // section tag. This is the format, in one place — if it turns out to want something else, change
     // this function and nothing else needs touching. Set LYRIA_TIME_TAGS false for plain tags.
-    window.LYRIA_TIME_TAGS = true;
-    window.lyriaSectionHeader = (tag, secs) =>
-        `[${lyriaTagCase(tag) || 'Section'}${(window.LYRIA_TIME_TAGS && secs != null) ? ` ${lyriaFmtTime(secs)}` : ''}]`;
+   // The official Lyria 3 timestamp format expects [Start - End] Section Name
+window.LYRIA_TIME_TAGS = true;
+window.lyriaSectionHeader = (tag, secs, endSecs) => {
+    const tagName = lyriaTagCase(tag) || 'Section';
+    if (window.LYRIA_TIME_TAGS && secs != null && endSecs != null) {
+        return `[${lyriaFmtTime(secs)} - ${lyriaFmtTime(endSecs)}] ${tagName}`;
+    } else if (window.LYRIA_TIME_TAGS && secs != null) {
+        return `[${lyriaFmtTime(secs)}] ${tagName}`;
+    }
+    return `[${tagName}]`;
+};
 
-    window.lyriaSongBlock = (songId) => {
-        const song = (window.db?.songBoard || []).find(s => String(s.id) === String(songId));
-        if (!song) return null;
-        // Read through window.db rather than the Lyrics tab's in-memory state: saveLyr() mirrors every
-        // edit into db immediately, and db is reachable from this closure while lyrState is not.
-        const sheet = (window.db?.lyrics?.sheets || []).find(sh => sh.id === song.lyricsSheetId || sh.songId === song.id);
-        const lines = (sheet?.lines || []).filter(l => (l.text||'').trim());
-        if (!lines.length) return null;
+window.lyriaSongBlock = (songId) => {
+    const song = (window.db?.songBoard || []).find(s => String(s.id) === String(songId));
+    if (!song) return null;
 
-        // Group consecutive lines that share a tag into one section, so the tag heads its block once
-        // instead of repeating on every line the way the sheet stores it.
-        const blocks = [];
-        let cur = null;
-        lines.forEach(l => {
-            const tag = (l.tag||'').trim();
-            if (!cur || tag !== cur.tag) { cur = { tag, lines: [] }; blocks.push(cur); }
-            cur.lines.push(l.text.trim());
-        });
+    // Read through window.db rather than the Lyrics tab's in-memory state: saveLyr() mirrors every
+    // edit into db immediately, and db is reachable from this closure while lyrState is not.
+    const sheet = (window.db?.lyrics?.sheets || []).find(sh => sh.id === song.lyricsSheetId || sh.songId === song.id);
+    const lines = (sheet?.lines || []).filter(l => (l.text||'').trim());
+    if (!lines.length) return null;
 
-        // Times are matched to sections BY NAME, not by position. Position looks simpler and is wrong
-        // the moment a song has an instrumental intro: the arrangement has an Intro section, the lyric
-        // sheet has no words under it, and every timestamp after that point slides by one. Name
-        // matching also means a section the arrangement doesn't know about simply goes untimed instead
-        // of poisoning the rest.
-        const arr = song.arrangement;
-        const bpm = song.bpm || (arr && arr.bpm) || null;
-        let timeline = [], totalSecs = null;
-        if (bpm && arr && Array.isArray(arr.sections) && arr.sections.length) {
-            const secPerBar = 4 * (60 / bpm);
-            let t = 0;
-            timeline = arr.sections.map(s => { const start = t; t += (s.bars || 0) * secPerBar; return { name: String(s.name||'').trim().toLowerCase(), start, used: false }; });
-            totalSecs = t;
+    // Group consecutive lines that share a tag into one section, so the tag heads its block once
+    // instead of repeating on every line the way the sheet stores it.
+    const blocks = [];
+    let cur = null;
+    lines.forEach(l => {
+        const tag = (l.tag||'').trim();
+        if (!cur || tag !== cur.tag) {
+            cur = { tag, lines: [] };
+            blocks.push(cur);
         }
-        // Consumed as they match, so a song with two sections genuinely called the same thing gets the
-        // first one first rather than both blocks pointing at the same timestamp.
-        const startFor = (tag) => {
-            const want = lyriaTagCase(tag).toLowerCase();
-            if (!want) return null;
-            const hit = timeline.find(s => !s.used && s.name === want);
-            if (!hit) return null;
-            hit.used = true; return hit.start;
-        };
-        const starts = blocks.map(b => startFor(b.tag));
-        const timed = starts.some(s => s != null);
+        cur.lines.push(l.text.trim());
+    });
 
-        const lyricsBlock = blocks.map((b, i) =>
-            `${window.lyriaSectionHeader(b.tag, starts[i])}\n${b.lines.join('\n')}`).join('\n\n');
+    // Times are matched to sections BY NAME, not by position. Position looks simpler and is wrong
+    // the moment a song has an instrumental intro: the arrangement has an Intro section, the lyric
+    // sheet has no words under it, and every timestamp after that point slides by one. Name
+    // matching also means a section the arrangement doesn't know about simply goes untimed instead
+    // of poisoning the rest.
+    const arr = song.arrangement;
+    const bpm = song.bpm || (arr && arr.bpm) || null;
+    let timeline = [], totalSecs = null;
+    
+    if (bpm && arr && Array.isArray(arr.sections) && arr.sections.length) {
+        const secPerBar = 4 * (60 / bpm);
+        let t = 0;
+        timeline = arr.sections.map(s => {
+            const out = { tag: s.name, time: t, endTime: t + (s.bars * secPerBar) };
+            t += s.bars * secPerBar;
+            return out;
+        });
+        totalSecs = t;
+    }
 
-        // The structure line the AI sees lists the WHOLE arrangement, including sections with no words
-        // in them — an instrumental intro is part of the shape it is being asked to write to.
-        const structure = timeline.length
-            ? arr.sections.map((s, i) => `${s.name} at ${lyriaFmtTime(timeline[i].start)}`).join(', ')
-            : blocks.map(b => lyriaTagCase(b.tag) || 'section').join(', ');
+    // Match matched section timestamps to lyric blocks IN ORDER
+    const structure = [...timeline];
+    let lyricText = '';
+    const used = new Set();
 
-        return { title: song.title || 'Untitled', bpm, lyricsBlock, structure,
-                 sections: blocks.length, timed, totalSecs };
+    blocks.forEach(b => {
+        let matchedTime = null;
+        let matchedEndTime = null;
+        if (structure.length) {
+            const idx = structure.findIndex((st, i) => !used.has(i) && lyriaTagCase(st.tag) === lyriaTagCase(b.tag));
+            if (idx >= 0) {
+                used.add(idx);
+                matchedTime = structure[idx].time;
+                matchedEndTime = structure[idx].endTime;
+            }
+        }
+        if (lyricText) lyricText += '\n\n';
+        lyricText += window.lyriaSectionHeader(b.tag, matchedTime, matchedEndTime) + '\n';
+        lyricText += b.lines.join('\n');
+    });
+
+    const uniqueTags = [...new Set(blocks.map(b => lyriaTagCase(b.tag)))];
+    return {
+        lyricsBlock: lyricText.trim(),
+        sections: uniqueTags.length,
+        bpm: bpm,
+        timed: !!timeline.length,
+        duration: totalSecs
     };
+};
 
     // Songs worth offering: they need words, not just a title.
     window.lyriaSongsWithLyrics = () => (window.db?.songBoard || [])

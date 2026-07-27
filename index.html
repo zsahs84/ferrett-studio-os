@@ -905,10 +905,11 @@ main { background: rgba(5,8,7,0.72); }
                     <span class="text-[9px] text-white/40 tracking-widest ml-2">BPM</span>
                     <input type="number" id="song-detail-bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="—" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
                 </div>
-                <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="grid grid-cols-2 gap-2 mb-2">
                     <button id="song-detail-arr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
                     <button id="song-detail-lyr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
                 </div>
+                <button id="song-detail-lyria-btn" type="button" class="btn-ferrett w-full px-3 py-2 text-[10px] mb-4" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
                 <div class="border-t border-[#00E5FF20] pt-3 mb-4">
                     <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
                     <div id="song-detail-tracks-list" class="space-y-1 mb-2"></div>
@@ -5013,6 +5014,13 @@ ${gear.join(', ')}`;
     window.openLyriaModal = (preselectGenre, preselectSongId) => {
         window.populateLyriaGenreSelect(preselectGenre);
         window.populateLyriaSongSelect(preselectSongId);
+        // populateLyriaSongSelect only pulls BPM across for songs with lyrics (the dropdown is
+        // lyrics-gated). A song opened directly from its Song Board card may have no lyrics yet,
+        // so pull its tempo across directly here rather than losing it to the genre's midpoint.
+        if (preselectSongId != null) {
+            const song = (window.db?.songBoard || []).find(s => String(s.id) === String(preselectSongId));
+            if (song && song.bpm) { const b = document.getElementById('lyria-bpm'); if (b) b.value = song.bpm; }
+        }
         document.getElementById('lyria-output-wrap')?.classList.add('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
         const notesEl = document.getElementById('lyria-custom-notes'); if (notesEl) notesEl.value = '';
@@ -8751,6 +8759,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('song-detail-bpm')?.addEventListener('change',()=>{ const el=$('song-detail-bpm'); const bpm=el.value?Math.max(40,Math.min(300,parseInt(el.value,10)||0))||null:null; window.setSongBpm(songDetailId,bpm); el.value=bpm||''; });
       $('song-detail-arr-btn')?.addEventListener('click',()=>{ if(songDetailId!=null){ const id=songDetailId; closeSongDetail(); window.loadSongIntoArrWorkspace(id); } });
       $('song-detail-lyr-btn')?.addEventListener('click',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ closeSongDetail(); window.lyrOpenSheetForSong?.(song.id, song.title); $('nav-lyrics')?.click(); } });
+      $('song-detail-lyria-btn')?.addEventListener('click',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ closeSongDetail(); window.openLyriaModal?.(song.kitGenre || (song.kit && song.kit.genre), song.id); } });
       $('song-detail-track-add')?.addEventListener('click',()=>{
         const sel=$('song-detail-track-select'); const id=sel.value?parseInt(sel.value,10):null;
         if(!id) return;

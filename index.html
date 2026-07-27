@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v80';
+window.APP_VERSION = 'v81';
 document.title = `EUTERPE_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -896,72 +896,6 @@ main { background: rgba(5,8,7,0.72); }
             <div id="songboard-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
         </div>
 
-        <!-- song details modal: full editor for one song — title/note/length, arrangement + lyrics jump, and linked Channel Settings tracks + Tone DB tones -->
-        <div id="song-detail-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
-            <div class="card border-[#00E5FF40] w-full max-w-lg relative">
-                <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center">×</button>
-                <button onclick="event.stopPropagation(); window.exportToReaper('${song.id}')" class="text-[10px] bg-[#FFD60A20] border border-[#FFD60A40] text-[#FFD60A] px-2 py-1 rounded hover:bg-[#FFD60A40] transition uppercase font-bold tracking-wider shadow-[0_0_8px_rgba(255,214,10,0.15)]">
-                    🎛️ Export .RPP
-                </button>
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🗂️ SONG DETAILS</h4>
-                <input type="text" id="song-detail-title" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[14px] text-white font-bold px-2 py-1.5 mb-2 focus:outline-none" placeholder="Untitled">
-                <textarea id="song-detail-note" rows="3" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 mb-3 focus:outline-none resize-none" placeholder="notes…"></textarea>
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-[9px] text-white/40 tracking-widest">LENGTH</span>
-                    <input type="text" id="song-detail-len" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="m:ss">
-                    <span class="text-[9px] text-white/40 tracking-widest ml-2">BPM</span>
-                    <input type="number" id="song-detail-bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="—" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
-                </div>
-                <div class="grid grid-cols-2 gap-2 mb-2">
-                    <button id="song-detail-arr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
-                    <button id="song-detail-lyr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
-                </div>
-                <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-4" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
-                <div class="border-t border-[#00E5FF20] pt-3 mb-4">
-                    <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
-                    <div id="song-detail-tracks-list" class="space-y-1 mb-2"></div>
-                    <div class="flex gap-2">
-                        <select id="song-detail-track-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a track —</option></select>
-                        <button id="song-detail-track-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
-                    </div>
-                </div>
-                <div class="border-t border-[#00E5FF20] pt-3">
-                    <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎛️ LINKED TONES (TONE DB)</div>
-                    <div id="song-detail-tones-list" class="space-y-1 mb-2"></div>
-                    <div class="flex gap-2">
-                        <select id="song-detail-tone-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a tone —</option></select>
-                        <button id="song-detail-tone-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
-                    </div>
-                </div>
-                <div id="song-detail-kit-wrap" class="border-t border-[#FF88FF20] pt-3 mt-4">
-                    <div class="text-[9px] text-[#FF88FF]/60 tracking-widest mb-2">🤖 ATTACHED AI KIT</div>
-                    <div id="song-detail-kit" class="text-[10px]"></div>
-                </div>
-            </div>
-            <div class="mt-4 border-t border-[#00E5FF20] pt-3 w-full" onclick="event.stopPropagation()">
-    <div class="text-[9px] font-bold text-[#00E5FF] tracking-widest uppercase mb-2 flex justify-between">
-        <span>Replacement Surgery Matrix</span>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-[10px] text-[#E2E8F0]/70 font-mono">
-        <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
-            <input type="checkbox" class="accent-[#00FF88] w-3 h-3" onchange="window.saveMatrix(this, '${song.id}', 'drums')" ${song.matrix?.drums ? 'checked' : ''}> Drums
-        </label>
-        <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
-            <input type="checkbox" class="accent-[#00FF88] w-3 h-3" onchange="window.saveMatrix(this, '${song.id}', 'bass')" ${song.matrix?.bass ? 'checked' : ''}> Bass
-        </label>
-        <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
-            <input type="checkbox" class="accent-[#00FF88] w-3 h-3" onchange="window.saveMatrix(this, '${song.id}', 'guitars')" ${song.matrix?.guitars ? 'checked' : ''}> Guitars
-        </label>
-        <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
-            <input type="checkbox" class="accent-[#00FF88] w-3 h-3" onchange="window.saveMatrix(this, '${song.id}', 'synths')" ${song.matrix?.synths ? 'checked' : ''}> Synths
-        </label>
-        <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
-            <input type="checkbox" class="accent-[#00FF88] w-3 h-3" onchange="window.saveMatrix(this, '${song.id}', 'vox')" ${song.matrix?.vox ? 'checked' : ''}> Lead Vox
-        </label>
-    </div>
-</div>
-        </div>
-
         <div class="card border-[#B18CFF30] mb-6">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#B18CFF20] pb-2">
                 <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎬 ARRANGEMENT TIMELINE</h4>
@@ -1446,6 +1380,74 @@ main { background: rgba(5,8,7,0.72); }
     </section>
 
 
+  </div>
+
+  <!-- song details modal: full editor for one song — title/note/length, arrangement + lyrics jump, and linked Channel Settings tracks + Tone DB tones.
+       Lives at the top level (like ai-modal/lyria-modal below), NOT inside a tab or Toolbox panel — it was previously nested inside
+       #tbx-panel-arrange, which is only shown when that Toolbox pill is selected, so the modal could never actually display. -->
+  <div id="song-detail-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+      <div class="card border-[#00E5FF40] w-full max-w-lg relative">
+          <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center">×</button>
+          <button id="song-detail-export-rpp" type="button" class="text-[10px] bg-[#FFD60A20] border border-[#FFD60A40] text-[#FFD60A] px-2 py-1 rounded hover:bg-[#FFD60A40] transition uppercase font-bold tracking-wider shadow-[0_0_8px_rgba(255,214,10,0.15)]">
+              🎛️ Export .RPP
+          </button>
+          <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🗂️ SONG DETAILS</h4>
+          <input type="text" id="song-detail-title" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[14px] text-white font-bold px-2 py-1.5 mb-2 focus:outline-none" placeholder="Untitled">
+          <textarea id="song-detail-note" rows="3" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 mb-3 focus:outline-none resize-none" placeholder="notes…"></textarea>
+          <div class="flex items-center gap-2 mb-3">
+              <span class="text-[9px] text-white/40 tracking-widest">LENGTH</span>
+              <input type="text" id="song-detail-len" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="m:ss">
+              <span class="text-[9px] text-white/40 tracking-widest ml-2">BPM</span>
+              <input type="number" id="song-detail-bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="—" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+              <button id="song-detail-arr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
+              <button id="song-detail-lyr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
+          </div>
+          <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-4" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
+          <div class="border-t border-[#00E5FF20] pt-3 mb-4">
+              <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
+              <div id="song-detail-tracks-list" class="space-y-1 mb-2"></div>
+              <div class="flex gap-2">
+                  <select id="song-detail-track-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a track —</option></select>
+                  <button id="song-detail-track-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
+              </div>
+          </div>
+          <div class="border-t border-[#00E5FF20] pt-3">
+              <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎛️ LINKED TONES (TONE DB)</div>
+              <div id="song-detail-tones-list" class="space-y-1 mb-2"></div>
+              <div class="flex gap-2">
+                  <select id="song-detail-tone-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a tone —</option></select>
+                  <button id="song-detail-tone-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
+              </div>
+          </div>
+          <div id="song-detail-kit-wrap" class="border-t border-[#FF88FF20] pt-3 mt-4">
+              <div class="text-[9px] text-[#FF88FF]/60 tracking-widest mb-2">🤖 ATTACHED AI KIT</div>
+              <div id="song-detail-kit" class="text-[10px]"></div>
+          </div>
+      </div>
+      <div class="mt-4 border-t border-[#00E5FF20] pt-3 w-full card border-[#00E5FF40] max-w-lg" onclick="event.stopPropagation()">
+          <div class="text-[9px] font-bold text-[#00E5FF] tracking-widest uppercase mb-2 flex justify-between">
+              <span>Replacement Surgery Matrix</span>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-[10px] text-[#E2E8F0]/70 font-mono">
+              <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
+                  <input type="checkbox" class="song-detail-matrix accent-[#00FF88] w-3 h-3" data-stem="drums"> Drums
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
+                  <input type="checkbox" class="song-detail-matrix accent-[#00FF88] w-3 h-3" data-stem="bass"> Bass
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
+                  <input type="checkbox" class="song-detail-matrix accent-[#00FF88] w-3 h-3" data-stem="guitars"> Guitars
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
+                  <input type="checkbox" class="song-detail-matrix accent-[#00FF88] w-3 h-3" data-stem="synths"> Synths
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer hover:text-[#00FF88] transition-colors">
+                  <input type="checkbox" class="song-detail-matrix accent-[#00FF88] w-3 h-3" data-stem="vox"> Lead Vox
+              </label>
+          </div>
+      </div>
   </div>
 
   <!-- AI SETTINGS MODAL -->
@@ -6221,8 +6223,7 @@ window.saveMatrix = (checkbox, songId, stemName) => {
     if (song) {
         if (!song.matrix) song.matrix = {};
         song.matrix[stemName] = checkbox.checked;
-        if (window.saveDb) window.saveDb();
-        // Optional UI feedback could go here
+        window.saveData?.();
     }
 };
 
@@ -8529,6 +8530,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const bpmEl=$('song-detail-bpm'); if(bpmEl) bpmEl.value=song.bpm||'';
     $('song-detail-arr-btn').textContent = '🎼 '+(song.arrangement?'Edit arrangement':'Attach arrangement');
     $('song-detail-lyr-btn').textContent = '📝 '+(song.lyricsSheetId!=null?'Open lyrics':'New lyrics');
+    document.querySelectorAll('.song-detail-matrix').forEach(cb=>{ cb.checked = !!(song.matrix && song.matrix[cb.dataset.stem]); });
     const list=$('song-detail-tracks-list');
     const linkedTracks=(song.trackIds||[]).map(id=>(window.db.tracks||[]).find(t=>t.id===id)).filter(Boolean);
     // A thumbnail of the FX chain screenshot (if any) so two same-instrument variants — e.g. two
@@ -8901,6 +8903,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       $('song-detail-arr-btn')?.addEventListener('click',()=>{ if(songDetailId!=null){ const id=songDetailId; closeSongDetail(); window.loadSongIntoArrWorkspace(id); } });
       $('song-detail-lyr-btn')?.addEventListener('click',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ closeSongDetail(); window.lyrOpenSheetForSong?.(song.id, song.title); $('nav-lyrics')?.click(); } });
       $('song-detail-lyria-btn')?.addEventListener('click',()=>{ const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(song){ closeSongDetail(); window.openLyriaModal?.(song.kitGenre || (song.kit && song.kit.genre), song.id); } });
+      $('song-detail-export-rpp')?.addEventListener('click',(e)=>{ e.stopPropagation(); if(songDetailId!=null) window.exportToReaper?.(songDetailId); });
+      document.querySelectorAll('.song-detail-matrix').forEach(cb=>cb.addEventListener('change',()=>{ if(songDetailId!=null) window.saveMatrix?.(cb, songDetailId, cb.dataset.stem); }));
       $('song-detail-track-add')?.addEventListener('click',()=>{
         const sel=$('song-detail-track-select'); const id=sel.value?parseInt(sel.value,10):null;
         if(!id) return;

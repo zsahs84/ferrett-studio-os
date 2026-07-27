@@ -11,7 +11,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>FERRETT_STUDIO_OS // HUD v43 (FINAL STABLE)</title>
+<title>EUTERPE_OS // HUD v43 (FINAL STABLE)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -21,10 +21,10 @@
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
 window.APP_VERSION = 'v80';
-document.title = `FERRETT_STUDIO_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
+document.title = `EUTERPE_OS // HUD ${window.APP_VERSION} (FINAL STABLE)`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
-const DRIVE_FILE_NAME = 'FERRETT_OS_VAULT.json';
+const DRIVE_FILE_NAME = 'EUTERPE_OS_VAULT.json';
 
 window.gapiLoadComplete = function() { gapi.load('client', async () => { try { await gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] }); } catch (err) { console.error(err); } }); };
 window.gisLoadComplete = function() { try { window.tokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file', login_hint: 'zsahs84@gmail.com', callback: async (resp) => { if (resp.error) { window.setDriveStatus(false); return; } window.setDriveStatus(true); await (window.syncWithDrive ? window.syncWithDrive() : window.findOrPullDriveFile()); } }); window.trySilentDriveConnect?.(); } catch (err) { console.error(err); } };
@@ -105,12 +105,12 @@ main { background: rgba(5,8,7,0.72); }
 /* Cards & UI */
 .card { background-color: rgba(10,15,13,0.92); border:1px solid rgba(0,255,136,0.15); border-radius:4px; padding:1.25rem; position:relative; overflow:hidden; }
 .card::before { content:""; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, rgba(0,255,136,0.35), transparent); opacity:0.6; }
-.input-ferrett { background: rgba(5,8,7,0.9); border:1px solid rgba(0,255,136,0.22); color:#00FF88; border-radius:3px; padding:0.5rem; font-size:0.75rem; width:100%; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
-.input-ferrett:focus { border-color: rgba(0,229,255,0.85); box-shadow:0 0 0 2px rgba(0,229,255,0.12), 0 0 12px rgba(0,229,255,0.25); }
-.btn-ferrett { background: rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.32); color:#00E5FF; padding:0.32rem 0.75rem; font-size:0.72rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.06em; transition:all 0.18s; }
-.btn-ferrett:hover { background: rgba(0,229,255,0.18); box-shadow:0 0 10px rgba(0,229,255,0.25); transform: translateY(-1px); }
-.btn-ferrett-green { background: rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.32); color:#00FF88; padding:0.32rem 0.75rem; font-size:0.72rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.06em; transition:all 0.18s; }
-.btn-ferrett-green:hover { background: rgba(0,255,136,0.18); box-shadow:0 0 10px rgba(0,255,136,0.25); transform: translateY(-1px); }
+.input-euterpe { background: rgba(5,8,7,0.9); border:1px solid rgba(0,255,136,0.22); color:#00FF88; border-radius:3px; padding:0.5rem; font-size:0.75rem; width:100%; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+.input-euterpe:focus { border-color: rgba(0,229,255,0.85); box-shadow:0 0 0 2px rgba(0,229,255,0.12), 0 0 12px rgba(0,229,255,0.25); }
+.btn-euterpe { background: rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.32); color:#00E5FF; padding:0.32rem 0.75rem; font-size:0.72rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.06em; transition:all 0.18s; }
+.btn-euterpe:hover { background: rgba(0,229,255,0.18); box-shadow:0 0 10px rgba(0,229,255,0.25); transform: translateY(-1px); }
+.btn-euterpe-green { background: rgba(0,255,136,0.09); border:1px solid rgba(0,255,136,0.32); color:#00FF88; padding:0.32rem 0.75rem; font-size:0.72rem; font-weight:700; border-radius:3px; cursor:pointer; letter-spacing:0.06em; transition:all 0.18s; }
+.btn-euterpe-green:hover { background: rgba(0,255,136,0.18); box-shadow:0 0 10px rgba(0,255,136,0.25); transform: translateY(-1px); }
 .surprise-flash { animation: surpriseFlash 0.5s ease-out; }
 @keyframes surpriseFlash { 0% { box-shadow: 0 0 0 2px rgba(0,229,255,0.6), 0 0 30px rgba(0,229,255,0.3); } 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0); } }
 .btn-menu { background:transparent; border:1px solid transparent; transition:all 0.18s; }
@@ -160,7 +160,7 @@ main { background: rgba(5,8,7,0.72); }
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <div class="leading-none min-w-0">
-      <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">FERRETT_STUDIO_OS</h1>
+      <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">EUTERPE_OS</h1>
       <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">REAPER WORKSPACE v43</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
     </div>
     <div class="hidden lg:flex items-center gap-3 ml-4 pl-4 border-l border-[#00FF8814]">
@@ -213,8 +213,8 @@ main { background: rgba(5,8,7,0.72); }
 <div id="drive-conflict-banner" class="hidden shrink-0 bg-[#1a0a0a] border-b border-[#FF2A2A50] px-4 py-2.5 items-center justify-center gap-4 flex-wrap text-[10px] md:text-[11px] relative z-40">
     <span class="text-[#FF8888] font-bold tracking-wide">⚠ VAULT CHANGED ELSEWHERE — this Drive backup was updated on another device/tab since your last sync here.</span>
     <div class="flex gap-2 items-center">
-        <button id="btn-conflict-keep-mine" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;" title="Overwrite the Drive copy with what's on this device">KEEP MY VERSION</button>
-        <button id="btn-conflict-reload-theirs" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;" title="Discard local changes and reload the Drive copy">RELOAD THEIRS</button>
+        <button id="btn-conflict-keep-mine" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;" title="Overwrite the Drive copy with what's on this device">KEEP MY VERSION</button>
+        <button id="btn-conflict-reload-theirs" class="btn-euterpe" style="border-color:#00E5FF50;color:#00E5FF;" title="Discard local changes and reload the Drive copy">RELOAD THEIRS</button>
         <button id="btn-conflict-dismiss" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer">×</button>
     </div>
 </div>
@@ -222,9 +222,9 @@ main { background: rgba(5,8,7,0.72); }
 <div id="now-playing-bar" class="hidden shrink-0 bg-[rgba(255,136,255,0.05)] border-b border-[#FF88FF30] px-4 py-2 items-center gap-3 flex-wrap relative z-30">
     <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/80 uppercase shrink-0 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#FF88FF] animate-pulse"></span> NOW PLAYING</span>
     <input type="text" id="now-playing-input" placeholder="What are you working on right now?" class="flex-1 min-w-[160px] bg-black/40 border border-[#FF88FF30] rounded px-3 py-1.5 text-[12px] text-[#E2E8F0] placeholder-[#E2E8F0]/25 focus:outline-none focus:border-[#FF88FF70]">
-    <button id="btn-now-playing-log" class="btn-ferrett shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
-    <button id="btn-open-recap" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Session recap — time + everything you logged today">📋 RECAP</button>
-    <button id="btn-now-playing-track" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Spin this focus into a new Channel Settings entry">＋ TRACK</button>
+    <button id="btn-now-playing-log" class="btn-euterpe shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
+    <button id="btn-open-recap" class="btn-euterpe shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Session recap — time + everything you logged today">📋 RECAP</button>
+    <button id="btn-now-playing-track" class="btn-euterpe shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Spin this focus into a new Channel Settings entry">＋ TRACK</button>
     <button id="btn-now-playing-close" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer shrink-0" title="Hide">×</button>
 </div>
 
@@ -266,7 +266,7 @@ main { background: rgba(5,8,7,0.72); }
     <section id="tab-cookbook" class="middle-tab active p-4 md:p-8 min-h-[500px]">
         <div class="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 gap-4">
             <h2 class="text-[15px] font-bold tracking-widest text-[#00FF88]">THE ULTIMATE RECIPE BOOK</h2>
-            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-ferrett shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-ferrett shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-frankenstein" class="btn-ferrett shrink-0" style="border-color:#C9FF4B50;color:#C9FF4B;background:rgba(201,255,75,0.08);" title="Fuse components from different recipes into one composite">🧟 FRANKENSTEIN</button><button id="btn-import-recipes" class="btn-ferrett shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-ferrett-green shrink-0">+ ADD RECIPE</button></div>
+            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-euterpe shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-euterpe shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-frankenstein" class="btn-euterpe shrink-0" style="border-color:#C9FF4B50;color:#C9FF4B;background:rgba(201,255,75,0.08);" title="Fuse components from different recipes into one composite">🧟 FRANKENSTEIN</button><button id="btn-import-recipes" class="btn-euterpe shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-euterpe-green shrink-0">+ ADD RECIPE</button></div>
         </div>
         
         <div id="genre-blend-card" class="card mb-6 hidden relative overflow-hidden" style="border-color:#FFD60A40;">
@@ -274,32 +274,32 @@ main { background: rgba(5,8,7,0.72); }
             <div class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold uppercase mb-2">Genre Blend // Writer's Block Cure</div>
             <h3 id="blend-title" class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FFD60A] uppercase mb-3 pr-8"></h3>
             <div id="blend-prompts" class="space-y-2 mb-4"></div>
-            <button id="btn-reroll-blend" type="button" class="btn-ferrett" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">🎲 REROLL</button>
+            <button id="btn-reroll-blend" type="button" class="btn-euterpe" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">🎲 REROLL</button>
         </div>
 
         <div id="form-cookbook" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="cookbook-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW RECIPE</h3>
             <input type="hidden" id="cookbook-id">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">GENRE / CATEGORY</label><input type="text" id="cookbook-genre" class="input-ferrett" list="cookbook-genre-list" placeholder="e.g., Trap / Drill"><datalist id="cookbook-genre-list"></datalist></div>
+                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">GENRE / CATEGORY</label><input type="text" id="cookbook-genre" class="input-euterpe" list="cookbook-genre-list" placeholder="e.g., Trap / Drill"><datalist id="cookbook-genre-list"></datalist></div>
                 <div class="mb-4">
                     <label class="block text-[10px] text-[#FFD60A] uppercase tracking-widest font-bold mb-1">DAW Mix Architecture</label>
                     <textarea id="cb-mix-notes" class="w-full bg-[rgba(5,8,7,0.8)] border border-[#FFD60A30] text-[#E2E8F0] p-3 rounded text-[12px] font-mono focus:outline-none focus:border-[#FFD60A] transition-colors shadow-inner" rows="3" placeholder="Routing, EQ carves, specific plugins, or bus compression notes for the stem mixdown..."></textarea>
                 </div>
-                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TARGET</label><input type="text" id="cookbook-inst" class="input-ferrett" placeholder="e.g., Beats: Distorted 808 Sub"></div>
+                <div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / TARGET</label><input type="text" id="cookbook-inst" class="input-euterpe" placeholder="e.g., Beats: Distorted 808 Sub"></div>
             </div>
-            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">EFFORT / TIME</label><select id="cookbook-effort" class="input-ferrett"><option value="">— unset —</option><option value="Quick win">⚡ Quick win</option><option value="Medium">◐ Medium</option><option value="Deep dive">🌊 Deep dive</option></select></div>
-            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DESCRIPTION & PHILOSOPHY</label><textarea id="cookbook-desc" class="input-ferrett h-16 resize-y"></textarea></div>
-            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">SIGNAL CHAIN (PLUGINS)</label><textarea id="cookbook-reaper" class="input-ferrett h-24 resize-y"></textarea></div>
-            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">WORKFLOW & ROUTING NOTES</label><textarea id="cookbook-notes" class="input-ferrett h-16 resize-y"></textarea></div>
-            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#FFD60A]/70 block mb-1">💡 WHY IT WORKS (optional — the reasoning)</label><textarea id="cookbook-why" class="input-ferrett h-16 resize-y" placeholder="Why this chain achieves the sound — for future-you."></textarea></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">EFFORT / TIME</label><select id="cookbook-effort" class="input-euterpe"><option value="">— unset —</option><option value="Quick win">⚡ Quick win</option><option value="Medium">◐ Medium</option><option value="Deep dive">🌊 Deep dive</option></select></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">DESCRIPTION & PHILOSOPHY</label><textarea id="cookbook-desc" class="input-euterpe h-16 resize-y"></textarea></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">SIGNAL CHAIN (PLUGINS)</label><textarea id="cookbook-reaper" class="input-euterpe h-24 resize-y"></textarea></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">WORKFLOW & ROUTING NOTES</label><textarea id="cookbook-notes" class="input-euterpe h-16 resize-y"></textarea></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#FFD60A]/70 block mb-1">💡 WHY IT WORKS (optional — the reasoning)</label><textarea id="cookbook-why" class="input-euterpe h-16 resize-y" placeholder="Why this chain achieves the sound — for future-you."></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">RECIPE SCREENSHOTS</label>
-                <div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn"><span>+ UPLOAD IMAGES</span><input type="file" id="cookbook-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn"><span>📸 CAMERA</span><input type="file" id="cookbook-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
+                <div class="flex items-center gap-3 flex-wrap"><label class="btn-euterpe-green file-upload-btn"><span>+ UPLOAD IMAGES</span><input type="file" id="cookbook-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-euterpe file-upload-btn"><span>📸 CAMERA</span><input type="file" id="cookbook-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
                 <div id="cookbook-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="cookbook"></div>
                 <p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear/pedals directly.</p>
             </div>
-            <div class="flex gap-3"><button id="btn-save-cookbook" class="btn-ferrett-green">SAVE RECIPE</button><button id="btn-cancel-cookbook" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white transition-colors">CANCEL</button></div>
+            <div class="flex gap-3"><button id="btn-save-cookbook" class="btn-euterpe-green">SAVE RECIPE</button><button id="btn-cancel-cookbook" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white transition-colors">CANCEL</button></div>
         </div>
 
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
@@ -415,7 +415,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6 mt-10">
             <h2 class="text-[15px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase">THE 28 FILE ARSENAL // SCRIPT DB</h2>
-            <button id="btn-add-script" class="btn-ferrett shrink-0">+ ADD SCRIPT</button>
+            <button id="btn-add-script" class="btn-euterpe shrink-0">+ ADD SCRIPT</button>
         </div>
 
         <div id="form-script" class="card mb-6 hidden border-[#00E5FF40]">
@@ -424,27 +424,27 @@ main { background: rgba(5,8,7,0.72); }
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="md:col-span-1">
                     <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FILE NAME</label>
-                    <input type="text" id="script-title" class="input-ferrett" placeholder="e.g., Fadr_MIDI_Extract.lua">
+                    <input type="text" id="script-title" class="input-euterpe" placeholder="e.g., Fadr_MIDI_Extract.lua">
                 </div>
                 <div class="md:col-span-1">
                     <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY / FOLDER</label>
-                    <input type="text" id="script-category" class="input-ferrett" placeholder="e.g., AI STEM & MIDI">
+                    <input type="text" id="script-category" class="input-euterpe" placeholder="e.g., AI STEM & MIDI">
                 </div>
                 <div class="md:col-span-1">
                     <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">KEYBOARD SHORTCUT</label>
-                    <input type="text" id="script-shortcut" class="input-ferrett" placeholder="e.g., Ctrl+Shift+F">
+                    <input type="text" id="script-shortcut" class="input-euterpe" placeholder="e.g., Ctrl+Shift+F">
                 </div>
             </div>
             <div class="mb-4">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">RAW DOWNLOAD URL (optional)</label>
-                <input type="text" id="script-url" class="input-ferrett" placeholder="e.g., https://raw.githubusercontent.com/you/repo/main/Script.lua">
+                <input type="text" id="script-url" class="input-euterpe" placeholder="e.g., https://raw.githubusercontent.com/you/repo/main/Script.lua">
             </div>
             <div class="mb-5">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FUNCTION & LOGIC</label>
-                <textarea id="script-func" class="input-ferrett h-20 resize-y" placeholder="What does this script do?"></textarea>
+                <textarea id="script-func" class="input-euterpe h-20 resize-y" placeholder="What does this script do?"></textarea>
             </div>
             <div class="flex gap-3">
-                <button id="btn-save-script" class="btn-ferrett">SAVE SCRIPT</button>
+                <button id="btn-save-script" class="btn-euterpe">SAVE SCRIPT</button>
                 <button id="btn-cancel-script" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white transition-colors">CANCEL</button>
             </div>
         </div>
@@ -454,72 +454,72 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
     <div id="tab-links" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS & INTEL DB</h2><div class="flex gap-2"><button id="btn-import-links" class="btn-ferrett" style="border-color:#FF88FF50;color:#FF88FF;">📦 IMPORT PACK</button><input type="file" id="links-pack-input" accept="application/json" class="hidden"><button id="btn-add-link" class="btn-ferrett">+ ADD INTEL</button></div></div>
-        <input type="text" id="search-link" class="input-ferrett w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search tools, URLs, or descriptions...">
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS & INTEL DB</h2><div class="flex gap-2"><button id="btn-import-links" class="btn-euterpe" style="border-color:#FF88FF50;color:#FF88FF;">📦 IMPORT PACK</button><input type="file" id="links-pack-input" accept="application/json" class="hidden"><button id="btn-add-link" class="btn-euterpe">+ ADD INTEL</button></div></div>
+        <input type="text" id="search-link" class="input-euterpe w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search tools, URLs, or descriptions...">
         <div id="form-link" class="card mb-6 hidden border-[#00E5FF40]">
             <h3 id="link-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TOOL LINK</h3>
             <input type="hidden" id="link-id">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">TOOL NAME</label><input type="text" id="link-title" class="input-ferrett"></div>
-                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="link-category" class="input-ferrett"><option value="AI & MIDI Extraction">AI & MIDI Extraction</option><option value="Tones, Amps & IRs">Tones, Amps & IRs</option><option value="Mixing & Mastering">Mixing & Mastering</option><option value="Samples & Instruments">Samples & Instruments</option><option value="Audio Utilities">Audio Utilities</option></select></div>
-                <div class="md:col-span-3"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FULL URL</label><input type="text" id="link-url" class="input-ferrett"></div>
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">TOOL NAME</label><input type="text" id="link-title" class="input-euterpe"></div>
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="link-category" class="input-euterpe"><option value="AI & MIDI Extraction">AI & MIDI Extraction</option><option value="Tones, Amps & IRs">Tones, Amps & IRs</option><option value="Mixing & Mastering">Mixing & Mastering</option><option value="Samples & Instruments">Samples & Instruments</option><option value="Audio Utilities">Audio Utilities</option></select></div>
+                <div class="md:col-span-3"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FULL URL</label><input type="text" id="link-url" class="input-euterpe"></div>
             </div>
-            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DESCRIPTION & WORKFLOW NOTES</label><textarea id="link-notes" class="input-ferrett h-16 resize-y"></textarea></div>
-            <div class="flex gap-3"><button id="btn-save-link" class="btn-ferrett">SAVE LINK</button><button id="btn-cancel-link" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DESCRIPTION & WORKFLOW NOTES</label><textarea id="link-notes" class="input-euterpe h-16 resize-y"></textarea></div>
+            <div class="flex gap-3"><button id="btn-save-link" class="btn-euterpe">SAVE LINK</button><button id="btn-cancel-link" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
         </div>
         <div id="link-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
         <div id="link-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
 
     <div id="tab-tracks" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">CHANNEL SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-ferrett shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-add-track" class="btn-ferrett-green shrink-0">+ ADD CONFIG</button></div></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">CHANNEL SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-euterpe shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-add-track" class="btn-euterpe-green shrink-0">+ ADD CONFIG</button></div></div>
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW CHANNEL SETTING</h3>
             <input type="hidden" id="track-id">
-            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / CHANNEL</label><input type="text" id="track-inst" class="input-ferrett"></div>
-            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-ferrett"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON TONE (optional)</label><select id="track-tone-ref" class="input-ferrett"><option value="">— none —</option></select></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON RECIPE (optional)</label><select id="track-recipe-ref" class="input-ferrett"><option value="">— none —</option></select></div></div>
-            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REFERENCE LINK (YouTube / Spotify — shows an inline player)</label><input type="text" id="track-reflink" placeholder="https://..." class="input-ferrett"></div>
-            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">NOTES</label><textarea id="track-notes" class="input-ferrett h-20 resize-y"></textarea></div>
-            <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>📸 CAMERA</span><input type="file" id="track-camera-input" accept="image/*" capture="environment" class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="track"></div><p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear directly.</p></div>
-            <div class="flex gap-3"><button id="btn-save-track" class="btn-ferrett-green">SAVE CONFIG</button><button id="btn-cancel-track" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">INSTRUMENT / CHANNEL</label><input type="text" id="track-inst" class="input-euterpe"></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">FX CHAIN SUMMARY</label><input type="text" id="track-plugins" class="input-euterpe"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON TONE (optional)</label><select id="track-tone-ref" class="input-euterpe"><option value="">— none —</option></select></div><div><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">BASED ON RECIPE (optional)</label><select id="track-recipe-ref" class="input-euterpe"><option value="">— none —</option></select></div></div>
+            <div class="mb-4"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">REFERENCE LINK (YouTube / Spotify — shows an inline player)</label><input type="text" id="track-reflink" placeholder="https://..." class="input-euterpe"></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1">NOTES</label><textarea id="track-notes" class="input-euterpe h-20 resize-y"></textarea></div>
+            <div class="mb-5 p-4 rounded border border-[#00FF8820] bg-black/40"><label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-2 font-bold">PLUGIN SCREENSHOTS (AUTO-COMPRESSED)</label><div class="flex items-center gap-3 flex-wrap"><label class="btn-euterpe-green file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="track-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-euterpe file-upload-btn text-center leading-tight"><span>📸 CAMERA</span><input type="file" id="track-camera-input" accept="image/*" capture="environment" class="hidden"></label></div><div id="track-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="track"></div><p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap real gear directly.</p></div>
+            <div class="flex gap-3"><button id="btn-save-track" class="btn-euterpe-green">SAVE CONFIG</button><button id="btn-cancel-track" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
         </div>
         <div id="track-list" class="grid grid-cols-1 gap-6"></div>
     </div>
 
     <div id="tab-tones" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><div class="flex gap-2"><button id="btn-tone-stages" class="btn-ferrett shrink-0" style="border-color:#FFA05C50;color:#FFA05C;background:rgba(255,160,92,0.08);" title="View tones as a gain-stage ladder">⚡ STAGES</button><button id="btn-add-tone" class="btn-ferrett shrink-0">+ ADD TONE</button></div></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><div class="flex gap-2"><button id="btn-tone-stages" class="btn-euterpe shrink-0" style="border-color:#FFA05C50;color:#FFA05C;background:rgba(255,160,92,0.08);" title="View tones as a gain-stage ladder">⚡ STAGES</button><button id="btn-add-tone" class="btn-euterpe shrink-0">+ ADD TONE</button></div></div>
         <div id="tone-stage-view" class="hidden space-y-4 mb-6"></div>
-        <input type="text" id="search-tone" class="input-ferrett w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search custom library...">
+        <input type="text" id="search-tone" class="input-euterpe w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search custom library...">
         <div id="form-tone" class="card mb-6 hidden border-[#00E5FF40]">
             <h3 id="tone-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TONE COMBO</h3>
             <input type="hidden" id="tone-id">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">PRESET NAME</label><input type="text" id="tone-name" class="input-ferrett"></div>
-                <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">GAIN STAGE</label><select id="tone-category" class="input-ferrett"><option value="CLEAN">CLEAN</option><option value="CRUNCH">CRUNCH</option><option value="DISTORTION">DISTORTION</option><option value="BASS">BASS</option></select></div>
-                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">NAM (AMP PROFILE)</label><input type="text" id="tone-nam" class="input-ferrett"></div>
-                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">IR (CABINET)</label><input type="text" id="tone-ir" class="input-ferrett"></div>
-                <div class="lg:col-span-4"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">BRAND (optional — e.g. Marshall, Fender, Mesa)</label><input type="text" id="tone-brand" list="tone-brand-list" placeholder="e.g. Marshall" class="input-ferrett"><datalist id="tone-brand-list"><option value="Fender"><option value="Marshall"><option value="Mesa/Boogie"><option value="Vox"><option value="Orange"><option value="Peavey"><option value="EVH"><option value="Bogner"><option value="Friedman"><option value="Suhr"><option value="PRS"><option value="Soldano"><option value="Diezel"><option value="ENGL"><option value="Two-Rock"><option value="Matchless"><option value="Supro"><option value="Ampeg"><option value="Blackstar"><option value="Hiwatt"><option value="Kemper"><option value="Neural DSP"><option value="Line 6"></datalist></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">PRESET NAME</label><input type="text" id="tone-name" class="input-euterpe"></div>
+                <div class="lg:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">GAIN STAGE</label><select id="tone-category" class="input-euterpe"><option value="CLEAN">CLEAN</option><option value="CRUNCH">CRUNCH</option><option value="DISTORTION">DISTORTION</option><option value="BASS">BASS</option></select></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">NAM (AMP PROFILE)</label><input type="text" id="tone-nam" class="input-euterpe"></div>
+                <div class="lg:col-span-2"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">IR (CABINET)</label><input type="text" id="tone-ir" class="input-euterpe"></div>
+                <div class="lg:col-span-4"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">BRAND (optional — e.g. Marshall, Fender, Mesa)</label><input type="text" id="tone-brand" list="tone-brand-list" placeholder="e.g. Marshall" class="input-euterpe"><datalist id="tone-brand-list"><option value="Fender"><option value="Marshall"><option value="Mesa/Boogie"><option value="Vox"><option value="Orange"><option value="Peavey"><option value="EVH"><option value="Bogner"><option value="Friedman"><option value="Suhr"><option value="PRS"><option value="Soldano"><option value="Diezel"><option value="ENGL"><option value="Two-Rock"><option value="Matchless"><option value="Supro"><option value="Ampeg"><option value="Blackstar"><option value="Hiwatt"><option value="Kemper"><option value="Neural DSP"><option value="Line 6"></datalist></div>
             </div>
-            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">EQ / PEDAL NOTES</label><textarea id="tone-notes" class="input-ferrett h-20 resize-y"></textarea></div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">EQ / PEDAL NOTES</label><textarea id="tone-notes" class="input-euterpe h-20 resize-y"></textarea></div>
             <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-2 font-bold">PEDALBOARD / GUI SCREENSHOTS</label>
-                <div class="flex items-center gap-3 flex-wrap"><label class="btn-ferrett file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="tone-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-ferrett file-upload-btn text-center leading-tight" style="border-color:#00E5FF80;color:#00E5FF;"><span>📸 CAMERA</span><input type="file" id="tone-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
+                <div class="flex items-center gap-3 flex-wrap"><label class="btn-euterpe file-upload-btn text-center leading-tight"><span>+ UPLOAD IMAGES</span><input type="file" id="tone-image-input" accept="image/*" multiple class="hidden"></label><label class="btn-euterpe file-upload-btn text-center leading-tight" style="border-color:#00E5FF80;color:#00E5FF;"><span>📸 CAMERA</span><input type="file" id="tone-camera-input" accept="image/*" capture="environment" class="hidden"></label></div>
                 <div id="tone-image-preview-container" class="mt-4 flex flex-wrap gap-2 min-h-[20px] rounded transition-colors" data-drop-zone="tone"></div>
                 <p class="text-[9px] text-[#E2E8F0]/25 mt-2">Drag & drop images here too — or Camera to snap your actual pedalboard/amp settings.</p>
             </div>
             <div class="mb-5 p-4 rounded border border-[#00E5FF20] bg-black/40">
                 <label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-2 font-bold">AUDIO REFERENCE CLIP (optional — one short clip so you can hear it, not just read it)</label>
                 <div class="flex items-center gap-3 flex-wrap">
-                    <label class="btn-ferrett file-upload-btn text-center leading-tight"><span>+ UPLOAD CLIP</span><input type="file" id="tone-audio-input" accept="audio/*" class="hidden"></label>
-                    <button type="button" id="btn-record-tone-audio" class="btn-ferrett">🎙️ RECORD CLIP</button>
-                    <button type="button" id="btn-stop-tone-audio" class="btn-ferrett hidden" style="border-color:#FF2A2A50;color:#FF8888;">⏹ STOP</button>
+                    <label class="btn-euterpe file-upload-btn text-center leading-tight"><span>+ UPLOAD CLIP</span><input type="file" id="tone-audio-input" accept="audio/*" class="hidden"></label>
+                    <button type="button" id="btn-record-tone-audio" class="btn-euterpe">🎙️ RECORD CLIP</button>
+                    <button type="button" id="btn-stop-tone-audio" class="btn-euterpe hidden" style="border-color:#FF2A2A50;color:#FF8888;">⏹ STOP</button>
                     <span id="tone-record-status" class="text-[10px] font-bold text-[#FF5A5A] tracking-widest hidden"></span>
                 </div>
                 <div id="tone-audio-preview-container" class="mt-4"></div>
             </div>
             <div class="mb-5 flex items-center gap-3 bg-[#00E5FF]/10 p-3 rounded border border-[#00E5FF]/20 w-max"><input type="checkbox" id="tone-starred" class="w-4 h-4 cursor-pointer accent-[#00E5FF]"><label for="tone-starred" class="text-[11px] font-bold text-[#00E5FF] tracking-widest cursor-pointer mt-[2px]">PIN TO TOP GUITAR PRESETS [★]</label></div>
-            <div class="flex gap-3"><button id="btn-save-tone" class="btn-ferrett">SAVE TONE</button><button id="btn-cancel-tone" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+            <div class="flex gap-3"><button id="btn-save-tone" class="btn-euterpe">SAVE TONE</button><button id="btn-cancel-tone" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
         </div>
         <div id="tone-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
         <div id="tone-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -532,21 +532,21 @@ main { background: rgba(5,8,7,0.72); }
         <div class="card border-[#FFD60A40] mb-6 text-center py-8" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(0,229,255,0.04));">
             <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-2">🚀 Session Starter</h3>
             <p class="text-[10px] text-[#E2E8F0]/50 mb-5 max-w-md mx-auto">One tap: picks a recipe, sets the metronome to that genre's tempo, opens a fresh checklist note, and starts the session timer.</p>
-            <button id="btn-session-starter" type="button" class="btn-ferrett-green px-8 py-3 text-[13px]">START A SESSION</button>
+            <button id="btn-session-starter" type="button" class="btn-euterpe-green px-8 py-3 text-[13px]">START A SESSION</button>
             <div class="mt-4"><button id="btn-open-lyria-tools" type="button" class="text-[10px] font-bold tracking-widest text-[#00E5FF]/70 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0 underline underline-offset-2">🎼 or just open the Lyria Prompt Generator</button></div>
         </div>
 
         <div class="flex flex-wrap gap-2 mb-6" id="tbx-subnav">
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="theory" style="background:rgba(122,255,191,0.18);color:#7AFFBF;border-color:#7AFFBF;">🎵 THEORY &amp; EAR</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="calc">🧮 CALCULATORS</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="players">🥁 PLAYERS &amp; PRACTICE</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="arrange">🎬 ARRANGEMENT &amp; SETLISTS</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="monitor">🎙️ MONITORING &amp; ROOM</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="analyzer">🔬 MIX ANALYZER</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="spark">✨ CREATIVE SPARKS</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="ai">🤖 AI ASSISTANT</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="analytics">📊 STUDIO ANALYTICS</button>
-            <button type="button" class="tbx-pill btn-ferrett px-3 py-1.5 text-[10px]" data-tbx="ops">🗂️ STUDIO OPS</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="theory" style="background:rgba(122,255,191,0.18);color:#7AFFBF;border-color:#7AFFBF;">🎵 THEORY &amp; EAR</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="calc">🧮 CALCULATORS</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="players">🥁 PLAYERS &amp; PRACTICE</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="arrange">🎬 ARRANGEMENT &amp; SETLISTS</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="monitor">🎙️ MONITORING &amp; ROOM</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="analyzer">🔬 MIX ANALYZER</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="spark">✨ CREATIVE SPARKS</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="ai">🤖 AI ASSISTANT</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="analytics">📊 STUDIO ANALYTICS</button>
+            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="ops">🗂️ STUDIO OPS</button>
         </div>
 
     <div id="tbx-panel-theory" class="tbx-panel space-y-6 mb-6">
@@ -599,8 +599,8 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">👂 INTERVAL EAR TRAINER</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Hear two notes, name the interval. Build your ear.</p>
                 <div class="flex flex-wrap gap-2 mb-3">
-                    <button id="btn-ear-new" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ NEW</button>
-                    <button id="btn-ear-replay" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">↻ REPLAY</button>
+                    <button id="btn-ear-new" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">▶ NEW</button>
+                    <button id="btn-ear-replay" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]">↻ REPLAY</button>
                     <span id="ear-score" class="text-[10px] font-mono text-[#00FF88]/70 self-center ml-auto">0 / 0</span>
                 </div>
                 <div id="ear-choices" class="grid grid-cols-3 gap-1.5"></div>
@@ -614,7 +614,7 @@ main { background: rgba(5,8,7,0.72); }
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords, hear them loop with a bass. Test a progression fast.</p>
                 <input type="text" id="pp-in" value="C G Am F" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
                 <div class="flex items-center gap-2">
-                    <button id="btn-pp-play" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px]">▶ PLAY</button>
+                    <button id="btn-pp-play" type="button" class="btn-euterpe-green px-4 py-1.5 text-[10px]">▶ PLAY</button>
                     <input type="number" id="pp-bpm" value="90" min="40" max="200" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none">
                     <span class="text-[9px] text-[#00E5FF]/50 font-bold tracking-widest">BPM</span>
                     <label class="flex items-center gap-1 text-[9px] text-[#00E5FF]/70 tracking-widest cursor-pointer ml-2"><input type="checkbox" id="pp-bass" class="accent-[#00E5FF]" checked> BASS</label>
@@ -647,8 +647,8 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-[#FFD60A20] pb-2">
                 <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎸 CHORD DIAGRAM LIBRARY</h4>
                 <div class="flex gap-2" id="chord-inst-toggle">
-                    <button data-inst="guitar" class="chord-inst btn-ferrett px-3 py-1 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.12)">GUITAR</button>
-                    <button data-inst="bass" class="chord-inst btn-ferrett px-3 py-1 text-[10px]">BASS</button>
+                    <button data-inst="guitar" class="chord-inst btn-euterpe px-3 py-1 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.12)">GUITAR</button>
+                    <button data-inst="bass" class="chord-inst btn-euterpe px-3 py-1 text-[10px]">BASS</button>
                 </div>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔊 Tap any chord to hear it strummed.</p>
@@ -772,8 +772,8 @@ main { background: rgba(5,8,7,0.72); }
                         <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
                     </select>
                 </div>
-                <button id="btn-metro-tap" type="button" class="btn-ferrett px-4 py-2">TAP</button>
-                <button id="btn-metro-toggle" type="button" class="btn-ferrett-green px-6 py-2">▶ START</button>
+                <button id="btn-metro-tap" type="button" class="btn-euterpe px-4 py-2">TAP</button>
+                <button id="btn-metro-toggle" type="button" class="btn-euterpe-green px-6 py-2">▶ START</button>
             </div>
             <div class="flex items-center justify-center gap-2 md:gap-3 mb-6 flex-wrap" id="metro-beat-dots"></div>
             <div class="flex items-center justify-center">
@@ -791,7 +791,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">TOTAL STEPS</label><input type="number" id="routine-steps" value="5" min="1" max="20" class="w-full bg-black/50 border border-[#FFD60A]/40 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
             </div>
             <div class="flex items-center gap-4 flex-wrap">
-                <button id="btn-routine-toggle" type="button" class="btn-ferrett-green px-6 py-2">▶ START ROUTINE</button>
+                <button id="btn-routine-toggle" type="button" class="btn-euterpe-green px-6 py-2">▶ START ROUTINE</button>
                 <div id="routine-status" class="text-[11px] font-mono text-[#FFD60A]/80"></div>
             </div>
             <div id="routine-progress-bar-wrap" class="hidden mt-4 w-full h-2 rounded-full bg-black/50 border border-[#FFD60A20] overflow-hidden"><div id="routine-progress-bar" class="h-full bg-[#FFD60A] transition-all duration-1000" style="width:0%"></div></div>
@@ -800,8 +800,8 @@ main { background: rgba(5,8,7,0.72); }
         <div class="card border-[#00E5FF30] mt-6">
             <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">TUNER</h4>
             <div class="flex flex-wrap gap-2 mb-4 justify-center">
-                <button id="btn-tuner-guitar" type="button" class="btn-ferrett" style="border-color:#00E5FF80;color:#00E5FF;background:rgba(0,229,255,0.12);">6-STRING GUITAR</button>
-                <button id="btn-tuner-bass" type="button" class="btn-ferrett">5-STRING BASS</button>
+                <button id="btn-tuner-guitar" type="button" class="btn-euterpe" style="border-color:#00E5FF80;color:#00E5FF;background:rgba(0,229,255,0.12);">6-STRING GUITAR</button>
+                <button id="btn-tuner-bass" type="button" class="btn-euterpe">5-STRING BASS</button>
             </div>
             <div class="flex flex-wrap gap-2 mb-6 justify-center" id="tuner-string-buttons"></div>
             <div class="flex flex-col items-center gap-3">
@@ -814,7 +814,7 @@ main { background: rgba(5,8,7,0.72); }
                     <div class="absolute inset-y-0 left-1/2 w-[2px] bg-[#00E5FF]/30 -translate-x-1/2 z-10"></div>
                     <div id="tuner-needle" class="absolute top-0 h-full w-2 bg-[#E2E8F0]/70 transition-all duration-100 rounded-full" style="left:50%;"></div>
                 </div>
-                <button id="btn-tuner-toggle" type="button" class="btn-ferrett-green px-6 py-2 mt-3">🎙️ START TUNER</button>
+                <button id="btn-tuner-toggle" type="button" class="btn-euterpe-green px-6 py-2 mt-3">🎙️ START TUNER</button>
                 <p id="tuner-status" class="text-[10px] text-[#E2E8F0]/30 mt-1 h-4"></p>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/30 mt-4 text-center max-w-lg mx-auto leading-relaxed">Low strings (bass low B/E) can be genuinely hard to pick up on a phone or tablet's built-in mic — the low-frequency roll-off on small mics makes the fundamental weak. It'll work, but for reliable low-B tracking, an audio interface input beats a phone mic every time.</p>
@@ -824,9 +824,9 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4 border-b border-[#00FF8820] pb-2">
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🥁 BEAT SKETCH — 16-STEP SEQUENCER</h4>
                 <div class="flex items-center gap-2">
-                    <button id="btn-beat-play" type="button" class="btn-ferrett-green px-4 py-1.5">▶ PLAY</button>
-                    <button id="btn-beat-midi" type="button" class="btn-ferrett px-3 py-1.5" title="Export as a MIDI drum clip">↓ MIDI</button>
-                    <button id="btn-beat-clear" type="button" class="btn-ferrett px-3 py-1.5">CLEAR</button>
+                    <button id="btn-beat-play" type="button" class="btn-euterpe-green px-4 py-1.5">▶ PLAY</button>
+                    <button id="btn-beat-midi" type="button" class="btn-euterpe px-3 py-1.5" title="Export as a MIDI drum clip">↓ MIDI</button>
+                    <button id="btn-beat-clear" type="button" class="btn-euterpe px-3 py-1.5">CLEAR</button>
                     <input type="number" id="beat-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[13px] font-bold text-[#00FF88] w-16 py-1 focus:outline-none">
                     <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
                 </div>
@@ -834,7 +834,7 @@ main { background: rgba(5,8,7,0.72); }
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Synthesized drums, all in-browser. Click a cell once for a hit, again for an <span class="text-[#FFD60A]">accent</span>. Presets get you started.</p>
             <div class="flex flex-wrap items-center gap-4 mb-4">
                 <div class="flex items-center gap-2 flex-1 min-w-[180px]"><span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SWING</span><input type="range" id="beat-swing" min="0" max="65" value="0" class="flex-1 accent-[#00FF88]"><span id="beat-swing-val" class="text-[10px] font-mono text-[#00FF88] w-9 text-right">0%</span></div>
-                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-ferrett px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-ferrett px-2 py-1 text-[10px]" title="Delete snapshot">🗑</button></div>
+                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-euterpe px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-euterpe px-2 py-1 text-[10px]" title="Delete snapshot">🗑</button></div>
             </div>
             <div class="flex flex-wrap gap-2 mb-4" id="beat-presets"></div>
             <div id="beat-grid" class="space-y-1.5 overflow-x-auto"></div>
@@ -851,10 +851,10 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Click keys or use your keyboard (<span class="font-mono text-[#00E5FF]/70">A S D F G H J K</span> = white, <span class="font-mono text-[#00E5FF]/70">W E T Y U</span> = black). Scale notes glow. Record a lick and play it back.</p>
             <div class="flex flex-wrap gap-2 mb-3">
-                <button id="btn-kb-rec" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
-                <button id="btn-kb-play" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
-                <button id="btn-kb-midi" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI">↓ MIDI</button>
-                <button id="btn-kb-clear" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CLEAR</button>
+                <button id="btn-kb-rec" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
+                <button id="btn-kb-play" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
+                <button id="btn-kb-midi" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI">↓ MIDI</button>
+                <button id="btn-kb-clear" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]">CLEAR</button>
                 <span id="kb-status" class="text-[10px] font-mono text-[#00E5FF]/60 self-center"></span>
             </div>
             <div id="kb-keys" class="relative select-none" style="height:120px"></div>
@@ -865,7 +865,7 @@ main { background: rgba(5,8,7,0.72); }
             <div class="flex flex-wrap items-center gap-3 mb-3">
                 <input type="text" id="pr-what" placeholder="what are you working on?" class="flex-1 min-w-[150px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
                 <div id="pr-clock" class="text-[24px] font-bold font-mono text-[#00FF88]">00:00</div>
-                <button id="btn-pr-toggle" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">▶ START</button>
+                <button id="btn-pr-toggle" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]">▶ START</button>
             </div>
             <div id="pr-log" class="space-y-1 max-h-[140px] overflow-y-auto"></div>
         </div>
@@ -882,15 +882,15 @@ main { background: rgba(5,8,7,0.72); }
                 <input type="text" id="songboard-note" placeholder="note (optional)…" class="flex-1 min-w-[140px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="songboard-len" placeholder="m:ss (optional)" class="w-24 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="number" id="songboard-bpm" placeholder="bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1.5 focus:outline-none" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
-                <button id="btn-songboard-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
-                <button id="btn-songboard-paste-tagged" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once">📋 PASTE TAGGED SONG</button>
+                <button id="btn-songboard-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
+                <button id="btn-songboard-paste-tagged" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once">📋 PASTE TAGGED SONG</button>
             </div>
             <div id="songboard-paste-panel" class="hidden mb-4 p-3 rounded border border-[#00E5FF40] bg-black/30">
                 <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Uses the title above (or "Untitled"). Paste lyrics with <code class="text-[#00E5FF]">[Section]</code> headers on their own line — creates the song, builds its arrangement from the detected sections, and loads the tagged lyrics into a linked sheet.</p>
                 <textarea id="songboard-paste-text" rows="8" class="w-full bg-black/50 border border-[#00E5FF40] rounded text-[11px] text-[#C9FFE6] p-2 focus:outline-none font-mono" placeholder="[Intro]&#10;(Check)&#10;&#10;[Verse 1]&#10;line one&#10;line two"></textarea>
                 <div class="flex flex-wrap items-center gap-2 mt-2">
-                    <button id="btn-songboard-paste-apply" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">CREATE SONG FROM PASTE</button>
-                    <button id="btn-songboard-paste-cancel" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CANCEL</button>
+                    <button id="btn-songboard-paste-apply" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">CREATE SONG FROM PASTE</button>
+                    <button id="btn-songboard-paste-cancel" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]">CANCEL</button>
                 </div>
             </div>
             <div id="songboard-board" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3"></div>
@@ -913,16 +913,16 @@ main { background: rgba(5,8,7,0.72); }
                     <input type="number" id="song-detail-bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1 focus:outline-none" placeholder="—" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <button id="song-detail-arr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
-                    <button id="song-detail-lyr-btn" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
+                    <button id="song-detail-arr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
+                    <button id="song-detail-lyr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
                 </div>
-                <button id="song-detail-lyria-btn" type="button" class="btn-ferrett w-full px-3 py-2 text-[10px] mb-4" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
+                <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-4" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
                 <div class="border-t border-[#00E5FF20] pt-3 mb-4">
                     <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
                     <div id="song-detail-tracks-list" class="space-y-1 mb-2"></div>
                     <div class="flex gap-2">
                         <select id="song-detail-track-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a track —</option></select>
-                        <button id="song-detail-track-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ LINK</button>
+                        <button id="song-detail-track-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
                     </div>
                 </div>
                 <div class="border-t border-[#00E5FF20] pt-3">
@@ -930,7 +930,7 @@ main { background: rgba(5,8,7,0.72); }
                     <div id="song-detail-tones-list" class="space-y-1 mb-2"></div>
                     <div class="flex gap-2">
                         <select id="song-detail-tone-select" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#00E5FF]/80 px-2 py-1.5 focus:outline-none"><option value="">— choose a tone —</option></select>
-                        <button id="song-detail-tone-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ LINK</button>
+                        <button id="song-detail-tone-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ LINK</button>
                     </div>
                 </div>
                 <div id="song-detail-kit-wrap" class="border-t border-[#FF88FF20] pt-3 mt-4">
@@ -973,16 +973,16 @@ main { background: rgba(5,8,7,0.72); }
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Block out a song section-by-section — get each part's length and the total runtime. Drag to reorder.</p>
             <div class="flex flex-wrap items-center gap-2 mb-2">
                 <select id="arr-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF]/80 text-[10px] px-2 py-1.5 focus:outline-none"><option value="">— choose a song —</option></select>
-                <button id="btn-arr-attach" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF">🔗 ATTACH TO SONG</button>
-                <button id="btn-arr-paste-tagged" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — rebuilds the arrangement for the song selected above and loads its lyrics too">📋 PASTE TAGGED</button>
+                <button id="btn-arr-attach" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF">🔗 ATTACH TO SONG</button>
+                <button id="btn-arr-paste-tagged" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — rebuilds the arrangement for the song selected above and loads its lyrics too">📋 PASTE TAGGED</button>
             </div>
             <div id="arr-attached-label" class="text-[9px] text-[#B18CFF]/60 mb-2 hidden"></div>
             <div id="arr-paste-panel" class="hidden mb-3 p-3 rounded border border-[#B18CFF40] bg-black/30">
                 <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Choose a song above first. Paste lyrics with <code class="text-[#B18CFF]">[Section]</code> headers on their own line — rebuilds that song's arrangement from the detected sections and loads the tagged lyrics into its linked sheet.</p>
                 <textarea id="arr-paste-text" rows="8" class="w-full bg-black/50 border border-[#B18CFF40] rounded text-[11px] text-[#C9FFE6] p-2 focus:outline-none font-mono" placeholder="[Intro]&#10;(Check)&#10;&#10;[Verse 1]&#10;line one&#10;line two"></textarea>
                 <div class="flex flex-wrap items-center gap-2 mt-2">
-                    <button id="btn-arr-paste-apply" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">PARSE &amp; APPLY</button>
-                    <button id="btn-arr-paste-cancel" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CANCEL</button>
+                    <button id="btn-arr-paste-apply" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">PARSE &amp; APPLY</button>
+                    <button id="btn-arr-paste-cancel" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]">CANCEL</button>
                 </div>
             </div>
             <div class="flex flex-wrap gap-1.5 mb-3" id="arr-add-btns"></div>
@@ -990,7 +990,7 @@ main { background: rgba(5,8,7,0.72); }
             <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
             <div class="flex items-center justify-between gap-2 flex-wrap">
                 <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
-                <button id="btn-arr-markers" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
+                <button id="btn-arr-markers" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
             </div>
         </div>
 
@@ -1000,7 +1000,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div class="flex flex-wrap gap-2 mb-3">
                     <input type="text" id="set-title" placeholder="song title…" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                     <input type="text" id="set-len" placeholder="3:30" class="w-16 bg-black/50 border border-[#00FF88]/25 rounded text-center text-[12px] text-[#00FF88] px-2 py-1.5 focus:outline-none">
-                    <button id="btn-set-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+ ADD</button>
+                    <button id="btn-set-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ ADD</button>
                 </div>
                 <select id="set-from-track" class="w-full bg-black/50 border border-[#00FF88]/20 rounded text-[#00FF88]/80 text-[10px] px-2 py-1.5 focus:outline-none mb-3"><option value="">…or pull from Song Board</option></select>
                 <div id="set-list" class="space-y-1 mb-2"></div>
@@ -1019,10 +1019,10 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔊 TEST-TONE & NOISE LAB</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Room / monitor checks, tuning drones, ear training. Watch your levels.</p>
                 <div class="flex flex-wrap gap-2 mb-3">
-                    <button data-tone="sine" class="lab-tone-src btn-ferrett px-3 py-1.5">SINE</button>
-                    <button data-tone="white" class="lab-tone-src btn-ferrett px-3 py-1.5">WHITE</button>
-                    <button data-tone="pink" class="lab-tone-src btn-ferrett px-3 py-1.5">PINK</button>
-                    <button data-tone="sweep" class="lab-tone-src btn-ferrett px-3 py-1.5">SWEEP 20→20k</button>
+                    <button data-tone="sine" class="lab-tone-src btn-euterpe px-3 py-1.5">SINE</button>
+                    <button data-tone="white" class="lab-tone-src btn-euterpe px-3 py-1.5">WHITE</button>
+                    <button data-tone="pink" class="lab-tone-src btn-euterpe px-3 py-1.5">PINK</button>
+                    <button data-tone="sweep" class="lab-tone-src btn-euterpe px-3 py-1.5">SWEEP 20→20k</button>
                 </div>
                 <div class="flex items-center gap-3 mb-3">
                     <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-10">FREQ</label>
@@ -1035,13 +1035,13 @@ main { background: rgba(5,8,7,0.72); }
                     <span id="lab-tone-vol-val" class="text-[11px] font-mono text-[#00E5FF] w-16 text-right">18%</span>
                 </div>
                 <div class="flex flex-wrap gap-2 mb-3">
-                    <button data-ref="440" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">A 440</button>
-                    <button data-ref="82.41" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">Low E 82</button>
-                    <button data-ref="110" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">A 110</button>
-                    <button data-ref="60" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">60 Hz hum</button>
-                    <button data-ref="1000" class="lab-ref-pitch btn-ferrett px-2 py-1 text-[10px]">1 kHz</button>
+                    <button data-ref="440" class="lab-ref-pitch btn-euterpe px-2 py-1 text-[10px]">A 440</button>
+                    <button data-ref="82.41" class="lab-ref-pitch btn-euterpe px-2 py-1 text-[10px]">Low E 82</button>
+                    <button data-ref="110" class="lab-ref-pitch btn-euterpe px-2 py-1 text-[10px]">A 110</button>
+                    <button data-ref="60" class="lab-ref-pitch btn-euterpe px-2 py-1 text-[10px]">60 Hz hum</button>
+                    <button data-ref="1000" class="lab-ref-pitch btn-euterpe px-2 py-1 text-[10px]">1 kHz</button>
                 </div>
-                <button id="btn-lab-tone-toggle" type="button" class="btn-ferrett-green px-6 py-2">▶ PLAY</button>
+                <button id="btn-lab-tone-toggle" type="button" class="btn-euterpe-green px-6 py-2">▶ PLAY</button>
             </div>
             <div class="card border-[#FF5A5A40]">
                 <h4 class="text-[11px] text-[#FF5A5A] font-bold tracking-widest mb-3 border-b border-[#FF5A5A20] pb-2">👂 EAR-FATIGUE / BREAK TIMER</h4>
@@ -1051,13 +1051,13 @@ main { background: rgba(5,8,7,0.72); }
                     <div id="lab-break-state" class="text-[9px] text-[#FF5A5A]/50 tracking-widest mt-1">READY</div>
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-                    <button data-mins="45" class="lab-break-preset btn-ferrett px-2 py-1 text-[10px]">45 MIN</button>
-                    <button data-mins="25" class="lab-break-preset btn-ferrett px-2 py-1 text-[10px]">25 MIN</button>
-                    <button data-mins="60" class="lab-break-preset btn-ferrett px-2 py-1 text-[10px]">60 MIN</button>
+                    <button data-mins="45" class="lab-break-preset btn-euterpe px-2 py-1 text-[10px]">45 MIN</button>
+                    <button data-mins="25" class="lab-break-preset btn-euterpe px-2 py-1 text-[10px]">25 MIN</button>
+                    <button data-mins="60" class="lab-break-preset btn-euterpe px-2 py-1 text-[10px]">60 MIN</button>
                 </div>
                 <div class="flex gap-2">
-                    <button id="btn-lab-break-toggle" type="button" class="btn-ferrett-green px-5 py-2 flex-1">▶ START</button>
-                    <button id="btn-lab-break-reset" type="button" class="btn-ferrett px-4 py-2">RESET</button>
+                    <button id="btn-lab-break-toggle" type="button" class="btn-euterpe-green px-5 py-2 flex-1">▶ START</button>
+                    <button id="btn-lab-break-reset" type="button" class="btn-euterpe px-4 py-2">RESET</button>
                 </div>
             </div>
             </div>
@@ -1066,7 +1066,7 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">📊 SPECTRUM ANALYZER (RTA)</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Live mic spectrum — spot room resonances, tune monitors, check a mix in the room.</p>
                 <canvas id="rta-canvas" class="w-full rounded bg-black/50 border border-[#FF88FF20]" height="120"></canvas>
-                <button id="btn-rta-toggle" type="button" class="btn-ferrett-green px-4 py-1.5 text-[10px] mt-3">🎙️ START</button>
+                <button id="btn-rta-toggle" type="button" class="btn-euterpe-green px-4 py-1.5 text-[10px] mt-3">🎙️ START</button>
                 <span id="rta-status" class="text-[10px] text-[#E2E8F0]/40 ml-2"></span>
             </div>
     </div>
@@ -1078,17 +1078,17 @@ main { background: rgba(5,8,7,0.72); }
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div class="p-3 rounded border border-[#00FF8820] bg-black/30">
                     <label class="text-[9px] tracking-widest text-[#00FF88]/70 font-bold block mb-2">YOUR MIX</label>
-                    <label class="btn-ferrett-green file-upload-btn text-center leading-tight block w-full"><span>+ CHOOSE FILE</span><input type="file" id="ma-file-a" accept="audio/*" class="hidden"></label>
+                    <label class="btn-euterpe-green file-upload-btn text-center leading-tight block w-full"><span>+ CHOOSE FILE</span><input type="file" id="ma-file-a" accept="audio/*" class="hidden"></label>
                     <div id="ma-file-a-name" class="text-[10px] text-[#E2E8F0]/40 mt-2 truncate">No file selected</div>
                 </div>
                 <div class="p-3 rounded border border-[#B18CFF20] bg-black/30">
                     <label class="text-[9px] tracking-widest text-[#B18CFF]/70 font-bold block mb-2">REFERENCE TRACK <span class="text-[#E2E8F0]/30 font-normal">(optional — for A/B compare)</span></label>
-                    <label class="btn-ferrett file-upload-btn text-center leading-tight block w-full" style="border-color:#B18CFF60;color:#B18CFF;"><span>+ CHOOSE FILE</span><input type="file" id="ma-file-b" accept="audio/*" class="hidden"></label>
+                    <label class="btn-euterpe file-upload-btn text-center leading-tight block w-full" style="border-color:#B18CFF60;color:#B18CFF;"><span>+ CHOOSE FILE</span><input type="file" id="ma-file-b" accept="audio/*" class="hidden"></label>
                     <div id="ma-file-b-name" class="text-[10px] text-[#E2E8F0]/40 mt-2 truncate">No file selected</div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button id="btn-ma-analyze" type="button" class="btn-ferrett-green px-6 py-2" disabled>▶ ANALYZE</button>
+                <button id="btn-ma-analyze" type="button" class="btn-euterpe-green px-6 py-2" disabled>▶ ANALYZE</button>
                 <span id="ma-status" class="text-[10px] text-[#E2E8F0]/40"></span>
             </div>
         </div>
@@ -1113,7 +1113,7 @@ main { background: rgba(5,8,7,0.72); }
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Random recipe + tempo + key + a creative constraint. Break the blank-page freeze.</p>
                 <div id="lab-challenge-out" class="hidden mb-4 p-3 rounded border border-[#FFD60A25] bg-black/40 space-y-2"></div>
                 <div class="flex flex-wrap gap-2">
-                <button id="btn-lab-challenge" type="button" class="btn-ferrett-green px-6 py-2" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1);">ROLL THE DICE</button>
+                <button id="btn-lab-challenge" type="button" class="btn-euterpe-green px-6 py-2" style="border-color:#FFD60A80;color:#FFD60A;background:rgba(255,214,10,0.1);">ROLL THE DICE</button>
                 <button id="btn-lab-challenge-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
                 </div>
             </div>
@@ -1121,7 +1121,7 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest mb-3 border-b border-[#B18CFF20] pb-2">🃏 VIBE ROULETTE</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Oblique-strategy cards for producers. Pull one when you're stuck.</p>
                 <div id="lab-vibe-card" class="mb-4 p-4 rounded border border-[#B18CFF25] bg-black/40 text-center text-[13px] text-[#E2E8F0]/85 italic min-h-[64px] flex items-center justify-center">Pull a card…</div>
-                <button id="btn-lab-vibe" type="button" class="btn-ferrett px-6 py-2" style="border-color:#B18CFF80;color:#B18CFF;background:rgba(177,140,255,0.1);">PULL A CARD</button>
+                <button id="btn-lab-vibe" type="button" class="btn-euterpe px-6 py-2" style="border-color:#B18CFF80;color:#B18CFF;background:rgba(177,140,255,0.1);">PULL A CARD</button>
             </div>
             </div>
 
@@ -1137,13 +1137,13 @@ main { background: rgba(5,8,7,0.72); }
                         <select id="lab-idea-key" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[11px] px-2 py-1.5 focus:outline-none"></select>
                     </div>
                 </div>
-                <button id="btn-lab-idea-save" type="button" class="btn-ferrett-green px-6 py-2">→ SPAWN CHANNEL STUB</button>
+                <button id="btn-lab-idea-save" type="button" class="btn-euterpe-green px-6 py-2">→ SPAWN CHANNEL STUB</button>
             </div>
             <div class="card border-[#FF88FF40]">
                 <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎙️ VOICE-MEMO SCRATCHPAD</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Hum / beatbox an idea straight into the vault (IndexedDB, offline). Never texted to your phone again.</p>
                 <div class="flex gap-2 mb-4">
-                    <button id="btn-lab-memo-rec" type="button" class="btn-ferrett-green px-5 py-2 flex-1">● RECORD</button>
+                    <button id="btn-lab-memo-rec" type="button" class="btn-euterpe-green px-5 py-2 flex-1">● RECORD</button>
                     <span id="lab-memo-status" class="text-[10px] font-mono text-[#FF88FF]/70 self-center"></span>
                 </div>
                 <div id="lab-memo-list" class="space-y-2 max-h-[180px] overflow-y-auto"></div>
@@ -1158,7 +1158,7 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-ai-settings-lab" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Turn a vibe into a fully-formed prompt for Suno / Udio / Lyria — via your own Groq. Also great for describing a tone you're chasing.</p>
-            <a href="https://www.flowmusic.app/" target="_blank" rel="noopener" class="btn-ferrett inline-block px-3 py-1.5 text-[10px] no-underline mb-3" style="border-color:#00E5FF60;color:#00E5FF">↗ Google Flow</a>
+            <a href="https://www.flowmusic.app/" target="_blank" rel="noopener" class="btn-euterpe inline-block px-3 py-1.5 text-[10px] no-underline mb-3" style="border-color:#00E5FF60;color:#00E5FF">↗ Google Flow</a>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                 <input type="text" id="ai-mp-genre" placeholder="genre" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="text" id="ai-mp-mood" placeholder="mood" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
@@ -1166,9 +1166,9 @@ main { background: rgba(5,8,7,0.72); }
                 <input type="text" id="ai-mp-instr" placeholder="instruments" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
             </div>
             <div class="flex flex-wrap gap-2 mb-3">
-                <button id="btn-ai-mp-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">✨ GENERATE PROMPT</button>
-                <button id="btn-ai-mp-redo" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
-                <button id="btn-ai-mp-copy" type="button" class="btn-ferrett px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">⧉ COPY</button>
+                <button id="btn-ai-mp-gen" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]">✨ GENERATE PROMPT</button>
+                <button id="btn-ai-mp-redo" type="button" class="btn-euterpe px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
+                <button id="btn-ai-mp-copy" type="button" class="btn-euterpe px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">⧉ COPY</button>
                 <button id="btn-ai-mp-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
                 <span id="ai-mp-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
             </div>
@@ -1184,25 +1184,25 @@ main { background: rgba(5,8,7,0.72); }
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">ASK ANYTHING (production, theory, gear)</label>
-                    <div class="flex gap-2 mb-2"><input type="text" id="ai-ask-in" placeholder="how do I get a punchy 808?" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-ask" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">ASK</button></div>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-ask-in" placeholder="how do I get a punchy 808?" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-ask" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">ASK</button></div>
                 </div>
                 <div>
                     <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">CHORDS FROM A MOOD</label>
-                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mood-in" placeholder="bittersweet, nostalgic" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mood" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mood-in" placeholder="bittersweet, nostalgic" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mood" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">GO</button></div>
                 </div>
                 <div>
                     <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">REIMAGINE A RECIPE IN A NEW GENRE</label>
-                    <div class="flex gap-2 mb-2"><select id="ai-recipe-sel" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"></select><input type="text" id="ai-recipe-genre" placeholder="→ genre" class="w-28 bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-2 focus:outline-none"><button id="btn-ai-recipe" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GO</button></div>
+                    <div class="flex gap-2 mb-2"><select id="ai-recipe-sel" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"></select><input type="text" id="ai-recipe-genre" placeholder="→ genre" class="w-28 bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-2 focus:outline-none"><button id="btn-ai-recipe" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">GO</button></div>
                 </div>
                 <div>
                     <label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">MIX FEEDBACK (describe what you hear)</label>
-                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mix-in" placeholder="vocals harsh, low end muddy" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mix" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">GET FIXES</button></div>
+                    <div class="flex gap-2 mb-2"><input type="text" id="ai-mix-in" placeholder="vocals harsh, low end muddy" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mix" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">GET FIXES</button></div>
                 </div>
             </div>
             <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
             <div id="ai-brain-out-controls" class="hidden gap-2 mt-3">
-                <button id="btn-ai-brain-redo" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
-                <button id="btn-ai-brain-save-note" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88">📝 SAVE AS NOTE</button>
+                <button id="btn-ai-brain-redo" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
+                <button id="btn-ai-brain-save-note" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88">📝 SAVE AS NOTE</button>
                 <button id="btn-ai-brain-hide" type="button" class="btn-tool-icon">HIDE</button>
             </div>
             <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
@@ -1233,7 +1233,7 @@ main { background: rgba(5,8,7,0.72); }
         <div class="card border-[#B18CFF30] mb-6">
             <div class="flex items-center justify-between mb-4 border-b border-[#B18CFF20] pb-2">
                 <h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🕸️ STUDIO GRAPH — WHAT FEEDS WHAT</h4>
-                <button id="btn-lab-graph-refresh" type="button" class="btn-ferrett px-3 py-1 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF;">REDRAW</button>
+                <button id="btn-lab-graph-refresh" type="button" class="btn-euterpe px-3 py-1 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF;">REDRAW</button>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Every track wired to the tone and recipe it references. Tap a node to jump to it.</p>
             <div class="overflow-x-auto"><svg id="lab-graph-svg" viewBox="0 0 620 420" class="w-full min-w-[520px]" style="background:radial-gradient(circle at 50% 40%,rgba(177,140,255,0.05),transparent 70%);"></svg></div>
@@ -1253,7 +1253,7 @@ main { background: rgba(5,8,7,0.72); }
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Strings, tubes, batteries — log it, see how long since.</p>
                 <div class="flex flex-wrap gap-2 mb-3">
                     <input type="text" id="gm-what" placeholder="e.g. Strat strings" class="flex-1 min-w-[120px] bg-black/50 border border-[#00FF88]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <button id="btn-gm-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">LOG TODAY</button>
+                    <button id="btn-gm-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">LOG TODAY</button>
                 </div>
                 <div id="gm-list" class="space-y-1"></div>
             </div>
@@ -1264,7 +1264,7 @@ main { background: rgba(5,8,7,0.72); }
                     <input type="text" id="sl-name" placeholder="name" class="flex-1 min-w-[100px] bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                     <input type="text" id="sl-bpm" placeholder="bpm" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
                     <input type="text" id="sl-key" placeholder="key" class="w-14 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[11px] text-[#00E5FF] px-1 py-1.5 focus:outline-none">
-                    <button id="btn-sl-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
+                    <button id="btn-sl-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+</button>
                 </div>
                 <input type="text" id="sl-filter" placeholder="filter…" class="w-full bg-black/40 border border-[#00E5FF]/15 rounded text-[10px] text-[#C9FFE6] px-2 py-1 focus:outline-none mb-2">
                 <div id="sl-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
@@ -1284,7 +1284,7 @@ main { background: rgba(5,8,7,0.72); }
                 <div class="flex flex-wrap gap-2 mb-3">
                     <input type="text" id="co-name" placeholder="name" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                     <input type="text" id="co-role" placeholder="role / contact" class="flex-1 min-w-[90px] bg-black/50 border border-[#B18CFF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                    <button id="btn-co-add" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">+</button>
+                    <button id="btn-co-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+</button>
                 </div>
                 <div id="co-list" class="space-y-1 max-h-[160px] overflow-y-auto"></div>
             </div>
@@ -1295,19 +1295,19 @@ main { background: rgba(5,8,7,0.72); }
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🎚️ REAPER TRACK TEMPLATE</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Turn a saved tone into a real <span class="text-[#00FF88]/70">.RTrackTemplate</span> — drop it straight onto a REAPER track.</p>
                 <select id="lab-rtt-tone" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[11px] px-2 py-1.5 focus:outline-none mb-3"></select>
-                <button id="btn-lab-rtt" type="button" class="btn-ferrett-green px-5 py-2 w-full">↓ EXPORT TEMPLATE</button>
+                <button id="btn-lab-rtt" type="button" class="btn-euterpe-green px-5 py-2 w-full">↓ EXPORT TEMPLATE</button>
             </div>
             <div class="card border-[#00E5FF30]">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🎒 GIG-BAG BUNDLE</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Pick a subset and export a shareable pack (same format as your recipe packs).</p>
-                <button id="btn-lab-gigbag" type="button" class="btn-ferrett px-5 py-2 w-full" style="border-color:#00E5FF80;color:#00E5FF;">BUILD A BUNDLE…</button>
+                <button id="btn-lab-gigbag" type="button" class="btn-euterpe px-5 py-2 w-full" style="border-color:#00E5FF80;color:#00E5FF;">BUILD A BUNDLE…</button>
             </div>
             <div class="card border-[#FF5A5A40]">
                 <h4 class="text-[11px] text-[#FF5A5A] font-bold tracking-widest mb-3 border-b border-[#FF5A5A20] pb-2">🔐 ENCRYPTED BACKUP</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Passphrase-encrypt (AES-GCM) your whole vault so a backup file is safe to store anywhere.</p>
                 <div class="flex flex-col gap-2">
-                    <button id="btn-lab-enc-export" type="button" class="btn-ferrett-green px-4 py-2" style="border-color:#FF5A5A80;color:#FF5A5A;background:rgba(255,90,90,0.1);">↓ ENCRYPT & SAVE</button>
-                    <button id="btn-lab-enc-import" type="button" class="btn-ferrett px-4 py-2" style="border-color:#FF5A5A80;color:#FF5A5A;">↑ DECRYPT & RESTORE</button>
+                    <button id="btn-lab-enc-export" type="button" class="btn-euterpe-green px-4 py-2" style="border-color:#FF5A5A80;color:#FF5A5A;background:rgba(255,90,90,0.1);">↓ ENCRYPT & SAVE</button>
+                    <button id="btn-lab-enc-import" type="button" class="btn-euterpe px-4 py-2" style="border-color:#FF5A5A80;color:#FF5A5A;">↑ DECRYPT & RESTORE</button>
                     <input type="file" id="lab-enc-file" accept=".fenc,.json" class="hidden">
                 </div>
             </div>
@@ -1332,15 +1332,15 @@ main { background: rgba(5,8,7,0.72); }
 
         <!-- toolbar -->
         <div class="flex flex-wrap items-center gap-2 mb-4">
-            <button id="btn-lyr-cutup" type="button" class="btn-ferrett px-4 py-2" style="border-color:#FF88FF80;color:#FF88FF;background:rgba(255,136,255,0.12)" title="Bowie/Cobain cut-up — randomize line order">✂️ CUT-UP SHUFFLE</button>
-            <button id="btn-lyr-cutup-sec" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Shuffle only within each section">SHUFFLE IN SECTION</button>
-            <button id="btn-lyr-undo" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Undo last shuffle/edit">↶ UNDO</button>
-            <button id="btn-lyr-add-line" type="button" class="btn-ferrett-green px-3 py-2 text-[10px]">+ LINE</button>
-            <button id="btn-lyr-paste-tagged" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement">📋 PASTE TAGGED</button>
+            <button id="btn-lyr-cutup" type="button" class="btn-euterpe px-4 py-2" style="border-color:#FF88FF80;color:#FF88FF;background:rgba(255,136,255,0.12)" title="Bowie/Cobain cut-up — randomize line order">✂️ CUT-UP SHUFFLE</button>
+            <button id="btn-lyr-cutup-sec" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Shuffle only within each section">SHUFFLE IN SECTION</button>
+            <button id="btn-lyr-undo" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Undo last shuffle/edit">↶ UNDO</button>
+            <button id="btn-lyr-add-line" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">+ LINE</button>
+            <button id="btn-lyr-paste-tagged" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement">📋 PASTE TAGGED</button>
             <label class="flex items-center gap-1.5 text-[9px] text-[#FF88FF]/70 tracking-widest cursor-pointer ml-1"><input type="checkbox" id="lyr-show-syl" class="accent-[#FF88FF]" checked> SYLLABLES</label>
             <div class="flex-1"></div>
-            <button id="btn-lyr-export" type="button" class="btn-ferrett px-3 py-2 text-[10px]">↓ .TXT</button>
-            <button id="btn-lyr-print" type="button" class="btn-ferrett px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
+            <button id="btn-lyr-export" type="button" class="btn-euterpe px-3 py-2 text-[10px]">↓ .TXT</button>
+            <button id="btn-lyr-print" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
         </div>
 
         <!-- paste-tagged panel: paste a full song written with [Section] headers, parse into tagged lines + arrangement -->
@@ -1348,8 +1348,8 @@ main { background: rgba(5,8,7,0.72); }
             <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Paste lyrics with section headers on their own line, e.g. <code class="text-[#B18CFF]">[Verse 1]</code> — every line under a header gets that tag. If this sheet is linked to a Song Board song, the detected sections also rebuild its arrangement.</p>
             <textarea id="lyr-paste-text" rows="8" class="w-full bg-black/50 border border-[#B18CFF40] rounded text-[11px] text-[#C9FFE6] p-2 focus:outline-none font-mono" placeholder="[Intro]&#10;(Check)&#10;&#10;[Verse 1]&#10;line one&#10;line two"></textarea>
             <div class="flex flex-wrap items-center gap-2 mt-2">
-                <button id="btn-lyr-paste-apply" type="button" class="btn-ferrett-green px-3 py-1.5 text-[10px]">PARSE &amp; LOAD</button>
-                <button id="btn-lyr-paste-cancel" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]">CANCEL</button>
+                <button id="btn-lyr-paste-apply" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">PARSE &amp; LOAD</button>
+                <button id="btn-lyr-paste-cancel" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]">CANCEL</button>
                 <label class="flex items-center gap-1.5 text-[9px] text-[#B18CFF]/70 ml-1"><input type="checkbox" id="lyr-paste-replace" class="accent-[#B18CFF]"> replace existing lines (unchecked = append)</label>
             </div>
         </div>
@@ -1361,19 +1361,19 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-lyr-mode-analyze" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#FF88FF]/50">EDIT/ANALYZE</button>
             </div>
             <div id="lyr-analyze-tools" class="hidden flex-wrap items-center gap-2">
-                <button id="btn-lyr-read" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">🔊 READ ALOUD</button>
+                <button id="btn-lyr-read" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">🔊 READ ALOUD</button>
                 <div class="flex items-center gap-1.5"><span class="text-[8px] text-[#00E5FF]/60 tracking-widest">RATE</span><input type="range" id="lyr-read-rate" min="60" max="140" value="95" class="w-16 accent-[#00E5FF]"></div>
-                <button id="btn-lyr-spark" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line">✨ SPARK</button>
+                <button id="btn-lyr-spark" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line">✨ SPARK</button>
                 <span id="lyr-spark-out" class="text-[11px] text-[#FFD60A] font-bold italic"></span>
-                <button id="btn-lyr-copy" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the whole lyric sheet as plain text">📋 COPY</button>
+                <button id="btn-lyr-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the whole lyric sheet as plain text">📋 COPY</button>
             </div>
         </div>
 
         <!-- line editor (EDIT mode) -->
         <div id="lyr-select-bar" class="hidden items-center gap-2 mb-2 p-2 rounded border border-[#FFD60A40] bg-[#FFD60A]/5 flex-wrap">
             <span id="lyr-select-count" class="text-[10px] font-bold text-[#FFD60A] tracking-widest"></span>
-            <button id="btn-lyr-punch-selected" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punch up only the checked lines, alternatives inserted right below each">↑ PUNCH UP SELECTED</button>
-            <button id="btn-lyr-delete-selected" type="button" class="btn-ferrett px-3 py-1.5 text-[10px]" style="border-color:#FF888880;color:#FF8888">🗑 DELETE SELECTED</button>
+            <button id="btn-lyr-punch-selected" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punch up only the checked lines, alternatives inserted right below each">↑ PUNCH UP SELECTED</button>
+            <button id="btn-lyr-delete-selected" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF888880;color:#FF8888">🗑 DELETE SELECTED</button>
             <button id="btn-lyr-clear-selected" type="button" class="text-[10px] font-bold text-[#E2E8F0]/40 ml-auto">CLEAR</button>
         </div>
         <div id="lyr-lines" class="space-y-1 mb-2"></div>
@@ -1391,7 +1391,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             <div class="flex gap-2 mb-3">
                 <input type="text" id="lyr-rhyme-in" placeholder="word…" class="flex-1 bg-black/50 border border-[#B18CFF]/30 rounded text-[12px] text-[#E2E8F0]/90 px-3 py-2 focus:outline-none">
-                <button id="btn-lyr-rhyme" type="button" class="btn-ferrett px-4 py-2" style="border-color:#B18CFF80;color:#B18CFF">FIND</button>
+                <button id="btn-lyr-rhyme" type="button" class="btn-euterpe px-4 py-2" style="border-color:#B18CFF80;color:#B18CFF">FIND</button>
             </div>
             <div id="lyr-rhyme-out" class="flex flex-wrap gap-1.5"></div>
         </div>
@@ -1400,7 +1400,7 @@ main { background: rgba(5,8,7,0.72); }
         <div class="card border-[#00FF8830] mt-5">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2">
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">📈 WORD FREQUENCY & HOOK DETECTOR</h4>
-                <button id="btn-lyr-freq" type="button" class="btn-ferrett px-3 py-1 text-[10px]" style="border-color:#00FF8880;color:#00FF88">ANALYZE</button>
+                <button id="btn-lyr-freq" type="button" class="btn-euterpe px-3 py-1 text-[10px]" style="border-color:#00FF8880;color:#00FF88">ANALYZE</button>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Your most-repeated words — spot your hook, or catch a crutch word you're leaning on too hard.</p>
             <div id="lyr-freq-out" class="space-y-1.5"></div>
@@ -1416,8 +1416,8 @@ main { background: rgba(5,8,7,0.72); }
             <div class="card border-[#FF88FF40]">
                 <h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest mb-3 border-b border-[#FF88FF20] pb-2">🎭 BAND / SONG NAME GENERATOR</h4>
                 <div class="flex gap-2 mb-4">
-                    <button id="btn-name-band" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">BAND NAME</button>
-                    <button id="btn-name-song" type="button" class="btn-ferrett px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">SONG TITLE</button>
+                    <button id="btn-name-band" type="button" class="btn-euterpe px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">BAND NAME</button>
+                    <button id="btn-name-song" type="button" class="btn-euterpe px-3 py-1.5 text-[10px] flex-1" style="border-color:#FF88FF80;color:#FF88FF">SONG TITLE</button>
                 </div>
                 <div id="name-out" class="space-y-2"></div>
             </div>
@@ -1434,10 +1434,10 @@ main { background: rgba(5,8,7,0.72); }
                 <select id="ai-lyr-style" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"><option value="hip-hop bars">Hip-hop bars</option><option value="a soulful hook">Soul hook</option><option value="a rock verse">Rock verse</option><option value="a pop chorus">Pop chorus</option><option value="dark trap">Dark trap</option><option value="folk storytelling">Folk story</option></select>
             </div>
             <div class="flex flex-wrap gap-2">
-                <button id="btn-ai-lyr-gen" type="button" class="btn-ferrett-green px-4 py-2 text-[10px]">✨ GENERATE</button>
-                <button id="btn-ai-lyr-cont" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet">↳ CONTINUE</button>
-                <button id="btn-ai-lyr-punch" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
-                <button id="btn-ai-lyr-title" type="button" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines">🏷 TITLES</button>
+                <button id="btn-ai-lyr-gen" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]">✨ GENERATE</button>
+                <button id="btn-ai-lyr-cont" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet">↳ CONTINUE</button>
+                <button id="btn-ai-lyr-punch" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
+                <button id="btn-ai-lyr-title" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines">🏷 TITLES</button>
                 <span id="ai-lyr-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
             </div>
             <div id="ai-lyr-titles" class="hidden flex-wrap gap-1.5 mt-2"></div>
@@ -1508,10 +1508,10 @@ main { background: rgba(5,8,7,0.72); }
         <div id="ai-test-out" class="text-[11px] font-mono min-h-[18px]"></div>
       </div>
       <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-[#00E5FF20]">
-        <button id="ai-test-btn" class="btn-ferrett px-4 py-2 text-[10px]">TEST CONNECTION</button>
+        <button id="ai-test-btn" class="btn-euterpe px-4 py-2 text-[10px]">TEST CONNECTION</button>
         <div class="flex gap-2">
-          <button id="ai-clear-btn" class="btn-ferrett px-3 py-2 text-[10px]" style="border-color:#FF5A5A60;color:#FF5A5A">CLEAR</button>
-          <button id="ai-save-btn" class="btn-ferrett-green px-5 py-2 text-[10px]">SAVE</button>
+          <button id="ai-clear-btn" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FF5A5A60;color:#FF5A5A">CLEAR</button>
+          <button id="ai-save-btn" class="btn-euterpe-green px-5 py-2 text-[10px]">SAVE</button>
         </div>
       </div>
     </div>
@@ -1524,7 +1524,7 @@ main { background: rgba(5,8,7,0.72); }
       <div class="p-5 max-h-[60vh] overflow-y-auto space-y-4" id="gigbag-body"></div>
       <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-[#00E5FF20]">
         <span id="gigbag-count" class="text-[10px] text-[#00E5FF]/50 font-mono">0 items selected</span>
-        <button id="gigbag-export" class="btn-ferrett-green px-6 py-2">↓ EXPORT BUNDLE</button>
+        <button id="gigbag-export" class="btn-euterpe-green px-6 py-2">↓ EXPORT BUNDLE</button>
       </div>
     </div>
   </div>
@@ -1574,8 +1574,8 @@ main { background: rgba(5,8,7,0.72); }
                 <div class="text-[#E2E8F0]/40 italic">Calculating...</div>
             </div>
             <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t border-[#FFD60A14]">
-                <button id="btn-refresh-vault-stats" class="btn-ferrett" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">↻ REFRESH</button>
-                <button id="btn-cleanup-orphaned-audio" class="btn-ferrett" style="border-color:#FF888850;color:#FF8888;background:rgba(255,136,136,0.08);">🧹 CLEAN UP ORPHANED CLIPS</button>
+                <button id="btn-refresh-vault-stats" class="btn-euterpe" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);">↻ REFRESH</button>
+                <button id="btn-cleanup-orphaned-audio" class="btn-euterpe" style="border-color:#FF888850;color:#FF8888;background:rgba(255,136,136,0.08);">🧹 CLEAN UP ORPHANED CLIPS</button>
             </div>
             <div class="mt-6 pt-4 border-t border-[#FFD60A14]">
                 <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
@@ -1590,7 +1590,7 @@ main { background: rgba(5,8,7,0.72); }
                     <p class="text-[9px] text-[#E2E8F0]/40 mb-2">One plugin per line.</p>
                     <textarea id="owned-plugins-textarea" class="w-full h-40 bg-black/50 border border-[#B18CFF]/30 rounded p-2 text-[10px] font-mono text-[#C9FFE6] focus:outline-none resize-y"></textarea>
                     <div class="flex gap-2 mt-2">
-                        <button id="btn-save-owned-plugins" class="btn-ferrett-green px-3 py-1.5 text-[10px]">SAVE LIST</button>
+                        <button id="btn-save-owned-plugins" class="btn-euterpe-green px-3 py-1.5 text-[10px]">SAVE LIST</button>
                         <button id="btn-cancel-owned-plugins" class="text-[10px] font-bold text-[#E2E8F0]/40">CANCEL</button>
                     </div>
                 </div>
@@ -1648,8 +1648,8 @@ main { background: rgba(5,8,7,0.72); }
             <textarea id="lyria-custom-notes" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-4 h-16 resize-none focus:outline-none" placeholder="e.g. use electric bass, minimal kick/snare kit, no strings"></textarea>
 
             <div class="flex gap-2 mb-4">
-                <button id="btn-lyria-generate" type="button" class="btn-ferrett-green flex-1">GENERATE PROMPT</button>
-                <button id="btn-lyria-regenerate" type="button" class="btn-ferrett hidden" title="Generate a different variation">🎲</button>
+                <button id="btn-lyria-generate" type="button" class="btn-euterpe-green flex-1">GENERATE PROMPT</button>
+                <button id="btn-lyria-regenerate" type="button" class="btn-euterpe hidden" title="Generate a different variation">🎲</button>
                 <button id="btn-lyria-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
             </div>
 
@@ -1657,8 +1657,8 @@ main { background: rgba(5,8,7,0.72); }
                 <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">GENERATED PROMPT</label>
                 <textarea id="lyria-output" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-32 resize-none focus:outline-none" readonly></textarea>
                 <div class="flex gap-2 mt-2">
-                    <button id="btn-lyria-copy" type="button" class="btn-ferrett flex-1">📋 COPY TO CLIPBOARD</button>
-                    <button id="btn-lyria-ai" type="button" class="btn-ferrett flex-1" style="border-color:#00E5FF80;color:#00E5FF" title="Send this draft to your AI co-pilot to tighten it into a Lyria-optimized prompt — keeps your real gear/technique details, cuts filler">✨ AI ENHANCE</button>
+                    <button id="btn-lyria-copy" type="button" class="btn-euterpe flex-1">📋 COPY TO CLIPBOARD</button>
+                    <button id="btn-lyria-ai" type="button" class="btn-euterpe flex-1" style="border-color:#00E5FF80;color:#00E5FF" title="Send this draft to your AI co-pilot to tighten it into a Lyria-optimized prompt — keeps your real gear/technique details, cuts filler">✨ AI ENHANCE</button>
                 </div>
                 <p class="text-[9px] text-[#E2E8F0]/35 mt-2">The draft above is built from your own recipe data (free, offline). <b class="text-[#00E5FF]/60">AI Enhance</b> sends it to your AI co-pilot to tighten it into Lyria's preferred style — needs the co-pilot set up (⚙ in Lyrics Lab or Toolbox). Attached lyrics are never sent and never rewritten.</p>
                 <div id="lyria-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-1"></div>
@@ -1705,8 +1705,8 @@ main { background: rgba(5,8,7,0.72); }
                 <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold uppercase block mb-2">Portable text</label>
                 <textarea id="export-text" readonly class="w-full h-56 bg-black/50 border border-[#FF88FF20] rounded p-3 text-[11px] text-[#E2E8F0] font-mono resize-y focus:outline-none"></textarea>
                 <div class="flex gap-2 mt-3 flex-wrap">
-                    <button id="export-copy" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">📋 COPY TEXT</button>
-                    <button id="export-download" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);">⬇ DOWNLOAD SHEET</button>
+                    <button id="export-copy" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">📋 COPY TEXT</button>
+                    <button id="export-download" class="btn-euterpe" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);">⬇ DOWNLOAD SHEET</button>
                 </div>
             </div>
             <div class="flex flex-col items-center justify-start">
@@ -1725,11 +1725,11 @@ main { background: rgba(5,8,7,0.72); }
             <button id="import-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
         </div>
         <div class="p-5">
-            <p class="text-[10px] text-[#E2E8F0]/50 mb-3">Paste a <b class="text-white">FERRETT TONE</b> or <b class="text-white">FERRETT RECIPE</b> block (from a 📤 export) to add it to your vault.</p>
-            <textarea id="import-text" class="w-full h-48 bg-black/50 border border-[#00E5FF20] rounded p-3 text-[11px] text-[#E2E8F0] font-mono resize-y focus:outline-none focus:border-[#00E5FF70]" placeholder="FERRETT TONE — ..."></textarea>
+            <p class="text-[10px] text-[#E2E8F0]/50 mb-3">Paste a <b class="text-white">EUTERPE TONE</b> or <b class="text-white">EUTERPE RECIPE</b> block (from a 📤 export) to add it to your vault.</p>
+            <textarea id="import-text" class="w-full h-48 bg-black/50 border border-[#00E5FF20] rounded p-3 text-[11px] text-[#E2E8F0] font-mono resize-y focus:outline-none focus:border-[#00E5FF70]" placeholder="EUTERPE TONE — ..."></textarea>
             <div id="import-status" class="text-[10px] mt-2 min-h-[16px]"></div>
             <div class="flex gap-2 mt-2">
-                <button id="import-go" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">＋ ADD TO VAULT</button>
+                <button id="import-go" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">＋ ADD TO VAULT</button>
             </div>
         </div>
     </div>
@@ -1744,8 +1744,8 @@ main { background: rgba(5,8,7,0.72); }
         <div class="p-5">
             <div id="recap-body" class="text-[11px] text-[#E2E8F0]/85 font-mono whitespace-pre-wrap leading-relaxed"></div>
             <div class="flex gap-2 mt-4">
-                <button id="recap-copy" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">📋 COPY</button>
-                <button id="recap-tonote" class="btn-ferrett" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);">＋ APPEND TO NOTE</button>
+                <button id="recap-copy" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">📋 COPY</button>
+                <button id="recap-tonote" class="btn-euterpe" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);">＋ APPEND TO NOTE</button>
             </div>
         </div>
     </div>
@@ -1759,11 +1759,11 @@ main { background: rgba(5,8,7,0.72); }
         <div id="cookmode-step-num" class="text-[10px] tracking-widest text-white/40 mb-4"></div>
         <div id="cookmode-step" class="text-[22px] md:text-[30px] font-bold text-white leading-snug min-h-[120px] flex items-center justify-center px-4"></div>
         <div class="flex items-center justify-center gap-4 mt-10">
-            <button id="cookmode-prev" class="btn-ferrett" style="border-color:#7FA8D950;color:#7FA8D9;">◄ PREV</button>
-            <button id="cookmode-next" class="btn-ferrett-green" style="min-width:140px;">NEXT ►</button>
+            <button id="cookmode-prev" class="btn-euterpe" style="border-color:#7FA8D950;color:#7FA8D9;">◄ PREV</button>
+            <button id="cookmode-next" class="btn-euterpe-green" style="min-width:140px;">NEXT ►</button>
         </div>
         <div class="mt-5">
-            <label class="btn-ferrett file-upload-btn inline-flex items-center gap-1 cursor-pointer" style="border-color:#FFD60A50;color:#FFD60A;" title="Snap a photo and attach it to this recipe"><span>📸 CAPTURE TO RECIPE</span><input type="file" id="cookmode-capture-input" accept="image/*" capture="environment" class="hidden"></label>
+            <label class="btn-euterpe file-upload-btn inline-flex items-center gap-1 cursor-pointer" style="border-color:#FFD60A50;color:#FFD60A;" title="Snap a photo and attach it to this recipe"><span>📸 CAPTURE TO RECIPE</span><input type="file" id="cookmode-capture-input" accept="image/*" capture="environment" class="hidden"></label>
             <span id="cookmode-capture-status" class="text-[10px] text-[#00FF88] ml-2"></span>
         </div>
         <div id="cookmode-progress" class="w-full h-[3px] bg-white/10 rounded mt-8 overflow-hidden"><div id="cookmode-progress-bar" class="h-full bg-gradient-to-r from-[#00FF88] to-[#00E5FF] transition-all" style="width:0%"></div></div>
@@ -1819,7 +1819,7 @@ main { background: rgba(5,8,7,0.72); }
                 <input id="refshelf-lufs" type="text" placeholder="LUFS / notes on loudness" class="bg-black/50 border border-[#B18CFF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#B18CFF70]">
                 <input id="refshelf-note" type="text" placeholder="What to listen for" class="bg-black/50 border border-[#B18CFF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#B18CFF70]">
             </div>
-            <button id="refshelf-add" class="btn-ferrett mb-4" style="border-color:#B18CFF60;color:#B18CFF;background:rgba(177,140,255,0.08);">＋ ADD REFERENCE</button>
+            <button id="refshelf-add" class="btn-euterpe mb-4" style="border-color:#B18CFF60;color:#B18CFF;background:rgba(177,140,255,0.08);">＋ ADD REFERENCE</button>
             <div id="refshelf-list" class="space-y-2 max-h-[40vh] overflow-y-auto"></div>
         </div>
     </div>
@@ -1839,7 +1839,7 @@ main { background: rgba(5,8,7,0.72); }
                 <span id="selimport-count" class="text-white/40 ml-auto"></span>
             </div>
             <div id="selimport-list" class="space-y-1 max-h-[45vh] overflow-y-auto mb-4"></div>
-            <button id="selimport-go" class="btn-ferrett" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">⬇ MERGE SELECTED</button>
+            <button id="selimport-go" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);">⬇ MERGE SELECTED</button>
         </div>
     </div>
 </div>
@@ -1876,8 +1876,8 @@ main { background: rgba(5,8,7,0.72); }
         </div>
         <div class="p-5">
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <div><label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold uppercase block mb-1">A</label><select id="ab-a" class="input-ferrett text-[11px]"></select></div>
-                <div><label class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold uppercase block mb-1">B</label><select id="ab-b" class="input-ferrett text-[11px]"></select></div>
+                <div><label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold uppercase block mb-1">A</label><select id="ab-a" class="input-euterpe text-[11px]"></select></div>
+                <div><label class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold uppercase block mb-1">B</label><select id="ab-b" class="input-euterpe text-[11px]"></select></div>
             </div>
             <div id="ab-diff" class="bg-black/40 rounded border border-white/10 p-3 overflow-x-auto"></div>
             <p class="text-[9px] text-white/30 mt-2">Highlighted rows differ between A and B.</p>
@@ -1894,12 +1894,12 @@ main { background: rgba(5,8,7,0.72); }
         <div class="p-5">
             <p class="text-[10px] text-[#E2E8F0]/50 mb-4">Pick components from any genres and fuse their chains into one composite recipe.</p>
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <div><label class="text-[9px] tracking-widest text-[#C9FF4B]/70 font-bold uppercase block mb-1">Name</label><input id="frank-name" type="text" placeholder="My Composite Beat" class="input-ferrett text-[11px]"></div>
-                <div><label class="text-[9px] tracking-widest text-[#C9FF4B]/70 font-bold uppercase block mb-1">Save under genre</label><input id="frank-genre" type="text" class="input-ferrett text-[11px]"></div>
+                <div><label class="text-[9px] tracking-widest text-[#C9FF4B]/70 font-bold uppercase block mb-1">Name</label><input id="frank-name" type="text" placeholder="My Composite Beat" class="input-euterpe text-[11px]"></div>
+                <div><label class="text-[9px] tracking-widest text-[#C9FF4B]/70 font-bold uppercase block mb-1">Save under genre</label><input id="frank-genre" type="text" class="input-euterpe text-[11px]"></div>
             </div>
             <div id="frank-slots" class="space-y-2 mb-4"></div>
             <div id="frank-status" class="text-[10px] mb-2 min-h-[16px]"></div>
-            <button id="frank-build" class="btn-ferrett" style="border-color:#C9FF4B60;color:#C9FF4B;background:rgba(201,255,75,0.08);">⚡ BUILD COMPOSITE</button>
+            <button id="frank-build" class="btn-euterpe" style="border-color:#C9FF4B60;color:#C9FF4B;background:rgba(201,255,75,0.08);">⚡ BUILD COMPOSITE</button>
         </div>
     </div>
 </div>
@@ -2449,7 +2449,7 @@ window.scheduleAudioDriveSync = () => { if (!window.isDriveConnected) return; cl
 
 window.downloadVaultBackup = () => {
     try {
-        const payload = { exportedAt: new Date().toISOString(), source: 'FERRETT_STUDIO_OS', db: window.db };
+        const payload = { exportedAt: new Date().toISOString(), source: 'EUTERPE_OS', db: window.db };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2888,8 +2888,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="text-[10px] tracking-widest text-[#A7DCC3]/60 font-mono mb-8">${genres.length} GENRES &nbsp;·&nbsp; ${total} AI KITS SAVED &nbsp;·&nbsp; YOUR SIGNAL CHAINS, YOUR RULES</div>
             <p class="text-[12px] text-[#E2E8F0]/45 max-w-sm leading-relaxed mb-8">Pick a vibe on the left to dive in — or let the book pick for you.</p>
             <div class="flex flex-wrap gap-3 justify-center">
-                <button id="btn-cover-surprise" type="button" class="btn-ferrett px-5 py-2.5 text-[11px]">🎲 SURPRISE ME</button>
-                <button id="btn-cover-start" type="button" class="btn-ferrett-green px-5 py-2.5 text-[11px]">📖 START READING</button>
+                <button id="btn-cover-surprise" type="button" class="btn-euterpe px-5 py-2.5 text-[11px]">🎲 SURPRISE ME</button>
+                <button id="btn-cover-start" type="button" class="btn-euterpe-green px-5 py-2.5 text-[11px]">📖 START READING</button>
             </div>
         </div>`;
         document.getElementById('btn-cover-surprise')?.addEventListener('click', () => document.getElementById('btn-surprise-cookbook')?.click());
@@ -2916,7 +2916,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const disp = document.getElementById('recipe-display');
             if (disp) disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-4 text-center px-8 border-2 border-dashed border-[#00FF8810] rounded-lg min-h-[400px]">
                 <div class="text-[12px] text-[#E2E8F0]/40 tracking-widest uppercase">None made yet, hit the AI button.</div>
-                <button id="btn-empty-genre-kit" type="button" class="btn-ferrett" style="border-color:#FF88FF60;color:#FF88FF;background:rgba(255,136,255,0.08);">🤖 AI KIT</button>
+                <button id="btn-empty-genre-kit" type="button" class="btn-euterpe" style="border-color:#FF88FF60;color:#FF88FF;background:rgba(255,136,255,0.08);">🤖 AI KIT</button>
             </div>`;
             document.getElementById('btn-empty-genre-kit')?.addEventListener('click', () => document.getElementById('btn-genre-kit')?.click());
             return;
@@ -3114,7 +3114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.printRecipeSheet = (recipe) => {
         const el = document.getElementById('print-sheet-content'); if (!el) return;
         el.innerHTML = `
-            <h1>FERRETT_STUDIO_OS — Session Sheet</h1>
+            <h1>EUTERPE_OS — Session Sheet</h1>
             <div class="meta">${recipe.genre} — printed ${new Date().toLocaleDateString()}</div>
             <h2>${recipe.inst}</h2>
             <p>${recipe.desc || ''}</p>
@@ -4396,7 +4396,7 @@ ${gear.join(', ')}`;
             const spent = window.__aiUsage?.end();
             const spentLine = window.__aiUsage?.summary(spent);
             if (opts.quiet) return null; // the A/B runner renders its own summary; don't stamp on it
-            disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center px-6"><div class="text-[12px] font-bold tracking-widest text-[#FF5A5A] uppercase">⚠ Kit build failed</div><div class="text-[11px] text-[#E2E8F0]/60 font-mono max-w-md">${(e.message||'Unknown error').replace(/</g,'')}</div>${spentLine ? `<div class="text-[10px] text-[#FFD60A]/60 font-mono">spent anyway: ${spentLine}</div>` : ''}<button id="btn-kit-retry" class="btn-ferrett px-4 py-2 text-[10px] mt-2" style="border-color:#FF88FF80;color:#FF88FF">↻ TRY AGAIN</button></div>`;
+            disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-3 min-h-[400px] text-center px-6"><div class="text-[12px] font-bold tracking-widest text-[#FF5A5A] uppercase">⚠ Kit build failed</div><div class="text-[11px] text-[#E2E8F0]/60 font-mono max-w-md">${(e.message||'Unknown error').replace(/</g,'')}</div>${spentLine ? `<div class="text-[10px] text-[#FFD60A]/60 font-mono">spent anyway: ${spentLine}</div>` : ''}<button id="btn-kit-retry" class="btn-euterpe px-4 py-2 text-[10px] mt-2" style="border-color:#FF88FF80;color:#FF88FF">↻ TRY AGAIN</button></div>`;
             document.getElementById('btn-kit-retry')?.addEventListener('click', () => window.generateGenreKit(genre));
             return null;
         }
@@ -4521,8 +4521,8 @@ ${gear.join(', ')}`;
                 ${navBar}
                 <div class="h-full flex flex-col items-center justify-center gap-4 min-h-[320px] text-center px-8 border-2 border-dashed border-[#FF88FF15] rounded-lg py-10">
                     <div class="text-[11px] text-[#E2E8F0]/50 max-w-sm leading-relaxed">Build a fresh per-instrument chain sheet for ${esc(genre)} from the plugins you own.${total?` You've got ${total} saved kit${total===1?'':'s'} for this genre already — browse them with the arrows above.`:''}</div>
-                    <button id="btn-kit-generate" class="btn-ferrett-green px-5 py-2.5 text-[11px]">🤖 GENERATE KIT</button>
-                    <button id="btn-kit-ab" class="btn-ferrett px-4 py-2 text-[10px]" style="border-color:#00E5FF60;color:#00E5FF">⚖ COMPARE MODELS</button>
+                    <button id="btn-kit-generate" class="btn-euterpe-green px-5 py-2.5 text-[11px]">🤖 GENERATE KIT</button>
+                    <button id="btn-kit-ab" class="btn-euterpe px-4 py-2 text-[10px]" style="border-color:#00E5FF60;color:#00E5FF">⚖ COMPARE MODELS</button>
                     <div class="text-[9px] text-[#E2E8F0]/35 max-w-xs leading-relaxed">Compare builds the same genre on each model in turn and scores them for settings that can't actually be dialled in. Every kit is saved, so keep whichever wins.</div>
                 </div>
             </div>`;
@@ -4640,7 +4640,7 @@ ${gear.join(', ')}`;
                     <option value="">${songs.length?'— choose a song —':'— no songs on the board yet —'}</option>
                     ${songs.map(s=>`<option value="${s.id}">${esc((s.title||'Untitled').slice(0,40))}${s.kitId===kit.id?' (attached)':''}</option>`).join('')}
                 </select>
-                <button id="btn-kit-attach" class="btn-ferrett-green px-3 py-1.5 text-[10px]">🔗 ATTACH<span class="hidden sm:inline"> (+ COOKBOOK RECIPES)</span></button>
+                <button id="btn-kit-attach" class="btn-euterpe-green px-3 py-1.5 text-[10px]">🔗 ATTACH<span class="hidden sm:inline"> (+ COOKBOOK RECIPES)</span></button>
             </div>
             <div class="border border-[#FF88FF20] rounded-lg overflow-hidden bg-[#0A0A0F] p-5" id="kit-recipe-pane">
                 ${active?`<div class="flex items-center justify-between gap-3 pb-3 mb-4 border-b border-[#FF88FF20]">
@@ -5423,7 +5423,7 @@ window.lyriaSongBlock = (songId) => {
         window.metro.nextNoteTime = window.metro.ctx.currentTime + 0.05;
         window.metro.running = true;
         window.metroScheduler();
-        const btn = document.getElementById('btn-metro-toggle'); if (btn) { btn.textContent = '■ STOP'; btn.classList.remove('btn-ferrett-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
+        const btn = document.getElementById('btn-metro-toggle'); if (btn) { btn.textContent = '■ STOP'; btn.classList.remove('btn-euterpe-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
     };
 
     window.stopMetronome = () => {
@@ -5432,7 +5432,7 @@ window.lyriaSongBlock = (songId) => {
         clearTimeout(window.metro.timerID);
         document.querySelectorAll('.metro-dot').forEach((dot) => { dot.style.background = ''; dot.style.color = ''; dot.style.borderColor = ''; dot.style.boxShadow = ''; });
         const flash = document.getElementById('metro-flash'); if (flash) { flash.style.background = ''; flash.style.borderColor = ''; flash.style.boxShadow = ''; }
-        const btn = document.getElementById('btn-metro-toggle'); if (btn) { btn.textContent = '▶ START'; btn.classList.add('btn-ferrett-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+        const btn = document.getElementById('btn-metro-toggle'); if (btn) { btn.textContent = '▶ START'; btn.classList.add('btn-euterpe-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
     };
 
     window.renderMetroDots();
@@ -5499,7 +5499,7 @@ window.lyriaSongBlock = (songId) => {
         window.routine.tickInterval = setInterval(window.routineTick, 1000);
         window.routineTick();
         document.getElementById('routine-progress-bar-wrap')?.classList.remove('hidden');
-        const btn = document.getElementById('btn-routine-toggle'); if (btn) { btn.textContent = '■ STOP ROUTINE'; btn.classList.remove('btn-ferrett-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
+        const btn = document.getElementById('btn-routine-toggle'); if (btn) { btn.textContent = '■ STOP ROUTINE'; btn.classList.remove('btn-euterpe-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
     };
 
     window.stopRoutine = (completed) => {
@@ -5508,7 +5508,7 @@ window.lyriaSongBlock = (songId) => {
         clearTimeout(window.routine.stepTimeout); clearInterval(window.routine.tickInterval);
         const statusEl = document.getElementById('routine-status'); if (statusEl) statusEl.textContent = completed ? '✓ Routine complete.' : '';
         const bar = document.getElementById('routine-progress-bar'); if (bar) bar.style.width = completed ? '100%' : '0%';
-        const btn = document.getElementById('btn-routine-toggle'); if (btn) { btn.textContent = '▶ START ROUTINE'; btn.classList.add('btn-ferrett-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+        const btn = document.getElementById('btn-routine-toggle'); if (btn) { btn.textContent = '▶ START ROUTINE'; btn.classList.add('btn-euterpe-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
         if (completed) window.stopMetronome();
     };
 
@@ -5553,7 +5553,7 @@ window.lyriaSongBlock = (songId) => {
     window.renderTunerStrings = () => {
         const container = document.getElementById('tuner-string-buttons'); if (!container) return;
         const strings = window.tuner.mode === 'guitar' ? GUITAR_STRINGS : BASS5_STRINGS;
-        container.innerHTML = strings.map((s) => `<button type="button" class="tuner-string-btn btn-ferrett" data-freq="${s.freq}" style="min-width:56px;">${s.name}</button>`).join('');
+        container.innerHTML = strings.map((s) => `<button type="button" class="tuner-string-btn btn-euterpe" data-freq="${s.freq}" style="min-width:56px;">${s.name}</button>`).join('');
         container.querySelectorAll('.tuner-string-btn').forEach((btn) => btn.addEventListener('click', () => {
             container.querySelectorAll('.tuner-string-btn').forEach((b) => { b.style.background = ''; b.style.borderColor = ''; b.style.color = ''; });
             btn.style.background = 'rgba(0,229,255,0.18)'; btn.style.borderColor = '#00E5FF'; btn.style.color = '#00E5FF';
@@ -5598,7 +5598,7 @@ window.lyriaSongBlock = (songId) => {
             source.connect(window.tuner.analyser);
             window.tuner.running = true;
             window.updateTunerReading();
-            const btn = document.getElementById('btn-tuner-toggle'); if (btn) { btn.textContent = '■ STOP TUNER'; btn.classList.remove('btn-ferrett-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
+            const btn = document.getElementById('btn-tuner-toggle'); if (btn) { btn.textContent = '■ STOP TUNER'; btn.classList.remove('btn-euterpe-green'); btn.style.borderColor = '#FF2A2A50'; btn.style.color = '#FF8888'; btn.style.background = 'rgba(255,42,42,0.08)'; }
             if (statusEl) statusEl.textContent = 'Listening...';
         } catch (err) {
             if (statusEl) statusEl.textContent = 'Microphone access denied or unavailable.';
@@ -5610,7 +5610,7 @@ window.lyriaSongBlock = (songId) => {
         window.tuner.running = false;
         cancelAnimationFrame(window.tuner.rafId);
         window.tuner.stream?.getTracks().forEach((t) => t.stop());
-        const btn = document.getElementById('btn-tuner-toggle'); if (btn) { btn.textContent = '🎙️ START TUNER'; btn.classList.add('btn-ferrett-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
+        const btn = document.getElementById('btn-tuner-toggle'); if (btn) { btn.textContent = '🎙️ START TUNER'; btn.classList.add('btn-euterpe-green'); btn.style.borderColor = ''; btn.style.color = ''; btn.style.background = ''; }
         const statusEl = document.getElementById('tuner-status'); if (statusEl) statusEl.textContent = '';
         const noteEl = document.getElementById('tuner-note-display'); if (noteEl) { noteEl.textContent = '--'; noteEl.style.color = ''; }
         const freqEl = document.getElementById('tuner-freq-display'); if (freqEl) freqEl.textContent = '-- Hz';
@@ -5831,7 +5831,7 @@ p{font-size:13px;white-space:pre-wrap;}
 .chain{background:#000;padding:12px;border-radius:6px;border:1px solid #222;font-size:12px;}</style></head>
 <body>
 <h1>${track.inst}</h1>
-<div class="meta">Exported from FERRETT_STUDIO_OS on ${new Date().toLocaleDateString()}</div>
+<div class="meta">Exported from EUTERPE_OS on ${new Date().toLocaleDateString()}</div>
 <h2>FX CHAIN</h2>
 <div class="chain">${track.plugins || 'None listed'}</div>
 <h2>NOTES</h2>
@@ -6525,20 +6525,20 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal('export-modal');
         };
         const toneToText = (t) => [
-            `FERRETT TONE — ${t.name}`,
+            `EUTERPE TONE — ${t.name}`,
             `Gain stage: ${t.category || '—'}${t.brand ? '   Brand: ' + t.brand : ''}`,
             `NAM (amp): ${t.nam || 'None'}`,
             `IR (cab): ${t.ir || 'None'}`,
             '', 'Notes:', (t.notes || '(none)'),
-            '', '— via FERRETT_STUDIO_OS'
+            '', '— via EUTERPE_OS'
         ].filter(x => x !== null).join('\n');
         const recipeToText = (r) => [
-            `FERRETT RECIPE — ${r.inst}`,
+            `EUTERPE RECIPE — ${r.inst}`,
             `Genre: ${r.genre}`,
             r.desc ? `"${r.desc}"` : null,
             '', 'CHAIN: ' + (r.reaper || '—'),
             '', 'Notes: ' + (r.notes || '(none)'),
-            '', '— via FERRETT_STUDIO_OS'
+            '', '— via EUTERPE_OS'
         ].filter(x => x !== null).join('\n');
 
         document.getElementById('export-copy')?.addEventListener('click', () => {
@@ -6632,17 +6632,17 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         wireModalDismiss('recap-modal', 'recap-close');
 
         // =====================================================================
-        // 7. IMPORT — paste a FERRETT TONE / RECIPE payload back into the vault
+        // 7. IMPORT — paste a EUTERPE TONE / RECIPE payload back into the vault
         // =====================================================================
         const parseImport = (text) => {
             text = (text || '').trim();
             const g = (re) => { const m = text.match(re); return m ? m[1].trim() : ''; };
-            if (/^FERRETT TONE/i.test(text)) {
+            if (/^EUTERPE TONE/i.test(text)) {
                 const category = (g(/Category:\s*([^\n]+?)(?:\s{2,}DAW:|\n)/) || 'CLEAN').toUpperCase();
                 const key = g(/Key\s+([^\n]+?)\s*$/m);
                 let notes = ''; const nm = text.match(/Notes:\s*\n?([\s\S]*?)\n\n[—-] via/); if (nm) notes = nm[1].trim();
                 const tone = {
-                    id: Date.now(), name: g(/FERRETT TONE\s*[—-]\s*(.+)/) || 'Imported Tone',
+                    id: Date.now(), name: g(/EUTERPE TONE\s*[—-]\s*(.+)/) || 'Imported Tone',
                     category: ['CLEAN','CRUNCH','DISTORTION','BASS'].includes(category) ? category : 'CLEAN',
                     daw: 'reaper',
                     nam: g(/NAM \(amp\):\s*([^\n]+)/), ir: g(/IR \(cab\):\s*([^\n]+)/),
@@ -6654,11 +6654,11 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 if (window.renderTones) window.renderTones(); if (window.renderStarredTones) window.renderStarredTones();
                 return { ok: true, kind: 'tone', label: tone.name };
             }
-            if (/^FERRETT RECIPE/i.test(text)) {
+            if (/^EUTERPE RECIPE/i.test(text)) {
                 const descM = text.match(/\n"([\s\S]*?)"\n/);
                 const r = {
                     id: Date.now(), genre: g(/Genre:\s*([^\n]+)/) || 'Imported',
-                    inst: g(/FERRETT RECIPE\s*[—-]\s*(.+)/) || 'Imported Recipe',
+                    inst: g(/EUTERPE RECIPE\s*[—-]\s*(.+)/) || 'Imported Recipe',
                     desc: descM ? descM[1].trim() : '',
                     reaper: (g(/CHAIN:\s*([\s\S]*?)\n\nNotes:/) || g(/CHAIN:\s*([^\n]+)/) || g(/REAPER \(VST\):\s*([\s\S]*?)\n\nNotes:/) || g(/REAPER \(VST\):\s*([^\n]+)/)),
                     notes: (g(/Notes:\s*([\s\S]*?)\n\n[—-] via/) || ''), images: []
@@ -6675,7 +6675,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const st = document.getElementById('import-status');
             const res = parseImport(document.getElementById('import-text').value);
             if (res.ok) { st.style.color = '#00FF88'; st.textContent = `✓ Added ${res.kind}: ${res.label}`; setTimeout(() => closeModal('import-modal'), 900); }
-            else { st.style.color = '#FF8888'; st.textContent = '✗ Not a recognized FERRETT TONE / RECIPE payload.'; }
+            else { st.style.color = '#FF8888'; st.textContent = '✗ Not a recognized EUTERPE TONE / RECIPE payload.'; }
         });
         wireModalDismiss('import-modal', 'import-close');
 
@@ -6744,7 +6744,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         const recipeOpts = () => (window.db.cookbook || []).slice().sort((a, b) => (a.genre + a.inst).localeCompare(b.genre + b.inst)).map(r => `<option value="${r.id}">${r.genre} — ${r.inst}</option>`).join('');
         const openFrank = () => {
             const slots = document.getElementById('frank-slots'); const opts = recipeOpts();
-            slots.innerHTML = [0, 1, 2, 3].map(i => `<div class="flex items-center gap-2"><span class="text-[9px] text-white/40 w-4">${i + 1}</span><select class="frank-slot flex-1 input-ferrett text-[11px]"><option value="">— none —</option>${opts}</select></div>`).join('');
+            slots.innerHTML = [0, 1, 2, 3].map(i => `<div class="flex items-center gap-2"><span class="text-[9px] text-white/40 w-4">${i + 1}</span><select class="frank-slot flex-1 input-euterpe text-[11px]"><option value="">— none —</option>${opts}</select></div>`).join('');
             document.getElementById('frank-name').value = '';
             document.getElementById('frank-genre').value = 'Frankenstein Lab';
             document.getElementById('frank-status').textContent = '';
@@ -7115,7 +7115,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const g = window.currentCookbookGenre; const recs = currentGenreRecipes(); if (!recs.length) { alert('No recipes in this genre.'); return; }
             let md = `# ${g}\n\n`;
             recs.forEach(r => { md += `## ${r.inst}${r.effort ? `  _(${r.effort})_` : ''}\n\n`; if (r.desc) md += `> ${r.desc}\n\n`; md += `**CHAIN:** ${r.reaper || '—'}\n\n`; if (r.notes) md += `**Notes:** ${r.notes}\n\n`; if (r.why) md += `**Why it works:** ${r.why}\n\n`; md += `---\n\n`; });
-            md += `_Exported from FERRETT_STUDIO_OS_\n`;
+            md += `_Exported from EUTERPE_OS_\n`;
             downloadFile(safeName(g) + '_chapter.md', md, 'text/markdown');
         });
 
@@ -7393,7 +7393,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   let labAC=null, labNode=null, labGain=null, labType='sine', labPlaying=false;
   const ensureAC = () => { if(!labAC){ try{ labAC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(labAC.state==='suspended') labAC.resume(); return labAC; };
   const volFrac = () => { const v = $('lab-tone-vol'); return v ? (+v.value/100)*0.5 : 0.09; };
-  const setToneBtn = (on) => { const b=$('btn-lab-tone-toggle'); if(b){ b.textContent = on ? '■ STOP' : '▶ PLAY'; b.classList.toggle('btn-ferrett', !on); b.classList.toggle('btn-ferrett-green', on); } };
+  const setToneBtn = (on) => { const b=$('btn-lab-tone-toggle'); if(b){ b.textContent = on ? '■ STOP' : '▶ PLAY'; b.classList.toggle('btn-euterpe', !on); b.classList.toggle('btn-euterpe-green', on); } };
   window.stopTestTone = () => {
     labPlaying = false;
     if(labNode){ try{labNode.onended=null;}catch(e){} try{labNode.stop&&labNode.stop();}catch(e){} try{labNode.disconnect();}catch(e){} labNode=null; }
@@ -7739,7 +7739,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     $('btn-lab-challenge')?.addEventListener('click', rollChallenge);
     $('btn-lab-vibe')?.addEventListener('click', pullVibe);
     // tone
-    document.querySelectorAll('.lab-tone-src').forEach(b=>b.addEventListener('click',()=>{ labType=b.dataset.tone; document.querySelectorAll('.lab-tone-src').forEach(x=>x.classList.remove('btn-ferrett-green')); document.querySelectorAll('.lab-tone-src').forEach(x=>x.classList.add('btn-ferrett')); b.classList.remove('btn-ferrett'); b.classList.add('btn-ferrett-green'); if(labPlaying) startTone(); }));
+    document.querySelectorAll('.lab-tone-src').forEach(b=>b.addEventListener('click',()=>{ labType=b.dataset.tone; document.querySelectorAll('.lab-tone-src').forEach(x=>x.classList.remove('btn-euterpe-green')); document.querySelectorAll('.lab-tone-src').forEach(x=>x.classList.add('btn-euterpe')); b.classList.remove('btn-euterpe'); b.classList.add('btn-euterpe-green'); if(labPlaying) startTone(); }));
     document.querySelectorAll('.lab-ref-pitch').forEach(b=>b.addEventListener('click',()=>{ labType='sine'; const f=$('lab-tone-freq'); f.value=b.dataset.ref; $('lab-tone-freq-val').textContent=Math.round(+b.dataset.ref)+' Hz'; if(!labPlaying) startTone(); else if(labNode&&labNode.frequency) labNode.frequency.value=+b.dataset.ref; }));
     $('lab-tone-freq')?.addEventListener('input',(e)=>{ $('lab-tone-freq-val').textContent=e.target.value+' Hz'; if(labPlaying && labType==='sine' && labNode?.frequency) labNode.frequency.value=+e.target.value; });
     $('lab-tone-vol')?.addEventListener('input',(e)=>{ $('lab-tone-vol-val').textContent=e.target.value+'%'; if(labGain) labGain.gain.value=volFrac(); });
@@ -8202,7 +8202,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function loadBeat(){ try{ const r=localStorage.getItem(BEAT_KEY); if(r) return normalizePattern(JSON.parse(r)); }catch(e){} return null; }
   function saveBeat(){ try{ localStorage.setItem(BEAT_KEY, JSON.stringify(beatPattern)); }catch(e){} }
   function applyPreset(name){ const pr=BEAT_PRESETS[name]; beatPattern=blankPattern(); KITS.forEach(k=>{ let v=pr[k]; if(v==='x8') v=[0,2,4,6,8,10,12,14]; else if(v==='x16') v=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]; (v||[]).forEach(i=>{ if(i>=0&&i<16) beatPattern[k][i]=1; }); }); saveBeat(); renderBeatGrid(); }
-  function renderBeatPresets(){ const w=$('beat-presets'); if(!w) return; w.innerHTML=Object.keys(BEAT_PRESETS).map(n=>`<button class="beat-preset btn-ferrett px-3 py-1 text-[10px]" data-p="${n}">${n}</button>`).join(''); w.querySelectorAll('.beat-preset').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.p))); }
+  function renderBeatPresets(){ const w=$('beat-presets'); if(!w) return; w.innerHTML=Object.keys(BEAT_PRESETS).map(n=>`<button class="beat-preset btn-euterpe px-3 py-1 text-[10px]" data-p="${n}">${n}</button>`).join(''); w.querySelectorAll('.beat-preset').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.p))); }
   function cellStyle(v){ return v===2?'bg-[#FFD60A] border-[#FFD60A]' : v===1?'bg-[#00FF88] border-[#00FF88]' : 'bg-black/40 border-white/10 hover:border-[#00FF88]/50'; }
   function renderBeatGrid(){
     const g=$('beat-grid'); if(!g) return; if(!beatPattern) beatPattern=loadBeat()||blankPattern();
@@ -8240,7 +8240,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     }
     beatTimer=setTimeout(beatSchedule,25);
   }
-  window.stopBeatSketch=()=>{ beatPlaying=false; if(beatTimer){ clearTimeout(beatTimer); beatTimer=null; } document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>c.classList.remove('ring-2','ring-[#FF88FF]')); const b=$('btn-beat-play'); if(b){ b.textContent='▶ PLAY'; b.classList.add('btn-ferrett-green'); } };
+  window.stopBeatSketch=()=>{ beatPlaying=false; if(beatTimer){ clearTimeout(beatTimer); beatTimer=null; } document.querySelectorAll('#beat-grid .beat-cell').forEach(c=>c.classList.remove('ring-2','ring-[#FF88FF]')); const b=$('btn-beat-play'); if(b){ b.textContent='▶ PLAY'; b.classList.add('btn-euterpe-green'); } };
   function toggleBeat(){ if(beatPlaying){ window.stopBeatSketch(); return; } const ac=beatEnsureAC(); if(!ac) return; beatPlaying=true; beatStep=0; beatNextTime=ac.currentTime+0.05; const b=$('btn-beat-play'); if(b) b.textContent='■ STOP'; beatSchedule(); }
 
   // ---- shared MIDI encoder (type-0) ----
@@ -8751,7 +8751,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const sheet=activeLyrSheet(); if(!sheet){ alert('No lyrics to print.'); return; }
     const rows=sheet.lines.map(l=>{ if(!l.text.trim() && !l.tag) return '<div class="sp">&nbsp;</div>'; return `<div class="ln">${l.tag?`<span class="tag">[${l.tag}]</span> `:''}${(l.text||'').replace(/</g,'&lt;')}</div>`; }).join('');
     const w=window.open('','_blank','width=640,height=800'); if(!w){ alert('Popup blocked — allow popups to print.'); return; }
-    w.document.write(`<!doctype html><html><head><meta charset="utf8"><title>${(sheet.title||'Lyrics')}</title><style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:0 20px;color:#111;line-height:1.7}h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px}.ln{font-size:15px}.tag{color:#a21caf;font-weight:bold;font-size:11px;letter-spacing:1px}.sp{height:10px}.foot{margin-top:40px;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:8px}@media print{.noprint{display:none}}</style></head><body><h1>${(sheet.title||'Untitled')}</h1>${rows}<div class="foot">FERRETT_STUDIO_OS · ${new Date().toLocaleDateString()}</div><button class="noprint" onclick="window.print()" style="margin-top:20px;padding:8px 16px">Print / Save PDF</button></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf8"><title>${(sheet.title||'Lyrics')}</title><style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:0 20px;color:#111;line-height:1.7}h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px}.ln{font-size:15px}.tag{color:#a21caf;font-weight:bold;font-size:11px;letter-spacing:1px}.sp{height:10px}.foot{margin-top:40px;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:8px}@media print{.noprint{display:none}}</style></head><body><h1>${(sheet.title||'Untitled')}</h1>${rows}<div class="foot">EUTERPE_OS · ${new Date().toLocaleDateString()}</div><button class="noprint" onclick="window.print()" style="margin-top:20px;padding:8px 16px">Print / Save PDF</button></body></html>`);
     w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
   }
 
@@ -8819,7 +8819,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     }
     // arrangement (loaded before song board so the board can reflect the attached song on first paint)
     if($('arr-list')){
-      const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-ferrett px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
+      const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-euterpe px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
       $('arr-bpm')?.addEventListener('input',renderArr);
       $('btn-arr-markers')?.addEventListener('click',arrToMarkers);
       $('btn-arr-attach')?.addEventListener('click',()=>{
@@ -9445,7 +9445,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   let earRoot=60, earIv=7, earScore=0, earTotal=0;
   function earPlay(){ const a=ac(); if(!a) return; const t=a.currentTime+0.05; voice(mf(earRoot),t,0.6,'triangle'); voice(mf(earRoot+earIv),t+0.65,0.6,'triangle'); }
   function earNew(){ earRoot=52+Math.floor(Math.random()*12); earIv=1+Math.floor(Math.random()*12); const fb=$('ear-feedback'); if(fb) fb.textContent=''; earPlay(); renderEarChoices(); }
-  function renderEarChoices(){ const box=$('ear-choices'); if(!box) return; box.innerHTML=IVL.slice(1).map((n,i)=>`<button class="ear-choice btn-ferrett px-1 py-1.5 text-[9px]" data-iv="${i+1}">${n}</button>`).join(''); box.querySelectorAll('.ear-choice').forEach(b=>b.addEventListener('click',()=>{ const g=+b.dataset.iv; earTotal++; const fb=$('ear-feedback'); if(g===earIv){ earScore++; if(fb){ fb.textContent='✓ '+IVL[earIv]; fb.style.color='#00FF88'; } } else if(fb){ fb.textContent='✗ it was '+IVL[earIv]; fb.style.color='#FF5A5A'; } const sc=$('ear-score'); if(sc) sc.textContent=earScore+' / '+earTotal; })); }
+  function renderEarChoices(){ const box=$('ear-choices'); if(!box) return; box.innerHTML=IVL.slice(1).map((n,i)=>`<button class="ear-choice btn-euterpe px-1 py-1.5 text-[9px]" data-iv="${i+1}">${n}</button>`).join(''); box.querySelectorAll('.ear-choice').forEach(b=>b.addEventListener('click',()=>{ const g=+b.dataset.iv; earTotal++; const fb=$('ear-feedback'); if(g===earIv){ earScore++; if(fb){ fb.textContent='✓ '+IVL[earIv]; fb.style.color='#00FF88'; } } else if(fb){ fb.textContent='✗ it was '+IVL[earIv]; fb.style.color='#FF5A5A'; } const sc=$('ear-score'); if(sc) sc.textContent=earScore+' / '+earTotal; })); }
 
   // ---------- PROGRESSION PLAYER ----------
   let ppTimer=null, ppPlaying=false, ppStep=0, ppNext=0, ppChords=[];
@@ -10104,7 +10104,7 @@ window.addEventListener('DOMContentLoaded', () => {
         
         const themeBtn = document.getElementById('btn-cycle-theme');
         if (themeBtn) {
-            themeBtn.className = 'btn-ferrett px-4 py-2 w-full mt-4';
+            themeBtn.className = 'btn-euterpe px-4 py-2 w-full mt-4';
             themeBtn.innerHTML = '🎨 CYCLE UI THEME';
             sysCard.appendChild(themeBtn);
         }

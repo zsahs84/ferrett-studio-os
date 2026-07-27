@@ -1,6 +1,6 @@
 {
-  "name": "FERRETT_STUDIO_OS",
-  "short_name": "FERRETT OS",
+  "name": "Euterpe Creativity Workbench",
+  "short_name": "Euterpe",
   "description": "Beat & vox recipe cookbook, track log, tone/pedalboard rig book, and studio hardware HUD.",
   "start_url": "./index.html",
   "scope": "./",

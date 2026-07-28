@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v94';
+window.APP_VERSION = 'v95';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -2107,6 +2107,7 @@ try {
         }
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
+        if (parsed.accounting) window.db.accounting = parsed.accounting;
     }
     window.storageAvailable = true;
 } catch(e) {}
@@ -2338,6 +2339,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.ownedPlugins) { window.db.ownedPlugins = cloudDb.ownedPlugins; window.db.paletteRev = cloudDb.paletteRev || 0; }
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
+                if (cloudDb.accounting) window.db.accounting = cloudDb.accounting;
                 window.saveDataLocally();
                 window.markSynced?.(); // local is now a copy of the cloud, so nothing is pending
                 if(window.refreshAllUI) window.refreshAllUI();
@@ -2524,6 +2526,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; }
         if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
         if (incoming.lyrics) window.db.lyrics = incoming.lyrics;
+        if (incoming.accounting) window.db.accounting = incoming.accounting;
         window.currentNoteId = window.db.multiNotes[0].id;
         window.saveData();
         if (window.refreshAllUI) window.refreshAllUI();

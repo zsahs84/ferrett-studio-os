@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v91';
+window.APP_VERSION = 'v92';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5530,6 +5530,7 @@ window.lyriaSongBlock = (songId) => {
     window.refreshAllUI = () => {
         if (window.renderTracks) window.renderTracks(); if (window.renderTones) window.renderTones(); if (window.renderStarredTones) window.renderStarredTones();
         if (window.renderLinks) window.renderLinks(); if (window.renderNoteTabs) window.renderNoteTabs(); if (window.renderCookbookMenu) window.renderCookbookMenu();
+        if (window.renderSessionStats) window.renderSessionStats();
     };
 
     window.currentMode = 'reaper';
@@ -6146,7 +6147,7 @@ window.cloneTone = (id) => {
         if (window.sessionState.running) {
             const now = Date.now(); window.logSessionTime(now - lastLogTick); lastLogTick = now;
             sessionSaveCounter++; if (sessionSaveCounter >= 150) { sessionSaveCounter = 0; window.sessionState.elapsedMs = ms; window.sessionState.startedAt = Date.now(); window.saveSessionState(); }
-            badgeCounter++; if (badgeCounter >= 1800) { badgeCounter = 0; window.updateAppBadge?.(window.getSessionStats?.()); }
+            badgeCounter++; if (badgeCounter >= 1800) { badgeCounter = 0; window.updateAppBadge?.(window.getSessionStats?.()); window.renderSessionStats?.(); }
         } else { lastLogTick = Date.now(); }
     }, 1000/30);
     document.getElementById('btn-session-toggle')?.addEventListener('click', () => window.toggleSessionTimer());

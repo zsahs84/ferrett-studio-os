@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v89';
+window.APP_VERSION = 'v90';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -5142,9 +5142,9 @@ window.LYRIA_TIME_TAGS = true;
 window.lyriaSectionHeader = (tag, secs, endSecs) => {
     const tagName = lyriaTagCase(tag) || 'Section';
     if (window.LYRIA_TIME_TAGS && secs != null && endSecs != null) {
-        return `[${lyriaFmtTime(secs)} - ${lyriaFmtTime(endSecs)}] ${tagName}`;
+        return `[${lyriaFmtTime(secs)} - ${lyriaFmtTime(endSecs)} ${tagName}]`;
     } else if (window.LYRIA_TIME_TAGS && secs != null) {
-        return `[${lyriaFmtTime(secs)}] ${tagName}`;
+        return `[${lyriaFmtTime(secs)} ${tagName}]`;
     }
     return `[${tagName}]`;
 };
@@ -5201,7 +5201,12 @@ window.lyriaSongBlock = (songId) => {
         let matchedTime = null;
         let matchedEndTime = null;
         if (structure.length) {
-            const idx = structure.findIndex((st, i) => !used.has(i) && lyriaTagCase(st.tag) === lyriaTagCase(b.tag));
+            const bBase = lyriaTagCase(b.tag).replace(/\s*\d+$/, '').trim();
+            const idx = structure.findIndex((st, i) => {
+                if (used.has(i)) return false;
+                const stBase = lyriaTagCase(st.tag).replace(/\s*\d+$/, '').trim();
+                return stBase === bBase || lyriaTagCase(st.tag) === lyriaTagCase(b.tag);
+            });
             if (idx >= 0) {
                 used.add(idx);
                 matchedTime = structure[idx].time;

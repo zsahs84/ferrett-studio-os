@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v95';
+window.APP_VERSION = 'v96';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -4738,12 +4738,10 @@ ${gear.join(', ')}`;
         instMenuEl.querySelectorAll('.kit-inst-btn').forEach(b => b.addEventListener('click', () => window.renderGenreKit(genre, { kitId: kit.id, slot: b.dataset.slot })));
     }
 
-    // opts.kitId: 'new' shows the generate-a-fresh-one screen; a real id shows that saved kit;
-    // undefined defaults to 'new' when history exists (so revisiting a genre invites building
-    // another one rather than silently re-showing whatever was last generated). opts.slot lets an
+    // opts.kitId: a real id shows that saved kit;
+    // undefined defaults to the newest kit when history exists. opts.slot lets an
     // instrument click re-render just the right pane's selection. The left "2. Select Instrument"
-    // list always mirrors whichever kit is currently on screen (or the most recent one, while on
-    // the "generate new" screen) via renderKitInstMenu.
+    // list always mirrors whichever kit is currently on screen via renderKitInstMenu.
     window.renderGenreKit = (genre, opts) => {
         opts = opts || {};
         const disp = document.getElementById('recipe-display'); if (!disp) return;
@@ -4751,44 +4749,21 @@ ${gear.join(', ')}`;
         if (!hist.length) { window.generateGenreKit(genre); return; }
         const esc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const ordered = hist.slice().reverse(); // newest first for browsing
-        let kitId = opts.kitId === undefined ? 'new' : opts.kitId;
-        let isNew = kitId === 'new';
-        let idx = isNew ? -1 : ordered.findIndex(k => k.id === kitId);
-        if (!isNew && idx < 0) { isNew = true; kitId = 'new'; } // dangling id — fall back to new screen
-        const kit = isNew ? null : ordered[idx];
+        let kitId = opts.kitId === undefined ? ordered[0].id : opts.kitId;
+        let idx = ordered.findIndex(k => k.id === kitId);
+        if (idx < 0) { idx = 0; kitId = ordered[0].id; } // dangling id — fall back to newest
+        const kit = ordered[idx];
 
         const total = ordered.length;
-        const olderId = isNew ? (ordered[0] && ordered[0].id) : (idx+1 < total ? ordered[idx+1].id : null);
-        const newerId = isNew ? null : (idx > 0 ? ordered[idx-1].id : 'new');
-        const navLabel = isNew ? `GENERATE NEW <span class="opacity-50 normal-case">(${total} saved)</span>` : `SAVED ${idx+1} / ${total}`;
+        const olderId = idx+1 < total ? ordered[idx+1].id : null;
+        const newerId = idx > 0 ? ordered[idx-1].id : null;
+        const navLabel = `SAVED ${idx+1} / ${total}`;
         const navBar = `<div class="flex items-center gap-2 mb-4">
             <button id="kit-nav-older" type="button" class="w-7 h-7 shrink-0 flex items-center justify-center rounded border border-[#FF88FF30] text-[#FF88FF] text-[11px] ${olderId==null?'opacity-25 pointer-events-none':'hover:bg-[#FF88FF]/10 cursor-pointer'}" title="Older saved kit">◀</button>
             <div class="flex-1 text-center text-[9px] tracking-widest text-[#FF88FF]/70 font-bold uppercase">${navLabel}</div>
             <button id="kit-nav-newer" type="button" class="w-7 h-7 shrink-0 flex items-center justify-center rounded border border-[#FF88FF30] text-[#FF88FF] text-[11px] ${newerId==null?'opacity-25 pointer-events-none':'hover:bg-[#FF88FF]/10 cursor-pointer'}" title="Newer">▶</button>
-            ${!isNew?`<button id="kit-nav-new" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8850] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer ml-1 shrink-0">+ NEW</button>`:''}
+            <button id="kit-nav-new" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8850] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer ml-1 shrink-0">+ NEW</button>
         </div>`;
-
-        if (isNew) {
-            renderKitInstMenu(genre, ordered[0], null);
-            disp.innerHTML = `<div class="animate-fade-in">
-                <div class="border-b border-[#FF88FF25] pb-4 mb-5">
-                    <div class="text-[9px] tracking-widest text-[#FF88FF]/60 uppercase mb-1">🤖 AI Kit · your gear only</div>
-                    <h2 class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FF88FF] uppercase">${esc(genre)}</h2>
-                </div>
-                ${navBar}
-                <div class="h-full flex flex-col items-center justify-center gap-4 min-h-[320px] text-center px-8 border-2 border-dashed border-[#FF88FF15] rounded-lg py-10">
-                    <div class="text-[11px] text-[#E2E8F0]/50 max-w-sm leading-relaxed">Build a fresh per-instrument chain sheet for ${esc(genre)} from the plugins you own.${total?` You've got ${total} saved kit${total===1?'':'s'} for this genre already — browse them with the arrows above.`:''}</div>
-                    <button id="btn-kit-generate" class="btn-euterpe-green px-5 py-2.5 text-[11px]">🤖 GENERATE KIT</button>
-                    <button id="btn-kit-ab" class="btn-euterpe px-4 py-2 text-[10px]" style="border-color:#00E5FF60;color:#00E5FF">⚖ COMPARE MODELS</button>
-                    <div class="text-[9px] text-[#E2E8F0]/35 max-w-xs leading-relaxed">Compare builds the same genre on each model in turn and scores them for settings that can't actually be dialled in. Every kit is saved, so keep whichever wins.</div>
-                </div>
-            </div>`;
-            document.getElementById('btn-kit-generate')?.addEventListener('click', () => window.generateGenreKit(genre));
-            document.getElementById('btn-kit-ab')?.addEventListener('click', () => window.kitModelAB(genre));
-            document.getElementById('kit-nav-older')?.addEventListener('click', () => olderId!=null && window.renderGenreKit(genre, { kitId: olderId }));
-            document.getElementById('kit-nav-newer')?.addEventListener('click', () => newerId!=null && window.renderGenreKit(genre, { kitId: newerId }));
-            return;
-        }
 
         const songs = window.db.songBoard || [];
         const attachedSongs = songsForKit(kit.id);
@@ -4911,7 +4886,7 @@ ${gear.join(', ')}`;
         document.getElementById('btn-kit-md')?.addEventListener('click', () => window.exportKitMarkdown(genre, kit.id));
         document.getElementById('kit-nav-older')?.addEventListener('click', () => olderId!=null && window.renderGenreKit(genre, { kitId: olderId }));
         document.getElementById('kit-nav-newer')?.addEventListener('click', () => newerId!=null && window.renderGenreKit(genre, { kitId: newerId }));
-        document.getElementById('kit-nav-new')?.addEventListener('click', () => window.renderGenreKit(genre, { kitId: 'new' }));
+        document.getElementById('kit-nav-new')?.addEventListener('click', () => window.generateGenreKit(genre));
         document.getElementById('btn-kit-attach')?.addEventListener('click', () => {
             const sel = document.getElementById('kit-song-select'); const id = sel.value ? parseInt(sel.value,10) : null;
             if (!id) { sel.focus(); return; }
@@ -5980,7 +5955,7 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-surprise-cookbook')?.addEventListener('click', () => window.surpriseCookbook());
     document.getElementById('btn-blend-genres')?.addEventListener('click', () => window.blendGenres());
     document.getElementById('btn-genre-lyria')?.addEventListener('click', () => window.openLyriaModal(window.currentCookbookGenre));
-    document.getElementById('btn-genre-kit')?.addEventListener('click', () => { const g = window.currentCookbookGenre; if (!g) return; if (kitHistory(g).length) window.renderGenreKit(g, { kitId: 'new' }); else window.generateGenreKit(g); });
+    document.getElementById('btn-genre-kit')?.addEventListener('click', () => { const g = window.currentCookbookGenre; if (!g) return; if (kitHistory(g).length) window.renderGenreKit(g); else window.generateGenreKit(g); });
     document.getElementById('btn-open-lyria-tools')?.addEventListener('click', () => window.openLyriaModal());
     document.getElementById('close-lyria-modal')?.addEventListener('click', () => window.closeLyriaModal());
     document.getElementById('lyria-modal')?.addEventListener('click', (e) => { if (e.target.id === 'lyria-modal') window.closeLyriaModal(); });

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v82';
+window.APP_VERSION = 'v83';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -4040,7 +4040,7 @@ You will be given a genre with its tempo/mood/texture, and the COMPLETE list of 
 HARD RULES:
 - The genre is a blank slate — it does NOT necessarily use every candidate role. If a role genuinely isn't part of how this genre is actually produced (e.g. no live Guitars in a pure 808/trap style, no Toms in a genre built entirely on programmed kick/snare/hats, no separate Ad-Libs in a genre that doesn't typically use them), OMIT it from your response entirely. Do not invent a generic chain just to fill the slot.
 - It's completely normal, and expected for narrower genres, to return fewer entries than candidates given — even zero, if none of these specific candidates genuinely apply.
-- For roles you DO include: use ONLY plugins from the palette you are given, plus Reaper's own stock effects (${REAPER_STOCK}). Never invent or suggest anything else. Match the names exactly as given.
+- For roles you DO include: use ONLY plugins from the palette you are given, plus Reaper's own stock effects (${REAPER_STOCK}). Never invent or suggest anything else. Match the names exactly as given. If you name a plugin that is NOT in the palette and NOT Reaper stock, it gets flagged as "not your gear" on the scorecard and the producer cannot use that step at all — it is wasted work. If the palette lacks something you want, use the closest alternative FROM THE PALETTE or a Reaper stock plugin.
 - SETTINGS MUST BE REAL. Only name a control the plugin genuinely has, and only a value that control can genuinely reach. Many of these are emulations of hardware, so the control set is the hardware's: often only two knobs, and often a stepped selector that stops at a fixed list of frequencies instead of sweeping. A setting that reads plausibly but doesn't exist on the knob is WORSE than no setting — the producer only finds out once they're sat in front of the plugin trying to dial it in.
 - ONE TONE SOURCE PER SIGNAL PATH. A real recorded electric instrument (bass, guitar) gets its sound ONE of three ways, and they are alternatives, not stages of a chain: (a) clean DI straight into the FX chain, (b) an amp-sim plugin, or (c) a NAM capture loaded in Gateway. NEVER put an amp sim and Gateway/NAM in the same chain — that is two amps in series, which is not a sound anyone is going for. Pick one route per recipe. If both routes genuinely suit the instrument, make them two SEPARATE recipes and say which route each one is.
 - Gateway is the NAM route, and it loads its own impulse responses internally. NEVER follow Gateway with NadIR or any other IR loader — the cabinet is already handled inside Gateway, so a separate IR plugin is pure redundancy. NadIR is only for a chain that has no Gateway in it.
@@ -4053,6 +4053,9 @@ ${instRule}
 - Be genre-accurate. A Memphis horrorcore snare and a G-funk snare are not the same chain.
 - Keep each "why" to one sentence.
 - Give each recipe an evocative TITLE, not a technical description — the kind of 2-4 word phrase that names a vibe, like a mixtape or song title (e.g. "Crenshaw Cruisin'" for a laid-back G-Funk bassline, "Basement Static" for a lo-fi horrorcore snare). Never a literal description like "Distorted 808 Chain" or "Chain 1".
+
+YOUR PALETTE — the ONLY non-Reaper plugins you may use:
+${gear.join(', ')}
 
 ${controls ? '\n' + controls + '\n' : ''}
 Reply with ONLY valid JSON, no markdown fences, no commentary, in exactly this shape:
@@ -4141,7 +4144,16 @@ Only slot names from this exact list may appear, and only if genuinely used: ${s
         if (low.length < 4) return null;
         const hit = pairs.find(p => p.n.length >= 4 && p.n.toLowerCase().includes(low))
                  || pairs.find(p => p.n.length >= 4 && low.includes(p.n.toLowerCase()));
-        return hit ? hit.o : null;
+        if (hit) return hit.o;
+        // Models routinely drop hyphens ("SSL E-Channel" → "SSL E Channel") or swap them for spaces.
+        // Strip all hyphens and collapse whitespace before a second containment pass so the match
+        // doesn't fail over punctuation the model casually omits.
+        const dehyphen = s => s.toLowerCase().replace(/[-–—]/g, ' ').replace(/\s+/g, ' ').trim();
+        const dLow = dehyphen(n);
+        const dHit = pairs.find(p => p.n.length >= 4 && dehyphen(p.n) === dLow)
+                  || pairs.find(p => p.n.length >= 4 && dehyphen(p.n).includes(dLow))
+                  || pairs.find(p => p.n.length >= 4 && dLow.includes(dehyphen(p.n)));
+        return dHit ? dHit.o : null;
     }
 
     async function selectPalette(genre, meta, owned){

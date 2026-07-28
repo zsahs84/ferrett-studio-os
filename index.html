@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v96';
+window.APP_VERSION = 'v97';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9555,9 +9555,10 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   window.__openAiModal = openAiModal;
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
   function readModalCfg(){
-    if(modalMode==='groq') return { mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
-    if(modalMode==='gemini') return { mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
-    return { mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() };
+    const current = loadCfg();
+    if(modalMode==='groq') return { ...current, mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
+    if(modalMode==='gemini') return { ...current, mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
+    return { ...current, mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() };
   }
   async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ window.__aiUsage?.begin('Settings: Test Connection'); const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); window.__aiUsage?.end(); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
 
@@ -9656,7 +9657,19 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     AI_MODES.forEach(k=>$('ai-mode-'+k)?.addEventListener('click',()=>setModalMode(k)));
     $('ai-modal-close')?.addEventListener('click',closeAiModal);
     $('ai-test-btn')?.addEventListener('click',testConn);
-    $('ai-save-btn')?.addEventListener('click',()=>{ saveCfg(readModalCfg()); updateStatus(); closeAiModal(); });
+    $('ai-save-btn')?.addEventListener('click',(e)=>{
+        saveCfg(readModalCfg());
+        updateStatus();
+        const btn = e.target;
+        const orig = btn.textContent;
+        btn.textContent = 'SAVED ✓';
+        btn.classList.add('bg-[#00FF88]/20', 'text-[#00FF88]');
+        setTimeout(() => {
+            btn.textContent = orig;
+            btn.classList.remove('bg-[#00FF88]/20', 'text-[#00FF88]');
+            closeAiModal();
+        }, 600);
+    });
     $('ai-clear-btn')?.addEventListener('click',()=>{ if(confirm('Clear stored AI connection?')){ localStorage.removeItem(AI_KEY); updateStatus(); openAiModal(); } });
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('ai-modal') && !$('ai-modal').classList.contains('hidden')) closeAiModal(); });
     $('btn-ai-settings-lyr')?.addEventListener('click',openAiModal);

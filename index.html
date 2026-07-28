@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v101';
+window.APP_VERSION = 'v102';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9525,7 +9525,27 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       b.classList.toggle('text-[#00E5FF]/50', !on);
     });
   }
-  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode||'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-gemini-key').value=c.geminiKey||''; $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; $('ai-gemini-think').value=c.geminiThink||'low'; $('ai-test-out').textContent=''; window.renderAccountingLedger?.(); const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+  function openAiModal(){ 
+    const c=loadCfg(); 
+    setModalMode(c.mode||'ha'); 
+    $('ai-url').value=c.url||DEFAULT_HA_URL; 
+    
+    $('ai-token').value='';
+    $('ai-token').placeholder=c.token ? '[ TOKEN SAVED - LEAVE BLANK TO KEEP ]' : '';
+    
+    $('ai-groq-key').value='';
+    $('ai-groq-key').placeholder=c.groqKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : '';
+    $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; 
+    
+    $('ai-gemini-key').value='';
+    $('ai-gemini-key').placeholder=c.geminiKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : 'AIza…';
+    $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; 
+    $('ai-gemini-think').value=c.geminiThink||'low'; 
+    
+    $('ai-test-out').textContent=''; 
+    window.renderAccountingLedger?.(); 
+    const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); 
+  }
 
   window.renderAccountingLedger = () => {
     const log = (window.db && window.db.accounting) || [];
@@ -9557,9 +9577,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
   function readModalCfg(){
     const current = loadCfg();
-    if(modalMode==='groq') return { ...current, mode:'groq', groqKey:$('ai-groq-key').value.trim(), groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
-    if(modalMode==='gemini') return { ...current, mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
-    return { ...current, mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() };
+    if(modalMode==='groq') return { ...current, mode:'groq', groqKey:$('ai-groq-key').value.trim() || current.groqKey, groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
+    if(modalMode==='gemini') return { ...current, mode:'gemini', geminiKey:$('ai-gemini-key').value.trim() || current.geminiKey, geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
+    return { ...current, mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() || current.token };
   }
   async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ window.__aiUsage?.begin('Settings: Test Connection'); const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); window.__aiUsage?.end(); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
 

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v102';
+window.APP_VERSION = 'v103';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9526,52 +9526,72 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     });
   }
   function openAiModal(){ 
-    const c=loadCfg(); 
-    setModalMode(c.mode||'ha'); 
-    $('ai-url').value=c.url||DEFAULT_HA_URL; 
-    
-    $('ai-token').value='';
-    $('ai-token').placeholder=c.token ? '[ TOKEN SAVED - LEAVE BLANK TO KEEP ]' : '';
-    
-    $('ai-groq-key').value='';
-    $('ai-groq-key').placeholder=c.groqKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : '';
-    $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; 
-    
-    $('ai-gemini-key').value='';
-    $('ai-gemini-key').placeholder=c.geminiKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : 'AIza…';
-    $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; 
-    $('ai-gemini-think').value=c.geminiThink||'low'; 
-    
-    $('ai-test-out').textContent=''; 
-    window.renderAccountingLedger?.(); 
-    const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); 
+    try {
+      const c=loadCfg() || {}; 
+      setModalMode(c.mode||'ha'); 
+      if($('ai-url')) $('ai-url').value=c.url||DEFAULT_HA_URL; 
+      
+      if($('ai-token')){
+        $('ai-token').value='';
+        $('ai-token').placeholder=c.token ? '[ TOKEN SAVED - LEAVE BLANK TO KEEP ]' : '';
+      }
+      
+      if($('ai-groq-key')){
+        $('ai-groq-key').value='';
+        $('ai-groq-key').placeholder=c.groqKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : '';
+      }
+      if($('ai-groq-model')) $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; 
+      
+      if($('ai-gemini-key')){
+        $('ai-gemini-key').value='';
+        $('ai-gemini-key').placeholder=c.geminiKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : 'AIza…';
+      }
+      if($('ai-gemini-model')) $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; 
+      if($('ai-gemini-think')) $('ai-gemini-think').value=c.geminiThink||'low'; 
+      
+      if($('ai-test-out')) $('ai-test-out').textContent=''; 
+      window.renderAccountingLedger?.(); 
+      const m=$('ai-modal'); 
+      if(m){ m.classList.remove('hidden'); m.classList.add('flex'); }
+    } catch(e) {
+      console.error('Error in openAiModal:', e);
+    }
   }
 
   window.renderAccountingLedger = () => {
-    const log = (window.db && window.db.accounting) || [];
-    let life = 0, month = 0, week = 0;
-    const now = Date.now();
-    log.forEach(e => {
-        const amt = e.usd || 0;
-        life += amt;
-        if (now - e.ts <= 30*24*60*60*1000) month += amt;
-        if (now - e.ts <= 7*24*60*60*1000) week += amt;
-    });
-    if ($('acct-life')) $('acct-life').textContent = window.__aiUsage?.fmtUsd(life) || '$0.00';
-    if ($('acct-month')) $('acct-month').textContent = window.__aiUsage?.fmtUsd(month) || '$0.00';
-    if ($('acct-week')) $('acct-week').textContent = window.__aiUsage?.fmtUsd(week) || '$0.00';
-    
-    const list = $('acct-list');
-    if (!list) return;
-    list.innerHTML = log.slice(0, 30).map(e => {
-        const d = new Date(e.ts);
-        const df = d.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit'}) + ' ' + d.toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
-        return `<div class="flex items-center gap-2 text-[10px] py-1 border-b border-[#00E5FF10] last:border-0">
-            <span class="flex-1 text-[#E2E8F0]/70 truncate">${e.context||'API Call'}</span>
-            <span class="text-[#00E5FF]/40 font-mono w-24 text-right shrink-0">${df}</span>
-            <span class="text-[#7AFFBF] font-mono font-bold w-12 text-right shrink-0">${window.__aiUsage?.fmtUsd(e.usd||0)}</span>
-        </div>`;
-    }).join('') || '<div class="text-[10px] text-[#E2E8F0]/30 italic py-2 text-center">No AI calls logged yet.</div>';
+    try {
+      let log = (window.db && window.db.accounting) || [];
+      if (!Array.isArray(log)) {
+          // If the data somehow got corrupted into an object (e.g. from a bad Drive sync)
+          log = [];
+          if (window.db) window.db.accounting = [];
+      }
+      let life = 0, month = 0, week = 0;
+      const now = Date.now();
+      log.forEach(e => {
+          const amt = e.usd || 0;
+          life += amt;
+          if (now - (e.ts||0) <= 30*24*60*60*1000) month += amt;
+          if (now - (e.ts||0) <= 7*24*60*60*1000) week += amt;
+      });
+      if ($('acct-life')) $('acct-life').textContent = window.__aiUsage?.fmtUsd(life) || '$0.00';
+      if ($('acct-month')) $('acct-month').textContent = window.__aiUsage?.fmtUsd(month) || '$0.00';
+      if ($('acct-week')) $('acct-week').textContent = window.__aiUsage?.fmtUsd(week) || '$0.00';
+      
+      const list = $('acct-list');
+      if (!list) return;
+      list.innerHTML = log.slice(0, 30).map(e => {
+          const d = new Date(e.ts||Date.now());
+          const df = d.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit'}) + ' ' + d.toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
+          return `<div class="flex items-center gap-2 text-[10px] py-1 border-b border-[#00E5FF10] last:border-0">
+              <span class="flex-1 text-[#E2E8F0]/70 truncate">${e.context||'API Call'}</span>
+              <span class="text-[#00E5FF]/40 font-mono w-24 text-right shrink-0">${df}</span>
+              <span class="text-[#7AFFBF] font-mono font-bold w-12 text-right shrink-0">${window.__aiUsage?.fmtUsd(e.usd||0)}</span>
+          </div>`;
+      }).join('') || '<div class="text-[10px] text-[#E2E8F0]/30 italic py-2 text-center">No AI calls logged yet.</div>';
+    } catch (e) {
+      console.error('Error rendering accounting ledger:', e);
+    }
   };
   window.__openAiModal = openAiModal;
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }

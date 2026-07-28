@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v90';
+window.APP_VERSION = 'v91';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1691,9 +1691,7 @@ main { background: rgba(5,8,7,0.72); }
                 <textarea id="lyria-output" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-32 resize-none focus:outline-none" readonly></textarea>
                 <div class="flex gap-2 mt-2">
                     <button id="btn-lyria-copy" type="button" class="btn-euterpe flex-1">📋 COPY TO CLIPBOARD</button>
-                    <button id="btn-lyria-ai" type="button" class="btn-euterpe flex-1" style="border-color:#00E5FF80;color:#00E5FF" title="Send this draft to your AI co-pilot to tighten it into a Lyria-optimized prompt — keeps your real gear/technique details, cuts filler">✨ AI ENHANCE</button>
                 </div>
-                <p class="text-[9px] text-[#E2E8F0]/35 mt-2">The draft above is built from your own recipe data (free, offline). <b class="text-[#00E5FF]/60">AI Enhance</b> sends it to your AI co-pilot to tighten it into Lyria's preferred style — needs the co-pilot set up (⚙ in Lyrics Lab or Toolbox). Attached lyrics are never sent and never rewritten.</p>
                 <div id="lyria-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-1"></div>
             </div>
         </div>
@@ -5438,41 +5436,6 @@ window.lyriaSongBlock = (songId) => {
         }
     };
 
-    // Sends the free/offline draft above (built from real recipe data) to the
-    // user's own AI co-pilot to tighten it into Lyria/MusicFX's preferred
-    // style, without throwing away the specific gear/technique details.
-    window.runLyriaAIEnhance = async () => {
-        const out = document.getElementById('lyria-output'); const draft = out?.value || ''; if (!draft.trim()) return;
-        const note = document.getElementById('lyria-ai-note'); const btn = document.getElementById('btn-lyria-ai');
-        // This element is shared with the "your direction covers X" line, which styles itself green.
-        // Always restate the colour here or an error inherits it and reads as a success message.
-        const setNote = (msg) => { if (note) { note.textContent = msg; note.className = 'text-[10px] text-[#FF5A5A]/80 mt-1'; } };
-        // Was a hand-rolled two-way check written before the Gemini backend existed: in gemini mode it
-        // fell through to the HA branch, found no url/token, and sent you to the setup modal even
-        // though the co-pilot was configured and working. __aiIsConfigured knows all three modes.
-        if (!(window.__aiIsConfigured?.())) { if (window.__openAiModal) window.__openAiModal(); return; }
-        if (!window.ferrettAI) { setNote('AI co-pilot not loaded.'); return; }
-        if (btn) { btn.disabled = true; btn.textContent = '…thinking'; }
-        setNote('');
-        try {
-            // Enhance only ever sees the DESCRIPTION. The lyric block is held separately by
-            // runLyriaGenerate and re-appended after, so there is no path by which a tightening pass
-            // can reword a line of the song — the model is never shown one.
-            const last = window.__lyriaLastBuilt;
-            const song = last && last.song;
-            const target = song ? (last.written || last.prompt) : draft;
-            const sys = 'You write vivid, concise music-generation prompts for Google Lyria. Rewrite the given draft into ONE dense paragraph (max ~50 words) of genre, instrumentation, production and mood descriptors. Keep every specific gear/technique detail from the draft — they matter — but tighten the prose and cut filler words. No lyrics, no quotes, no preamble, no headers.'
-                + (song ? ' This describes a VOCAL track whose lyrics are supplied separately: keep any reference to vocal delivery or arrangement moves, and never write lyrics of your own.' : '');
-            const enhanced = await window.ferrettAI(sys, target, { creative: true });
-            const desc = enhanced.trim();
-            if (song) last.written = desc;
-            if (out) out.value = song ? `${desc}\n\n${song.lyricsBlock}` : desc;
-        } catch (e) {
-            setNote('⚠ ' + e.message);
-        } finally {
-            if (btn) { btn.disabled = false; btn.textContent = '✨ AI ENHANCE'; }
-        }
-    };
 
 
     // === PLUGIN COVERAGE GAP-CHECK ===
@@ -6010,7 +5973,6 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
     document.getElementById('btn-lyria-copy')?.addEventListener('click', () => { const out = document.getElementById('lyria-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
-    document.getElementById('btn-lyria-ai')?.addEventListener('click', () => window.runLyriaAIEnhance());
     document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());

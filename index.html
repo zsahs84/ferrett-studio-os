@@ -1663,6 +1663,17 @@ main { background: rgba(5,8,7,0.72); }
             <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">GENRE / VIBE</label>
             <select id="lyria-genre-select" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-4 focus:outline-none"></select>
 
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">MOOD OVERRIDE</label>
+                    <input type="text" id="lyria-mood" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 focus:outline-none" placeholder="default">
+                </div>
+                <div>
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">TEXTURE OVERRIDE</label>
+                    <input type="text" id="lyria-texture" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 focus:outline-none" placeholder="default">
+                </div>
+            </div>
+
             <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">BPM</label>
             <input type="number" id="lyria-bpm" class="w-32 bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[#E2E8F0] text-[13px] px-3 py-2 mb-4 focus:outline-none">
 
@@ -4615,6 +4626,7 @@ ${gear.join(', ')}`;
             // Which model produced it, recorded on the kit itself. Without this a saved kit is an
             // anonymous artefact and any later comparison between models is guesswork.
             const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, palette: usingPalette ? palette : null, partial: failed.length ? failed : null,
+                moodOverride: moodOverride || null, texOverride: texOverride || null,
                 model: window.__aiModelLabel ? window.__aiModelLabel() : null, buildSecs: Math.round((Date.now()-startedAt)/1000),
                 usage: window.__aiUsage?.end() || null };
             hist.push(newKit);
@@ -5308,12 +5320,24 @@ window.lyriaSongBlock = (songId) => {
     window.openLyriaModal = (preselectGenre, preselectSongId) => {
         window.populateLyriaGenreSelect(preselectGenre);
         window.populateLyriaSongSelect(preselectSongId);
+        
+        const moodEl = document.getElementById('lyria-mood'); if (moodEl) moodEl.value = '';
+        const texEl = document.getElementById('lyria-texture'); if (texEl) texEl.value = '';
+        
         // populateLyriaSongSelect only pulls BPM across for songs with lyrics (the dropdown is
         // lyrics-gated). A song opened directly from its Song Board card may have no lyrics yet,
         // so pull its tempo across directly here rather than losing it to the genre's midpoint.
         if (preselectSongId != null) {
             const song = (window.db?.songBoard || []).find(s => String(s.id) === String(preselectSongId));
-            if (song && song.bpm) { const b = document.getElementById('lyria-bpm'); if (b) b.value = song.bpm; }
+            if (song) {
+                if (song.bpm) { const b = document.getElementById('lyria-bpm'); if (b) b.value = song.bpm; }
+                const refKit = (song.kitId != null && song.kitGenre && window.findKit) ? window.findKit(song.kitGenre, song.kitId) : null;
+                const kit = refKit || song.kit;
+                if (kit && (kit.genre === preselectGenre || !preselectGenre)) {
+                    if (kit.moodOverride && moodEl) moodEl.value = kit.moodOverride;
+                    if (kit.texOverride && texEl) texEl.value = kit.texOverride;
+                }
+            }
         }
         document.getElementById('lyria-output-wrap')?.classList.add('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
@@ -5383,12 +5407,14 @@ window.lyriaSongBlock = (songId) => {
                 notes.trim() ? `PRODUCER'S DIRECTION (honour exactly): ${notes.trim()}` : ''
             ].filter(Boolean).join('\n');
             const meta = window.getGenreMeta(genre);
+            const moodInput = document.getElementById('lyria-mood')?.value.trim();
+            const texInput = document.getElementById('lyria-texture')?.value.trim();
             // Structure only — never the words themselves. Sending the lyrics would put them in reach
             // of a model whose whole job is rewriting the surrounding text.
             const songLines = song
                 ? `\nSONG: ${song.title}\nSECTION ORDER${song.timed ? ' AND TIMINGS' : ''}: ${song.structure}${song.totalSecs ? `\nRUNS: ${lyriaFmtTime(song.totalSecs)}` : ''}\nThis is a VOCAL track — the lyrics exist and are supplied separately. Do not write any.`
                 : '';
-            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${meta.mood}\nTEXTURE: ${meta.texture}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
+            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
             const written = await window.ferrettAI(sys, user, { creative: true });
             if (written && written.trim() && out) {
                 const desc = written.trim().replace(/^["'\s]+|["'\s]+$/g, '');

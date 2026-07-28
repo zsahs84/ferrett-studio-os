@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v88';
+window.APP_VERSION = 'v89';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3485,7 +3485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { match: /1176|6176/i, name: 'UA 1176 (Rev A, Rev E/LN, 1176AE)',
           text: 'Input, Output, Attack, Release, and ratio buttons at 4:1 / 8:1 / 12:1 / 20:1 (holding several in at once is "all-buttons" mode). There is NO threshold knob — you set how hard it works with Input. Attack and Release are numbered 1-7 dials, and they are REVERSED: 7 is fastest, 1 is slowest. Never give an 1176 attack or release in milliseconds; give the dial position or just "fastest"/"slowest".' },
         { match: /EQP-?1A/i, name: 'Pultec EQP-1A',
-          text: 'Low Boost and Low Atten share one stepped frequency selector: 20, 30, 60 or 100 Hz — no other value exists. High Boost frequency is stepped 3, 4, 5, 8, 10, 12 or 16 kHz. High Atten frequency is stepped 5, 10 or 20 kHz. The Boost/Atten dials are 0-10, NOT calibrated in dB, so ask for "Low Boost to about 4" rather than "+3dB". Bandwidth is a continuous Sharp-to-Broad knob affecting the high boost only.' },
+          text: 'Low Boost and Low Atten share one stepped frequency selector: 20, 30, 60 or 100 Hz — no other value exists. High Boost frequency is stepped 3, 4, 5, 8, 10, 12 or 16 kHz. High Atten frequency is stepped 5, 10 or 20 kHz. The Boost/Atten dials are 0-10, NOT calibrated in dB, so ask for "Low Boost to about 4" rather than "+3dB". Bandwidth is a continuous Sharp-to-Broad knob affecting the high boost only (NEVER call this Q, Pultecs do not have a Q control).' },
         { match: /MEQ-?5/i, name: 'Pultec MEQ-5',
           text: 'Three stepped bands and nothing else. Low Peak: 200, 300, 500, 700 or 1000 Hz. Dip: 200, 300, 500, 700, 1k, 1.5k, 2k, 3k, 4k, 5k or 7k Hz. High Peak: 1.5k, 2k, 3k, 4k or 5k Hz. The boost/atten dials are 0-10, not dB. Any frequency not on those lists is unreachable.' },
         { match: /HLF-?3C/i, name: 'Pultec HLF-3C',

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v83';
+window.APP_VERSION = 'v84';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3552,7 +3552,194 @@ document.addEventListener('DOMContentLoaded', () => {
           text: 'An AI instrument, not a synth: you type a text prompt describing a sound and it generates playable instruments from it. There is no oscillator, wavetable, sample or preset bank to specify — a "patch" for Siren is a PROMPT. What it does expose after the fact is an amplitude ADSR and a filter with four types (low-pass, high-pass, band-pass, notch) at 12 or 24 dB/oct. Two practical constraints: it needs a Fadr subscription and it generates in the cloud, so it is not an offline instrument and not the thing to lean on for a whole part. Specify it as a prompt plus any ADSR or filter move.' },
 
         { match: /flow mixing/i, name: 'Softube Flow Mixing Suite',
-          text: 'A HOST, not a processor. It loads "Flows" — prebuilt Softube plugin chains organised by task (Drums, Vocals, Guitars, Keys, Creative, MixBus, Sends) — and the individual Softube plugins inside a Flow are unlocked by subscription credits rather than owned outright. So naming Flow alone says nothing about what is actually processing the signal, and naming a Softube module inside it is only safe if that module is genuinely available. The Softube plugins installed separately on this rig are Amplifiers, Drawmer S73, Marshall Plexi Classic, Saturation Knob, TSAR-1R Reverb and Tube Delay — treat anything outside that set as unavailable unless told otherwise, and name the module you mean rather than saying "a Flow chain".' }
+          text: 'A HOST, not a processor. It loads "Flows" — prebuilt Softube plugin chains organised by task (Drums, Vocals, Guitars, Keys, Creative, MixBus, Sends) — and the individual Softube plugins inside a Flow are unlocked by subscription credits rather than owned outright. So naming Flow alone says nothing about what is actually processing the signal, and naming a Softube module inside it is only safe if that module is genuinely available. The Softube plugins installed separately on this rig are Amplifiers, Drawmer S73, Marshall Plexi Classic, Saturation Knob, TSAR-1R Reverb and Tube Delay — treat anything outside that set as unavailable unless told otherwise, and name the module you mean rather than saying "a Flow chain".' },
+
+        // ---- Added 2026-07-28: Priority 1 — high-impact plugins ----
+
+        { match: /\bvital\b/i, name: 'Vital Spectral Wavetable Synth',
+          text: 'Three oscillators (Osc 1/2/3), each with a Wavetable selector, Tune (semitones + cents), Level, Pan and a Frame position (0-127). Filter: Cutoff is a 0-127 MIDI value (do NOT write Hz — say a dial position or note name), Resonance (0-1), Drive, Filter Type (named list: Dirty/Ladder/Digital/Dual/Formant/Comb/Phaser and others), Blend (LP-BP-HP). Amp and Filter envelopes each have Attack, Decay, Sustain, Release in seconds. Two LFOs with Rate (Hz or tempo-sync). Effects row slots: Chorus, Flanger, Phaser, Delay (Time/Feedback/Mix), Reverb (Decay/Pre-Delay/Mix), Distortion (type selector), Compressor. Specify oscillator wavetable type, filter type, cutoff as a dial position or note name, and envelope values in seconds.' },
+
+        { match: /tdr.?nova/i, name: 'TDR Nova Parallel Dynamic EQ',
+          text: 'Four bands plus global HP and LP filters. Each band: Frequency (fully continuous Hz), Gain (±15 dB), Bandwidth (Q), Mode (Classic / Dynamic / Parallel Dynamic). In dynamic mode each band adds Threshold (dBFS), Ratio, Attack (ms) and Release (ms). Band types: Peak, Low Shelf, High Shelf, Band Pass. Global channel modes: Stereo / Mid-Side / Left / Right / Mid / Side. It IS a fully parametric digital EQ — exact Hz, dB and Q are all appropriate here.' },
+
+        { match: /surge.?xt/i, name: 'Surge XT Synthesizer',
+          text: 'Two scenes (A/B), each with three oscillators. Oscillator types include Classic, Sine, Wavetable, Window, FM2/FM3, SH Noise, String, Alias — quote the type by name. Filter: two filters each with Cutoff (continuous Hz or note name), Resonance, Type (named: LP12/LP24/LP Moog/BP/HP/Notch/Comb/etc.), Routing selector. Envelopes (Amp/Filter/three free): DAHDSR with values in seconds. LFOs: six per scene, rate in Hz or tempo-sync. FX chain: eight slots with a large named list (Chorus, Flanger, Phaser, Reverb1/2, Airwindows, Nimbus, Delay, Ring Modulator, Vocoder, etc.). Quote oscillator type, filter type and name, cutoff in Hz.' },
+
+        { match: /drawmer.?s73/i, name: 'Drawmer S73 Intelligent Master Processor',
+          text: 'Three single-knob stages in series: Warmth (0-10, harmonic saturation), Focus (0-10, dynamic clarity), Punch (0-10, low-end transient lift). Each stage has an individual bypass. Output Gain and a global bypass complete the plugin. There is NO threshold, ratio, attack or release anywhere in this plugin.' },
+
+        { match: /tsar-?1r/i, name: 'Softube TSAR-1R Reverb',
+          text: 'Six controls: Reverb Time (0.1-30 seconds), Pre-Delay (0-200ms), Treble (rolls off reverb tail highs), Bass (rolls off reverb tail lows), Diffusion (0-100%, attack density), Mix (Dry/Wet 0-100%). No room size selector or room type — those six knobs are everything.' },
+
+        { match: /tube.?delay/i, name: 'Softube Tube Delay',
+          text: 'Tape/tube echo: Time (0-1600ms or tempo-sync note division), Feedback (0-100%), Drive (0-10, tube harmonic saturation), Tone (LP filter on repeats — lower = darker), Echo Volume, Mix. Quote delay time in ms or note division; Drive as a 0-10 position.' },
+
+        { match: /manley.?vox.?box/i, name: 'Manley VoxBox',
+          text: 'Four-section channel strip: (1) Mic Preamp — Input Gain, HP filter stepped at 60/90/120/150/200 Hz. (2) Opto Compressor — Threshold, Recovery (program-dependent, same family as LA-2A — no attack knob), Compress/Limit switch, Gain. (3) EQ — Mid Frequency stepped at 1k/2k/3k/4k/5k/8k/10k Hz with a 0-10 Amount (NOT dB), Presence (fixed high shelf). (4) De-Esser — Threshold and Frequency stepped at 4/6/8/10 kHz. The EQ frequencies are stepped — any other value is unreachable.' },
+
+        { match: /avalon.?vt.?737|vt-?737/i, name: 'Avalon VT-737sp',
+          text: 'Tube channel strip: Mic/Line Preamp (Gain, HP stepped at 80/120/160/240/350 Hz). Opto Compressor (Threshold, Gain, Attack stepped at 0/2/4/8/12/20 ms, Decay stepped at 0.5/1/2/3/5/Auto s, Comp/Limit switch). EQ (High shelf 16 or 32 kHz; Mid Peak with Frequency stepped across ~20 values 35 Hz-18 kHz; Low shelf 35 or 75 Hz — give a real stepped mid frequency). Output Gain.' },
+
+        { match: /api.?vision|vision.?channel/i, name: 'UA API Vision Channel Strip',
+          text: '550B EQ + 225L compressor. EQ: High stepped at 2k/4k/8k/12k/16k Hz (shelf or peak, ±12 dB in 2 dB steps); Mid stepped at 200/500/1k/2k/3.5k Hz; Low stepped at 50/100/200/400 Hz. 225L compressor: Threshold, Ratio stepped (2/4/8/12:1 plus Limit), Attack stepped (0.1/0.3/1/3/10/30 ms), Release stepped (0.05/0.1/0.25/0.5/1/2 s + Auto), Makeup. All gains and timings are stepped.' },
+
+        { match: /capitol.?comp/i, name: 'UA Capitol Compressor',
+          text: 'Based on Spectra Sonics 610. Controls: Input Gain, Threshold, Ratio (stepped: 2:1/4:1/8:1/12:1/20:1), Attack (stepped), Release (stepped), Output Gain. A clean solid-state compressor — give stepped ratio and timing values.' },
+
+        { match: /hitsville.?eq\b/i, name: 'UA Hitsville EQ',
+          text: 'Motown RCA console EQ. Four fixed-frequency bands — Low shelf, Low-Mid peak, High-Mid peak, High shelf — each with Gain only. The frequencies are fixed hardware presets, not swept: give only a Gain amount per band. There is no Bandwidth or Q control.' },
+
+        { match: /hitsville.?chamber/i, name: 'UA Hitsville Chambers',
+          text: 'Live chamber reverb emulation. Controls: Chamber (North or South), Predelay (ms), Decay (seconds), Tone (LP filter), Mix. That is the whole plugin.' },
+
+        { match: /ocean.?way/i, name: 'UA Ocean Way Studios',
+          text: 'Room modelling plugin (not a traditional reverb). Controls: Room selector (named rooms), Microphone position (named list), Blend (0-100%), Low and High character controls. Give room name, mic position and Blend — the Low/High are broad character controls, not parametric bands.' },
+
+        { match: /pure.?plate/i, name: 'UA Pure Plate Reverb',
+          text: 'Plate reverb emulation. Controls: Decay (0.3-10 seconds), Pre-Delay (0-200ms), Modulation (0-10, chorus shimmer), Diffusion (0-10, attack density), Low Damping frequency, High Damping frequency, Mix. Always a plate — no type selector.' },
+
+        { match: /galaxy.?tape.?echo/i, name: 'UA Galaxy Tape Echo',
+          text: 'Based on Roland Space Echo RE-201. The delay time is set by Motor Speed (a continuous dial, not ms) plus Repeat Rate (fine trim). Mode selector: eleven fixed combinations of record heads 1/2/3 and spring reverb — always specify a mode by number. Other controls: Echo Volume (wet), Intensity (feedback), Bass, Treble, Spring Reverb Level. There is NO delay time in ms — specify Motor Speed position and Mode number.' },
+
+        { match: /brigade.?chorus/i, name: 'UA Brigade Chorus Ensemble',
+          text: 'Based on Roland CE-1. Controls: Mode (Chorus or Vibrato), Intensity (depth), Rate, Mix. Three controls and a mode switch.' },
+
+        { match: /studio.?d.?chorus/i, name: 'UA Studio D Chorus',
+          text: 'Based on Roland Dimension D. The original has only four numbered buttons (1-4) — no continuous rate, depth or mix. The UA version adds a Blend knob (0-100%). Describe it as a button selection (1, 2, 3 or 4) and a Blend amount. Never give it a rate in Hz.' },
+
+        { match: /chow.?tape/i, name: 'CHOWTapeModel',
+          text: 'Tape machine emulation. Record Level (0-100%, sets saturation — no separate Drive), Playback Level, Record Head (Mono/Stereo/Reversed), Tone, Wow (0-100%), Flutter (0-100%), Depth. Degradation: Dropouts, Noise, Chew. Quote Record Level and flutter/wow as percentages.' },
+
+        { match: /tape.?cassette/i, name: 'Unfiltered Audio Tape Cassette 2',
+          text: 'Cassette tape emulation. Saturation (0-100%, the main drive — there is no separate Drive knob), Bias (negative = brighter, positive = warmer), Wobble (0-100%, slow drift), Flutter (0-100%, fast), Noise (0-100%), HP filter (stepped positions), Mix. Quote Saturation and flutter/wobble as percentages.' },
+
+        { match: /elysia.?niveau/i, name: 'elysia niveau filter',
+          text: 'Tilt EQ with two controls: Frequency (stepped at 20/40/80/160/320/640 Hz/1.28k/2.56k/5.12k/10.24k/20.48k kHz — eleven positions only) and Amount (±15 dB tilt). Pick a frequency from that list and say which direction you are tilting. No separate high/low shelf, no Q.' },
+
+        { match: /ampeg.?svt|svt.?vr/i, name: 'Ampeg SVT-VR Classic',
+          text: 'Bass amp emulation of 1971 SVT. Controls: INPUT (gain), BASS (±12 dB ~100 Hz), MID FREQUENCY (stepped: 300 Hz / 1 kHz / 3 kHz — three options only), MID Level, TREBLE (±12 dB), ULTRA LO and ULTRA HI buttons (fixed tone switches), MASTER Volume. The mid frequency is stepped — give one of those three values.' },
+
+        { match: /\bivgi2?\b/i, name: 'Klanghelm IVGI2',
+          text: 'Saturation plugin. Drive (0-100%), Character (Asym for more second-harmonic / Sym for odd-order), Mix (0-100%), Output trim (±12 dB). No EQ, no compression. Quote Drive as a percentage.' },
+
+        { match: /\bkolinmb\b/i, name: 'Kolin MB Multiband Compressor',
+          text: 'Three-band multiband compressor. Per band: Threshold (dBFS), Ratio, Attack (ms), Release (ms), Makeup Gain, bypass. Adjustable crossover frequencies between bands. Global Output Gain. Quote threshold in dBFS and timing in ms.' },
+
+        { match: /waterfall.?b3/i, name: 'UA Waterfall B3 Organ',
+          text: 'Hammond B3 emulation. Drawbars: nine per manual (16\'/5⅓\'/8\'/4\'/2⅔\'/2\'/1⅗\'/1⅓\'/1\'), each 0-8 — always specify drawbar footages, never frequencies. Percussion: 2nd/3rd harmonic, Fast/Slow decay, Soft/Normal level. Vibrato/Chorus scanner: V1/C1/V2/C2/V3/C3. Leslie: Slow/Fast/Stop + Ramp time. Reverb Amount. Never give it a filter frequency or compressor setting.' },
+
+        { match: /\bmelodyne\b/i, name: 'Celemony Melodyne',
+          text: 'A pitch and time editor — it is not a real-time insert effect. In a kit it appears as a corrective step before the FX chain. Relevant parameters: Pitch Correction Speed (0-100%), Pitch Shift (semitones + cents), Formant Shift (semitones), Pitch Drift and Modulation reduction. Do not describe it as having a filter, compressor or saturation.' },
+
+        { match: /\bkontakt\b/i, name: 'Native Instruments Kontakt 8',
+          text: 'A sample library HOST. It does not have its own tone controls — it loads libraries with their own interfaces. When Kontakt appears in a chain it is as a SOURCE: name the library type and patch direction (e.g. "Kontakt 8 — orchestral strings, sustained legato") rather than Kontakt controls. Do not give Kontakt EQ or filter values.' },
+
+        { match: /\bsitala\b/i, name: 'Decomposer Sitala',
+          text: 'A drum sampler. Per pad: Pitch (±24 semitones), Volume, Pan, Start/End point, Reverse, one-knob Filter (sweeps LP to HP), Amp envelope (Attack, Decay, Sustain). It is a source — place it at the start of a chain. Specify sample type, tuning and filter position.' },
+
+        { match: /trigger.?2/i, name: 'Steven Slate Trigger 2',
+          text: 'Drum replacement plugin. Listens to a drum track and fires samples at each hit. Per pad: Sample selector, Volume, Bleed (0-100%), Accuracy and Velocity curves. It is a source — place it first, then process its output.' },
+
+        { match: /neural.?amp.?modeler|NeuralAmpModeler/i, name: 'NeuralAmpModeler (NAM)',
+          text: 'Loads a .nam neural amp model file. Controls: Input (dB trim), Output (dB), Noise Gate Threshold. The tone IS the model — there is no EQ, Gain or Bass/Mid/Treble on NAM itself. Specify "NAM — [model description]" and add EQ or saturation as separate plugins after it.' },
+
+        { match: /\bemissary\b/i, name: 'Bogren Digital Emissary',
+          text: 'High-gain amp sim. Controls: Gain (0-10), Bass (0-10), Mid (0-10), Treble (0-10), Presence (0-10), Master Volume (0-10), Clean/Lead channel switch. No built-in cabinet — always pair with NadIR. Quote all controls as 0-10 dial positions.' },
+
+        { match: /\bnadir\b|NadIR/i, name: 'Ignite Amps NadIR',
+          text: 'IR loader for guitar/bass cabinet simulation. Loads one or two .wav IR files. Controls: IR slot 1 and 2 (file selectors), Blend (0-100% between the two), Level, Delay (ms between IRs). No tone, gain or reverb control — cab sim only. Pair with a pre-amp or NAM before it.' },
+
+        { match: /marshall.?plexi/i, name: 'UA Marshall Plexi Classic',
+          text: '1968 Marshall Plexi Super Lead emulation. Controls: Volume 1 (bright channel), Volume 2 (normal channel), Treble, Middle, Bass (shared tone stack, all 0-10), Presence (0-10), Master. Specify whether one or both channels are used (bridged or single). No built-in cab — pair with a cab IR. Quote all as 0-10 positions.' },
+
+        { match: /ruby.?amp/i, name: 'UA Ruby \'63 Amp',
+          text: '1963 Vox AC30 Top Boost emulation. Controls: Volume (0-10), Treble (0-10), Bass (0-10), Cut (0-10 — HIGHER = DARKER, opposite of what you expect), Reverb (0-10), Tremolo Speed and Intensity. No built-in cab. Quote all as 0-10 positions.' },
+
+        { match: /dream.?amp/i, name: 'UA Dream \'65 Amp',
+          text: '1965 Fender Deluxe Reverb emulation. Controls: Volume (0-10), Treble/Middle/Bass (0-10), Reverb (0-10 spring), Tremolo Speed and Intensity, Normal/Vibrato channel. No built-in cab. Quote all as 0-10 positions.' },
+
+        { match: /lion.?amp/i, name: 'UA Lion \'68 Amp',
+          text: '1968 Marshall Super Bass emulation. Controls: Volume 1, Volume 2, Treble, Middle, Bass (0-10), Presence (0-10), Master Volume. No built-in cab. Quote as 0-10 positions.' },
+
+        { match: /woodrow.?amp/i, name: 'UA Woodrow \'55 Amp',
+          text: '1955 Fender Tweed Deluxe emulation. Controls: Volume (0-10), Tone (single knob — not separate Bass/Treble), Spring Reverb (0-10). No built-in cab. Quote as 0-10 positions.' },
+
+        { match: /showtime.?64/i, name: 'UA Showtime \'64 Amp',
+          text: '1964 Silvertone 1484 emulation. Controls: Volume (0-10), Treble, Bass (0-10), Reverb (0-10 spring), Tremolo Speed and Intensity. No built-in cab. Quote as 0-10 positions.' },
+
+        { match: /enigmatic.?82/i, name: 'UA Enigmatic \'82 Amp',
+          text: '1982 Mesa/Boogie Mark IIC+ emulation. Controls: Gain (0-10), Treble/Middle/Bass/Presence (0-10), Master Volume, Lead/Rhythm switch. High-gain channel. No built-in cab. Quote as 0-10 positions.' },
+
+        { match: /sound.?city/i, name: 'UA Sound City Studios',
+          text: 'Room modelling plugin capturing Sound City Studios. Controls: Room selector (named), Mic position selector (named), Blend (0-100%), Low and High character controls. Give room name, mic position and Blend amount.' },
+
+        // ---- Kilohearts family ----
+        { match: /\bkhs\b/i, name: 'Kilohearts kHs Suite',
+          text: 'All kHs modules use plain-English labelled controls with real units — Hz, dB, ms, % and semitones are always appropriate. Key module controls: kHs Compressor — Threshold (dBFS), Ratio, Attack (ms), Release (ms), Knee (dB), Makeup. kHs Gate — Threshold (dBFS), Attack (ms), Hold (ms), Release (ms), Floor (dB). kHs 3-Band EQ — Low (Hz, dB), Mid (Hz, dB, Q), High (Hz, dB). kHs Delay — Time (ms or note division), Feedback (%), Wet (%). kHs Reverb — Room Size (meters), Dampening (Hz LP cutoff), Width (%), Wet (%). kHs Limiter — Threshold (dBFS), Lookahead (ms), Release (ms). kHs Distortion — Drive (dB), Type (Hard/Soft/Tube/Fuzz/Rectify). kHs Chorus — Rate (Hz), Depth (semitones), Voices (2-8). kHs Flanger — Rate (Hz), Depth (ms), Feedback (%), Wet (%). kHs Phaser — Stages (2/4/6/8/10), Rate (Hz), Depth (%), Feedback (%). kHs Filter — Frequency (Hz), Resonance, Type (LP/HP/BP/Notch). kHs Pitch Shifter — Pitch (semitones + cents). kHs Transient Shaper — Attack and Sustain (each dB). kHs Tape Stop — Time (ms). kHs Haas — Delay (1-40 ms). kHs Bitcrush — Bits (1-24), Sample Rate (Hz). kHs Clipper — Threshold (dBFS), Trim.' },
+
+        // ---- Plugin Alliance bx_ effects ----
+        { match: /bx_masterdesk/i, name: 'Plugin Alliance bx_masterdesk',
+          text: 'One-page mastering processor. Five EQ bands with stepped frequency selectors: Bass (20/30/40/50/60/70 Hz shelf), Low Mid (100/150/200/250/300 Hz peak), High Mid (1k/1.5k/2k/2.5k/3k Hz peak), Presence (6k/8k/10k/12k/15k Hz peak), Air (16k/18k/20k/22k Hz shelf). Each ±10 dB Gain. Plus Stereo Width (0-200%), Mono Maker frequency, Master Fader and a soft Limiter switch. Give stepped frequencies from those lists — no arbitrary Hz.' },
+
+        { match: /bx_boom/i, name: 'Plugin Alliance bx_boom',
+          text: 'Sub/mono-bass enhancement. Controls: Boom Frequency (stepped), Boom Amount (0-100%), Attack (ms), Release (ms), Mono Below (Hz). Use it to add sub resonance or tighten kick.' },
+
+        { match: /bx_subfilter/i, name: 'Plugin Alliance bx_subfilter',
+          text: 'Sub-bass HP + low shelf filter. HP Frequency (Hz), HP Slope (6/12/18/24 dB/oct), Low Shelf Gain and Frequency. Quote HP frequency and slope.' },
+
+        { match: /bx_solo/i, name: 'Plugin Alliance bx_solo',
+          text: 'Mid-side decode monitor utility: M/S, Mono, Stereo, Mid-only, Side-only. A monitoring tool only — do not put it in a processing chain.' },
+
+        { match: /bx_cleansweep/i, name: 'Plugin Alliance bx_cleansweep',
+          text: 'HP and LP filter. HP Frequency (Hz), LP Frequency (Hz), HP Slope (6/12 dB/oct), LP Slope (6/12 dB/oct). No resonance. Quote frequencies in Hz.' },
+
+        { match: /bx_bluechorus/i, name: 'Plugin Alliance bx_bluechorus2',
+          text: 'Chorus effect. Controls: Rate (Hz), Depth (0-100%), Mix (0-100%), Stereo Width. Quote Rate in Hz.' },
+
+        { match: /bx_distorange|bx_blackdist/i, name: 'Plugin Alliance bx_distorange / bx_blackdist2',
+          text: 'Distortion pedal emulations. Controls: Drive (0-10), Tone (LP/HP tilt — lower = darker), Level. Quote Drive as a 0-10 dial position.' },
+
+        { match: /bx_opto/i, name: 'Plugin Alliance bx_opto Pedal',
+          text: 'Opto-compressor pedal. Controls: Volume (input drive — also acts as threshold), Sustain (0-10, compression amount), Tone (bright/warm tilt). No threshold, ratio, attack or release — Sustain is the only compressor control. Quote as 0-10.' },
+
+        { match: /bx_greenscreamer/i, name: 'Plugin Alliance bx_greenscreamer',
+          text: 'Tube Screamer-style overdrive. Controls: Overdrive (0-10), Tone (0-10), Level. Quote as 0-10 positions.' },
+
+        { match: /bx_yellowdrive/i, name: 'Plugin Alliance bx_yellowdrive',
+          text: 'Transparent low-gain overdrive (SD-1 / OD-1 style). Controls: Drive (0-10), Tone (0-10), Level. Mid-forward character. Quote as 0-10.' },
+
+        { match: /bx_metal2/i, name: 'Plugin Alliance bx_metal2',
+          text: 'High-gain metal distortion (Boss Metal Zone style). Controls: Distortion (0-10), Low (±12 dB), Mid Frequency (200 Hz-5 kHz, continuous), Mid Level (±12 dB), High (±12 dB), Level. Quote Distortion as 0-10 and Mid Frequency in Hz.' },
+
+        { match: /bx_shredspread/i, name: 'Plugin Alliance bx_shredspread',
+          text: 'Stereo-widening high-gain distortion for rhythm guitars. Controls: Gain (0-10), Tone (LP), Width (0-200%), Level. Quote Gain as 0-10 and Width as a percentage.' },
+
+        { match: /bx_rockrack/i, name: 'Plugin Alliance bx_rockrack',
+          text: 'Amp and cabinet sim. Controls: Amp selector (named list), Gain (0-10), Bass/Mid/Treble/Presence (0-10), Master Volume, Cabinet selector (named IR list). Quote the amp name, all tone controls as 0-10, and the cabinet by name.' },
+
+        { match: /spl.?free.?ranger/i, name: 'SPL Free Ranger',
+          text: 'Four-band passive-style EQ: Low shelf, Low-Mid peak, High-Mid peak, High shelf. Each band has Frequency (stepped selector — give a value on the actual selector) and Gain (±12 dB continuous). No Q control.' },
+
+        { match: /\b175[-_]?b\b/i, name: 'UA 175B Tube Compressor',
+          text: 'Altec 436C/175B emulation. Controls: Input Level, Output Level, Compression Ratio (stepped: 2:1/4:1/12:1), combined Attack/Release Time Constant (Fast/Medium/Slow — three positions only). No separate attack/release knobs. No threshold — Input Level drives into the fixed threshold.' },
+
+        { match: /\b176\b/i, name: 'UA 176 Tube Limiter',
+          text: 'UA 176 tube limiter emulation. Controls: Input, Output, Ratio (stepped: 2:1/4:1/8:1/12:1), Attack (stepped: Fast/Medium/Slow), Release (stepped: Fast/Medium/Slow/Auto). No threshold — Input level drives it.' },
+
+        { match: /\b610[-_]?[ab]\b/i, name: 'UA 610-B Tube Preamp & EQ',
+          text: 'Tube preamp with passive inductor EQ. Preamp: Input Gain, Pad, Phase. EQ: Low (stepped at 30/100 Hz shelf boost/cut), Mid (stepped at 200 Hz/1k/3k/7k Hz ±4-5 dB steps), High (fixed 12 kHz shelf). Output Gain. EQ frequencies are stepped switches — no arbitrary Hz.' },
+
+        { match: /century.?tube/i, name: 'UA Century Tube Channel Strip',
+          text: 'Tube channel strip: Compressor (Threshold, Ratio stepped 2:1/4:1/8:1, Attack/Release stepped switches), EQ (Low shelf stepped frequency, Sweepable Mid peak with continuous Hz/Gain/Q, High shelf stepped frequency), Output Gain.' },
+
+        { match: /little.?labs.?vog/i, name: 'Little Labs VOG',
+          text: 'Resonant bass frequency controller. Controls: Frequency (30-600 Hz, continuous), Boost (0 to +18 dB, resonant lift), HP filter at the same frequency, Mix. Quote Frequency in Hz and Boost in dB.' },
+
+        { match: /graillon/i, name: 'Auburn Sounds Graillon 3',
+          text: 'Pitch correction and vocal manipulation. Pitch Correction: Speed (0-100%), Scale. Pitch Shift: ±24 semitones + cents, Formant Shift (±2 octaves in semitones). Spectral Gate: Sensitivity, Frequency (Hz). Glide (ms). Specify Pitch Shift in semitones/cents and Correction Speed as a percentage.' },
+
+        { match: /a-type.?multi/i, name: 'Plugin Alliance A-Type Multiband',
+          text: 'Three-band multiband compressor/expander with adjustable crossover frequencies. Per band: Threshold (dBFS), Ratio, Attack (ms), Release (ms), Knee, Makeup Gain, Bypass. Global Output Gain. Quote threshold in dBFS and timing in ms.' }
     ];
 
     // ==================== SETTINGS LINTER ====================

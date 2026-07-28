@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v86';
+window.APP_VERSION = 'v87';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3486,21 +3486,21 @@ document.addEventListener('DOMContentLoaded', () => {
         { match: /distressor/i, name: 'Empirical Labs Distressor',
           text: 'Input, Output, Attack, Release, ratio buttons at 1:1, 2, 3, 4, 6, 10, 20 and Nuke, a Detector HP/HP2 switch, and Dist 2 / Dist 3 / British Mode buttons. Attack and Release are 1-10 dials — do NOT state them in milliseconds.' },
         { match: /api.?2500/i, name: 'API 2500',
-          text: 'Threshold and Make-Up are continuous; Ratio is stepped at 1.5, 2, 3, 4, 6 and 10:1; Attack and Release are six-position stepped switches (attack roughly 0.03-30 ms, release roughly 0.05-3 s plus Auto) — quote a real step, not an arbitrary number. Also Thrust (Norm/Med/Loud), Type (Old/New), Knee (Soft/Med/Hard) and a Mix knob.' },
+          text: 'Threshold and Make-Up are continuous. Ratio is stepped: 1.5:1, 2:1, 3:1, 4:1, 6:1, 10:1, and Infinity:1. Attack is a 7-position switch: 0.03, 0.1, 0.3, 1, 3, 10, or 30 ms. Release is a 7-position switch: 0.05, 0.1, 0.2, 0.5, 1, 2, or 3 sec, plus an Auto mode. Also Thrust (Norm/Med/Loud), Type (Old/New), Knee (Soft/Med/Hard) and Mix.' },
         { match: /ssl.?g.?bus|g.?bus.?comp/i, name: 'SSL G-Bus Compressor',
-          text: 'Everything except Threshold and Make-Up is a stepped switch. Ratio: 2:1, 4:1 or 10:1 only. Attack: 0.1, 0.3, 1, 3, 10 or 30 ms only. Release: 0.1, 0.3, 0.6, 1.2 s or Auto only. Any other attack or release figure is unreachable.' },
+          text: 'Everything except Threshold and Make-Up is a stepped switch. Ratio: 2:1, 4:1 or 10:1 only. Attack: 0.1, 0.3, 1, 3, 10 or 30 ms only. Release: 0.1, 0.3, 0.6, 1.2 s or Auto only. Any other attack, release or ratio figure is unreachable.' },
         { match: /ssl.?e.?channel|e.?channel.?strip/i, name: 'SSL E Channel Strip',
-          text: 'Its compressor has Threshold, Ratio and Release plus a Fast Attack BUTTON — there is no continuous attack knob, so say "Fast Attack in" or "out" rather than an attack time. Separate gate/expander section with its own threshold and release.' },
+          text: 'Compressor: Threshold, Ratio (continuous), Release (continuous). Attack is a Fast Attack BUTTON — there is no continuous attack knob, so specify "Fast Attack in" or "out". EQ section: High and Low bands can switch between bell and shelf; High Mid and Low Mid are fully parametric (Hz, Q, dB). Gate/Expander section: Threshold, Range, Release, Fast Attack switch.' },
         { match: /variable.?mu/i, name: 'Manley Variable Mu',
-          text: 'Input, Output, Threshold, stepped Attack and Recovery switches, a Limit/Compress mode switch and a HIP filter. It has NO ratio control — the ratio varies with level, which is the whole point of the design. Quote Attack/Recovery as switch positions, not milliseconds.' },
+          text: 'Input, Output, Threshold, stepped Attack (7 positions: Fast to Slow), stepped Recovery (5 positions: Fast to Slow), a Limit/Compress mode switch, and a Sidechain HP filter. It has NO ratio control — the ratio varies with level, which is the whole point of the design. Quote Attack/Recovery as switch positions or "fast"/"slow", not milliseconds.' },
         { match: /massive.?passive/i, name: 'Manley Massive Passive',
-          text: 'Four bands, each with an ELEVEN-POSITION stepped frequency selector — the frequencies are not continuous and each band covers a different set, so an arbitrary figure like "820Hz" is usually unreachable. Per band: Gain (±20dB), continuous Bandwidth, a Shelf/Bell switch and a Boost/Cut switch. Describe the band and direction rather than guessing an exact frequency.' },
+          text: 'Four bands, each with exactly 11 stepped frequencies. Band 1: 22, 33, 47, 68, 100, 150, 220, 330, 470, 680, 1000 Hz. Band 2: 82, 120, 180, 270, 390, 560, 820, 1200, 1800, 2700, 3900 Hz. Band 3: 220, 330, 470, 680, 1000, 1500, 2200, 3300, 4700, 6800, 10000 Hz. Band 4: 560, 820, 1200, 1800, 2700, 3900, 5600, 8200, 12000, 16000, 27000 Hz. Per band: Gain, Bandwidth, Shelf/Bell switch. You MUST use one of the exact frequencies listed for that band.' },
         { match: /1073/i, name: 'Neve 1073',
-          text: 'Every EQ frequency is stepped. Low shelf: 35, 60, 110 or 220 Hz. Mid bell: 360 Hz, 700 Hz, 1.6k, 3.2k, 4.8k or 7.2 kHz. High shelf is fixed at 12 kHz. High-pass: 50, 80, 160 or 300 Hz. Gains are continuous to about ±16dB. No other centre frequency exists on this unit.' },
+          text: 'Every EQ frequency is a stepped switch. Low shelf: 35, 60, 110 or 220 Hz. Mid bell: 360 Hz, 700 Hz, 1.6k, 3.2k, 4.8k or 7.2 kHz. High shelf is fixed at 12 kHz. High-pass filter: 50, 80, 160 or 300 Hz. Gains are continuous to about ±16dB. No other centre frequency exists on this unit.' },
         { match: /helios|type.?69/i, name: 'UA Helios Type 69',
-          text: 'Bass and treble frequencies are stepped selectors, not continuous sweeps, and the mid section is a fixed lift rather than a fully parametric band. Name the band and the direction rather than inventing a centre frequency.' },
+          text: 'Bass is a stepped selector (50 Hz boost/cut). Treble is a fixed 10 kHz shelf. The Mid band is a stepped Peak/Trough selector: 0.7, 1, 1.4, 2, 2.8, 3.5, 4.5, or 6 kHz. It is NOT a fully parametric EQ. Always specify the exact stepped frequency.' },
         { match: /studer|oxide|atr-?102|ampex/i, name: 'Tape machines (Studer A800, Oxide, Ampex ATR-102)',
-          text: 'Controls are tape speed (7.5 / 15 / 30 ips), tape formulation selector, record and repro level calibration in dB, bias trim and an IEC/NAB EQ switch. Wow, flutter and hiss are modelled behaviours toggled on or off — there is NO percentage or depth value for them, so never write "2% wow/flutter". Speed and tape stock are what you actually change.' },
+          text: 'Controls are Tape Speed (7.5, 15, or 30 ips), Tape Formulation (e.g. 250, 456, 900, GP9), Record and Repro level calibration in dB, Bias trim, and an IEC/NAB EQ switch. Wow, flutter and hiss are toggled on or off — there is NO percentage or depth value for them, so never write "2% wow/flutter".' },
         { match: /\bvinyl\b/i, name: 'iZotope Vinyl',
           text: 'Year selector (1930-2000), RPM (33 / 45 / 78), and amount sliders for Mechanical Noise, Electrical Noise, Dust, Scratch and Warp. It has no frequency, dB or time parameters at all — specify a year, an RPM and which noise sliders to raise.' },
         { match: /lexicon.?224/i, name: 'UA Lexicon 224',
@@ -3512,7 +3512,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { match: /\bOTT\b/, name: 'Xfer OTT',
           text: 'Depth, Time, In Gain and Out Gain, plus upper/lower band depth and gain. There is no "Amount" control — Depth is the one you mean.' },
         { match: /supermassive/i, name: 'Valhalla Supermassive',
-          text: 'Mode is a list of NAMED algorithms (Gemini, Hydra, Centaurus, Sagittarius, Great Annihilator, Andromeda, Lyra, Capricorn, Cassiopeia…) — there is no "Hall", "Plate" or "Room" mode. Tail length comes from Delay (ms) plus Feedback, NOT a decay time in seconds. Also Warp, Density, Mix and Width.' },
+          text: 'Mode is a list of NAMED algorithms (Gemini, Hydra, Centaurus, Sagittarius, Great Annihilator, Andromeda, Lyra, Capricorn, Cassiopeia, Orion, Aquarius, Pisces, Scorpio, Libra, Leo, Virgo) — there is no "Hall", "Plate" or "Room" mode. Tail length comes from Delay (ms) plus Feedback, NOT a decay time in seconds. Also Warp, Density, Mix and Width.' },
         { match: /saturation.?knob/i, name: 'Softube Saturation Knob',
           text: 'One knob, labelled Saturation, plus a three-way Keep High / Neutral / Keep Low switch. It has no Drive control and no mix.' },
         { match: /kotelnikov/i, name: 'TDR Kotelnikov',
@@ -3696,7 +3696,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ---- Kilohearts family ----
         { match: /\bkhs\b/i, name: 'Kilohearts kHs Suite',
-          text: 'All kHs modules use plain-English labelled controls with real units — Hz, dB, ms, % and semitones are always appropriate. Key module controls: kHs Compressor — Threshold (dBFS), Ratio, Attack (ms), Release (ms), Knee (dB), Makeup. kHs Gate — Threshold (dBFS), Attack (ms), Hold (ms), Release (ms), Floor (dB). kHs 3-Band EQ — Low (Hz, dB), Mid (Hz, dB, Q), High (Hz, dB). kHs Delay — Time (ms or note division), Feedback (%), Wet (%). kHs Reverb — Room Size (meters), Dampening (Hz LP cutoff), Width (%), Wet (%). kHs Limiter — Threshold (dBFS), Lookahead (ms), Release (ms). kHs Distortion — Drive (dB), Type (Hard/Soft/Tube/Fuzz/Rectify). kHs Chorus — Rate (Hz), Depth (semitones), Voices (2-8). kHs Flanger — Rate (Hz), Depth (ms), Feedback (%), Wet (%). kHs Phaser — Stages (2/4/6/8/10), Rate (Hz), Depth (%), Feedback (%). kHs Filter — Frequency (Hz), Resonance, Type (LP/HP/BP/Notch). kHs Pitch Shifter — Pitch (semitones + cents). kHs Transient Shaper — Attack and Sustain (each dB). kHs Tape Stop — Time (ms). kHs Haas — Delay (1-40 ms). kHs Bitcrush — Bits (1-24), Sample Rate (Hz). kHs Clipper — Threshold (dBFS), Trim.' },
+          text: 'All kHs modules use plain-English labelled controls with real units — Hz, dB, ms, % and semitones are always appropriate. Key module controls: kHs Compressor — Threshold (dBFS), Ratio, Attack (ms), Release (ms), Knee (dB), Makeup. kHs Gate — Threshold (dBFS), Attack (ms), Hold (ms), Release (ms), Floor (dB). kHs 3-Band EQ — Low (Hz, dB), Mid (Hz, dB, Q), High (Hz, dB). kHs Delay — Time (ms or note division), Feedback (%), Wet (%). kHs Reverb — Decay (seconds), Size (meters), Dampening (Hz LP cutoff), Width (%), Wet (%). kHs Limiter — Threshold (dBFS), Lookahead (ms), Release (ms). kHs Distortion — Drive (dB), Type (Hard/Soft/Tube/Fuzz/Rectify). kHs Chorus — Rate (Hz), Depth (semitones), Voices (2-8). kHs Flanger — Rate (Hz), Depth (ms), Feedback (%), Wet (%). kHs Phaser — Stages (2/4/6/8/10), Rate (Hz), Depth (%), Feedback (%). kHs Filter — Frequency (Hz), Resonance, Type (LP/HP/BP/Notch). kHs Pitch Shifter — Pitch (semitones + cents). kHs Transient Shaper — Attack and Sustain (each dB). kHs Tape Stop — Time (ms). kHs Haas — Delay (1-40 ms). kHs Bitcrush — Bits (1-24), Sample Rate (Hz). kHs Clipper — Threshold (dBFS), Trim.' },
 
         // ---- Plugin Alliance bx_ effects ----
         { match: /bx_masterdesk/i, name: 'Plugin Alliance bx_masterdesk',
@@ -3796,10 +3796,15 @@ document.addEventListener('DOMContentLoaded', () => {
             [new RegExp('(attack|release)' + MS, 'i'), 'Fairchild timing is a six-position Time Constant selector, not a millisecond value'] ] },
         'UA dbx 160': { noControls: [[/\b(attack|release)\b/i, 'the dbx 160 has no attack or release control — both are fixed']] },
         'Empirical Labs Distressor': { noControls: [[new RegExp('(attack|release)' + MS, 'i'), 'Distressor attack and release are 1-10 dials, not milliseconds']] },
-        'Manley Variable Mu': { noControls: [[/\bratio\b/i, 'the Variable Mu has no ratio control — the ratio moves with level']] },
-        'Manley Massive Passive': { noControls: [[/\bQ\b/, 'the Massive Passive has a Bandwidth knob, not a Q']] },
+        'API 2500': { noControls: [[new RegExp('(attack|release)' + MS, 'i'), 'API 2500 timing is a stepped switch position, not a freely typed ms value']] },
+        'Manley Variable Mu': { noControls: [
+            [/\bratio\b/i, 'the Variable Mu has no ratio control — the ratio moves with level'],
+            [new RegExp('(attack|recovery|release)' + MS, 'i'), 'Variable Mu timing is a switch position, not milliseconds'] ] },
+        'Manley Massive Passive': { freqs: [22,33,47,68,82,100,120,150,180,220,270,330,390,470,560,680,820,1000,1200,1500,1800,2200,2700,3300,3900,4700,5600,6800,8200,10000,12000,16000,27000],
+            noControls: [[/\bQ\b/, 'the Massive Passive has a Bandwidth knob, not a Q']] },
         'SSL E Channel Strip': { noControls: [[new RegExp('attack' + MS, 'i'), "the E-Channel's attack is a Fast Attack button, not a time"]] },
-        'Tape machines (Studer A800, Oxide, Ampex ATR-102)': { noControls: [[/(wow|flutter)[^.;,]*?\d+\s*%/i, 'tape wow/flutter has no percentage setting — speed and tape stock are the controls']] },
+        'Tape machines (Studer A800, Oxide, Ampex ATR-102)': { noControls: [[/(wow|flutter|hiss)[^.;,]*?\d+\s*%/i, 'tape wow/flutter/hiss has no percentage setting — speed and tape stock are the controls']] },
+        'UA Helios Type 69': { freqs: [50, 700, 1000, 1400, 2000, 2800, 3500, 4500, 6000, 10000], noControls: [[/\bQ\b/, 'the Helios 69 has no Q or bandwidth control']] },
         'Xfer OTT': { noControls: [[/\bamount\b/i, "OTT's control is Depth — there is no Amount"]] },
         'Valhalla Supermassive': { noControls: [
             [/\b(hall|plate|room)\b/i, "Supermassive's modes are named (Gemini, Hydra, Cirrus…) — there is no Hall, Plate or Room"],

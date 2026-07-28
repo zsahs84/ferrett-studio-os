@@ -305,7 +305,25 @@ main { background: rgba(5,8,7,0.72); }
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
             <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
                 <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide" id="genre-menu"></div></div>
-                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex items-center justify-between gap-2 flex-wrap"><span id="genre-bpm-readout" class="text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span><div class="flex gap-2 flex-wrap"><button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)">📦 PACK</button><button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button><button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button><button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button></div></div>
+                <div id="genre-info-bar" class="hidden px-4 py-2.5 border-b border-[#00FF8810] bg-black/30 flex flex-col gap-2">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <span id="genre-bpm-readout" class="hidden text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span>
+                        <div class="flex gap-2 text-[9px] tracking-widest font-bold items-center flex-wrap flex-1">
+                            <label class="text-[#FFD60A]/60">BPM</label>
+                            <input type="text" id="ai-override-bpm" class="bg-transparent border-b border-[#FFD60A]/20 text-[#FFD60A] px-1 py-0.5 focus:outline-none focus:border-[#FFD60A] w-12 placeholder-[#FFD60A]/30">
+                            <label class="text-[#FFD60A]/60 ml-2">MOOD</label>
+                            <input type="text" id="ai-override-mood" class="bg-transparent border-b border-[#FFD60A]/20 text-[#FFD60A] px-1 py-0.5 focus:outline-none focus:border-[#FFD60A] flex-1 min-w-[60px] placeholder-[#FFD60A]/30">
+                            <label class="text-[#FFD60A]/60 ml-2">TEXTURE</label>
+                            <input type="text" id="ai-override-texture" class="bg-transparent border-b border-[#FFD60A]/20 text-[#FFD60A] px-1 py-0.5 focus:outline-none focus:border-[#FFD60A] flex-1 min-w-[60px] placeholder-[#FFD60A]/30">
+                        </div>
+                        <div class="flex gap-2 flex-wrap justify-end">
+                            <button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)">📦 PACK</button>
+                            <button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button>
+                            <button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button>
+                            <button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
             </div>
             <div class="w-full md:w-[65%] p-6 md:p-8 bg-[rgba(10,15,13,0.8)] overflow-y-auto max-h-[800px] relative" id="recipe-display">
@@ -2908,6 +2926,9 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let btn of buttons) { if(btn.innerText === genre.toUpperCase()) btn.classList.add('active-genre'); else btn.classList.remove('active-genre'); }
         const meta = window.getGenreMeta(genre);
         const bpmReadout = document.getElementById('genre-bpm-readout'); if (bpmReadout) bpmReadout.textContent = `~${meta.bpm[0]}-${meta.bpm[1]} BPM`;
+        const obpm = document.getElementById('ai-override-bpm'); if(obpm) { obpm.value = ''; obpm.placeholder = `${meta.bpm[0]}-${meta.bpm[1]}`; }
+        const omood = document.getElementById('ai-override-mood'); if(omood) { omood.value = ''; omood.placeholder = meta.mood; }
+        const otex = document.getElementById('ai-override-texture'); if(otex) { otex.value = ''; otex.placeholder = meta.texture; }
         document.getElementById('genre-info-bar')?.classList.remove('hidden');
         const kitBtn = document.getElementById('btn-genre-kit');
         if (kitBtn) { const n = kitHistory(genre).length; kitBtn.textContent = n ? `🤖 KITS (${n})` : '🤖 AI KIT'; kitBtn.title = n ? `${n} saved kit${n===1?'':'s'} for this genre — browse or build another` : 'Build a full per-instrument chain sheet for this genre using only the plugins you own'; }
@@ -4426,6 +4447,9 @@ ${owned.join(', ')}`;
         if (!owned.length) { alert('Add the plugins you own first — Toolbox → AI Assistant → your gear list.'); return; }
 
         const meta = window.getGenreMeta(genre);
+        const bpmOverride = document.getElementById('ai-override-bpm')?.value.trim();
+        const moodOverride = document.getElementById('ai-override-mood')?.value.trim();
+        const texOverride = document.getElementById('ai-override-texture')?.value.trim();
 
         const batches = [];
         for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
@@ -4448,14 +4472,14 @@ ${owned.join(', ')}`;
         // over the whole owned list, which still produces a kit, just a more expensive one.
         kitProgress(genre, 0, 'picking the palette for this genre', startedAt);
         let palette = [];
-        try { palette = await selectPalette(genre, meta, owned); } catch (pe) { palette = []; }
+        try { palette = await selectPalette(genre, {bpm: meta.bpm, mood: moodOverride || meta.mood, texture: texOverride || meta.texture}, owned); } catch (pe) { palette = []; }
         const usingPalette = palette.length >= PALETTE_MIN;
         const gear = usingPalette ? palette : owned;
 
         const ctx = `GENRE: ${genre}
-TEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM
-MOOD: ${meta.mood}
-TEXTURE: ${meta.texture}
+TEMPO: ${bpmOverride || `${meta.bpm[0]}-${meta.bpm[1]}`} BPM
+MOOD: ${moodOverride || meta.mood}
+TEXTURE: ${texOverride || meta.texture}
 
 ${usingPalette ? `YOUR PALETTE FOR THIS GENRE (${gear.length}) — build every chain from these` : `OWNED PLUGINS (${gear.length}) — use only these`}:
 ${gear.join(', ')}`;

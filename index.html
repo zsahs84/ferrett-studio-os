@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v92';
+window.APP_VERSION = 'v93';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1528,6 +1528,15 @@ main { background: rgba(5,8,7,0.72); }
           <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed. Get one free at <span class="font-mono text-[#00E5FF]/70">aistudio.google.com/apikey</span>. Gemini allows a far bigger answer per call than the Groq free tier, which is what the AI Kit keeps running out of.</p>
         </div>
         <div id="ai-test-out" class="text-[11px] font-mono min-h-[18px]"></div>
+      </div>
+      <div class="px-5 py-4 border-t border-[#00E5FF20]">
+        <h4 class="text-[9px] text-[#00E5FF]/70 font-bold tracking-widest mb-3">ACCOUNTING LEDGER</h4>
+        <div class="grid grid-cols-3 gap-3 text-center mb-3">
+          <div class="bg-black/30 border border-[#00E5FF20] rounded p-2"><div id="acct-life" class="text-[14px] text-[#00E5FF] font-bold">--</div><div class="text-[8px] text-[#E2E8F0]/40 mt-1 tracking-widest uppercase">Lifetime</div></div>
+          <div class="bg-black/30 border border-[#00E5FF20] rounded p-2"><div id="acct-month" class="text-[14px] text-[#7AFFBF] font-bold">--</div><div class="text-[8px] text-[#E2E8F0]/40 mt-1 tracking-widest uppercase">30 Days</div></div>
+          <div class="bg-black/30 border border-[#00E5FF20] rounded p-2"><div id="acct-week" class="text-[14px] text-[#FFD60A] font-bold">--</div><div class="text-[8px] text-[#E2E8F0]/40 mt-1 tracking-widest uppercase">7 Days</div></div>
+        </div>
+        <div id="acct-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1"></div>
       </div>
       <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-[#00E5FF20]">
         <button id="ai-test-btn" class="btn-euterpe px-4 py-2 text-[10px]">TEST CONNECTION</button>
@@ -4478,7 +4487,7 @@ ${owned.join(', ')}`;
         // Opened here rather than around just the recipe calls: a build is the palette pick, four
         // batches, every retry they needed and the overview, and the number is only honest if it
         // covers all of them. Closed on the way out, including the failure path.
-        window.__aiUsage?.begin();
+        window.__aiUsage?.begin(`Recipe Kit: ${genre}`);
         kitStop = null;
         const windDown = () => kitStop || (Date.now() > deadline ? (kitStop = `gave up after ${Math.round(KIT_TIME_BUDGET_MS/60000)} minutes — the rest never came back`) : null);
 
@@ -5420,13 +5429,16 @@ window.lyriaSongBlock = (songId) => {
                 ? `\nSONG: ${song.title}\nSECTION ORDER${song.timed ? ' AND TIMINGS' : ''}: ${song.structure}${song.totalSecs ? `\nRUNS: ${lyriaFmtTime(song.totalSecs)}` : ''}\nThis is a VOCAL track — the lyrics exist and are supplied separately. Do not write any.`
                 : '';
             const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
+            window.__aiUsage?.begin('Lyria Prompt Generation');
             const written = await window.ferrettAI(sys, user, { creative: true });
+            const spent = window.__aiUsage?.end();
+            const spentStr = window.__aiUsage?.summary(spent) || '';
             if (written && written.trim() && out) {
                 const desc = written.trim().replace(/^["'\s]+|["'\s]+$/g, '');
                 window.__lyriaLastBuilt.written = desc; // remembered so Enhance can work on it alone
                 out.value = withLyrics(desc);
             }
-            setNote(((song ? `Written around “${song.title}” — its lyrics are appended untouched.` : 'Written from this genre’s recipes.') + covers).trim(), true);
+            setNote(((song ? `Written around “${song.title}” — its lyrics are appended untouched.` : 'Written from this genre’s recipes.') + covers + (spentStr ? ` · 💲 ${spentStr}` : '')).trim(), true);
         } catch (e) {
             // The draft is already in the box and is a perfectly usable prompt — say what happened
             // rather than blanking it, so a rate limit costs nothing.
@@ -9246,7 +9258,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       session: { calls: 0, in: 0, out: 0, thoughts: 0, cached: 0, usd: 0, unpriced: 0 },
       _scope: null,
       blank() { return { calls: 0, in: 0, out: 0, thoughts: 0, cached: 0, usd: 0, unpriced: 0 }; },
-      begin() { this._scope = this.blank(); return this._scope; },
+      begin(context) { this._scope = this.blank(); this._scope.context = context; return this._scope; },
       end() { const s = this._scope; this._scope = null; return s; },
       // Called once per response, INCLUDING responses that turned out to be empty or were retried —
       // a call that returned nothing usable was still billed, and a meter that hides those is exactly
@@ -9264,6 +9276,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
               t.calls++; t.in += rec.in; t.out += rec.out; t.thoughts += rec.thoughts; t.cached += rec.cached;
               if (price) t.usd += usd; else t.unpriced++;
           });
+          
+          if (this._scope && this._scope.context && window.db) {
+              window.db.accounting = window.db.accounting || [];
+              window.db.accounting.unshift({
+                  id: Date.now().toString(36) + Math.random().toString(36).substring(2,6),
+                  ts: Date.now(),
+                  context: this._scope.context,
+                  model: model,
+                  in: rec.in,
+                  out: rec.out,
+                  usd: usd
+              });
+              if (window.db.accounting.length > 5000) window.db.accounting.pop();
+              window.saveData();
+              window.renderAccountingLedger?.();
+          }
+
           // Lyrics, punch-ins and Lyria prompts have nowhere of their own to show a cost, and they
           // are the calls most likely to be fired dozens of times without thinking about it. Pushing
           // the running session total into the status line is the only place they become visible.
@@ -9517,7 +9546,34 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       b.classList.toggle('text-[#00E5FF]/50', !on);
     });
   }
-  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode||'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-gemini-key').value=c.geminiKey||''; $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; $('ai-gemini-think').value=c.geminiThink||'low'; $('ai-test-out').textContent=''; const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+  function openAiModal(){ const c=loadCfg(); setModalMode(c.mode||'ha'); $('ai-url').value=c.url||DEFAULT_HA_URL; $('ai-token').value=c.token||''; $('ai-groq-key').value=c.groqKey||''; $('ai-groq-model').value=c.groqModel||'openai/gpt-oss-120b'; $('ai-gemini-key').value=c.geminiKey||''; $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; $('ai-gemini-think').value=c.geminiThink||'low'; $('ai-test-out').textContent=''; window.renderAccountingLedger?.(); const m=$('ai-modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+
+  window.renderAccountingLedger = () => {
+    const log = (window.db && window.db.accounting) || [];
+    let life = 0, month = 0, week = 0;
+    const now = Date.now();
+    log.forEach(e => {
+        const amt = e.usd || 0;
+        life += amt;
+        if (now - e.ts <= 30*24*60*60*1000) month += amt;
+        if (now - e.ts <= 7*24*60*60*1000) week += amt;
+    });
+    if ($('acct-life')) $('acct-life').textContent = window.__aiUsage?.fmtUsd(life) || '$0.00';
+    if ($('acct-month')) $('acct-month').textContent = window.__aiUsage?.fmtUsd(month) || '$0.00';
+    if ($('acct-week')) $('acct-week').textContent = window.__aiUsage?.fmtUsd(week) || '$0.00';
+    
+    const list = $('acct-list');
+    if (!list) return;
+    list.innerHTML = log.slice(0, 30).map(e => {
+        const d = new Date(e.ts);
+        const df = d.toLocaleDateString('en-US', {month:'2-digit',day:'2-digit'}) + ' ' + d.toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
+        return `<div class="flex items-center gap-2 text-[10px] py-1 border-b border-[#00E5FF10] last:border-0">
+            <span class="flex-1 text-[#E2E8F0]/70 truncate">${e.context||'API Call'}</span>
+            <span class="text-[#00E5FF]/40 font-mono w-24 text-right shrink-0">${df}</span>
+            <span class="text-[#7AFFBF] font-mono font-bold w-12 text-right shrink-0">${window.__aiUsage?.fmtUsd(e.usd||0)}</span>
+        </div>`;
+    }).join('') || '<div class="text-[10px] text-[#E2E8F0]/30 italic py-2 text-center">No AI calls logged yet.</div>';
+  };
   window.__openAiModal = openAiModal;
   function closeAiModal(){ const m=$('ai-modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
   function readModalCfg(){
@@ -9525,7 +9581,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     if(modalMode==='gemini') return { mode:'gemini', geminiKey:$('ai-gemini-key').value.trim(), geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
     return { mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() };
   }
-  async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
+  async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ window.__aiUsage?.begin('Settings: Test Connection'); const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); window.__aiUsage?.end(); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
 
   // ---- lyrics AI ----
   const spin=(id,on)=>{ const el=$(id); if(el) el.classList.toggle('hidden',!on); };
@@ -9536,7 +9592,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     spin('ai-lyr-spinner',true); note('ai-lyr-note','');
     try{
       const sys='You are a professional songwriter. Output ONLY lyric lines — one per line, no title, no numbering, no commentary, no section labels unless natural like [Hook]. Keep lines singable and vivid.';
+      window.__aiUsage?.begin('Lyrics: Generate');
       const txt=await window.ferrettAI(sys, `Write 8 lines of ${style} about: ${theme}.`, {creative:true});
+      window.__aiUsage?.end();
       const lines=toLines(txt); if(!lines.length) throw new Error('No usable lines came back.');
       window.lyrAddLines(lines);
     }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
@@ -9547,7 +9605,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     spin('ai-lyr-spinner',true); note('ai-lyr-note','');
     try{
       const sys='You are a songwriter. Continue the given lyric in the same voice, theme, and rhythm. Output ONLY the new lines — one per line, no commentary.';
+      window.__aiUsage?.begin('Lyrics: Continue');
       const txt=await window.ferrettAI(sys, `Continue with 4 more lines:\n\n${cur}`, {creative:true});
+      window.__aiUsage?.end();
       const lines=toLines(txt); if(!lines.length) throw new Error('No usable lines came back.');
       window.lyrAddLines(lines);
     }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
@@ -9568,7 +9628,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       let addedAny=false;
       for(const ln of targets){
         const clean=(ln.text||'').replace(/^\[[^\]]*\]\s*/,'').trim(); if(!clean) continue;
+        window.__aiUsage?.begin('Lyrics: Punch In');
         const txt=await window.ferrettAI(sys, `Rewrite this line 3 ways: ${clean}`, {creative:true});
+        window.__aiUsage?.end();
         const alts=toLines(txt).slice(0,3); if(!alts.length) continue;
         if(window.lyrInsertAltsAfterLine(ln,alts)) addedAny=true;
       }
@@ -9584,7 +9646,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     spin('ai-lyr-spinner',true); note('ai-lyr-note','');
     try{
       const sys='You name songs. Given lyrics, output 5 short, evocative song-title options — one per line, no numbering, no quotes, no commentary.';
+      window.__aiUsage?.begin('Lyrics: Generate Titles');
       const txt=await window.ferrettAI(sys, `Lyrics:\n\n${cur}`, {creative:true});
+      window.__aiUsage?.end();
       const titles=toLines(txt).slice(0,6); const box=$('ai-lyr-titles');
       box.innerHTML=titles.map(t=>`<button class="ai-title-chip text-[11px] px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" data-t="${t.replace(/"/g,'&quot;')}">${t}</button>`).join('');
       box.classList.remove('hidden'); box.classList.add('flex');
@@ -9600,7 +9664,9 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     spin('ai-mp-spinner',true); note('ai-mp-note',''); $('btn-ai-mp-copy').classList.add('hidden');
     try{
       const sys='You write vivid, concise music-generation prompts for tools like Suno, Udio and Lyria. Reply with ONE dense paragraph (max ~60 words) packed with genre, instrumentation, production, mood and tempo adjectives. No preamble, no quotes, no lists.';
+      window.__aiUsage?.begin('Toolbox: Write Prompt');
       const txt=await window.ferrettAI(sys, `Write a prompt for: ${brief}.`, {creative:false});
+      window.__aiUsage?.end();
       $('ai-mp-out').value=txt; $('btn-ai-mp-copy').classList.remove('hidden');
       $('btn-ai-mp-redo')?.classList.remove('hidden'); $('btn-ai-mp-hide')?.classList.remove('hidden');
       $('ai-mp-out').classList.remove('hidden'); const h=$('btn-ai-mp-hide'); if(h) h.textContent='HIDE';
@@ -9776,7 +9842,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   }
   function brainBusy(on){ const s=$('ai-brain-spinner'); if(s) s.classList.toggle('hidden',!on); }
   function brainShow(txt){ const o=$('ai-brain-out'); if(o){ o.textContent=txt; o.classList.remove('hidden'); } const c=$('ai-brain-out-controls'); if(c && txt){ c.classList.remove('hidden'); c.classList.add('flex'); } }
-  async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } /* same pre-Gemini gate as the Lyria one — see the note there; this one silently disabled every Toolbox AI tool in gemini mode */ if(!(window.__aiIsConfigured?.())){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ const r=await window.ferrettAI(sys,user,{creative}); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
+  async function brainCall(sys,user,creative){ lastBrainArgs=[sys,user,creative]; if(!window.ferrettAI){ brainShow('AI not available.'); return; } /* same pre-Gemini gate as the Lyria one — see the note there; this one silently disabled every Toolbox AI tool in gemini mode */ if(!(window.__aiIsConfigured?.())){ if(window.__openAiModal) window.__openAiModal(); brainShow('Set up the AI connection first (⚙ setup).'); return; } brainBusy(true); brainShow(''); try{ window.__aiUsage?.begin('Toolbox'); const r=await window.ferrettAI(sys,user,{creative}); window.__aiUsage?.end(); brainShow(r); }catch(e){ brainShow('⚠ '+e.message); } finally{ brainBusy(false); } }
   function brainRedo(){ if(lastBrainArgs) brainCall(...lastBrainArgs); }
   function brainHide(){ const o=$('ai-brain-out'), c=$('ai-brain-out-controls'), h=$('btn-ai-brain-hide'); if(!o) return; const nowHidden=o.classList.toggle('hidden'); if(h) h.textContent=nowHidden?'SHOW':'HIDE'; }
   function brainSaveNote(){

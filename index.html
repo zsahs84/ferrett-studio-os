@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v93';
+window.APP_VERSION = 'v94';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9259,7 +9259,23 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       _scope: null,
       blank() { return { calls: 0, in: 0, out: 0, thoughts: 0, cached: 0, usd: 0, unpriced: 0 }; },
       begin(context) { this._scope = this.blank(); this._scope.context = context; return this._scope; },
-      end() { const s = this._scope; this._scope = null; return s; },
+      end() {
+          const s = this._scope;
+          if (s && s.context && window.db) {
+              window.db.accounting = window.db.accounting || [];
+              window.db.accounting.unshift({
+                  id: Date.now().toString(36) + Math.random().toString(36).substring(2,6),
+                  ts: Date.now(),
+                  context: s.context,
+                  usd: s.usd
+              });
+              if (window.db.accounting.length > 5000) window.db.accounting.pop();
+              window.saveData();
+              window.renderAccountingLedger?.();
+          }
+          this._scope = null;
+          return s;
+      },
       // Called once per response, INCLUDING responses that turned out to be empty or were retried —
       // a call that returned nothing usable was still billed, and a meter that hides those is exactly
       // the meter that makes a build look cheaper than the invoice.
@@ -9276,22 +9292,6 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
               t.calls++; t.in += rec.in; t.out += rec.out; t.thoughts += rec.thoughts; t.cached += rec.cached;
               if (price) t.usd += usd; else t.unpriced++;
           });
-          
-          if (this._scope && this._scope.context && window.db) {
-              window.db.accounting = window.db.accounting || [];
-              window.db.accounting.unshift({
-                  id: Date.now().toString(36) + Math.random().toString(36).substring(2,6),
-                  ts: Date.now(),
-                  context: this._scope.context,
-                  model: model,
-                  in: rec.in,
-                  out: rec.out,
-                  usd: usd
-              });
-              if (window.db.accounting.length > 5000) window.db.accounting.pop();
-              window.saveData();
-              window.renderAccountingLedger?.();
-          }
 
           // Lyrics, punch-ins and Lyria prompts have nowhere of their own to show a cost, and they
           // are the calls most likely to be fired dozens of times without thinking about it. Pushing

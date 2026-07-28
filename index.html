@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v84';
+window.APP_VERSION = 'v85';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3575,19 +3575,19 @@ document.addEventListener('DOMContentLoaded', () => {
           text: 'Tape/tube echo: Time (0-1600ms or tempo-sync note division), Feedback (0-100%), Drive (0-10, tube harmonic saturation), Tone (LP filter on repeats — lower = darker), Echo Volume, Mix. Quote delay time in ms or note division; Drive as a 0-10 position.' },
 
         { match: /manley.?vox.?box/i, name: 'Manley VoxBox',
-          text: 'Four-section channel strip: (1) Mic Preamp — Input Gain, HP filter stepped at 60/90/120/150/200 Hz. (2) Opto Compressor — Threshold, Recovery (program-dependent, same family as LA-2A — no attack knob), Compress/Limit switch, Gain. (3) EQ — Mid Frequency stepped at 1k/2k/3k/4k/5k/8k/10k Hz with a 0-10 Amount (NOT dB), Presence (fixed high shelf). (4) De-Esser — Threshold and Frequency stepped at 4/6/8/10 kHz. The EQ frequencies are stepped — any other value is unreachable.' },
+          text: 'Four-section channel strip: (1) Mic Preamp — Input Gain, HP filter stepped at Flat/80/120 Hz. (2) Opto Compressor — Threshold, Recovery (program-dependent like LA-2A — no attack knob), Compress/Limit switch, Gain. (3) EQ — 3-band Pultec MEQ-5 style passive EQ with 33 selectable frequencies across Low/Mid/High bands. (4) De-Esser — Threshold and Frequency stepped at 3/6/9/12 kHz. The EQ and De-Esser frequencies are stepped.' },
 
         { match: /avalon.?vt.?737|vt-?737/i, name: 'Avalon VT-737sp',
-          text: 'Tube channel strip: Mic/Line Preamp (Gain, HP stepped at 80/120/160/240/350 Hz). Opto Compressor (Threshold, Gain, Attack stepped at 0/2/4/8/12/20 ms, Decay stepped at 0.5/1/2/3/5/Auto s, Comp/Limit switch). EQ (High shelf 16 or 32 kHz; Mid Peak with Frequency stepped across ~20 values 35 Hz-18 kHz; Low shelf 35 or 75 Hz — give a real stepped mid frequency). Output Gain.' },
+          text: 'Tube channel strip: Mic/Line Preamp (Gain, HP variable 30-140 Hz). Opto Compressor (Threshold, Gain, continuous Attack 2-200ms, continuous Release 100ms-5s, Comp/Limit switch). EQ (High shelf 16 or 32 kHz; High-Mid and Low-Mid are continuous with a 10x frequency multiplier; Low shelf 35 or 75 Hz). Output Gain.' },
 
         { match: /api.?vision|vision.?channel/i, name: 'UA API Vision Channel Strip',
-          text: '550B EQ + 225L compressor. EQ: High stepped at 2k/4k/8k/12k/16k Hz (shelf or peak, ±12 dB in 2 dB steps); Mid stepped at 200/500/1k/2k/3.5k Hz; Low stepped at 50/100/200/400 Hz. 225L compressor: Threshold, Ratio stepped (2/4/8/12:1 plus Limit), Attack stepped (0.1/0.3/1/3/10/30 ms), Release stepped (0.05/0.1/0.25/0.5/1/2 s + Auto), Makeup. All gains and timings are stepped.' },
+          text: '550L EQ + 225L compressor. 550L EQ (4 bands): High (2.5k/5k/7k/10k/12.5k/15k/20k Hz); High-Mid (800/1.5k/3k/5k/8k/10k/12.5k Hz); Low-Mid (75/150/180/240/500/700/1k Hz); Low (30/40/50/100/200/300/400 Hz). ±12 dB in 2 dB steps. 225L compressor: Threshold, Ratio stepped (2/4/8/12:1 plus Limit), Attack stepped (0.1/0.3/1/3/10/30 ms), Release stepped (0.05/0.1/0.25/0.5/1/2 s + Auto), Makeup. All gains and timings are stepped.' },
 
         { match: /capitol.?comp/i, name: 'UA Capitol Compressor',
-          text: 'Based on Spectra Sonics 610. Controls: Input Gain, Threshold, Ratio (stepped: 2:1/4:1/8:1/12:1/20:1), Attack (stepped), Release (stepped), Output Gain. A clean solid-state compressor — give stepped ratio and timing values.' },
+          text: 'Based on Spectra Sonics 610. Controls: Input Gain, Threshold, Ratio (stepped: 2:1, 3:1, 4:1, 6:1, 10:1), Attack (stepped), Release (stepped), Output Gain. A clean solid-state compressor — give those exact stepped ratio values.' },
 
         { match: /hitsville.?eq\b/i, name: 'UA Hitsville EQ',
-          text: 'Motown RCA console EQ. Four fixed-frequency bands — Low shelf, Low-Mid peak, High-Mid peak, High shelf — each with Gain only. The frequencies are fixed hardware presets, not swept: give only a Gain amount per band. There is no Bandwidth or Q control.' },
+          text: 'Motown RCA console EQ. Seven fixed-frequency bands: 50, 130, 320, 800, 2k, 5k, and 12.5k Hz. Each band offers ±8 dB of boost or cut in 1 dB stepped increments. The frequencies are fixed hardware presets, not swept. There is no Bandwidth or Q control.' },
 
         { match: /hitsville.?chamber/i, name: 'UA Hitsville Chambers',
           text: 'Live chamber reverb emulation. Controls: Chamber (North or South), Predelay (ms), Decay (seconds), Tone (LP filter), Mix. That is the whole plugin.' },
@@ -3679,7 +3679,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ---- Plugin Alliance bx_ effects ----
         { match: /bx_masterdesk/i, name: 'Plugin Alliance bx_masterdesk',
-          text: 'One-page mastering processor. Five EQ bands with stepped frequency selectors: Bass (20/30/40/50/60/70 Hz shelf), Low Mid (100/150/200/250/300 Hz peak), High Mid (1k/1.5k/2k/2.5k/3k Hz peak), Presence (6k/8k/10k/12k/15k Hz peak), Air (16k/18k/20k/22k Hz shelf). Each ±10 dB Gain. Plus Stereo Width (0-200%), Mono Maker frequency, Master Fader and a soft Limiter switch. Give stepped frequencies from those lists — no arbitrary Hz.' },
+          text: 'One-page mastering processor. The classic version uses broad tone stack knobs (Volume, Foundation, Bass, Mid, Treble, Presence) and two Resonance Filter switches. It does NOT have adjustable Hz values. Plus Stereo Width (0-200%), Mono Maker frequency, Master Fader and a soft Limiter switch.' },
 
         { match: /bx_boom/i, name: 'Plugin Alliance bx_boom',
           text: 'Sub/mono-bass enhancement. Controls: Boom Frequency (stepped), Boom Amount (0-100%), Attack (ms), Release (ms), Mono Below (Hz). Use it to add sub resonance or tighten kick.' },
@@ -3718,19 +3718,19 @@ document.addEventListener('DOMContentLoaded', () => {
           text: 'Amp and cabinet sim. Controls: Amp selector (named list), Gain (0-10), Bass/Mid/Treble/Presence (0-10), Master Volume, Cabinet selector (named IR list). Quote the amp name, all tone controls as 0-10, and the cabinet by name.' },
 
         { match: /spl.?free.?ranger/i, name: 'SPL Free Ranger',
-          text: 'Four-band passive-style EQ: Low shelf, Low-Mid peak, High-Mid peak, High shelf. Each band has Frequency (stepped selector — give a value on the actual selector) and Gain (±12 dB continuous). No Q control.' },
+          text: 'Four-band graphic EQ based on the SPL EQ Rangers. It has exactly four FIXED bands: 40 Hz, 150 Hz, 1.8 kHz, and 16 kHz. You can only adjust the Gain (±12 dB continuous) for these specific frequencies. No frequency selectors, no Q control.' },
 
         { match: /\b175[-_]?b\b/i, name: 'UA 175B Tube Compressor',
-          text: 'Altec 436C/175B emulation. Controls: Input Level, Output Level, Compression Ratio (stepped: 2:1/4:1/12:1), combined Attack/Release Time Constant (Fast/Medium/Slow — three positions only). No separate attack/release knobs. No threshold — Input Level drives into the fixed threshold.' },
+          text: 'UA 175B tube compressor emulation. Controls: Input Level, Output Level. It has a FIXED 12:1 compression ratio (there is no ratio knob). Attack/Release are continuous. No threshold — Input Level drives into the fixed threshold.' },
 
         { match: /\b176\b/i, name: 'UA 176 Tube Limiter',
-          text: 'UA 176 tube limiter emulation. Controls: Input, Output, Ratio (stepped: 2:1/4:1/8:1/12:1), Attack (stepped: Fast/Medium/Slow), Release (stepped: Fast/Medium/Slow/Auto). No threshold — Input level drives it.' },
+          text: 'UA 176 tube limiter emulation. Controls: Input, Output, Ratio (stepped: 2:1/4:1/8:1/12:1), continuous Attack and Release. No threshold — Input level drives it.' },
 
         { match: /\b610[-_]?[ab]\b/i, name: 'UA 610-B Tube Preamp & EQ',
           text: 'Tube preamp with passive inductor EQ. Preamp: Input Gain, Pad, Phase. EQ: Low (stepped at 30/100 Hz shelf boost/cut), Mid (stepped at 200 Hz/1k/3k/7k Hz ±4-5 dB steps), High (fixed 12 kHz shelf). Output Gain. EQ frequencies are stepped switches — no arbitrary Hz.' },
 
         { match: /century.?tube/i, name: 'UA Century Tube Channel Strip',
-          text: 'Tube channel strip: Compressor (Threshold, Ratio stepped 2:1/4:1/8:1, Attack/Release stepped switches), EQ (Low shelf stepped frequency, Sweepable Mid peak with continuous Hz/Gain/Q, High shelf stepped frequency), Output Gain.' },
+          text: 'Tube channel strip: Compressor (Opto style with single Dynamics knob, no ratio or attack/release controls). EQ (Low shelf fixed at 110 Hz, Sweepable Mid peak 300 Hz-7.2 kHz without Q control, High shelf fixed at 10 kHz), Output Gain.' },
 
         { match: /little.?labs.?vog/i, name: 'Little Labs VOG',
           text: 'Resonant bass frequency controller. Controls: Frequency (30-600 Hz, continuous), Boost (0 to +18 dB, resonant lift), HP filter at the same frequency, Mix. Quote Frequency in Hz and Boost in dB.' },

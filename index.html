@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v103';
+window.APP_VERSION = 'v104';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9202,7 +9202,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
   const AI_KEY='ferrett_os_ai_v1';
   const DEFAULT_HA_URL='https://donita.ddns.net:8123'; // pre-filled; edit in ⚙ setup anytime. Must be https (mixed-content).
   const loadCfg=()=>{ try{ return JSON.parse(localStorage.getItem(AI_KEY)||'{}'); }catch(e){ return {}; } };
-  const saveCfg=(c)=>{ try{ localStorage.setItem(AI_KEY, JSON.stringify(c)); }catch(e){} };
+  const saveCfg=(c)=>{ try{ localStorage.setItem(AI_KEY, JSON.stringify(c)); }catch(e){ alert('Failed to save AI config: ' + e.message + ' (You may be out of local storage space. Try clearing your browser cache or deleting large files in Ferrett Studio.)'); } };
   const isConfigured=()=>{ const c=loadCfg(); return c.mode==='groq' ? !!c.groqKey : c.mode==='gemini' ? !!c.geminiKey : !!(c.url && c.token); };
   window.__aiIsConfigured = isConfigured; // shared so other script blocks gate exactly like the lyrics tools do
 
@@ -9549,7 +9549,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       if($('ai-gemini-model')) $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; 
       if($('ai-gemini-think')) $('ai-gemini-think').value=c.geminiThink||'low'; 
       
-      if($('ai-test-out')) $('ai-test-out').textContent=''; 
+      if($('ai-test-out')) $('ai-test-out').textContent=`Loaded config: mode=${c.mode}, think=${c.geminiThink}`; 
       window.renderAccountingLedger?.(); 
       const m=$('ai-modal'); 
       if(m){ m.classList.remove('hidden'); m.classList.add('flex'); }

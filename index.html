@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v87';
+window.APP_VERSION = 'v88';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -4686,7 +4686,9 @@ ${gear.join(', ')}`;
                 ${r.kit.usage && r.kit.usage.calls ? `<div class="text-[#FFD60A]/70">${esc(window.__aiUsage.summary(r.kit.usage))}</div>` : ''}
                 <div class="mt-1">verifiable: <b>${s.checked}</b></div>
                 <div>committed: <b>${s.checkedSpecific}</b>${s.checked?` <span class="opacity-50">(${Math.round(s.checkedSpecific/s.checked*100)}%)</span>`:''}</div>
-                <div class="${s.impossible?'text-[#FF9E9E]':''}">impossible: <b>${s.impossible}</b></div>
+                <div class="${s.impossible?'text-[#FF9E9E]':''}">impossible: <b>${s.impossible}</b>
+                    ${s.impossible?`<div class="text-[9px] mt-0.5 leading-snug text-[#FF9E9E]/80">${s.impossibleNotes.map(esc).join('<br>')}</div>`:''}
+                </div>
                 <div class="${s.offPalette?'text-[#FF9E9E]':''}">not your gear: <b>${s.offPalette}</b></div>
                 <div class="${s.empty?'text-[#FF9E9E]':''}">no setting: <b>${s.empty}</b></div>
                 <div>with numbers: <b>${s.specific}</b></div>
@@ -4857,7 +4859,7 @@ ${gear.join(', ')}`;
                     <div class="text-[9px] leading-relaxed" style="color:${tone[2]}bb">
                         <b>${s.checked}</b> of ${s.steps} steps named a unit with documented controls, so only those could be checked — a low <b>impossible</b> count over a low <b>verifiable</b> count is not evidence of care.
                         <br><b>Committed</b> is the number that can't be gamed: <b>${s.checkedSpecific}</b> of those ${s.checked} put an actual figure on the documented unit${s.checked?` (${Math.round(s.checkedSpecific/s.checked*100)}%)`:''}. Naming an LA-2A and saying "to taste, gentle" passes every check without risking anything.
-                        ${s.impossible?`<br>Impossible settings are marked in red below.`:''}
+                        ${s.impossible?`<br><br><b class="text-[#FF9E9E]">Impossible settings:</b><br><span class="text-[#FF9E9E]/90">${s.impossibleNotes.map(esc).join('<br>')}</span>`:''}
                         ${s.offPalette?`<br><b>Not your gear:</b> ${esc(s.offPaletteNames.slice(0,6).join(', '))}${s.offPaletteNames.length>6?` +${s.offPaletteNames.length-6} more`:''} — invented outright, or named too loosely to match anything you own.`:''}
                         ${s.empty?`<br><b>${s.empty}</b> step${s.empty===1?'':'s'} name a plugin without saying what to do with it.`:''}
                         ${s.stacked?`<br><b>Two amps:</b> ${s.stackedNotes.map(esc).join('<br>')}`:''}

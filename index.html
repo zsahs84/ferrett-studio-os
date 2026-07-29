@@ -989,30 +989,6 @@
         <div class="p-4 md:p-8 space-y-6 bg-[#050807]">
 
 
-        <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(0,255,136,0.03))">
-            <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
-                <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">✨ AI MUSIC-PROMPT GENERATOR <span id="ai-status-lab" class="text-[8px] font-normal ml-1"></span></h4>
-                <button id="btn-ai-settings-lab" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
-            </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Turn a vibe into a fully-formed prompt for Suno / Udio / Lyria — via your own Groq. Also great for describing a tone you're chasing.</p>
-            <a href="https://www.flowmusic.app/" target="_blank" rel="noopener" class="btn-euterpe inline-block px-3 py-1.5 text-[10px] no-underline mb-3" style="border-color:#00E5FF60;color:#00E5FF">↗ Google Flow</a>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                <input type="text" id="ai-mp-genre" placeholder="genre" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="ai-mp-mood" placeholder="mood" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="ai-mp-bpm" placeholder="BPM/key" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-                <input type="text" id="ai-mp-instr" placeholder="instruments" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
-            </div>
-            <div class="flex flex-wrap gap-2 mb-3">
-                <button id="btn-ai-mp-gen" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]">✨ GENERATE PROMPT</button>
-                <button id="btn-ai-mp-redo" type="button" class="btn-euterpe px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
-                <button id="btn-ai-mp-copy" type="button" class="btn-euterpe px-3 py-2 text-[10px] hidden" style="border-color:#00E5FF80;color:#00E5FF">⧉ COPY</button>
-                <button id="btn-ai-mp-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
-                <span id="ai-mp-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
-            </div>
-            <textarea id="ai-mp-out" rows="4" class="w-full bg-black/40 border border-[#00E5FF]/20 rounded p-3 text-[12px] text-[#C9FFE6] font-mono focus:outline-none resize-none" placeholder="Your generated prompt appears here…"></textarea>
-            <div id="ai-mp-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
-        </div>
-
         <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(177,140,255,0.04))">
             <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧠 AI STUDIO BRAIN <span id="ai-status-tools" class="text-[8px] font-normal ml-1"></span></h4>
@@ -1248,7 +1224,6 @@
             </div>
     </div>
 <script src="js/01-core-utils.js"></script>
-</div>
     </section>
     <section id="tab-lyrics" class="middle-tab p-4 md:p-8 border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#FF88FF20] pb-2 mb-5"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#FF88FF]">LYRICS LAB // CUT-UP ENGINE</h2><span class="text-[9px] text-[#FF88FF]/40 tracking-widest hidden sm:block">DRAG · SHUFFLE · SPLICE</span></div>

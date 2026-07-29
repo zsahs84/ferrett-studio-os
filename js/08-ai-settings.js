@@ -309,7 +309,7 @@
   // ---- helpers ----
   function toLines(txt){ return txt.split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').replace(/^["'“]|["'”]$/g,'').trim()).filter(l=>l && !/^\(.*\)$/.test(l)).slice(0,40); }
   const MODE_LABEL={ ha:'HA', groq:'Groq', gemini:'Gemini' };
-  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const spend=window.__aiUsage?.summary(window.__aiUsage.session); const label= on?`● ${MODE_LABEL[c.mode]||'HA'} linked${spend?` · ${spend} this session`:''}`:'○ not set up'; ['ai-status-lyr','ai-status-lab','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
+  function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const spend=window.__aiUsage?.summary(window.__aiUsage.session); const label= on?`● ${MODE_LABEL[c.mode]||'HA'} linked${spend?` · ${spend} this session`:''}`:'○ not set up'; ['ai-status-lyr','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
   window.__updateAiStatus = updateStatus;
 
   // ---- settings modal ----
@@ -482,23 +482,6 @@
     }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
   }
 
-  // ---- music-prompt generator ----
-  async function mpGen(){
-    if(!isConfigured()){ openAiModal(); return; }
-    const g=$('ai-mp-genre').value.trim(), m=$('ai-mp-mood').value.trim(), b=$('ai-mp-bpm').value.trim(), ins=$('ai-mp-instr').value.trim();
-    const brief=[g&&('genre: '+g), m&&('mood: '+m), b&&('tempo/key: '+b), ins&&('instruments: '+ins)].filter(Boolean).join('; ')||'a fresh original track';
-    spin('ai-mp-spinner',true); note('ai-mp-note',''); $('btn-ai-mp-copy').classList.add('hidden');
-    try{
-      const sys=`You write vivid, concise music-generation prompts for tools like Suno, Udio and Lyria. Reply with ONE dense paragraph (max ~60 words) packed with genre, instrumentation, production, mood and tempo adjectives. No preamble, no quotes, no lists.${b ? ' CRITICAL: The user explicitly requested ' + b + '. You MUST include this EXACT tempo/key in your response. DO NOT default to 90 BPM or any other tempo.' : ''}`;
-      window.__aiUsage?.begin('Toolbox: Write Prompt');
-      const txt=await window.ferrettAI(sys, `Write a prompt for: ${brief}.`, {creative:false});
-      window.__aiUsage?.end();
-      $('ai-mp-out').value=txt; $('btn-ai-mp-copy').classList.remove('hidden');
-      $('btn-ai-mp-redo')?.classList.remove('hidden'); $('btn-ai-mp-hide')?.classList.remove('hidden');
-      $('ai-mp-out').classList.remove('hidden'); const h=$('btn-ai-mp-hide'); if(h) h.textContent='HIDE';
-    }catch(e){ note('ai-mp-note', e.message); } finally{ spin('ai-mp-spinner',false); }
-  }
-
   function init(){
     // modal wiring
     AI_MODES.forEach(k=>$('ai-mode-'+k)?.addEventListener('click',()=>setModalMode(k)));
@@ -520,7 +503,6 @@
     $('ai-clear-btn')?.addEventListener('click',()=>{ if(confirm('Clear stored AI connection?')){ localStorage.removeItem(AI_KEY); updateStatus(); populateAiSettings(); } });
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('ai-modal') && !$('ai-modal').classList.contains('hidden')) closeAiModal(); });
     $('btn-ai-settings-lyr')?.addEventListener('click',openAiModal);
-    $('btn-ai-settings-lab')?.addEventListener('click',openAiModal);
     // populate settings immediately on load
     populateAiSettings();
     // lyrics
@@ -530,11 +512,6 @@
     $('btn-lyr-punch-selected')?.addEventListener('click',lyrPunch);
     $('btn-ai-lyr-title')?.addEventListener('click',lyrTitle);
     $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrGen(); });
-    // music prompt
-    $('btn-ai-mp-gen')?.addEventListener('click',mpGen);
-    $('btn-ai-mp-redo')?.addEventListener('click',mpGen);
-    $('btn-ai-mp-hide')?.addEventListener('click',()=>{ const o=$('ai-mp-out'), h=$('btn-ai-mp-hide'); if(!o||!h) return; const nowHidden=o.classList.toggle('hidden'); h.textContent=nowHidden?'SHOW':'HIDE'; });
-    $('btn-ai-mp-copy')?.addEventListener('click',()=>{ const t=$('ai-mp-out'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } const b=$('btn-ai-mp-copy'); const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); });
     updateStatus();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();

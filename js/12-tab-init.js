@@ -33,7 +33,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // To Song Lab (Dashboard)
     moveCard('btn-session-starter', tabSongLab);
     moveCard('session-stats-display', tabSongLab);
-    moveCard('lab-idea-bpm', tabSongLab); 
+    moveCard('lab-idea-bpm', tabSongLab);
+    moveCard('btn-lab-memo-rec', tabSongLab);
     moveCard('lab-heatmap', tabSongLab);
 
     // To Song Board
@@ -89,7 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const oldNavs = Array.from(sideNav.querySelectorAll('.nav-btn'));
     
     const newNavHtml = `
-        <button id="nav-songlab-new" class="nav-btn text-[#00FF88] border-[#00FF8835] shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-all uppercase tracking-wider shadow-[0_0_12px_rgba(0,255,136,0.12)] mt-2">🚀 Song Lab</button>
+        <button id="nav-songlab-new" class="nav-btn text-[#00FF88] border-[#00FF8835] shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-all uppercase tracking-wider shadow-[0_0_12px_rgba(0,255,136,0.12)] mt-2">🚀 Home</button>
         <button id="nav-songboard-new" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🗂️ Song Board</button>
         <button id="nav-lyrics-new" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">🎤 Lyrics Lab</button>
         <button id="nav-cookbook-new" class="nav-btn text-[#7AFFBF]/60 border-transparent shrink-0 text-left px-3 py-2.5 rounded text-[11px] font-bold border transition-colors uppercase tracking-wider">📖 Cook Book</button>

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v118';
+window.APP_VERSION = 'v119';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -564,20 +564,8 @@ main { background: rgba(5,8,7,0.72); }
             <div class="mt-4"><button id="btn-open-lyria-tools" type="button" class="text-[10px] font-bold tracking-widest text-[#00E5FF]/70 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0 underline underline-offset-2">🎼 or just open the Lyria Prompt Generator</button></div>
         </div>
 
-        <div class="flex flex-wrap gap-2 mb-6" id="tbx-subnav">
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="theory" style="background:rgba(122,255,191,0.18);color:#7AFFBF;border-color:#7AFFBF;">🎵 THEORY &amp; EAR</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="calc">🧮 CALCULATORS</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="players">🥁 PLAYERS &amp; PRACTICE</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="arrange">🎬 ARRANGEMENT &amp; SETLISTS</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="monitor">🎙️ MONITORING &amp; ROOM</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="analyzer">🔬 MIX ANALYZER</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="spark">✨ CREATIVE SPARKS</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="ai">🤖 AI ASSISTANT</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="analytics">📊 STUDIO ANALYTICS</button>
-            <button type="button" class="tbx-pill btn-euterpe px-3 py-1.5 text-[10px]" data-tbx="ops">🗂️ STUDIO OPS</button>
-        </div>
-
-    <div id="tbx-panel-theory" class="tbx-panel space-y-6 mb-6">
+        <div class="columns-1 lg:columns-2 xl:columns-3 2xl:columns-4 gap-6">
+<div id="tbx-panel-theory" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">◎ CIRCLE OF FIFTHS</h4>
@@ -716,7 +704,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
     </div>
 
-    <div id="tbx-panel-calc" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-calc" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
         <div class="card border-[#00E5FF30] mb-6 flex flex-col md:flex-row items-center justify-center gap-8 p-8 md:p-12">
             <div class="flex flex-col items-center gap-2"><span class="text-[12px] tracking-widest text-[#00E5FF]/70 font-bold">PROJECT TEMPO</span><div class="flex items-center gap-2"><input type="number" id="calc-bpm-main" value="120" class="bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[40px] font-bold text-[#00E5FF] w-40 py-2 focus:outline-none shadow-[0_0_15px_rgba(0,229,255,0.1)]"><span class="text-[14px] text-[#00E5FF]/50 font-bold">BPM</span></div></div>
             <div class="text-[#00E5FF]/30 text-[32px] hidden md:block">||</div>
@@ -784,7 +772,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
     </div>
 
-    <div id="tbx-panel-players" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-players" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
         <div class="card border-[#00FF8830] mt-6">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">METRONOME</h4>
             <div class="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-6">
@@ -899,7 +887,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
     </div>
 
-    <div id="tbx-panel-arrange" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-arrange" class="hidden">
         <div class="card border-[#00E5FF30] mb-6">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-[#00E5FF20] pb-2">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🗂️ SONG BOARD</h4>
@@ -975,7 +963,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
     </div>
 
-    <div id="tbx-panel-monitor" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-monitor" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔊 TEST-TONE & NOISE LAB</h4>
@@ -1033,7 +1021,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
     </div>
 
-    <div id="tbx-panel-analyzer" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-analyzer" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
         <div class="card border-[#00FF8830]">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-2 border-b border-[#00FF8820] pb-2">🔬 MIX ANALYZER</h4>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Objective metering, run entirely on-device — loudness, true peak, dynamic range, stereo phase, and spectral balance. This measures what's actually in the file. It doesn't and can't tell you if the mix is <i>good</i> — no meter does that.</p>
@@ -1068,7 +1056,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
     </div>
 
-    <div id="tbx-panel-spark" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-spark" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#FFD60A40]" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(177,140,255,0.04));">
                 <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎲 SHUFFLE A CHALLENGE</h4>
@@ -1113,7 +1101,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
     </div>
 
-    <div id="tbx-panel-ai" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-ai" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
         <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(0,255,136,0.03))">
             <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">✨ AI MUSIC-PROMPT GENERATOR <span id="ai-status-lab" class="text-[8px] font-normal ml-1"></span></h4>
@@ -1172,7 +1160,7 @@ main { background: rgba(5,8,7,0.72); }
 
     </div>
 
-    <div id="tbx-panel-analytics" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-analytics" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
         <div class="card border-[#00FF8830] mb-6">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">SESSION STATS</h4>
             <div class="grid grid-cols-3 gap-4 text-center" id="session-stats-display">
@@ -1208,7 +1196,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
     </div>
 
-    <div id="tbx-panel-ops" class="tbx-panel hidden space-y-6 mb-6">
+    <div id="tbx-panel-ops" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00FF8830]">
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 GEAR MAINTENANCE LOG</h4>
@@ -1275,8 +1263,8 @@ main { background: rgba(5,8,7,0.72); }
             </div>
         </div>
     </div>
+</div>
     </section>
-
     <section id="tab-lyrics" class="middle-tab p-4 md:p-8 border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#FF88FF20] pb-2 mb-5"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#FF88FF]">LYRICS LAB // CUT-UP ENGINE</h2><span class="text-[9px] text-[#FF88FF]/40 tracking-widest hidden sm:block">DRAG · SHUFFLE · SPLICE</span></div>
 

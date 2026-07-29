@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (matches.length === 0) { results.innerHTML = `<div class="text-center text-[10px] text-white/30 italic p-6 tracking-widest uppercase">No matches // adjust query</div>`; return; }
         matches.forEach(m => {
             const row = document.createElement('div');
-            row.className = 'flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 cursor-pointer group transition-colors';
+            row.className = 'cmdk-row flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 cursor-pointer group transition-colors';
             row.innerHTML = `<span class="text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded border shrink-0" style="color:${m.color}; border-color:${m.color}40;">${scopeLabel[m.scope]}</span><div class="flex-1 min-w-0"><div class="text-[12px] text-white truncate">${window.escapeHtml(m.title)}</div>${m.sub ? `<div class="text-[10px] text-white/35 truncate">${window.escapeHtml(m.sub)}</div>` : ''}</div><button class="cmdk-tag-pill text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border shrink-0 opacity-70 group-hover:opacity-100 transition-all hover:brightness-125 cursor-pointer" data-scope="${m.scope}" data-tag="${window.escapeHtml(m.tag)}" style="color:${m.color}; border-color:${m.color}40; background:${m.color}0A;" title="Filter ${scopeLabel[m.scope]}s by ${window.escapeHtml(m.tag)}">${window.escapeHtml(m.tag)}</button>`;
             row.addEventListener('click', (e) => { if (e.target.closest('.cmdk-tag-pill')) return; window.cmdkJumpToItem(m.scope, m.id); });
             results.appendChild(row);
@@ -59,23 +59,41 @@ document.addEventListener('DOMContentLoaded', () => {
         window.closeCmdk();
     };
 
+    // Highlighted row travels across both the base results (rendered here) and the Actions
+    // rows 04-addons.js prepends on top of them — .cmdk-row is the shared marker so nav doesn't
+    // care which script rendered a given row.
+    window.cmdkSelectedIndex = 0;
+    window.cmdkUpdateHighlight = () => {
+        const rows = document.querySelectorAll('#cmdk-results .cmdk-row'); if (!rows.length) return;
+        if (window.cmdkSelectedIndex < 0) window.cmdkSelectedIndex = rows.length - 1;
+        if (window.cmdkSelectedIndex >= rows.length) window.cmdkSelectedIndex = 0;
+        rows.forEach((r, i) => r.classList.toggle('cmdk-row-active', i === window.cmdkSelectedIndex));
+        rows[window.cmdkSelectedIndex]?.scrollIntoView({ block: 'nearest' });
+    };
+    window.cmdkRender = (query) => { window.renderCmdkResults(query); window.cmdkSelectedIndex = 0; window.cmdkUpdateHighlight(); };
+
     window.openCmdk = () => {
         const modal = document.getElementById('cmdk-modal'); if (!modal) return;
         modal.classList.remove('hidden'); modal.classList.add('flex');
         const input = document.getElementById('cmdk-input'); if (input) { input.value = ''; setTimeout(() => input.focus(), 50); }
-        window.renderCmdkResults(''); window.renderCmdkTagBar();
+        window.cmdkRender(''); window.renderCmdkTagBar();
     };
     window.closeCmdk = () => { const modal = document.getElementById('cmdk-modal'); if (!modal) return; modal.classList.add('hidden'); modal.classList.remove('flex'); };
 
     document.getElementById('btn-open-cmdk')?.addEventListener('click', () => window.openCmdk());
     document.getElementById('cmdk-close')?.addEventListener('click', () => window.closeCmdk());
     document.getElementById('cmdk-modal')?.addEventListener('click', (e) => { if (e.target.id === 'cmdk-modal') window.closeCmdk(); });
-    document.getElementById('cmdk-input')?.addEventListener('input', (e) => window.renderCmdkResults(e.target.value));
+    document.getElementById('cmdk-input')?.addEventListener('input', (e) => window.cmdkRender(e.target.value));
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); else window.openCmdk(); }
         const isTyping = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
         if (e.key === '?' && !isTyping) { e.preventDefault(); const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } }
         if (e.key === ' ' && !isTyping && document.getElementById('tab-toolbox')?.classList.contains('active')) { e.preventDefault(); window.metro?.running ? window.stopMetronome() : window.startMetronome(); }
+        const cmdkModal = document.getElementById('cmdk-modal');
+        if (cmdkModal && !cmdkModal.classList.contains('hidden')) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); window.cmdkSelectedIndex += e.key === 'ArrowDown' ? 1 : -1; window.cmdkUpdateHighlight(); }
+            if (e.key === 'Enter') { e.preventDefault(); document.querySelectorAll('#cmdk-results .cmdk-row')[window.cmdkSelectedIndex]?.click(); }
+        }
         if (e.key === 'Escape') {
             const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk();
             document.querySelectorAll('.fixed.flex[id$="-modal"]').forEach((m) => { m.classList.add('hidden'); m.classList.remove('flex'); });

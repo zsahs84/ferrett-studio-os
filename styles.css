@@ -89,6 +89,8 @@ main { background: rgba(5,8,7,0.72); }
 .active-inst { background: rgba(0,255,136,0.14) !important; border-color:#00FF88 !important; color:#00FF88 !important; box-shadow:0 0 12px rgba(0,255,136,0.18); }
 .lyr-row-alt { background: rgba(255,214,10,0.06); border-radius: 4px; }
 
+.cmdk-row-active { background: rgba(0,229,255,0.12) !important; box-shadow: inset 2px 0 0 #00E5FF; }
+
 .note-tab { padding:6px 12px; font-size:10px; font-weight:bold; border-top-left-radius:4px; border-top-right-radius:4px; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:8px; background:rgba(0,229,255,0.05); color:rgba(0,229,255,0.5); border:1px solid transparent; border-bottom:none; min-width:100px; justify-content:space-between; }
 .note-tab.active { background:rgba(0,229,255,0.15); color:#00E5FF; border-color:rgba(0,229,255,0.3); box-shadow:0 -4px 12px rgba(0,229,255,0.1); }
 .note-tab:hover:not(.active) { background:rgba(0,229,255,0.08); color:rgba(0,229,255,0.8); }

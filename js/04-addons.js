@@ -729,7 +729,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 if (q) { const ph = results.querySelector('div.text-center.italic'); if (ph) ph.remove(); }
                 const frag = document.createElement('div'); frag.className = 'mb-1 border-b border-white/5 pb-1';
                 frag.innerHTML = '<div class="text-[8px] font-bold tracking-widest text-[#B18CFF]/60 uppercase px-3 pt-1 pb-1">Actions</div>';
-                acts.forEach(a => { const row = document.createElement('div'); row.className = 'flex items-center gap-3 px-3 py-2 rounded hover:bg-white/5 cursor-pointer'; row.innerHTML = `<span class="text-[13px] shrink-0">${a.icon}</span><span class="text-[12px] text-white">${a.label}</span>`; row.addEventListener('click', () => { if (window.closeCmdk) window.closeCmdk(); a.run(); }); frag.appendChild(row); });
+                acts.forEach(a => { const row = document.createElement('div'); row.className = 'cmdk-row flex items-center gap-3 px-3 py-2 rounded hover:bg-white/5 cursor-pointer'; row.innerHTML = `<span class="text-[13px] shrink-0">${a.icon}</span><span class="text-[12px] text-white">${a.label}</span>`; row.addEventListener('click', () => { if (window.closeCmdk) window.closeCmdk(); a.run(); }); frag.appendChild(row); });
                 results.insertBefore(frag, results.firstChild);
             };
             window.renderCmdkResults.__actionsWrapped = true;

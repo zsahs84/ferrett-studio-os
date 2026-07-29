@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
@@ -40,47 +40,47 @@
     </button>
     <div class="leading-none min-w-0">
       <h1 class="text-[13px] sm:text-[15px] md:text-[19px] font-bold tracking-[0.14em] md:tracking-[0.18em] text-[#00FF88] drop-shadow-[0_0_10px_rgba(0,255,136,0.45)] whitespace-nowrap">EUTERPE</h1>
-      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">Euterpe Creativity Workbench</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer">⟲</button></span></p>
+      <p class="text-[8px] md:text-[9px] tracking-[0.16em] md:tracking-[0.22em] text-[#00FF88]/55 mt-[2px] uppercase flex items-center gap-2 flex-wrap"><span id="daw-display-name" class="hidden sm:inline">Euterpe Creativity Workbench</span><span class="inline-flex items-center gap-1.5 md:ml-2"><button id="btn-session-toggle" type="button" class="inline-flex items-center gap-1.5 bg-transparent border-0 p-0 cursor-pointer" title="Click to pause/resume the session timer" aria-label="Click to pause/resume the session timer"><span id="hud-rec-dot"></span><span id="hud-rec-label" class="text-[#FF5A5A] font-bold tracking-widest">REC</span><span id="hud-timecode" class="text-[10px] md:text-[11px] ml-1">00:00:00:00</span></button><button id="btn-session-reset" type="button" class="text-[#E2E8F0]/25 hover:text-white text-[10px] leading-none cursor-pointer bg-transparent border-0 p-0 ml-1" title="Reset session timer" aria-label="Reset session timer">⟲</button></span></p>
     </div>
     <div class="hidden lg:flex items-center gap-3 ml-4 pl-4 border-l border-[#00FF8814]">
       <div class="vu-wrap" id="vuLeft"><div class="vu-bar" style="height:4px"></div><div class="vu-bar" style="height:8px"></div><div class="vu-bar" style="height:6px"></div><div class="vu-bar" style="height:10px"></div></div>
       <div class="waveform" id="waveform"><div class="wave-bar" style="animation-delay:0s"></div><div class="wave-bar" style="animation-delay:0.08s"></div><div class="wave-bar" style="animation-delay:0.16s"></div><div class="wave-bar" style="animation-delay:0.24s"></div><div class="wave-bar" style="animation-delay:0.32s"></div><div class="wave-bar" style="animation-delay:0.4s"></div><div class="wave-bar" style="animation-delay:0.12s"></div><div class="wave-bar" style="animation-delay:0.2s"></div></div>
       <div class="vu-wrap" id="vuRight"><div class="vu-bar" style="height:5px"></div><div class="vu-bar" style="height:9px"></div><div class="vu-bar" style="height:7px"></div><div class="vu-bar" style="height:11px"></div></div>
-      <button id="btn-vu-live-toggle" type="button" class="w-6 h-6 flex items-center justify-center rounded border border-[#00FF8830] text-[#00FF88]/50 hover:text-[#00FF88] hover:border-[#00FF8860] cursor-pointer text-[10px]" title="Toggle live mic input on the VU meters (otherwise decorative)">🎙️</button>
+      <button id="btn-vu-live-toggle" type="button" class="w-6 h-6 flex items-center justify-center rounded border border-[#00FF8830] text-[#00FF88]/50 hover:text-[#00FF88] hover:border-[#00FF8860] cursor-pointer text-[10px]" title="Toggle live mic input on the VU meters (otherwise decorative)" aria-label="Toggle live mic input on the VU meters (otherwise decorative)">🎙️</button>
     </div>
   </div>
 
   <div class="flex flex-wrap items-center justify-end gap-2 md:gap-4">
-    <button id="btn-open-cmdk" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Search everything">
+    <button id="btn-open-cmdk" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Search everything" aria-label="Search everything">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <span class="hidden sm:inline">SEARCH</span><kbd class="hidden sm:inline px-1 py-0.5 rounded bg-[#00E5FF15] border border-[#00E5FF30] text-[8px]">⌘K</kbd>
     </button>
-    <button id="btn-open-shortcuts" class="hidden lg:flex items-center justify-center w-8 h-8 rounded border border-[#00FF8830] text-[#00FF88]/60 hover:text-[#00FF88] hover:border-[#00FF8860] transition-all cursor-pointer text-[11px] font-bold" title="Keyboard shortcuts (?)">?</button>
-    <button id="btn-toggle-focus" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF88FF40] bg-[#FF88FF]/8 text-[#FF88FF] hover:bg-[#FF88FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Now Playing — log what you're working on"><span>▶</span><span class="hidden sm:inline">FOCUS</span></button>
-    <button id="btn-open-colormap" class="flex items-center justify-center w-8 h-8 rounded border border-[#B18CFF40] text-[#B18CFF]/70 hover:text-[#B18CFF] hover:border-[#B18CFF80] transition-all cursor-pointer text-[13px]" title="Color key / tag color map">🔑</button>
-    <button id="btn-open-import" class="flex items-center justify-center w-8 h-8 rounded border border-[#00E5FF40] text-[#00E5FF]/70 hover:text-[#00E5FF] hover:border-[#00E5FF80] transition-all cursor-pointer text-[13px]" title="Import a shared tone / recipe payload">⇩</button>
-    <button id="btn-open-gearindex" class="flex items-center justify-center w-8 h-8 rounded border border-[#7AFFBF40] text-[#7AFFBF]/70 hover:text-[#7AFFBF] hover:border-[#7AFFBF80] transition-all cursor-pointer text-[13px]" title="Gear index — find every recipe/tone/track that uses a piece of gear">🧩</button>
-    <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Toggle quiet HUD animations"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text" class="hidden sm:inline">LIVE</span></button>
-    <button id="btn-cycle-theme" class="w-8 h-8 flex items-center justify-center rounded border border-[#E2E8F030] text-[#E2E8F0]/60 hover:text-white hover:border-[#E2E8F060] cursor-pointer text-[13px]" title="Cycle HUD color theme">🎨</button>
-    <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync">
+    <button id="btn-open-shortcuts" class="hidden lg:flex items-center justify-center w-8 h-8 rounded border border-[#00FF8830] text-[#00FF88]/60 hover:text-[#00FF88] hover:border-[#00FF8860] transition-all cursor-pointer text-[11px] font-bold" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts (?)">?</button>
+    <button id="btn-toggle-focus" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF88FF40] bg-[#FF88FF]/8 text-[#FF88FF] hover:bg-[#FF88FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Now Playing — log what you're working on" aria-label="Now Playing — log what you're working on"><span>▶</span><span class="hidden sm:inline">FOCUS</span></button>
+    <button id="btn-open-colormap" class="flex items-center justify-center w-8 h-8 rounded border border-[#B18CFF40] text-[#B18CFF]/70 hover:text-[#B18CFF] hover:border-[#B18CFF80] transition-all cursor-pointer text-[13px]" title="Color key / tag color map" aria-label="Color key / tag color map">🔑</button>
+    <button id="btn-open-import" class="flex items-center justify-center w-8 h-8 rounded border border-[#00E5FF40] text-[#00E5FF]/70 hover:text-[#00E5FF] hover:border-[#00E5FF80] transition-all cursor-pointer text-[13px]" title="Import a shared tone / recipe payload" aria-label="Import a shared tone / recipe payload">⇩</button>
+    <button id="btn-open-gearindex" class="flex items-center justify-center w-8 h-8 rounded border border-[#7AFFBF40] text-[#7AFFBF]/70 hover:text-[#7AFFBF] hover:border-[#7AFFBF80] transition-all cursor-pointer text-[13px]" title="Gear index — find every recipe/tone/track that uses a piece of gear" aria-label="Gear index — find every recipe/tone/track that uses a piece of gear">🧩</button>
+    <button id="btn-toggle-quiet" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF88] bg-[#00FF88]/10 text-[#00FF88] hover:bg-[#00FF88]/20 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Toggle quiet HUD animations" aria-label="Toggle quiet HUD animations"><span class="w-1.5 h-1.5 rounded-full bg-[#00FF88] animate-pulse" id="quiet-dot"></span> <span id="quiet-text" class="hidden sm:inline">LIVE</span></button>
+    <button id="btn-cycle-theme" class="w-8 h-8 flex items-center justify-center rounded border border-[#E2E8F030] text-[#E2E8F0]/60 hover:text-white hover:border-[#E2E8F060] cursor-pointer text-[13px]" title="Cycle HUD color theme" aria-label="Cycle HUD color theme">🎨</button>
+    <button id="drive-auth-btn" class="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#FF2A2A] bg-[#FF2A2A]/10 text-[#FF2A2A] hover:bg-[#FF2A2A]/20 transition-all cursor-pointer relative group" title="Click to authenticate Google Drive Sync" aria-label="Click to authenticate Google Drive Sync">
       <svg id="drive-icon-down" class="w-3.5 h-3.5 comms-down-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/><line x1="3" y1="3" x2="21" y2="21" stroke="#FF2A2A" stroke-width="2"/></svg>
       <svg id="drive-icon-up" class="w-3.5 h-3.5 hidden drop-shadow-[0_0_8px_#00FF88]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0"/><path d="M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"/></svg>
       <span id="drive-status-text" class="hidden sm:inline text-[9px] font-bold tracking-widest uppercase mt-[1px]">INTEL COMMS DOWN</span>
     </button>
-    <button id="drive-sync-badge" type="button" class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded border transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Local vs. cloud sync status — click to sync now">
+    <button id="drive-sync-badge" type="button" class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded border transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Local vs. cloud sync status — click to sync now" aria-label="Local vs. cloud sync status — click to sync now">
       <span id="drive-sync-dot" class="w-1.5 h-1.5 rounded-full shrink-0"></span>
       <span id="drive-sync-label" class="hidden sm:inline"></span>
     </button>
     <div class="flex gap-1">
-      <button id="btn-open-vault-modal" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FFD60A40] bg-[#FFD60A]/8 text-[#FFD60A] hover:bg-[#FFD60A]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="View local storage usage">
+      <button id="btn-open-vault-modal" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FFD60A40] bg-[#FFD60A]/8 text-[#FFD60A] hover:bg-[#FFD60A]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="View local storage usage" aria-label="View local storage usage">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
         <span class="hidden sm:inline">VAULT</span>
       </button>
-      <button id="btn-backup-vault" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF8840] bg-[#00FF88]/8 text-[#00FF88] hover:bg-[#00FF88]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Download a local JSON backup of your entire vault">
+      <button id="btn-backup-vault" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00FF8840] bg-[#00FF88]/8 text-[#00FF88] hover:bg-[#00FF88]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Download a local JSON backup of your entire vault" aria-label="Download a local JSON backup of your entire vault">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
         <span class="hidden sm:inline">BACKUP</span>
       </button>
-      <button id="btn-restore-vault" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Restore vault from a local JSON backup file">
+      <button id="btn-restore-vault" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Restore vault from a local JSON backup file" aria-label="Restore vault from a local JSON backup file">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0l-4 4m4-4l4 4M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2"/></svg>
         <span class="hidden sm:inline">RESTORE</span>
       </button>
@@ -92,19 +92,19 @@
 <div id="drive-conflict-banner" class="hidden shrink-0 bg-[#1a0a0a] border-b border-[#FF2A2A50] px-4 py-2.5 items-center justify-center gap-4 flex-wrap text-[10px] md:text-[11px] relative z-40">
     <span class="text-[#FF8888] font-bold tracking-wide">⚠ VAULT CHANGED ELSEWHERE — this Drive backup was updated on another device/tab since your last sync here.</span>
     <div class="flex gap-2 items-center">
-        <button id="btn-conflict-keep-mine" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;" title="Overwrite the Drive copy with what's on this device">KEEP MY VERSION</button>
-        <button id="btn-conflict-reload-theirs" class="btn-euterpe" style="border-color:#00E5FF50;color:#00E5FF;" title="Discard local changes and reload the Drive copy">RELOAD THEIRS</button>
-        <button id="btn-conflict-dismiss" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer">×</button>
+        <button id="btn-conflict-keep-mine" class="btn-euterpe" style="border-color:#00FF8850;color:#00FF88;" title="Overwrite the Drive copy with what's on this device" aria-label="Overwrite the Drive copy with what's on this device">KEEP MY VERSION</button>
+        <button id="btn-conflict-reload-theirs" class="btn-euterpe" style="border-color:#00E5FF50;color:#00E5FF;" title="Discard local changes and reload the Drive copy" aria-label="Discard local changes and reload the Drive copy">RELOAD THEIRS</button>
+        <button id="btn-conflict-dismiss" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer" aria-label="Close">×</button>
     </div>
 </div>
 
 <div id="now-playing-bar" class="hidden shrink-0 bg-[rgba(255,136,255,0.05)] border-b border-[#FF88FF30] px-4 py-2 items-center gap-3 flex-wrap relative z-30">
     <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]/80 uppercase shrink-0 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#FF88FF] animate-pulse"></span> NOW PLAYING</span>
     <input type="text" id="now-playing-input" placeholder="What are you working on right now?" class="flex-1 min-w-[160px] bg-black/40 border border-[#FF88FF30] rounded px-3 py-1.5 text-[12px] text-[#E2E8F0] placeholder-[#E2E8F0]/25 focus:outline-none focus:border-[#FF88FF70]">
-    <button id="btn-now-playing-log" class="btn-euterpe shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
-    <button id="btn-open-recap" class="btn-euterpe shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Session recap — time + everything you logged today">📋 RECAP</button>
-    <button id="btn-now-playing-track" class="btn-euterpe shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Spin this focus into a new Channel Settings entry">＋ TRACK</button>
-    <button id="btn-now-playing-close" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer shrink-0" title="Hide">×</button>
+    <button id="btn-now-playing-log" class="btn-euterpe shrink-0" style="border-color:#00FF8850;color:#00FF88;background:rgba(0,255,136,0.08);" title="Stamp this into the active note with a timestamp" aria-label="Stamp this into the active note with a timestamp">＋ LOG TO NOTE</button>
+    <button id="btn-open-recap" class="btn-euterpe shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Session recap — time + everything you logged today" aria-label="Session recap — time + everything you logged today">📋 RECAP</button>
+    <button id="btn-now-playing-track" class="btn-euterpe shrink-0" style="border-color:#00E5FF50;color:#00E5FF;background:rgba(0,229,255,0.08);" title="Spin this focus into a new Channel Settings entry" aria-label="Spin this focus into a new Channel Settings entry">＋ TRACK</button>
+    <button id="btn-now-playing-close" class="text-[#E2E8F0]/40 hover:text-white text-[16px] font-bold leading-none px-1 bg-transparent border-0 cursor-pointer shrink-0" title="Hide" aria-label="Hide">×</button>
 </div>
 
 <div class="flex flex-1 min-h-0 overflow-hidden relative">
@@ -132,7 +132,7 @@
         <div class="w-full mt-2 h-[2px] bg-[#00FF8814] relative overflow-hidden rounded"><div id="spl-bar" class="absolute inset-y-0 left-0 bg-gradient-to-r from-[#00FF88] via-[#00E5FF] to-[#FFD60A] transition-all duration-200" style="width:0%"></div></div>
         <div class="flex justify-between w-full mt-1 text-[7px] tracking-widest text-white/25"><span>60</span><span>85</span><span>105</span></div>
         <div class="flex items-center gap-2 mt-2 w-full justify-center">
-          <button id="btn-spl-cal" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Play pink noise, match a known SPL reading from a real meter/app, then calibrate. Gauge shows estimated absolute SPL from the mic from then on.">⊕ CAL</button>
+          <button id="btn-spl-cal" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Play pink noise, match a known SPL reading from a real meter/app, then calibrate. Gauge shows estimated absolute SPL from the mic from then on." aria-label="Play pink noise, match a known SPL reading from a real meter/app, then calibrate. Gauge shows estimated absolute SPL from the mic from then on.">⊕ CAL</button>
           <span id="spl-drift" class="text-[10px] font-bold font-mono text-white/30">—</span>
         </div>
       </div>
@@ -145,11 +145,11 @@
     <section id="tab-cookbook" class="middle-tab active p-4 md:p-8 min-h-[500px]">
         <div class="flex flex-col md:flex-row items-start md:items-end justify-between border-b border-[#00FF8820] pb-2 mb-6 gap-4">
             <h2 class="text-[15px] font-bold tracking-widest text-[#00FF88]">THE ULTIMATE RECIPE BOOK</h2>
-            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-euterpe shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-euterpe shrink-0" title="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-frankenstein" class="btn-euterpe shrink-0" style="border-color:#C9FF4B50;color:#C9FF4B;background:rgba(201,255,75,0.08);" title="Fuse components from different recipes into one composite">🧟 FRANKENSTEIN</button><button id="btn-import-recipes" class="btn-euterpe shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-euterpe-green shrink-0">+ ADD RECIPE</button></div>
+            <div class="flex flex-wrap gap-2 w-full md:w-auto"><button id="btn-blend-genres" class="btn-euterpe shrink-0" style="border-color:#FFD60A50;color:#FFD60A;background:rgba(255,214,10,0.08);" title="Fuse two genres for inspiration" aria-label="Fuse two genres for inspiration">🧬 BLEND GENRES</button><button id="btn-surprise-cookbook" class="btn-euterpe shrink-0" title="Random genre + instrument combo" aria-label="Random genre + instrument combo">🎲 SURPRISE ME</button><button id="btn-frankenstein" class="btn-euterpe shrink-0" style="border-color:#C9FF4B50;color:#C9FF4B;background:rgba(201,255,75,0.08);" title="Fuse components from different recipes into one composite" aria-label="Fuse components from different recipes into one composite">🧟 FRANKENSTEIN</button><button id="btn-import-recipes" class="btn-euterpe shrink-0" style="border-color:#00E5FF50;color:#00E5FF;" title="Merge a recipe pack JSON file into your cookbook" aria-label="Merge a recipe pack JSON file into your cookbook">📦 IMPORT PACK</button><input type="file" id="recipe-pack-input" accept="application/json" class="hidden"><button id="btn-add-cookbook" class="btn-euterpe-green shrink-0">+ ADD RECIPE</button></div>
         </div>
         
         <div id="genre-blend-card" class="card mb-6 hidden relative overflow-hidden" style="border-color:#FFD60A40;">
-            <button id="btn-close-blend" type="button" class="absolute top-3 right-3 text-[#E2E8F0]/40 hover:text-white text-[14px] font-bold cursor-pointer bg-transparent border-0">×</button>
+            <button id="btn-close-blend" type="button" class="absolute top-3 right-3 text-[#E2E8F0]/40 hover:text-white text-[14px] font-bold cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <div class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold uppercase mb-2">Genre Blend // Writer's Block Cure</div>
             <h3 id="blend-title" class="text-[16px] md:text-[20px] font-bold tracking-widest text-[#FFD60A] uppercase mb-3 pr-8"></h3>
             <div id="blend-prompts" class="space-y-2 mb-4"></div>
@@ -187,10 +187,10 @@
                 <div id="genre-info-bar" class="hidden px-4 py-3 border-b border-[#00FF8810] bg-black/30 flex flex-col gap-3">
                     <span id="genre-bpm-readout" class="hidden text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span>
                     <div class="flex gap-2 flex-wrap">
-                        <button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)">📦 PACK</button>
-                        <button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button>
+                        <button id="btn-genre-pack" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#C9FF4B40] text-[#C9FF4B] hover:bg-[#C9FF4B]/10 cursor-pointer" title="Export this genre as a shareable recipe pack (.json)" aria-label="Export this genre as a shareable recipe pack (.json)">📦 PACK</button>
+                        <button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)" aria-label="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button>
                         <button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button>
-                        <button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button>
+                        <button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own" aria-label="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button>
                     </div>
                     <div class="flex flex-col gap-3 text-[9px] tracking-widest font-bold mt-1">
                         <div class="flex flex-col gap-1">
@@ -230,11 +230,11 @@
 
         <div class="card border-[#00FF8830] mb-8">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
-                <div class="flex items-center gap-2 flex-wrap"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4><button id="patchbay-match-badge" class="hidden text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border cursor-pointer uppercase" title="Whether the drawn patchbay matches your default rig"></button></div>
+                <div class="flex items-center gap-2 flex-wrap"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔌 PATCHBAY / ROUTING DIAGRAM</h4><button id="patchbay-match-badge" class="hidden text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border cursor-pointer uppercase" title="Whether the drawn patchbay matches your default rig" aria-label="Whether the drawn patchbay matches your default rig"></button></div>
                 <div class="flex gap-2 flex-wrap">
                     <button id="btn-patchbay-add-device" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">+ DEVICE</button>
-                    <button id="btn-patchbay-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" title="Load your default rig">⟳ LOAD DEFAULT</button>
-                    <button id="btn-patchbay-set-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FFD60A50] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer" title="Save the current patchbay as your default rig (what LOAD DEFAULT loads)">💾 SET AS DEFAULT</button>
+                    <button id="btn-patchbay-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" title="Load your default rig" aria-label="Load your default rig">⟳ LOAD DEFAULT</button>
+                    <button id="btn-patchbay-set-default" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FFD60A50] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer" title="Save the current patchbay as your default rig (what LOAD DEFAULT loads)" aria-label="Save the current patchbay as your default rig (what LOAD DEFAULT loads)">💾 SET AS DEFAULT</button>
                     <button id="btn-patchbay-clear" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">CLEAR ALL</button>
                 </div>
             </div>
@@ -252,7 +252,7 @@
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><div class="flex gap-2 flex-wrap"><button id="btn-monitor-rr" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Round-robin A/B timer — prompts you to check the mix on each monitor">🔁 A/B Timer</button><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><div class="flex gap-2 flex-wrap"><button id="btn-monitor-rr" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Round-robin A/B timer — prompts you to check the mix on each monitor" aria-label="Round-robin A/B timer — prompts you to check the mix on each monitor">🔁 A/B Timer</button><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet" aria-label="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export" aria-label="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
 
                 <div class="flex flex-wrap items-center gap-2 -mb-1">
@@ -373,7 +373,7 @@
     </div>
 
     <div id="tab-tracks" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">CHANNEL SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-euterpe shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-add-track" class="btn-euterpe-green shrink-0">+ ADD CONFIG</button></div></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">CHANNEL SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-euterpe shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against" aria-label="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-add-track" class="btn-euterpe-green shrink-0">+ ADD CONFIG</button></div></div>
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW CHANNEL SETTING</h3>
             <input type="hidden" id="track-id">
@@ -389,7 +389,7 @@
     </div>
 
     <div id="tab-tones" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><div class="flex gap-2"><button id="btn-tone-stages" class="btn-euterpe shrink-0" style="border-color:#FFA05C50;color:#FFA05C;background:rgba(255,160,92,0.08);" title="View tones as a gain-stage ladder">⚡ STAGES</button><button id="btn-add-tone" class="btn-euterpe shrink-0">+ ADD TONE</button></div></div>
+        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><div class="flex gap-2"><button id="btn-tone-stages" class="btn-euterpe shrink-0" style="border-color:#FFA05C50;color:#FFA05C;background:rgba(255,160,92,0.08);" title="View tones as a gain-stage ladder" aria-label="View tones as a gain-stage ladder">⚡ STAGES</button><button id="btn-add-tone" class="btn-euterpe shrink-0">+ ADD TONE</button></div></div>
         <div id="tone-stage-view" class="hidden space-y-4 mb-6"></div>
         <input type="text" id="search-tone" class="input-euterpe w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search custom library...">
         <div id="form-tone" class="card mb-6 hidden border-[#00E5FF40]">
@@ -482,7 +482,7 @@
                 <div id="lab-cof-info" class="text-center text-[11px] text-[#E2E8F0]/70 font-mono min-h-[40px]"></div>
             </div>
             <div class="card border-[#00FF8830]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🎼 SCALE & MODE HELPER</h4><button id="btn-reset-scale" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🎼 SCALE & MODE HELPER</h4><button id="btn-reset-scale" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">ROOT</label><select id="lab-scale-root" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
                     <div><label class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest block mb-1">SCALE</label><select id="lab-scale-type" class="w-full bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
@@ -494,13 +494,13 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🔑 KEY DETECTOR (FROM CHORDS)</h4><button id="btn-reset-kd" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🔑 KEY DETECTOR (FROM CHORDS)</h4><button id="btn-reset-kd" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type the chords of a song — get the most likely key(s).</p>
                 <input type="text" id="kd-in" value="Am F C G" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
                 <div id="kd-out" class="text-[12px] font-mono text-white/80 space-y-1"></div>
             </div>
             <div class="card border-[#FFD60A30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🔢 NASHVILLE NUMBER CHART</h4><button id="btn-reset-nn" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🔢 NASHVILLE NUMBER CHART</h4><button id="btn-reset-nn" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Portable chord chart — numbers instead of letters, so it works in any key.</p>
                 <div class="flex gap-2 mb-3">
                     <input type="text" id="nn-in" value="C G Am F" class="flex-1 bg-black/50 border border-[#FFD60A]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none">
@@ -512,7 +512,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#B18CFF30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#B18CFF20] pb-2"><h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎧 HARMONIC MIXING (CAMELOT)</h4><button id="btn-reset-cm" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#B18CFF20] pb-2"><h4 class="text-[11px] text-[#B18CFF] font-bold tracking-widest">🎧 HARMONIC MIXING (CAMELOT)</h4><button id="btn-reset-cm" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Which keys mix smoothly with what you've got. Pick a key:</p>
                 <div class="flex gap-2 mb-3">
                     <select id="cm-root" class="flex-1 bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF] text-[12px] px-2 py-1.5 focus:outline-none"></select>
@@ -535,7 +535,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🔁 PROGRESSION PLAYER</h4><button id="btn-reset-pp" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🔁 PROGRESSION PLAYER</h4><button id="btn-reset-pp" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords, hear them loop with a bass. Test a progression fast.</p>
                 <input type="text" id="pp-in" value="C G Am F" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
                 <div class="flex items-center gap-2">
@@ -546,7 +546,7 @@
                 </div>
             </div>
             <div class="card border-[#FFD60A30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎵 NOTE ↔ FREQUENCY</h4><button id="btn-reset-nf" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎵 NOTE ↔ FREQUENCY</h4><button id="btn-reset-nf" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <div class="flex flex-wrap items-center gap-2 mb-3">
                     <label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest">A4=</label>
                     <input type="number" id="nf-a4" value="440" min="415" max="466" class="w-16 bg-black/50 border border-[#FFD60A]/25 rounded text-center text-[12px] text-[#FFD60A] py-1 focus:outline-none">
@@ -561,7 +561,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="card border-[#00E5FF30] mb-6">
-            <div class="flex items-center justify-between mb-4 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🎹 CHORD PROGRESSION BOOK</h4><button id="btn-reset-prog" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+            <div class="flex items-center justify-between mb-4 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🎹 CHORD PROGRESSION BOOK</h4><button id="btn-reset-prog" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
             <div class="grid grid-cols-2 gap-3 mb-4 max-w-md">
                 <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">KEY</label><select id="prog-key" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"></select></div>
                 <div><label class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">TONALITY</label><select id="prog-tonality" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="major">Major</option><option value="minor">Minor</option></select></div>
@@ -589,14 +589,14 @@
                     <select id="fb-root" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
                     <select id="fb-scale" class="bg-black/50 border border-[#FFD60A]/30 rounded text-[#FFD60A] text-[10px] px-1.5 py-1 focus:outline-none"></select>
                     <div class="flex rounded overflow-hidden border border-[#FFD60A40]"><button id="fb-inst-gtr" type="button" class="px-2 py-1 text-[9px] font-bold bg-[#FFD60A]/20 text-[#FFD60A]">GTR</button><button id="fb-inst-bass" type="button" class="px-2 py-1 text-[9px] font-bold text-[#FFD60A]/50">BASS</button></div>
-                    <button id="btn-reset-fb" type="button" class="btn-tool-icon" title="Reset to defaults">↺</button>
+                    <button id="btn-reset-fb" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺</button>
                 </div>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">🔴 root · 🟡 scale tone. Tap a dot to hear the note.</p>
             <div class="overflow-x-auto"><svg id="fb-svg" viewBox="0 0 640 150" class="min-w-[560px] w-full"></svg></div>
         </div>
         <div class="card border-[#00FF8830] mb-6">
-            <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔧 TRANSPOSE & CAPO</h4><button id="btn-reset-tr" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+            <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2"><h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🔧 TRANSPOSE & CAPO</h4><button id="btn-reset-tr" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Type chords (e.g. <span class="font-mono text-[#00FF88]/70">C G Am F</span>). Slide to transpose; the capo helper finds an easier shape in the same sounding key.</p>
             <input type="text" id="tr-chords" value="C G Am F" class="w-full bg-black/50 border border-[#00FF88]/25 rounded text-[13px] font-mono text-[#C9FFE6] px-3 py-2 focus:outline-none mb-3">
             <div class="flex items-center gap-3 mb-3">
@@ -650,7 +650,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#FF88FF30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#FF88FF20] pb-2"><h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4><button id="btn-reset-rev" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FF88FF20] pb-2"><h4 class="text-[11px] text-[#FF88FF] font-bold tracking-widest">🌫️ REVERB & PRE-DELAY RECOMMENDER</h4><button id="btn-reset-rev" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">TEMPO (BPM)</label><input type="number" id="lab-rev-bpm" value="90" min="40" max="220" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-center text-[#FF88FF] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
                     <div><label class="text-[9px] text-[#FF88FF]/60 font-bold tracking-widest block mb-1">VERB TYPE</label><select id="lab-rev-type" class="w-full bg-black/50 border border-[#FF88FF]/30 rounded text-[#FF88FF] text-[12px] px-2 py-1.5 focus:outline-none"><option value="vocal">Vocal Plate</option><option value="room">Drum Room</option><option value="hall">Lush Hall</option><option value="slap">Slapback</option></select></div>
@@ -658,7 +658,7 @@
                 <div id="lab-rev-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-2"></div>
             </div>
             <div class="card border-[#FFD60A30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎤 MIC 3:1 & SPL FALLOFF</h4><button id="btn-reset-mic" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#FFD60A20] pb-2"><h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest">🎤 MIC 3:1 & SPL FALLOFF</h4><button id="btn-reset-mic" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SOURCE↔MIC (in)</label><input type="number" id="lab-mic-dist" value="6" min="1" max="120" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
                     <div><label class="text-[9px] text-[#FFD60A]/60 font-bold tracking-widest block mb-1">SPL @ MIC (dB)</label><input type="number" id="lab-mic-spl" value="94" min="40" max="140" class="w-full bg-black/50 border border-[#FFD60A]/30 rounded text-center text-[#FFD60A] text-[14px] font-bold px-2 py-1.5 focus:outline-none"></div>
@@ -669,7 +669,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">💾 FILE-SIZE & RECORD-TIME</h4><button id="btn-reset-fs" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">💾 FILE-SIZE & RECORD-TIME</h4><button id="btn-reset-fs" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">RATE</label><select id="lab-fs-rate" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="44100">44.1k</option><option value="48000" selected>48k</option><option value="88200">88.2k</option><option value="96000">96k</option><option value="192000">192k</option></select></div>
                     <div><label class="text-[8px] text-[#00E5FF]/60 font-bold tracking-widest block mb-1">BITS</label><select id="lab-fs-bits" class="w-full bg-black/50 border border-[#00E5FF]/30 rounded text-[#00E5FF] text-[11px] px-1 py-1.5 focus:outline-none"><option value="16">16</option><option value="24" selected>24</option><option value="32">32f</option></select></div>
@@ -679,7 +679,7 @@
                 <div id="lab-fs-out" class="font-mono text-[12px] text-[#E2E8F0]/80 space-y-1"></div>
             </div>
             <div class="card border-[#00E5FF30]">
-                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧮 LEVEL / dB CONVERTERS</h4><button id="btn-reset-lc" type="button" class="btn-tool-icon" title="Reset to defaults">↺ RESET</button></div>
+                <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2"><h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">🧮 LEVEL / dB CONVERTERS</h4><button id="btn-reset-lc" type="button" class="btn-tool-icon" title="Reset to defaults" aria-label="Reset to defaults">↺ RESET</button></div>
                 <div class="space-y-3">
                     <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">dBFS →</span><input type="number" id="lc-dbfs" value="-6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-dbfs-out" class="text-[11px] font-mono text-white/70"></span></div>
                     <div class="flex items-center gap-2"><span class="text-[9px] text-[#00E5FF]/60 font-bold tracking-widest w-24">GAIN dB →</span><input type="number" id="lc-gain" value="6" class="w-20 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] py-1 focus:outline-none"><span id="lc-gain-out" class="text-[11px] font-mono text-white/70"></span></div>
@@ -704,9 +704,9 @@
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">METRONOME</h4>
             <div class="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-6">
                 <div class="flex items-center gap-2">
-                    <button id="btn-metro-bpm-minus" type="button" class="w-8 h-8 rounded border border-[#00FF8840] text-[#00FF88] font-bold hover:bg-[#00FF88]/10 cursor-pointer">−</button>
+                    <button id="btn-metro-bpm-minus" type="button" class="w-8 h-8 rounded border border-[#00FF8840] text-[#00FF88] font-bold hover:bg-[#00FF88]/10 cursor-pointer" aria-label="Decrease tempo">−</button>
                     <input type="number" id="metro-bpm" value="120" min="30" max="300" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[24px] font-bold text-[#00FF88] w-24 py-1 focus:outline-none">
-                    <button id="btn-metro-bpm-plus" type="button" class="w-8 h-8 rounded border border-[#00FF8840] text-[#00FF88] font-bold hover:bg-[#00FF88]/10 cursor-pointer">+</button>
+                    <button id="btn-metro-bpm-plus" type="button" class="w-8 h-8 rounded border border-[#00FF8840] text-[#00FF88] font-bold hover:bg-[#00FF88]/10 cursor-pointer" aria-label="Increase tempo">+</button>
                     <span class="text-[10px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -768,7 +768,7 @@
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest">🥁 BEAT SKETCH — 16-STEP SEQUENCER</h4>
                 <div class="flex items-center gap-2">
                     <button id="btn-beat-play" type="button" class="btn-euterpe-green px-4 py-1.5">▶ PLAY</button>
-                    <button id="btn-beat-midi" type="button" class="btn-euterpe px-3 py-1.5" title="Export as a MIDI drum clip">↓ MIDI</button>
+                    <button id="btn-beat-midi" type="button" class="btn-euterpe px-3 py-1.5" title="Export as a MIDI drum clip" aria-label="Export as a MIDI drum clip">↓ MIDI</button>
                     <button id="btn-beat-clear" type="button" class="btn-euterpe px-3 py-1.5">CLEAR</button>
                     <input type="number" id="beat-bpm" value="90" min="40" max="220" class="bg-black/50 border border-[#00FF88]/40 rounded text-center text-[13px] font-bold text-[#00FF88] w-16 py-1 focus:outline-none">
                     <span class="text-[9px] text-[#00FF88]/50 font-bold tracking-widest">BPM</span>
@@ -777,7 +777,7 @@
             <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Synthesized drums, all in-browser. Click a cell once for a hit, again for an <span class="text-[#FFD60A]">accent</span>. Presets get you started.</p>
             <div class="flex flex-wrap items-center gap-4 mb-4">
                 <div class="flex items-center gap-2 flex-1 min-w-[180px]"><span class="text-[9px] text-[#00FF88]/60 font-bold tracking-widest shrink-0">SWING</span><input type="range" id="beat-swing" min="0" max="65" value="0" class="flex-1 accent-[#00FF88]"><span id="beat-swing-val" class="text-[10px] font-mono text-[#00FF88] w-9 text-right">0%</span></div>
-                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-euterpe px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-euterpe px-2 py-1 text-[10px]" title="Delete snapshot">🗑</button></div>
+                <div class="flex items-center gap-2"><select id="beat-snap-slot" class="bg-black/50 border border-[#00FF88]/30 rounded text-[#00FF88] text-[10px] px-2 py-1 focus:outline-none"><option value="">— snapshots —</option></select><button id="btn-beat-snap-save" type="button" class="btn-euterpe px-2.5 py-1 text-[10px]">SAVE</button><button id="btn-beat-snap-del" type="button" class="btn-euterpe px-2 py-1 text-[10px]" title="Delete snapshot" aria-label="Delete snapshot">🗑</button></div>
             </div>
             <div class="flex flex-wrap gap-2 mb-4" id="beat-presets"></div>
             <div id="beat-grid" class="space-y-1.5 overflow-x-auto"></div>
@@ -796,7 +796,7 @@
             <div class="flex flex-wrap gap-2 mb-3">
                 <button id="btn-kb-rec" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A">● REC</button>
                 <button id="btn-kb-play" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">▶ PLAY BACK</button>
-                <button id="btn-kb-midi" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI">↓ MIDI</button>
+                <button id="btn-kb-midi" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" title="Export recorded lick as MIDI" aria-label="Export recorded lick as MIDI">↓ MIDI</button>
                 <button id="btn-kb-clear" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]">CLEAR</button>
                 <span id="kb-status" class="text-[10px] font-mono text-[#00E5FF]/60 self-center"></span>
             </div>
@@ -1160,7 +1160,7 @@
                 <input type="text" id="songboard-len" placeholder="m:ss (optional)" class="w-24 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none">
                 <input type="number" id="songboard-bpm" placeholder="bpm" min="40" max="300" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[12px] text-[#00E5FF] px-2 py-1.5 focus:outline-none" title="Tempo — carries into this song's arrangement, lyrics, and AI prompt generation">
                 <button id="btn-songboard-add" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">+ ADD SONG</button>
-                <button id="btn-songboard-paste-tagged" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once">📋 PASTE TAGGED SONG</button>
+                <button id="btn-songboard-paste-tagged" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once" aria-label="Paste a whole song with [Section] headers — creates the song, its arrangement, and its lyric sheet all at once">📋 PASTE TAGGED SONG</button>
             </div>
             <div id="songboard-paste-panel" class="hidden mb-4 p-3 rounded border border-[#00E5FF40] bg-black/30">
                 <p class="text-[9px] text-[#E2E8F0]/50 mb-2">Uses the title above (or "Untitled"). Paste lyrics with <code class="text-[#00E5FF]">[Section]</code> headers on their own line — creates the song, builds its arrangement from the detected sections, and loads the tagged lyrics into a linked sheet.</p>
@@ -1185,7 +1185,7 @@
             <div class="flex flex-wrap items-center gap-2 mb-2">
                 <select id="arr-song-select" class="flex-1 min-w-[140px] bg-black/50 border border-[#B18CFF]/25 rounded text-[#B18CFF]/80 text-[10px] px-2 py-1.5 focus:outline-none"><option value="">— choose a song —</option></select>
                 <button id="btn-arr-attach" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF">🔗 ATTACH TO SONG</button>
-                <button id="btn-arr-paste-tagged" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — rebuilds the arrangement for the song selected above and loads its lyrics too">📋 PASTE TAGGED</button>
+                <button id="btn-arr-paste-tagged" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — rebuilds the arrangement for the song selected above and loads its lyrics too" aria-label="Paste a whole song with [Section] headers — rebuilds the arrangement for the song selected above and loads its lyrics too">📋 PASTE TAGGED</button>
             </div>
             <div id="arr-attached-label" class="text-[9px] text-[#B18CFF]/60 mb-2 hidden"></div>
             <div id="arr-paste-panel" class="hidden mb-3 p-3 rounded border border-[#B18CFF40] bg-black/30">
@@ -1201,7 +1201,7 @@
             <div id="arr-bar" class="flex w-full h-6 rounded overflow-hidden border border-[#B18CFF20] mb-2"></div>
             <div class="flex items-center justify-between gap-2 flex-wrap">
                 <div id="arr-total" class="text-[11px] font-mono text-[#B18CFF] font-bold"></div>
-                <button id="btn-arr-markers" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
+                <button id="btn-arr-markers" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export regions as a CSV you can import into REAPER's Region/Marker Manager" aria-label="Export regions as a CSV you can import into REAPER's Region/Marker Manager">↓ DAW MARKERS (.CSV)</button>
             </div>
         </div>
 
@@ -1242,15 +1242,15 @@
 
         <!-- toolbar -->
         <div class="flex flex-wrap items-center gap-2 mb-4">
-            <button id="btn-lyr-cutup" type="button" class="btn-euterpe px-4 py-2" style="border-color:#FF88FF80;color:#FF88FF;background:rgba(255,136,255,0.12)" title="Bowie/Cobain cut-up — randomize line order">✂️ CUT-UP SHUFFLE</button>
-            <button id="btn-lyr-cutup-sec" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Shuffle only within each section">SHUFFLE IN SECTION</button>
-            <button id="btn-lyr-undo" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Undo last shuffle/edit">↶ UNDO</button>
+            <button id="btn-lyr-cutup" type="button" class="btn-euterpe px-4 py-2" style="border-color:#FF88FF80;color:#FF88FF;background:rgba(255,136,255,0.12)" title="Bowie/Cobain cut-up — randomize line order" aria-label="Bowie/Cobain cut-up — randomize line order">✂️ CUT-UP SHUFFLE</button>
+            <button id="btn-lyr-cutup-sec" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Shuffle only within each section" aria-label="Shuffle only within each section">SHUFFLE IN SECTION</button>
+            <button id="btn-lyr-undo" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Undo last shuffle/edit" aria-label="Undo last shuffle/edit">↶ UNDO</button>
             <button id="btn-lyr-add-line" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">+ LINE</button>
-            <button id="btn-lyr-paste-tagged" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement">📋 PASTE TAGGED</button>
+            <button id="btn-lyr-paste-tagged" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement" aria-label="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement">📋 PASTE TAGGED</button>
             <label class="flex items-center gap-1.5 text-[9px] text-[#FF88FF]/70 tracking-widest cursor-pointer ml-1"><input type="checkbox" id="lyr-show-syl" class="accent-[#FF88FF]" checked> SYLLABLES</label>
             <div class="flex-1"></div>
             <button id="btn-lyr-export" type="button" class="btn-euterpe px-3 py-2 text-[10px]">↓ .TXT</button>
-            <button id="btn-lyr-print" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet">🖨 PRINT</button>
+            <button id="btn-lyr-print" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet" aria-label="Printable / PDF lyric sheet">🖨 PRINT</button>
         </div>
 
         <!-- paste-tagged panel: paste a full song written with [Section] headers, parse into tagged lines + arrangement -->
@@ -1273,16 +1273,16 @@
             <div id="lyr-analyze-tools" class="hidden flex-wrap items-center gap-2">
                 <button id="btn-lyr-read" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">🔊 READ ALOUD</button>
                 <div class="flex items-center gap-1.5"><span class="text-[8px] text-[#00E5FF]/60 tracking-widest">RATE</span><input type="range" id="lyr-read-rate" min="60" max="140" value="95" class="w-16 accent-[#00E5FF]"></div>
-                <button id="btn-lyr-spark" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line">✨ SPARK</button>
+                <button id="btn-lyr-spark" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line" aria-label="Random word to spark a line">✨ SPARK</button>
                 <span id="lyr-spark-out" class="text-[11px] text-[#FFD60A] font-bold italic"></span>
-                <button id="btn-lyr-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the whole lyric sheet as plain text">📋 COPY</button>
+                <button id="btn-lyr-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the whole lyric sheet as plain text" aria-label="Copy the whole lyric sheet as plain text">📋 COPY</button>
             </div>
         </div>
 
         <!-- line editor (EDIT mode) -->
         <div id="lyr-select-bar" class="hidden items-center gap-2 mb-2 p-2 rounded border border-[#FFD60A40] bg-[#FFD60A]/5 flex-wrap">
             <span id="lyr-select-count" class="text-[10px] font-bold text-[#FFD60A] tracking-widest"></span>
-            <button id="btn-lyr-punch-selected" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punch up only the checked lines, alternatives inserted right below each">↑ PUNCH UP SELECTED</button>
+            <button id="btn-lyr-punch-selected" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punch up only the checked lines, alternatives inserted right below each" aria-label="Punch up only the checked lines, alternatives inserted right below each">↑ PUNCH UP SELECTED</button>
             <button id="btn-lyr-delete-selected" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF888880;color:#FF8888">🗑 DELETE SELECTED</button>
             <button id="btn-lyr-clear-selected" type="button" class="text-[10px] font-bold text-[#E2E8F0]/40 ml-auto">CLEAR</button>
         </div>
@@ -1345,9 +1345,9 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 <button id="btn-ai-lyr-gen" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]">✨ GENERATE</button>
-                <button id="btn-ai-lyr-cont" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet">↳ CONTINUE</button>
-                <button id="btn-ai-lyr-punch" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
-                <button id="btn-ai-lyr-title" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines">🏷 TITLES</button>
+                <button id="btn-ai-lyr-cont" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet" aria-label="Continue from what's on the sheet">↳ CONTINUE</button>
+                <button id="btn-ai-lyr-punch" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked" aria-label="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
+                <button id="btn-ai-lyr-title" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines" aria-label="Suggest titles / hook lines">🏷 TITLES</button>
                 <span id="ai-lyr-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
             </div>
             <div id="ai-lyr-titles" class="hidden flex-wrap gap-1.5 mt-2"></div>
@@ -1363,7 +1363,7 @@
        #tbx-panel-arrange, which is only shown when that Toolbox pill is selected, so the modal could never actually display. -->
   <div id="song-detail-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
       <div class="w-full max-w-lg relative">
-          <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 z-10 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center">×</button>
+          <button id="song-detail-close" type="button" class="absolute -top-3 -right-3 z-10 w-7 h-7 rounded-full bg-[#050807] border border-white/20 text-white/60 hover:text-[#00E5FF] hover:border-[#00E5FF60] text-[14px] font-bold flex items-center justify-center" aria-label="Close">×</button>
           <button id="song-detail-export-rpp" type="button" class="absolute -top-3 right-7 z-10 text-[10px] bg-[#FFD60A20] border border-[#FFD60A40] text-[#FFD60A] px-2 py-1 rounded hover:bg-[#FFD60A40] transition uppercase font-bold tracking-wider shadow-[0_0_8px_rgba(255,214,10,0.15)] whitespace-nowrap">
               🎛️ Export .RPP
           </button>
@@ -1381,7 +1381,7 @@
               <button id="song-detail-arr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF"></button>
               <button id="song-detail-lyr-btn" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF"></button>
           </div>
-          <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-5" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
+          <button id="song-detail-lyria-btn" type="button" class="btn-euterpe w-full px-3 py-2 text-[10px] mb-5" style="border-color:#00E5FF80;color:#00E5FF" title="Opens the Lyria Prompt Generator pre-loaded with this song's tempo" aria-label="Opens the Lyria Prompt Generator pre-loaded with this song's tempo">🎼 LYRIA PROMPT (uses this song's tempo)</button>
           <div class="border-t border-[#00E5FF20] pt-4 mb-5">
               <div class="text-[9px] text-[#00E5FF]/60 tracking-widest mb-2">🎚️ LINKED TRACKS (CHANNEL SETTINGS)</div>
               <div id="song-detail-tracks-list" class="space-y-1.5 mb-3"></div>
@@ -1431,7 +1431,7 @@
   <!-- AI SETTINGS MODAL -->
   <div id="ai-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
     <div class="w-full max-w-lg bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
-      <div class="flex items-center justify-between px-5 py-3 border-b border-[#00E5FF20]"><h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF]">✨ AI CO-PILOT SETUP</h3><button id="ai-modal-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button></div>
+      <div class="flex items-center justify-between px-5 py-3 border-b border-[#00E5FF20]"><h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF]">✨ AI CO-PILOT SETUP</h3><button id="ai-modal-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button></div>
       <div class="p-5 space-y-4">
         <div>
           <label class="text-[9px] text-[#00E5FF]/70 font-bold tracking-widest block mb-1.5">CONNECTION</label>
@@ -1509,7 +1509,7 @@
   <!-- GIG BAG MODAL -->
   <div id="gigbag-modal" class="fixed inset-0 bg-[#050807]/92 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
     <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
-      <div class="flex items-center justify-between px-5 py-3 border-b border-[#00E5FF20]"><h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF]">🎒 BUILD A GIG-BAG BUNDLE</h3><button id="gigbag-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button></div>
+      <div class="flex items-center justify-between px-5 py-3 border-b border-[#00E5FF20]"><h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF]">🎒 BUILD A GIG-BAG BUNDLE</h3><button id="gigbag-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button></div>
       <div class="p-5 max-h-[60vh] overflow-y-auto space-y-4" id="gigbag-body"></div>
       <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-[#00E5FF20]">
         <span id="gigbag-count" class="text-[10px] text-[#00E5FF]/50 font-mono">0 items selected</span>
@@ -1548,7 +1548,7 @@
 </div>
 
 <div id="chain-modal" class="fixed inset-0 bg-[#050807]/95 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center p-4 md:p-12">
-    <button id="close-chain-modal" class="absolute top-6 right-8 text-white/50 hover:text-[#00FF88] font-bold text-[32px] cursor-pointer transition-colors">×</button>
+    <button id="close-chain-modal" class="absolute top-6 right-8 text-white/50 hover:text-[#00FF88] font-bold text-[32px] cursor-pointer transition-colors" aria-label="Close">×</button>
     <div class="text-[#00FF88] tracking-[0.2em] font-bold text-[14px] absolute top-8 left-8 uppercase" id="chain-modal-title">PLUGIN CHAIN</div>
     <div class="flex items-center gap-4 md:gap-8 overflow-x-auto w-full h-full pb-8 pt-16 scrollbar-hide" id="chain-modal-content"></div>
 </div>
@@ -1556,7 +1556,7 @@
 <div id="vault-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8" style="padding-top: 8vh;">
     <div class="w-full max-w-lg">
         <div class="card border-[#FFD60A40] relative">
-            <button id="close-vault-modal" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer">×</button>
+            <button id="close-vault-modal" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">Vault Storage</h3>
             <p class="text-[10px] text-[#E2E8F0]/40 mb-5">What's actually taking up space on this device.</p>
             <div id="vault-storage-content" class="space-y-5 text-[11px]">
@@ -1592,7 +1592,7 @@
 <div id="shortcuts-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 8vh;">
     <div class="w-full max-w-md">
         <div class="card border-[#00FF8840] relative">
-            <button id="close-shortcuts-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0">×</button>
+            <button id="close-shortcuts-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#00FF88] uppercase mb-5 pr-8">⌨️ Keyboard Shortcuts</h3>
             <div class="space-y-2.5 text-[11px]">
                 <div class="flex justify-between"><span class="text-[#E2E8F0]/60">Search everything</span><kbd class="px-2 py-0.5 rounded bg-black/50 border border-[#00E5FF30] text-[#00E5FF] font-mono">⌘/Ctrl K</kbd></div>
@@ -1608,7 +1608,7 @@
 <div id="history-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
     <div class="w-full max-w-xl">
         <div class="card border-[#FF88FF40] relative">
-            <button id="close-history-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0">×</button>
+            <button id="close-history-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase mb-1 pr-8">🕐 Version History</h3>
             <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Last 3 versions before your most recent edits. Restoring replaces the current chain text — your current version isn't lost, it just becomes the newest history entry.</p>
             <div id="history-modal-content" class="space-y-3"></div>
@@ -1619,7 +1619,7 @@
 <div id="lyria-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
     <div class="w-full max-w-xl">
         <div class="card border-[#00E5FF40] relative">
-            <button id="close-lyria-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0">×</button>
+            <button id="close-lyria-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF] uppercase mb-1 pr-8">🎼 Lyria Prompt Generator</h3>
             <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Builds a music-generation prompt from a genre's actual recipe data, plus anything specific you want included. Attach a song and its lyrics come back as their own boxes, split under Lyria's ~3,000-character limit — copy Part 1 in, generate, then extend with Part 2, Part 3, and so on.</p>
 
@@ -1649,7 +1649,7 @@
 
             <div class="flex gap-2 mb-4">
                 <button id="btn-lyria-generate" type="button" class="btn-euterpe-green flex-1">GENERATE PROMPT</button>
-                <button id="btn-lyria-regenerate" type="button" class="btn-euterpe hidden" title="Generate a different variation">🎲</button>
+                <button id="btn-lyria-regenerate" type="button" class="btn-euterpe hidden" title="Generate a different variation" aria-label="Generate a different variation">🎲</button>
                 <button id="btn-lyria-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
             </div>
 
@@ -1680,7 +1680,7 @@
             <div class="flex items-center gap-3 px-4 py-3 border-b border-[#00E5FF20]">
                 <svg class="w-4 h-4 text-[#00E5FF]/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" id="cmdk-input" class="bg-transparent flex-1 outline-none text-[13px] text-[#E2E8F0] placeholder-[#E2E8F0]/30" placeholder="Search recipes, tones, links, scripts, or tags...">
-                <button id="cmdk-close" class="text-white/40 hover:text-white text-[18px] leading-none shrink-0">×</button>
+                <button id="cmdk-close" class="text-white/40 hover:text-white text-[18px] leading-none shrink-0" aria-label="Close">×</button>
             </div>
             <div id="cmdk-tagbar" class="flex flex-wrap gap-1.5 px-4 py-3 border-b border-[#00E5FF14]"></div>
             <div id="cmdk-results" class="max-h-[50vh] overflow-y-auto p-2"></div>
@@ -1695,7 +1695,7 @@
     <div class="w-full max-w-3xl bg-[#0a0f0d] border border-[#B18CFF40] rounded-lg shadow-[0_0_40px_rgba(177,140,255,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#B18CFF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#B18CFF] uppercase">🔑 Tag Color Map &amp; Health</h3>
-            <button id="colormap-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="colormap-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div id="colormap-body" class="p-5 space-y-6 text-[11px]"></div>
     </div>
@@ -1705,7 +1705,7 @@
     <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#FF88FF40] rounded-lg shadow-[0_0_40px_rgba(255,136,255,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#FF88FF20]">
             <h3 id="export-title" class="text-[12px] font-bold tracking-widest text-[#FF88FF] uppercase truncate pr-4">📤 Export / Share</h3>
-            <button id="export-close" class="text-white/40 hover:text-white text-[20px] leading-none shrink-0">×</button>
+            <button id="export-close" class="text-white/40 hover:text-white text-[20px] leading-none shrink-0" aria-label="Close">×</button>
         </div>
         <div class="p-5 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5">
             <div class="min-w-0">
@@ -1729,7 +1729,7 @@
     <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">⇩ Import shared payload</h3>
-            <button id="import-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="import-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <p class="text-[10px] text-[#E2E8F0]/50 mb-3">Paste a <b class="text-white">EUTERPE TONE</b> or <b class="text-white">EUTERPE RECIPE</b> block (from a 📤 export) to add it to your vault.</p>
@@ -1746,7 +1746,7 @@
     <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#FFD60A40] rounded-lg shadow-[0_0_40px_rgba(255,214,10,0.12)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#FFD60A20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#FFD60A] uppercase">📋 Session recap</h3>
-            <button id="recap-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="recap-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <div id="recap-body" class="text-[11px] text-[#E2E8F0]/85 font-mono whitespace-pre-wrap leading-relaxed"></div>
@@ -1759,7 +1759,7 @@
 </div>
 
 <div id="cookmode-modal" class="fixed inset-0 bg-[#050807]/97 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center p-6">
-    <button id="cookmode-close" class="absolute top-4 right-5 text-white/40 hover:text-white text-[26px] leading-none">×</button>
+    <button id="cookmode-close" class="absolute top-4 right-5 text-white/40 hover:text-white text-[26px] leading-none" aria-label="Close">×</button>
     <div class="w-full max-w-2xl text-center">
         <div id="cookmode-tag" class="text-[10px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase mb-2"></div>
         <div id="cookmode-title" class="text-[15px] font-bold tracking-widest text-[#00FF88] uppercase mb-8"></div>
@@ -1781,7 +1781,7 @@
     <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#FFD60A40] rounded-lg shadow-[0_0_40px_rgba(255,214,10,0.12)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#FFD60A20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#FFD60A] uppercase">🔌 Cable &amp; Connector Cheat-Sheet</h3>
-            <button id="cable-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="cable-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-white/80 font-mono leading-relaxed">
             <div class="p-3 rounded border border-white/10 bg-black/40"><div class="text-[#00E5FF] font-bold tracking-widest mb-2 text-[10px] uppercase">TS — ¼" Mono</div>Unbalanced. Tip + Sleeve. Instruments &amp; short unbalanced runs. On the Volt: <b class="text-white">back main outs</b> &amp; the instrument input.</div>
@@ -1799,7 +1799,7 @@
     <div class="w-full max-w-lg bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">✅ Pre-Export Reference Check</h3>
-            <button id="preexport-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="preexport-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <p class="text-[10px] text-[#E2E8F0]/50 mb-4">Walk the mix across every monitor path before you bounce.</p>
@@ -1816,7 +1816,7 @@
     <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#B18CFF40] rounded-lg shadow-[0_0_40px_rgba(177,140,255,0.12)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#B18CFF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#B18CFF] uppercase">★ Reference Shelf</h3>
-            <button id="refshelf-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="refshelf-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <p class="text-[10px] text-[#E2E8F0]/50 mb-3">Commercial songs you mix against — with their loudness and what you're listening for.</p>
@@ -1836,7 +1836,7 @@
     <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">📦 Import Pack — pick what to merge</h3>
-            <button id="selimport-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="selimport-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <div class="flex items-center gap-3 mb-3 text-[10px]">
@@ -1855,7 +1855,7 @@
     <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#7AFFBF40] rounded-lg shadow-[0_0_40px_rgba(122,255,191,0.12)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#7AFFBF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#7AFFBF] uppercase">🧩 Gear Index</h3>
-            <button id="gearindex-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="gearindex-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <input type="text" id="gearindex-input" placeholder="Type a plugin / amp / IR…  e.g. 1176, API, V30" class="w-full bg-black/50 border border-[#7AFFBF30] rounded px-3 py-2 text-[12px] text-[#E2E8F0] focus:outline-none focus:border-[#7AFFBF70] mb-3">
@@ -1869,7 +1869,7 @@
     <div class="w-full max-w-3xl bg-[#0a0f0d] border border-[#7FA8D940] rounded-lg shadow-[0_0_40px_rgba(127,168,217,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#7FA8D920]">
             <h3 id="tonechain-title" class="text-[12px] font-bold tracking-widest text-[#7FA8D9] uppercase truncate pr-4">🔗 Signal Chain</h3>
-            <button id="tonechain-close" class="text-white/40 hover:text-white text-[20px] leading-none shrink-0">×</button>
+            <button id="tonechain-close" class="text-white/40 hover:text-white text-[20px] leading-none shrink-0" aria-label="Close">×</button>
         </div>
         <div id="tonechain-flow" class="p-6"></div>
     </div>
@@ -1879,7 +1879,7 @@
     <div class="w-full max-w-2xl bg-[#0a0f0d] border border-[#00E5FF40] rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.15)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#00E5FF20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#00E5FF] uppercase">⚖ A/B Tone Compare</h3>
-            <button id="ab-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="ab-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <div class="grid grid-cols-2 gap-3 mb-4">
@@ -1896,7 +1896,7 @@
     <div class="w-full max-w-xl bg-[#0a0f0d] border border-[#C9FF4B40] rounded-lg shadow-[0_0_40px_rgba(201,255,75,0.12)]">
         <div class="flex items-center justify-between px-5 py-4 border-b border-[#C9FF4B20]">
             <h3 class="text-[12px] font-bold tracking-widest text-[#C9FF4B] uppercase">🧟 Frankenstein Builder</h3>
-            <button id="frank-close" class="text-white/40 hover:text-white text-[20px] leading-none">×</button>
+            <button id="frank-close" class="text-white/40 hover:text-white text-[20px] leading-none" aria-label="Close">×</button>
         </div>
         <div class="p-5">
             <p class="text-[10px] text-[#E2E8F0]/50 mb-4">Pick components from any genres and fuse their chains into one composite recipe.</p>

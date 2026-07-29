@@ -3,7 +3,7 @@
 // so returning clients pick up the new copy instead of a stale cache.
 // Keep the number in sync with window.APP_VERSION at the top of index.html —
 // one version number for both, not two drifting counters.
-const CACHE_VERSION = 'ferrett-os-v111';
+const CACHE_VERSION = 'ferrett-os-v114';
 
 const APP_SHELL = [
   './',
@@ -13,7 +13,8 @@ const APP_SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png',
+  './icons/favicon.png',
+  './icons/splash.jpg',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap'
 ];

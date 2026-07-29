@@ -3402,6 +3402,50 @@ window.lyriaSongBlock = (songId) => {
         .filter(s => window.lyriaSongBlock(s.id))
         .map(s => ({ id: s.id, title: s.title || 'Untitled' }));
 
+    // Modern text-to-music models take the style/genre description and the lyric sheet as two
+    // separate fields, and both are capped — a style box loses everything past ~1,000 characters,
+    // a lyrics box past ~3,000. Mixing them, or overflowing either, is why a prompt that reads fine
+    // comes back with the model singing the section tags. This box owns the lyrics-side split.
+    window.LYRIA_STYLE_CHAR_LIMIT = 1000;
+    window.LYRIA_LYRICS_CHAR_LIMIT = 3000;
+
+    // Splits a lyricsBlock (blocks separated by a blank line, each headed by its own [Section] tag —
+    // the shape lyriaSongBlock() builds) into chunks that fit the lyrics-box limit, breaking ONLY at
+    // section boundaries so a chunk is never handed to Lyria mid-section. A single section that is
+    // by itself bigger than the limit (a very long verse) is the one case that still has to be cut
+    // mid-section — it splits by line instead, repeating the header on each fragment so every part
+    // still reads as belonging to that section.
+    window.splitLyricsForLyria = (lyricsBlock, limit) => {
+        limit = limit || window.LYRIA_LYRICS_CHAR_LIMIT;
+        const blocks = String(lyricsBlock || '').split(/\n\n+/).filter(Boolean);
+        const chunks = [];
+        let current = [];
+        const flush = () => { if (current.length) { chunks.push(current.join('\n\n')); current = []; } };
+
+        blocks.forEach(block => {
+            if (block.length > limit) {
+                flush();
+                const lines = block.split('\n');
+                const header = lines[0];
+                let sub = [header];
+                lines.slice(1).forEach(line => {
+                    if (sub.concat(line).join('\n').length > limit && sub.length > 1) {
+                        chunks.push(sub.join('\n'));
+                        sub = [`${header} (cont.)`];
+                    }
+                    sub.push(line);
+                });
+                if (sub.length > 1) chunks.push(sub.join('\n'));
+                return;
+            }
+            const candidateLen = current.join('\n\n').length + (current.length ? 2 : 0) + block.length;
+            if (candidateLen > limit && current.length) flush();
+            current.push(block);
+        });
+        flush();
+        return chunks.length ? chunks : [''];
+    };
+
     window.buildLyriaPrompt = (genre, customNotes, bpmOverride) => {
         const meta = window.getGenreMeta(genre);
         const bpm = bpmOverride || window.getGenreBpmMid(genre);
@@ -3475,11 +3519,15 @@ window.lyriaSongBlock = (songId) => {
         const sync = () => {
             const blk = sel.value ? window.lyriaSongBlock(sel.value) : null;
             if (blk && blk.bpm) { const b = document.getElementById('lyria-bpm'); if (b) b.value = blk.bpm; }
+            const lyricsNote = blk
+                ? (() => { const n = window.splitLyricsForLyria(blk.lyricsBlock, window.LYRIA_LYRICS_CHAR_LIMIT).length;
+                    return n > 1 ? `lyrics split into ${n} parts for Lyria's ~3,000-char box` : `lyrics fit in one ${blk.lyricsBlock.length}-char part`; })()
+                : '';
             if (note) note.innerHTML = !songs.length
                 ? 'No song has lyrics yet — write some in Lyrics Lab and link the sheet to a Song Board song.'
                 : blk
-                    ? `${blk.sections} section${blk.sections===1?'':'s'} · ${blk.timed ? 'timed from its arrangement' : 'no arrangement yet, so tags go in without times'}${blk.bpm?` · ${blk.bpm} BPM`:''}. Lyrics are copied in exactly as written — the AI never rewrites them.`
-                    : 'Pick a song and its lyrics go into the prompt verbatim, with <code class="text-[#FF88FF]">[Section]</code> tags and timings from its arrangement. Leave on “none” for an instrumental.';
+                    ? `${blk.sections} section${blk.sections===1?'':'s'} · ${blk.timed ? 'timed from its arrangement' : 'no arrangement yet, so tags go in without times'}${blk.bpm?` · ${blk.bpm} BPM`:''} · ${lyricsNote}. Copied in exactly as written — the AI never rewrites them.`
+                    : 'Pick a song and its lyrics come back as their own boxes, with <code class="text-[#FF88FF]">[Section]</code> tags and timings from its arrangement. Leave on “none” for an instrumental.';
         };
         sel.onchange = sync;
         sync();
@@ -3508,9 +3556,12 @@ window.lyriaSongBlock = (songId) => {
             }
         }
         document.getElementById('lyria-output-wrap')?.classList.add('hidden');
+        document.getElementById('lyria-lyrics-wrap')?.classList.add('hidden');
+        const lyricsParts = document.getElementById('lyria-lyrics-parts'); if (lyricsParts) lyricsParts.innerHTML = '';
         document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
         const notesEl = document.getElementById('lyria-custom-notes'); if (notesEl) notesEl.value = '';
         const aiNote = document.getElementById('lyria-ai-note'); if (aiNote) aiNote.textContent = '';
+        const styleOut = document.getElementById('lyria-output-style'); if (styleOut) styleOut.value = '';
         document.getElementById('lyria-modal')?.classList.replace('hidden', 'flex');
     };
     window.closeLyriaModal = () => document.getElementById('lyria-modal')?.classList.replace('flex', 'hidden');
@@ -3520,6 +3571,34 @@ window.lyriaSongBlock = (songId) => {
     // configured the draft becomes the AI's brief rather than the final answer — the model writes the
     // prose, but it is writing from this genre's real recipes and this producer's real direction,
     // not from the genre name alone.
+    // Renders the lyrics half of the modal into standalone, individually-copyable parts. Kept apart
+    // from runLyriaGenerate because it depends only on which song is attached, not on whether the AI
+    // path runs — the parts should be on screen instantly, before any network round trip.
+    window.renderLyriaLyrics = (song) => {
+        const wrap = document.getElementById('lyria-lyrics-wrap');
+        const container = document.getElementById('lyria-lyrics-parts');
+        if (!wrap || !container) return;
+        if (!song || !song.lyricsBlock) {
+            wrap.classList.add('hidden'); container.innerHTML = '';
+            if (window.__lyriaLastBuilt) window.__lyriaLastBuilt.lyricsParts = 0;
+            return;
+        }
+        const parts = window.splitLyricsForLyria(song.lyricsBlock, window.LYRIA_LYRICS_CHAR_LIMIT);
+        if (window.__lyriaLastBuilt) window.__lyriaLastBuilt.lyricsParts = parts.length;
+        container.innerHTML = parts.map((text, i) => `
+            <div class="border border-[#FF88FF]/30 rounded p-2">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]">PART ${i + 1} OF ${parts.length}</span>
+                    <span class="text-[9px] font-mono ${text.length > window.LYRIA_LYRICS_CHAR_LIMIT ? 'text-[#FF5A5A]' : 'text-[#FF88FF]/50'}">${text.length} / ${window.LYRIA_LYRICS_CHAR_LIMIT}</span>
+                </div>
+                <textarea readonly class="w-full bg-black/60 border border-[#FF88FF]/20 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-28 resize-none focus:outline-none">${window.escapeHtml(text)}</textarea>
+                <button type="button" data-copy-part="${i}" class="btn-euterpe w-full mt-2 text-[10px]">📋 COPY PART ${i + 1}${i === 0 ? ' — start here' : ` — extend with this`}</button>
+            </div>
+        `).join('');
+        container._parts = parts;
+        wrap.classList.remove('hidden');
+    };
+
     window.runLyriaGenerate = async () => {
         const genre = document.getElementById('lyria-genre-select')?.value; if (!genre) return;
         const bpm = parseInt(document.getElementById('lyria-bpm')?.value, 10) || undefined;
@@ -3527,11 +3606,20 @@ window.lyriaSongBlock = (songId) => {
         const songId = document.getElementById('lyria-song-select')?.value || '';
         const song = songId ? window.lyriaSongBlock(songId) : null;
         const built = window.buildLyriaPrompt(genre, notes, bpm);
-        // The lyric block is kept beside the description rather than glued into it, so AI Enhance can
-        // rewrite the description later without the lyrics ever being in the text it is handed.
         window.__lyriaLastBuilt = { ...built, song };
-        const withLyrics = (desc) => song ? `${desc}\n\n${song.lyricsBlock}` : desc;
-        const out = document.getElementById('lyria-output'); if (out) out.value = withLyrics(built.prompt);
+
+        const styleOut = document.getElementById('lyria-output-style');
+        const setStyle = (text) => {
+            if (styleOut) styleOut.value = text;
+            const countEl = document.getElementById('lyria-style-count');
+            if (countEl) {
+                countEl.textContent = `${text.length} / ${window.LYRIA_STYLE_CHAR_LIMIT}`;
+                countEl.className = `text-[9px] font-mono ${text.length > window.LYRIA_STYLE_CHAR_LIMIT ? 'text-[#FF5A5A]' : 'text-[#00E5FF]/50'}`;
+            }
+        };
+        setStyle(built.prompt);
+        window.renderLyriaLyrics(song);
+
         document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
         document.getElementById('btn-lyria-hide')?.classList.remove('hidden');
@@ -3539,10 +3627,11 @@ window.lyriaSongBlock = (songId) => {
         // Say out loud which roles your own direction took over. Silently dropping a whole instrument
         // from the description looks like a bug unless the reason is on screen next to it.
         const note = document.getElementById('lyria-ai-note');
-        const setNote = (msg, ok) => { if (note) { note.textContent = msg; note.className = `text-[10px] mt-1 ${ok ? 'text-[#7AFFBF]/80' : 'text-[#FF5A5A]/80'}`; } };
+        const setNote = (msg, ok) => { if (note) { note.textContent = msg; note.className = `text-[10px] mt-3 ${ok ? 'text-[#7AFFBF]/80' : 'text-[#FF5A5A]/80'}`; } };
         const covers = built.dropped.length ? ` Your direction covers ${built.dropped.join(', ')}, so those were left out to avoid doubling up.` : '';
+        const partsNote = song ? ` Lyrics are split into ${window.__lyriaLastBuilt.lyricsParts || 1} part${(window.__lyriaLastBuilt.lyricsParts || 1) === 1 ? '' : 's'} below.` : '';
         if (!window.__aiIsConfigured || !window.__aiIsConfigured() || !window.ferrettAI) {
-            setNote(('Offline draft — add an API key for a written prompt.' + covers).trim(), !!covers);
+            setNote(('Offline draft — add an API key for a written prompt.' + partsNote + covers).trim(), !!(partsNote || covers));
             return;
         }
         const gen = document.getElementById('btn-lyria-generate');
@@ -3587,12 +3676,12 @@ window.lyriaSongBlock = (songId) => {
             const written = await window.ferrettAI(sys, user, { creative: true });
             const spent = window.__aiUsage?.end();
             const spentStr = window.__aiUsage?.summary(spent) || '';
-            if (written && written.trim() && out) {
+            if (written && written.trim()) {
                 const desc = written.trim().replace(/^["'\s]+|["'\s]+$/g, '');
                 window.__lyriaLastBuilt.written = desc; // remembered so Enhance can work on it alone
-                out.value = withLyrics(desc);
+                setStyle(desc);
             }
-            setNote(((song ? `Written around “${song.title}” — its lyrics are appended untouched.` : 'Written from this genre’s recipes.') + covers + (spentStr ? ` · 💲 ${spentStr}` : '')).trim(), true);
+            setNote(((song ? `Written around “${song.title}”.` : 'Written from this genre’s recipes.') + partsNote + covers + (spentStr ? ` · 💲 ${spentStr}` : '')).trim(), true);
         } catch (e) {
             // The draft is already in the box and is a perfectly usable prompt — say what happened
             // rather than blanking it, so a rate limit costs nothing.
@@ -4139,7 +4228,13 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-lyria-generate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
-    document.getElementById('btn-lyria-copy')?.addEventListener('click', () => { const out = document.getElementById('lyria-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    document.getElementById('btn-lyria-copy-style')?.addEventListener('click', () => { const out = document.getElementById('lyria-output-style'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy-style'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    document.getElementById('lyria-lyrics-parts')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-copy-part]'); if (!btn) return;
+        const container = document.getElementById('lyria-lyrics-parts');
+        const text = container?._parts?.[parseInt(btn.dataset.copyPart, 10)]; if (text == null) return;
+        navigator.clipboard?.writeText(text).then(() => { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); }).catch(() => {});
+    });
     document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });
     document.getElementById('btn-reroll-blend')?.addEventListener('click', () => window.blendGenres());

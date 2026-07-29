@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v111';
+window.APP_VERSION = 'v112';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -304,7 +304,7 @@ main { background: rgba(5,8,7,0.72); }
 
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
             <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
-                <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide" id="genre-menu"></div></div>
+                <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[550px] overflow-y-auto pr-2" id="genre-menu"></div></div>
                 <div id="genre-info-bar" class="hidden px-4 py-3 border-b border-[#00FF8810] bg-black/30 flex flex-col gap-3">
                     <span id="genre-bpm-readout" class="hidden text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span>
                     <div class="flex gap-2 flex-wrap">
@@ -2926,20 +2926,22 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedCats.forEach(cat => {
             const catId = cat.replace(/[^a-zA-Z0-9]/g, '-');
             const header = document.createElement('div');
-            header.className = 'text-[9px] font-bold tracking-widest text-[#00E5FF]/60 uppercase mt-4 mb-1 px-3 py-1.5 border-b border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/5 transition-colors rounded';
-            header.innerHTML = `<span>${cat}</span><span class="text-[8px] transform transition-transform duration-200" id="icon-${catId}">▼</span>`;
+            header.className = 'text-[11px] font-black tracking-[0.15em] text-[#E2E8F0] uppercase mt-4 mb-2 px-3 py-2.5 bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/20 transition-all rounded shadow-sm';
+            header.innerHTML = `<span>${cat}</span><span class="text-[9px] text-[#00E5FF] transform transition-transform duration-300" id="icon-${catId}">▼</span>`;
             
             const groupContainer = document.createElement('div');
-            groupContainer.className = 'flex flex-col gap-0.5 overflow-hidden transition-all duration-300';
+            groupContainer.className = 'flex flex-col gap-1 overflow-hidden transition-all duration-300 max-h-[1000px] opacity-100';
             
             header.addEventListener('click', () => {
-                const isHidden = groupContainer.classList.contains('hidden');
+                const isCollapsed = groupContainer.classList.contains('max-h-0');
                 const icon = document.getElementById(`icon-${catId}`);
-                if (isHidden) {
-                    groupContainer.classList.remove('hidden');
+                if (isCollapsed) {
+                    groupContainer.classList.remove('max-h-0', 'opacity-0', 'pointer-events-none');
+                    groupContainer.classList.add('max-h-[1000px]', 'opacity-100');
                     if(icon) icon.style.transform = 'rotate(0deg)';
                 } else {
-                    groupContainer.classList.add('hidden');
+                    groupContainer.classList.remove('max-h-[1000px]', 'opacity-100');
+                    groupContainer.classList.add('max-h-0', 'opacity-0', 'pointer-events-none');
                     if(icon) icon.style.transform = 'rotate(-90deg)';
                 }
             });
@@ -2949,7 +2951,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             grouped[cat].forEach(genre => {
                 const gc = window.genreColor(genre);
-                const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left pl-5 pr-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); groupContainer.appendChild(btn);
+                const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left pl-4 pr-3 py-2.5 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent transition-colors hover:bg-black/30'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); groupContainer.appendChild(btn);
                 const option = document.createElement('option'); option.value = genre; option.innerText = `${cat} - ${genre}`; datalist.appendChild(option);
             });
         });
@@ -2983,7 +2985,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.selectGenre = (genre) => {
         window.currentCookbookGenre = genre; window.currentCookbookId = null;
-        const buttons = document.getElementById('genre-menu')?.children || [];
+        const buttons = document.getElementById('genre-menu')?.querySelectorAll('button') || [];
         for(let btn of buttons) { if(btn.innerText === genre.toUpperCase()) btn.classList.add('active-genre'); else btn.classList.remove('active-genre'); }
         const meta = window.getGenreMeta(genre);
         const bpmReadout = document.getElementById('genre-bpm-readout'); if (bpmReadout) bpmReadout.textContent = `~${meta.bpm[0]}-${meta.bpm[1]} BPM`;

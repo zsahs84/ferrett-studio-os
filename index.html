@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v112';
+window.APP_VERSION = 'v113';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -2927,21 +2927,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const catId = cat.replace(/[^a-zA-Z0-9]/g, '-');
             const header = document.createElement('div');
             header.className = 'text-[11px] font-black tracking-[0.15em] text-[#E2E8F0] uppercase mt-4 mb-2 px-3 py-2.5 bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/20 transition-all rounded shadow-sm';
-            header.innerHTML = `<span>${cat}</span><span class="text-[9px] text-[#00E5FF] transform transition-transform duration-300" id="icon-${catId}">▼</span>`;
+            header.innerHTML = `<span>${cat}</span><span class="text-[9px] text-[#00E5FF] transform transition-transform duration-300 rotate-[-90deg]" id="icon-${catId}">▼</span>`;
             
             const groupContainer = document.createElement('div');
-            groupContainer.className = 'flex flex-col gap-1 overflow-hidden transition-all duration-300 max-h-[1000px] opacity-100';
+            groupContainer.id = `group-${catId}`;
+            groupContainer.className = 'flex flex-col gap-1 overflow-hidden transition-all duration-300';
+            groupContainer.style.maxHeight = '0px';
+            groupContainer.style.opacity = '0';
+            groupContainer.style.pointerEvents = 'none';
             
             header.addEventListener('click', () => {
-                const isCollapsed = groupContainer.classList.contains('max-h-0');
+                const isCollapsed = groupContainer.style.maxHeight === '0px';
                 const icon = document.getElementById(`icon-${catId}`);
                 if (isCollapsed) {
-                    groupContainer.classList.remove('max-h-0', 'opacity-0', 'pointer-events-none');
-                    groupContainer.classList.add('max-h-[1000px]', 'opacity-100');
+                    groupContainer.style.maxHeight = groupContainer.scrollHeight + 'px';
+                    groupContainer.style.opacity = '1';
+                    groupContainer.style.pointerEvents = 'auto';
                     if(icon) icon.style.transform = 'rotate(0deg)';
+                    
+                    setTimeout(() => {
+                        if(groupContainer.style.maxHeight !== '0px') {
+                            groupContainer.style.maxHeight = 'none';
+                        }
+                    }, 300);
                 } else {
-                    groupContainer.classList.remove('max-h-[1000px]', 'opacity-100');
-                    groupContainer.classList.add('max-h-0', 'opacity-0', 'pointer-events-none');
+                    groupContainer.style.maxHeight = groupContainer.scrollHeight + 'px';
+                    // Force reflow
+                    void groupContainer.offsetHeight;
+                    
+                    groupContainer.style.maxHeight = '0px';
+                    groupContainer.style.opacity = '0';
+                    groupContainer.style.pointerEvents = 'none';
                     if(icon) icon.style.transform = 'rotate(-90deg)';
                 }
             });
@@ -2986,7 +3002,24 @@ document.addEventListener('DOMContentLoaded', () => {
     window.selectGenre = (genre) => {
         window.currentCookbookGenre = genre; window.currentCookbookId = null;
         const buttons = document.getElementById('genre-menu')?.querySelectorAll('button') || [];
-        for(let btn of buttons) { if(btn.innerText === genre.toUpperCase()) btn.classList.add('active-genre'); else btn.classList.remove('active-genre'); }
+        for(let btn of buttons) { 
+            if(btn.innerText === genre.toUpperCase()) {
+                btn.classList.add('active-genre'); 
+                // Auto-expand the parent category if it's closed
+                const groupContainer = btn.closest('div[id^="group-"]');
+                if (groupContainer && groupContainer.style.maxHeight === '0px') {
+                    groupContainer.style.maxHeight = groupContainer.scrollHeight + 'px';
+                    groupContainer.style.opacity = '1';
+                    groupContainer.style.pointerEvents = 'auto';
+                    const iconId = groupContainer.id.replace('group-', 'icon-');
+                    const icon = document.getElementById(iconId);
+                    if(icon) icon.style.transform = 'rotate(0deg)';
+                    setTimeout(() => { if(groupContainer.style.maxHeight !== '0px') groupContainer.style.maxHeight = 'none'; }, 300);
+                }
+            } else {
+                btn.classList.remove('active-genre'); 
+            }
+        }
         const meta = window.getGenreMeta(genre);
         const bpmReadout = document.getElementById('genre-bpm-readout'); if (bpmReadout) bpmReadout.textContent = `~${meta.bpm[0]}-${meta.bpm[1]} BPM`;
         const obpm = document.getElementById('ai-override-bpm'); if(obpm) { obpm.value = ''; obpm.placeholder = `${meta.bpm[0]}-${meta.bpm[1]}`; }

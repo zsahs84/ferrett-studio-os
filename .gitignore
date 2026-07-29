@@ -2,3 +2,5 @@
 Thumbs.db
 *.log
 .vscode/
+.idea/
+_scratch_archive/

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v115';
+window.APP_VERSION = 'v116';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -2929,39 +2929,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sortedCats = Object.keys(grouped).sort();
 
+        const catEmojis = { 'ROCK': '🎸', 'HIP HOP': '🎤', 'METAL': '🤘', 'BLUES': '🎷', 'EDM': '🎛️', 'POP': '🌟', 'COUNTRY': '🤠', 'GENERAL': '🎵' };
+
         sortedCats.forEach(cat => {
             const catId = cat.replace(/[^a-zA-Z0-9]/g, '-');
+            const emoji = catEmojis[cat] || '🎵';
             const header = document.createElement('div');
             header.className = 'text-[11px] font-black tracking-[0.15em] text-[#E2E8F0] uppercase mt-4 mb-2 px-3 py-2.5 bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/20 transition-all rounded shadow-sm';
-            header.innerHTML = `<span>${cat}</span><span class="text-[9px] text-[#00E5FF] transform transition-transform duration-300 rotate-[-90deg]" id="icon-${catId}">▼</span>`;
+            header.innerHTML = `<span><span class="mr-2">${emoji}</span>${cat}</span><span class="text-[9px] text-[#00E5FF] transform transition-transform duration-300 rotate-[-90deg]" id="icon-${catId}">▼</span>`;
             
             const groupContainer = document.createElement('div');
             groupContainer.id = `group-${catId}`;
-            groupContainer.className = 'flex flex-col gap-1 overflow-hidden transition-all duration-300';
-            groupContainer.style.maxHeight = '0px';
+            groupContainer.className = 'grid transition-all duration-300';
+            groupContainer.style.gridTemplateRows = '0fr';
             groupContainer.style.opacity = '0';
             groupContainer.style.pointerEvents = 'none';
             
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-col gap-1 overflow-hidden min-h-0';
+            groupContainer.appendChild(wrapper);
+            
             header.addEventListener('click', () => {
-                const isCollapsed = groupContainer.style.maxHeight === '0px';
+                const isCollapsed = groupContainer.style.gridTemplateRows === '0fr';
                 const icon = document.getElementById(`icon-${catId}`);
                 if (isCollapsed) {
-                    groupContainer.style.maxHeight = groupContainer.scrollHeight + 'px';
+                    groupContainer.style.gridTemplateRows = '1fr';
                     groupContainer.style.opacity = '1';
                     groupContainer.style.pointerEvents = 'auto';
                     if(icon) icon.style.transform = 'rotate(0deg)';
-                    
-                    setTimeout(() => {
-                        if(groupContainer.style.maxHeight !== '0px') {
-                            groupContainer.style.maxHeight = 'none';
-                        }
-                    }, 300);
                 } else {
-                    groupContainer.style.maxHeight = groupContainer.scrollHeight + 'px';
-                    // Force reflow
-                    void groupContainer.offsetHeight;
-                    
-                    groupContainer.style.maxHeight = '0px';
+                    groupContainer.style.gridTemplateRows = '0fr';
                     groupContainer.style.opacity = '0';
                     groupContainer.style.pointerEvents = 'none';
                     if(icon) icon.style.transform = 'rotate(-90deg)';
@@ -2973,7 +2970,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             grouped[cat].forEach(genre => {
                 const gc = window.genreColor(genre);
-                const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left pl-4 pr-3 py-2.5 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent transition-colors hover:bg-black/30'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); groupContainer.appendChild(btn);
+                const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left pl-4 pr-3 py-2.5 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent transition-colors hover:bg-black/30'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); wrapper.appendChild(btn);
                 const option = document.createElement('option'); option.value = genre; option.innerText = `${cat} - ${genre}`; datalist.appendChild(option);
             });
         });
@@ -3013,14 +3010,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('active-genre'); 
                 // Auto-expand the parent category if it's closed
                 const groupContainer = btn.closest('div[id^="group-"]');
-                if (groupContainer && groupContainer.style.maxHeight === '0px') {
-                    groupContainer.style.maxHeight = groupContainer.scrollHeight + 'px';
+                if (groupContainer && groupContainer.style.gridTemplateRows === '0fr') {
+                    groupContainer.style.gridTemplateRows = '1fr';
                     groupContainer.style.opacity = '1';
                     groupContainer.style.pointerEvents = 'auto';
                     const iconId = groupContainer.id.replace('group-', 'icon-');
                     const icon = document.getElementById(iconId);
                     if(icon) icon.style.transform = 'rotate(0deg)';
-                    setTimeout(() => { if(groupContainer.style.maxHeight !== '0px') groupContainer.style.maxHeight = 'none'; }, 300);
                 }
             } else {
                 btn.classList.remove('active-genre'); 

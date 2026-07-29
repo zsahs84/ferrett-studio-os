@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v124';
+window.APP_VERSION = 'v125';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -739,8 +739,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
             </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-calc" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#00E5FF40] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -817,8 +816,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-players" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#FFD60A40] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -942,8 +940,7 @@ main { background: rgba(5,8,7,0.72); }
             <div id="pr-log" class="space-y-1 max-h-[140px] overflow-y-auto"></div>
         </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-monitor" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#FF88FF40] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -1010,8 +1007,7 @@ main { background: rgba(5,8,7,0.72); }
                 <span id="rta-status" class="text-[10px] text-[#E2E8F0]/40 ml-2"></span>
             </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-analyzer" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#B18CFF40] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -1055,8 +1051,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
         </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-spark" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#FFD60A40] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -1110,8 +1105,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-ai" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#00E5FF40] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -1179,8 +1173,7 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-analytics" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#00FF8840] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -1225,8 +1218,7 @@ main { background: rgba(5,8,7,0.72); }
             <div id="lab-cold-out" class="space-y-2 max-h-[220px] overflow-y-auto"></div>
         </div>
     
-            </div>
-        
+            
         </div>
     </div>
     <div id="tbx-panel-ops" class="hidden tbx-full-panel origin-top-left transition-all duration-300 transform scale-50 opacity-0 card border-[#FF888840] p-0 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
@@ -1303,8 +1295,7 @@ main { background: rgba(5,8,7,0.72); }
             </div>
         </div>
     
-            </div>
-        
+            
         </div>
     </div>
 </div>
@@ -1315,7 +1306,6 @@ window.openTbxPanel = (id) => {
     const panel = document.getElementById('tbx-panel-' + id);
     panel.classList.remove('hidden');
     
-    // Trigger animation in next frame
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             panel.classList.remove('scale-50', 'opacity-0');

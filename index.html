@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v107';
+window.APP_VERSION = 'v108';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -3510,7 +3510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // POP
         'Synth-Pop': { category: 'POP', bpm: [105, 125], mood: 'nostalgic, shimmering, romantic', texture: 'analog warmth, lush pads, tight electronic drums', desc: 'Modern pop music heavily influenced by 1980s aesthetics. Built around lush, sweeping analog synthesizer pads, bouncing arpeggiators, and tight, punchy electronic drum machines (like the LinnDrum or TR-808). The mix is wide, bright, and polished, featuring heavily chorused guitars, gated snares, and smooth, breathy vocal production dripping in reverb.' },
-        'Modern Top 40': { category: 'POP', bpm: [95, 115], mood: 'pristine, catchy, radio-optimized', texture: 'crystal clear, heavily processed, punchy', desc: 'Current mainstream pop music characterized by absolute sonic perfection and maximum loudness. Features meticulously tuned and comped vocals (often utilizing creative auto-tune), hybrid acoustic/electronic drum kits, and massive, layered sub-bass. Every element is heavily EQ'd and compressed to carve out its own distinct frequency space, resulting in a hyper-clean, radio-optimized wall of sound.' },
+        'Modern Top 40': { category: 'POP', bpm: [95, 115], mood: 'pristine, catchy, radio-optimized', texture: 'crystal clear, heavily processed, punchy', desc: 'Current mainstream pop music characterized by absolute sonic perfection and maximum loudness. Features meticulously tuned and comped vocals (often utilizing creative auto-tune), hybrid acoustic/electronic drum kits, and massive, layered sub-bass. Every element is heavily EQ\\'d and compressed to carve out its own distinct frequency space, resulting in a hyper-clean, radio-optimized wall of sound.' },
 
         // COUNTRY
         'Modern Nashville': { category: 'COUNTRY', bpm: [80, 110], mood: 'polished, commercial, storytelling', texture: 'bright acoustics, subtle twang, massive drums', desc: 'Contemporary country music that heavily incorporates pop and arena-rock production techniques. While retaining traditional elements like acoustic guitar, pedal steel, and Telecaster twang, it features massive, rock-style drum programming, thick layered bass, and highly polished, compressed vocals. The mix is wide, bright, and commercially optimized for radio.' },

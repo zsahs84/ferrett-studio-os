@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v123';
+window.APP_VERSION = 'v124';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9884,7 +9884,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
     const brief=[g&&('genre: '+g), m&&('mood: '+m), b&&('tempo/key: '+b), ins&&('instruments: '+ins)].filter(Boolean).join('; ')||'a fresh original track';
     spin('ai-mp-spinner',true); note('ai-mp-note',''); $('btn-ai-mp-copy').classList.add('hidden');
     try{
-      const sys='You write vivid, concise music-generation prompts for tools like Suno, Udio and Lyria. Reply with ONE dense paragraph (max ~60 words) packed with genre, instrumentation, production, mood and tempo adjectives. No preamble, no quotes, no lists.';
+      const sys=`You write vivid, concise music-generation prompts for tools like Suno, Udio and Lyria. Reply with ONE dense paragraph (max ~60 words) packed with genre, instrumentation, production, mood and tempo adjectives. No preamble, no quotes, no lists.${b ? ' CRITICAL: The user explicitly requested ' + b + '. You MUST include this EXACT tempo/key in your response. DO NOT default to 90 BPM or any other tempo.' : ''}`;
       window.__aiUsage?.begin('Toolbox: Write Prompt');
       const txt=await window.ferrettAI(sys, `Write a prompt for: ${brief}.`, {creative:false});
       window.__aiUsage?.end();

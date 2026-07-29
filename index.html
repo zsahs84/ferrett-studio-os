@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v104';
+window.APP_VERSION = 'v105';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -9525,7 +9525,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       b.classList.toggle('text-[#00E5FF]/50', !on);
     });
   }
-  function openAiModal(){ 
+  function populateAiSettings(){ 
     try {
       const c=loadCfg() || {}; 
       setModalMode(c.mode||'ha'); 
@@ -9551,11 +9551,16 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
       
       if($('ai-test-out')) $('ai-test-out').textContent=`Loaded config: mode=${c.mode}, think=${c.geminiThink}`; 
       window.renderAccountingLedger?.(); 
-      const m=$('ai-modal'); 
-      if(m){ m.classList.remove('hidden'); m.classList.add('flex'); }
     } catch(e) {
-      console.error('Error in openAiModal:', e);
+      console.error('Error in populateAiSettings:', e);
     }
+  }
+  window.populateAiSettings = populateAiSettings;
+  
+  function openAiModal(){
+      populateAiSettings();
+      const navSettings = $('nav-settings-new');
+      if (navSettings) navSettings.click();
   }
 
   window.renderAccountingLedger = () => {
@@ -9711,10 +9716,12 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             closeAiModal();
         }, 600);
     });
-    $('ai-clear-btn')?.addEventListener('click',()=>{ if(confirm('Clear stored AI connection?')){ localStorage.removeItem(AI_KEY); updateStatus(); openAiModal(); } });
+    $('ai-clear-btn')?.addEventListener('click',()=>{ if(confirm('Clear stored AI connection?')){ localStorage.removeItem(AI_KEY); updateStatus(); populateAiSettings(); } });
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && $('ai-modal') && !$('ai-modal').classList.contains('hidden')) closeAiModal(); });
     $('btn-ai-settings-lyr')?.addEventListener('click',openAiModal);
     $('btn-ai-settings-lab')?.addEventListener('click',openAiModal);
+    // populate settings immediately on load
+    populateAiSettings();
     // lyrics
     $('btn-ai-lyr-gen')?.addEventListener('click',lyrGen);
     $('btn-ai-lyr-cont')?.addEventListener('click',lyrContinue);

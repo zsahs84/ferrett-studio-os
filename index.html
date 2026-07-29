@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v120';
+window.APP_VERSION = 'v121';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -565,7 +565,15 @@ main { background: rgba(5,8,7,0.72); }
         </div>
 
         <div class="columns-1 lg:columns-2 xl:columns-3 2xl:columns-4 gap-6">
-<div id="tbx-panel-theory" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+<div id="tbx-panel-theory" class="card border-[#7AFFBF30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#7AFFBF10] hover:bg-[#7AFFBF15] border-b border-[#7AFFBF20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#7AFFBF] uppercase">🎵 THEORY & EAR</h3>
+        <svg class="w-4 h-4 text-[#7AFFBF]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">◎ CIRCLE OF FIFTHS</h4>
@@ -702,9 +710,21 @@ main { background: rgba(5,8,7,0.72); }
             </div>
         </div>
             </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-calc" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-calc" class="card border-[#00E5FF30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#00E5FF10] hover:bg-[#00E5FF15] border-b border-[#00E5FF20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF] uppercase">🧮 CALCULATORS</h3>
+        <svg class="w-4 h-4 text-[#00E5FF]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
         <div class="card border-[#00E5FF30] mb-6 flex flex-col md:flex-row items-center justify-center gap-8 p-8 md:p-12">
             <div class="flex flex-col items-center gap-2"><span class="text-[12px] tracking-widest text-[#00E5FF]/70 font-bold">PROJECT TEMPO</span><div class="flex items-center gap-2"><input type="number" id="calc-bpm-main" value="120" class="bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[40px] font-bold text-[#00E5FF] w-40 py-2 focus:outline-none shadow-[0_0_15px_rgba(0,229,255,0.1)]"><span class="text-[14px] text-[#00E5FF]/50 font-bold">BPM</span></div></div>
             <div class="text-[#00E5FF]/30 text-[32px] hidden md:block">||</div>
@@ -770,9 +790,21 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
             </div>
             </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-players" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-players" class="card border-[#FFD60A30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#FFD60A10] hover:bg-[#FFD60A15] border-b border-[#FFD60A20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase">🥁 PLAYERS & PRACTICE</h3>
+        <svg class="w-4 h-4 text-[#FFD60A]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
         <div class="card border-[#00FF8830] mt-6">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">METRONOME</h4>
             <div class="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-6">
@@ -885,7 +917,11 @@ main { background: rgba(5,8,7,0.72); }
             </div>
             <div id="pr-log" class="space-y-1 max-h-[140px] overflow-y-auto"></div>
         </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
     <div id="tbx-panel-arrange" class="hidden">
         <div class="card border-[#00E5FF30] mb-6">
@@ -963,7 +999,15 @@ main { background: rgba(5,8,7,0.72); }
             </div>
     </div>
 
-    <div id="tbx-panel-monitor" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-monitor" class="card border-[#FF88FF30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#FF88FF10] hover:bg-[#FF88FF15] border-b border-[#FF88FF20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#FF88FF] uppercase">🎙️ MONITORING & ROOM</h3>
+        <svg class="w-4 h-4 text-[#FF88FF]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00E5FF30]">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest mb-3 border-b border-[#00E5FF20] pb-2">🔊 TEST-TONE & NOISE LAB</h4>
@@ -1019,9 +1063,21 @@ main { background: rgba(5,8,7,0.72); }
                 <button id="btn-rta-toggle" type="button" class="btn-euterpe-green px-4 py-1.5 text-[10px] mt-3">🎙️ START</button>
                 <span id="rta-status" class="text-[10px] text-[#E2E8F0]/40 ml-2"></span>
             </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-analyzer" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-analyzer" class="card border-[#B18CFF30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#B18CFF10] hover:bg-[#B18CFF15] border-b border-[#B18CFF20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#B18CFF] uppercase">🔬 MIX ANALYZER</h3>
+        <svg class="w-4 h-4 text-[#B18CFF]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
         <div class="card border-[#00FF8830]">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-2 border-b border-[#00FF8820] pb-2">🔬 MIX ANALYZER</h4>
             <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Objective metering, run entirely on-device — loudness, true peak, dynamic range, stereo phase, and spectral balance. This measures what's actually in the file. It doesn't and can't tell you if the mix is <i>good</i> — no meter does that.</p>
@@ -1054,9 +1110,21 @@ main { background: rgba(5,8,7,0.72); }
                 <canvas id="ma-spectrum-canvas" class="w-full rounded bg-black/50 border border-[#FF88FF20]" height="180"></canvas>
             </div>
         </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-spark" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-spark" class="card border-[#FFD60A30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#FFD60A10] hover:bg-[#FFD60A15] border-b border-[#FFD60A20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase">✨ CREATIVE SPARKS</h3>
+        <svg class="w-4 h-4 text-[#FFD60A]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#FFD60A40]" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(177,140,255,0.04));">
                 <h4 class="text-[11px] text-[#FFD60A] font-bold tracking-widest mb-3 border-b border-[#FFD60A20] pb-2">🎲 SHUFFLE A CHALLENGE</h4>
@@ -1099,9 +1167,21 @@ main { background: rgba(5,8,7,0.72); }
                 <div id="lab-memo-list" class="space-y-2 max-h-[180px] overflow-y-auto"></div>
             </div>
             </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-ai" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-ai" class="card border-[#00E5FF30] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#00E5FF10] hover:bg-[#00E5FF15] border-b border-[#00E5FF20] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF] uppercase">🤖 AI ASSISTANT</h3>
+        <svg class="w-4 h-4 text-[#00E5FF]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
         <div class="card border-[#00E5FF40] mb-6" style="background:linear-gradient(135deg,rgba(0,229,255,0.05),rgba(0,255,136,0.03))">
             <div class="flex items-center justify-between mb-3 border-b border-[#00E5FF20] pb-2">
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">✨ AI MUSIC-PROMPT GENERATOR <span id="ai-status-lab" class="text-[8px] font-normal ml-1"></span></h4>
@@ -1158,9 +1238,21 @@ main { background: rgba(5,8,7,0.72); }
             <div id="ai-brain-out" class="hidden mt-3 p-3 rounded border border-[#00E5FF25] bg-black/40 text-[12px] text-[#E2E8F0]/85 whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto"></div>
         </div>
 
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-analytics" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-analytics" class="card border-[#00FF8830] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#00FF8810] hover:bg-[#00FF8815] border-b border-[#00FF8820] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#00FF88] uppercase">📊 STUDIO ANALYTICS</h3>
+        <svg class="w-4 h-4 text-[#00FF88]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
         <div class="card border-[#00FF8830] mb-6">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-4 border-b border-[#00FF8820] pb-2">SESSION STATS</h4>
             <div class="grid grid-cols-3 gap-4 text-center" id="session-stats-display">
@@ -1194,9 +1286,21 @@ main { background: rgba(5,8,7,0.72); }
             <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Recipes / tones / tracks you created 90+ days ago and may have forgotten. Time to revisit or retire.</p>
             <div id="lab-cold-out" class="space-y-2 max-h-[220px] overflow-y-auto"></div>
         </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 
-    <div id="tbx-panel-ops" class="tbx-panel space-y-6 mb-6 break-inside-avoid">
+    <div id="tbx-panel-ops" class="card border-[#FF888830] mb-6 break-inside-avoid p-0 overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+    <button type="button" class="w-full flex items-center justify-between p-4 md:p-5 cursor-pointer bg-[#FF888810] hover:bg-[#FF888815] border-b border-[#FF888820] text-left transition-colors" onclick="const g=this.nextElementSibling; const svg=this.querySelector('svg'); if(g.classList.contains('grid-rows-[1fr]')){ g.classList.remove('grid-rows-[1fr]'); g.classList.add('grid-rows-[0fr]'); svg.style.transform='rotate(0deg)'; } else { g.classList.remove('grid-rows-[0fr]'); g.classList.add('grid-rows-[1fr]'); svg.style.transform='rotate(180deg)'; }">
+        <h3 class="text-[13px] font-bold tracking-widest text-[#FF8888] uppercase">🗂️ STUDIO OPS</h3>
+        <svg class="w-4 h-4 text-[#FF8888]/60 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+    <div class="grid transition-all duration-300 grid-rows-[0fr]">
+        <div class="overflow-hidden bg-[#050807]">
+            <div class="p-4 md:p-6 space-y-6">
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="card border-[#00FF8830]">
                 <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-3 border-b border-[#00FF8820] pb-2">🔧 GEAR MAINTENANCE LOG</h4>
@@ -1262,7 +1366,11 @@ main { background: rgba(5,8,7,0.72); }
                 </div>
             </div>
         </div>
+    
+            </div>
+        </div>
     </div>
+</div>
 </div>
     </section>
     <section id="tab-lyrics" class="middle-tab p-4 md:p-8 border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">

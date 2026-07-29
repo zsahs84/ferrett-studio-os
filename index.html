@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v116';
+window.APP_VERSION = 'v117';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -1574,7 +1574,7 @@ main { background: rgba(5,8,7,0.72); }
     <button id="notes-footer-toggle" type="button" class="w-full flex items-center justify-between gap-3 px-4 md:px-8 py-2.5 cursor-pointer bg-transparent border-0 text-left">
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <svg id="notes-footer-chevron" class="w-3.5 h-3.5 text-[#00E5FF]/60 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
-        <span class="text-[11px] tracking-widest font-bold text-[#00E5FF] shrink-0">NOTES [<span id="note-context-label" class="text-white">REAPER</span>]</span>
+        <span class="text-[11px] tracking-widest font-bold text-[#00E5FF] shrink-0">NOTES</span>
         <span id="notes-footer-active-title" class="text-[10px] text-[#00E5FF]/40 truncate">No active note</span>
       </div>
       <span id="save-status" class="text-[10px] font-bold tracking-widest text-[#00FF88] opacity-0 transition-opacity whitespace-nowrap shrink-0">SAVED LOCALLY</span>

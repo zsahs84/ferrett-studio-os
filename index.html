@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v114';
+window.APP_VERSION = 'v115';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -319,18 +319,18 @@ main { background: rgba(5,8,7,0.72); }
                         <button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button>
                         <button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button>
                     </div>
-                    <div class="flex flex-col gap-2 text-[9px] tracking-widest font-bold">
-                        <div class="flex items-center gap-2">
-                            <label class="text-[#FFD60A]/60 w-16 shrink-0">BPM</label>
-                            <input type="text" id="ai-override-bpm" class="bg-transparent border-b border-[#FFD60A]/20 text-[#FFD60A] px-1 py-0.5 focus:outline-none focus:border-[#FFD60A] flex-1 min-w-0 placeholder-[#FFD60A]/30">
+                    <div class="flex flex-col gap-3 text-[9px] tracking-widest font-bold mt-1">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#FFD60A]/60">BPM</label>
+                            <input type="text" id="ai-override-bpm" class="bg-black/40 border border-[#FFD60A]/20 rounded text-[#FFD60A] px-2 py-1.5 focus:outline-none focus:border-[#FFD60A] w-full placeholder-[#FFD60A]/30 transition-colors">
                         </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-[#FFD60A]/60 w-16 shrink-0">MOOD</label>
-                            <input type="text" id="ai-override-mood" class="bg-transparent border-b border-[#FFD60A]/20 text-[#FFD60A] px-1 py-0.5 focus:outline-none focus:border-[#FFD60A] flex-1 min-w-0 placeholder-[#FFD60A]/30">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#FFD60A]/60">MOOD</label>
+                            <textarea id="ai-override-mood" rows="2" class="bg-black/40 border border-[#FFD60A]/20 rounded text-[#FFD60A] px-2 py-1.5 focus:outline-none focus:border-[#FFD60A] w-full placeholder-[#FFD60A]/30 resize-none transition-colors"></textarea>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-[#FFD60A]/60 w-16 shrink-0">TEXTURE</label>
-                            <input type="text" id="ai-override-texture" class="bg-transparent border-b border-[#FFD60A]/20 text-[#FFD60A] px-1 py-0.5 focus:outline-none focus:border-[#FFD60A] flex-1 min-w-0 placeholder-[#FFD60A]/30">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#FFD60A]/60">TEXTURE</label>
+                            <textarea id="ai-override-texture" rows="3" class="bg-black/40 border border-[#FFD60A]/20 rounded text-[#FFD60A] px-2 py-1.5 focus:outline-none focus:border-[#FFD60A] w-full placeholder-[#FFD60A]/30 resize-none transition-colors"></textarea>
                         </div>
                     </div>
                 </div>

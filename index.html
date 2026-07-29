@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v119';
+window.APP_VERSION = 'v120';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -10051,30 +10051,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
 })();
 </script>
 
-<!-- ============================ TOOLBOX SUB-NAV ============================ -->
-<script>
-(function(){
-  const TBX_KEY = 'ferrett_os_toolbox_sub_v1';
-  const ACTIVE_STYLE = { background: 'rgba(122,255,191,0.18)', color: '#7AFFBF', borderColor: '#7AFFBF' };
-  window.__toolboxDefaultSub = () => { try { return localStorage.getItem(TBX_KEY) || 'theory'; } catch(e) { return 'theory'; } };
-  window.setToolboxSub = (key) => {
-    if (!key) return;
-    const panel = document.getElementById('tbx-panel-' + key); if (!panel) return;
-    document.querySelectorAll('.tbx-panel').forEach(p => p.classList.toggle('hidden', p !== panel));
-    document.querySelectorAll('.tbx-pill').forEach(p => {
-      const on = p.dataset.tbx === key;
-      p.style.background = on ? ACTIVE_STYLE.background : '';
-      p.style.color = on ? ACTIVE_STYLE.color : '';
-      p.style.borderColor = on ? ACTIVE_STYLE.borderColor : '';
-    });
-    try { localStorage.setItem(TBX_KEY, key); } catch(e) {}
-  };
-  function init(){
-    document.querySelectorAll('.tbx-pill').forEach(p => p.addEventListener('click', () => window.setToolboxSub(p.dataset.tbx)));
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
-})();
-</script>
+
 
 <!-- ============================ MIX ANALYZER (LUFS / true-peak / DR / phase / spectrum) ============================ -->
 <script>

@@ -3798,7 +3798,7 @@ window.lyriaSongBlock = (songId) => {
 
     window.switchTab = (tabId) => {
         if (tabId !== 'toolbox') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); window.stopTestTone?.(); window.stopBeatSketch?.(); window.stopToolsAudio?.(); }
-        if (tabId === 'toolbox') { window.renderSessionStats?.(); window.refreshLab?.(); window.refreshTools?.(); window.setToolboxSub?.(window.__toolboxDefaultSub?.()); }
+        if (tabId === 'toolbox') { window.renderSessionStats?.(); window.refreshLab?.(); window.refreshTools?.(); }
         if (tabId === 'lyrics') { window.refreshLyrics?.(); }
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
@@ -3837,9 +3837,9 @@ window.lyriaSongBlock = (songId) => {
     try { notesFooterInitiallyOpen = window.localStorage.getItem(window.NOTES_FOOTER_KEY) === '1'; } catch (e) {}
     window.setNotesFooterOpen(notesFooterInitiallyOpen);
 
-    document.getElementById('calc-bpm')?.addEventListener('input', (e) => window.updateCalc(e.target.value)); document.getElementById('calc-bpm-main')?.addEventListener('input', (e) => { const cb = document.getElementById('calc-bpm'); if(cb) cb.value = e.target.value; window.updateCalc(e.target.value); });
-    const tapHandler = () => { const now = Date.now(); window.tapTimes = window.tapTimes || []; window.tapTimes.push(now); if(window.tapTimes.length > 4) window.tapTimes.shift(); if(window.tapTimes.length > 1) { let sum = 0; for(let i=1; i<window.tapTimes.length; i++) { sum += (window.tapTimes[i] - window.tapTimes[i-1]); } const avg = sum / (window.tapTimes.length - 1); const bpm = Math.round(60000 / avg); const cb = document.getElementById('calc-bpm'); const cbm = document.getElementById('calc-bpm-main'); if(cb) cb.value = bpm; if(cbm) cbm.value = bpm; window.updateCalc(bpm); } clearTimeout(window.tapTimeout); window.tapTimeout = setTimeout(() => { window.tapTimes = []; }, 2000); };
-    document.getElementById('btn-tap-tempo')?.addEventListener('click', tapHandler); document.getElementById('btn-tap-tempo-main')?.addEventListener('click', tapHandler);
+    document.getElementById('calc-bpm-main')?.addEventListener('input', (e) => window.updateCalc(e.target.value));
+    const tapHandler = () => { const now = Date.now(); window.tapTimes = window.tapTimes || []; window.tapTimes.push(now); if(window.tapTimes.length > 4) window.tapTimes.shift(); if(window.tapTimes.length > 1) { let sum = 0; for(let i=1; i<window.tapTimes.length; i++) { sum += (window.tapTimes[i] - window.tapTimes[i-1]); } const avg = sum / (window.tapTimes.length - 1); const bpm = Math.round(60000 / avg); const cbm = document.getElementById('calc-bpm-main'); if(cbm) cbm.value = bpm; window.updateCalc(bpm); } clearTimeout(window.tapTimeout); window.tapTimeout = setTimeout(() => { window.tapTimes = []; }, 2000); };
+    document.getElementById('btn-tap-tempo-main')?.addEventListener('click', tapHandler);
 
     // === METRONOME (Web Audio scheduler for accurate timing, not setInterval drift) ===
     window.metro = { running: false, ctx: null, nextNoteTime: 0, currentBeat: 0, beatsPerMeasure: 4, timerID: null, lookahead: 25, scheduleAheadTime: 0.1 };
@@ -4414,7 +4414,21 @@ window.cloneTone = (id) => {
     document.getElementById('btn-session-toggle')?.addEventListener('click', () => window.toggleSessionTimer());
     document.getElementById('btn-session-reset')?.addEventListener('click', (e) => { e.stopPropagation(); window.resetSessionTimer(); });
     window.updateSessionUI();
-    window.addEventListener('beforeunload', () => { if (window.sessionState.running) { window.sessionState.elapsedMs = window.getSessionElapsedMs(); window.sessionState.startedAt = Date.now(); } window.saveSessionState(); });
+    // The old beforeunload handler rebased startedAt to "now" but left running:true, so the
+    // wall-clock time the app spent closed still got added back in as elapsed on next open —
+    // it never actually stopped. Pause for real here, and use the same hidden/pagehide pair as
+    // the Drive flush above, since beforeunload alone doesn't fire on a swiped-away mobile PWA.
+    window.pauseSessionOnExit = () => {
+        if (!window.sessionState.running) return;
+        window.sessionState.elapsedMs = window.getSessionElapsedMs();
+        window.sessionState.running = false;
+        window.sessionState.startedAt = null;
+        window.saveSessionState();
+        window.updateSessionUI();
+    };
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') window.pauseSessionOnExit(); });
+    window.addEventListener('pagehide', () => window.pauseSessionOnExit());
+    window.addEventListener('beforeunload', () => window.pauseSessionOnExit());
     
     // VU meters: decorative random animation by default; toggle to drive them from real mic input.
     function rV() { return 3 + Math.pow(Math.random(), 0.7)*18; }

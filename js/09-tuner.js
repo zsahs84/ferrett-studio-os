@@ -91,7 +91,7 @@
 
   // GEAR LOG
   const GEAR_KEY='ferrett_os_gearlog_v1';
-  function renderGear(){ const list=$('gm-list'); if(!list) return; const items=lsGet(GEAR_KEY,[]); list.innerHTML=items.map((g,i)=>{ const d=daysSince(g.ts); return `<div class="flex items-center gap-2 text-[11px]"><span class="flex-1 text-white/80 truncate">${g.what}</span><span class="font-mono ${d>90?'text-[#FF5A5A]':'text-[#00FF88]/70'}">${d}d ago</span><button class="gm-reset text-[#00FF88]/50 hover:text-[#00FF88] text-[10px]" data-i="${i}" title="Log again today">↻</button><button class="gm-del text-white/25 hover:text-[#FF5A5A] text-[12px]" data-i="${i}">×</button></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">Nothing logged yet.</div>';
+  function renderGear(){ const list=$('gm-list'); if(!list) return; const items=lsGet(GEAR_KEY,[]); list.innerHTML=items.map((g,i)=>{ const d=daysSince(g.ts); return `<div class="flex items-center gap-2 text-[11px]"><span class="flex-1 text-white/80 truncate">${window.escapeHtml(g.what)}</span><span class="font-mono ${d>90?'text-[#FF5A5A]':'text-[#00FF88]/70'}">${d}d ago</span><button class="gm-reset text-[#00FF88]/50 hover:text-[#00FF88] text-[10px]" data-i="${i}" title="Log again today">↻</button><button class="gm-del text-white/25 hover:text-[#FF5A5A] text-[12px]" data-i="${i}">×</button></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">Nothing logged yet.</div>';
     list.querySelectorAll('.gm-reset').forEach(b=>b.addEventListener('click',()=>{ const it=lsGet(GEAR_KEY,[]); it[+b.dataset.i].ts=Date.now(); lsSet(GEAR_KEY,it); renderGear(); }));
     list.querySelectorAll('.gm-del').forEach(b=>b.addEventListener('click',()=>{ const it=lsGet(GEAR_KEY,[]); it.splice(+b.dataset.i,1); lsSet(GEAR_KEY,it); renderGear(); }));
   }
@@ -120,7 +120,7 @@
   function prPaint(){ const c=$('pr-clock'); if(c){ const m=Math.floor(prSec/60),s=prSec%60; c.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); } }
   function prToggle(){ const b=$('btn-pr-toggle'); if(prTimer){ clearInterval(prTimer); prTimer=null; if(prSec>=10){ const log=lsGet(PRAC_KEY,[]); log.unshift({what:$('pr-what').value.trim()||'Practice', sec:prSec, ts:Date.now()}); lsSet(PRAC_KEY,log.slice(0,50)); renderPractice(); } prSec=0; prPaint(); if(b) b.textContent='▶ START'; }
     else { prTimer=setInterval(()=>{ prSec++; prPaint(); },1000); if(b) b.textContent='■ STOP & LOG'; } }
-  function renderPractice(){ const box=$('pr-log'); if(!box) return; const log=lsGet(PRAC_KEY,[]); box.innerHTML=log.slice(0,10).map(e=>{ const m=Math.round(e.sec/60); return `<div class="flex items-center gap-2 text-[10px]"><span class="flex-1 text-white/70 truncate">${e.what}</span><span class="font-mono text-[#00FF88]/70">${m}m</span><span class="text-white/30">${new Date(e.ts).toLocaleDateString()}</span></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">No sessions logged.</div>'; }
+  function renderPractice(){ const box=$('pr-log'); if(!box) return; const log=lsGet(PRAC_KEY,[]); box.innerHTML=log.slice(0,10).map(e=>{ const m=Math.round(e.sec/60); return `<div class="flex items-center gap-2 text-[10px]"><span class="flex-1 text-white/70 truncate">${window.escapeHtml(e.what)}</span><span class="font-mono text-[#00FF88]/70">${m}m</span><span class="text-white/30">${new Date(e.ts).toLocaleDateString()}</span></div>`; }).join('')||'<div class="text-[10px] text-white/25 italic">No sessions logged.</div>'; }
 
   // ---------- AI STUDIO BRAIN ----------
   let lastBrainArgs=null;

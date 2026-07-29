@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cmdk-input')?.addEventListener('input', (e) => window.renderCmdkResults(e.target.value));
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); const modal = document.getElementById('cmdk-modal'); if (modal && !modal.classList.contains('hidden')) window.closeCmdk(); else window.openCmdk(); }
-        const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+        const isTyping = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
         if (e.key === '?' && !isTyping) { e.preventDefault(); const m = document.getElementById('shortcuts-modal'); if (m) { m.classList.remove('hidden'); m.classList.add('flex'); } }
         if (e.key === ' ' && !isTyping && document.getElementById('tab-toolbox')?.classList.contains('active')) { e.preventDefault(); window.metro?.running ? window.stopMetronome() : window.startMetronome(); }
         if (e.key === 'Escape') {

@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v110';
+window.APP_VERSION = 'v111';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -2924,14 +2924,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortedCats = Object.keys(grouped).sort();
 
         sortedCats.forEach(cat => {
+            const catId = cat.replace(/[^a-zA-Z0-9]/g, '-');
             const header = document.createElement('div');
-            header.className = 'text-[9px] font-bold tracking-widest text-[#00E5FF]/60 uppercase mt-4 mb-1 px-3 pb-1 border-b border-[#00E5FF]/20 flex items-center gap-2';
-            header.innerHTML = `<span>${cat}</span>`;
+            header.className = 'text-[9px] font-bold tracking-widest text-[#00E5FF]/60 uppercase mt-4 mb-1 px-3 py-1.5 border-b border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/5 transition-colors rounded';
+            header.innerHTML = `<span>${cat}</span><span class="text-[8px] transform transition-transform duration-200" id="icon-${catId}">▼</span>`;
+            
+            const groupContainer = document.createElement('div');
+            groupContainer.className = 'flex flex-col gap-0.5 overflow-hidden transition-all duration-300';
+            
+            header.addEventListener('click', () => {
+                const isHidden = groupContainer.classList.contains('hidden');
+                const icon = document.getElementById(`icon-${catId}`);
+                if (isHidden) {
+                    groupContainer.classList.remove('hidden');
+                    if(icon) icon.style.transform = 'rotate(0deg)';
+                } else {
+                    groupContainer.classList.add('hidden');
+                    if(icon) icon.style.transform = 'rotate(-90deg)';
+                }
+            });
+
             genreMenu.appendChild(header);
+            genreMenu.appendChild(groupContainer);
 
             grouped[cat].forEach(genre => {
                 const gc = window.genreColor(genre);
-                const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left pl-5 pr-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); genreMenu.appendChild(btn);
+                const btn = document.createElement('button'); btn.className = 'btn-menu shrink-0 w-full text-left pl-5 pr-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border border-transparent'; btn.style.color = gc; btn.style.boxShadow = `inset 3px 0 0 ${gc}`; btn.innerText = genre; btn.addEventListener('click', () => window.selectGenre(genre)); groupContainer.appendChild(btn);
                 const option = document.createElement('option'); option.value = genre; option.innerText = `${cat} - ${genre}`; datalist.appendChild(option);
             });
         });

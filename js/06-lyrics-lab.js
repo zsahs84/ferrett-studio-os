@@ -232,6 +232,13 @@
   // ---- built-in rhyme bank ----
   const RHYME_BANK='time rhyme climb prime mind find grind line shine sign design fire desire higher wire light night fight right sight tight bright flight sky high fly try eye cry die lie why day way say play stay away pray grey fade made way pain rain chain brain gain train plane game name flame fame blame shame ground sound found around down town crown clown gold cold bold soul road load code mode flow low grow show know glow slow snow soul roll control goal whole heart start apart part smart dark spark heavy ready steady heart hard guard hold gold fold told sold cold night alright tonight world word heard bird hurt work dirt love above enough tough rough stuff stay pay away today gun run fun done son one gone alone zone throne home roam dome smoke broke woke hope dope rope scope real feel deal steel steal wheel money honey funny sunny run done street beat heat sweet complete defeat repeat mine fine wine divine live give real deal fear tear near clear year hear dream team scheme cream king ring thing bring sing wing swing sting'.split(' ');
   function rkey(w){ w=w.toLowerCase().replace(/[^a-z]/g,''); w=w.replace(/([^aeiou])e$/,'$1'); return { s2:w.slice(-2), s3:w.slice(-3), w }; }
+  // crude vowel-sound stand-in for slant/near-rhyme matching: strip a silent trailing e, then
+  // take the last vowel letter (treating y as one) as the rhyme's stressed nucleus. Loose on
+  // purpose — s2/s3 above only match when the spelling lines up (night/light), so real pairs
+  // that sound alike but are spelled differently (money/funny, time/kite) fall through the
+  // strict suffix check entirely. This catches those at the cost of some false positives, which
+  // is the trade slant rhyme is supposed to make.
+  function slantKey(w){ w=w.toLowerCase().replace(/[^a-z]/g,''); w=w.replace(/([^aeiou])e$/,'$1'); const m=w.match(/[aeiouy](?=[^aeiouy]*$)/); return m?m[0]:''; }
   // compact songwriter thesaurus
   const THESAURUS={ love:['adore','cherish','crave','worship','desire'], hate:['loathe','despise','resent','detest'], happy:['elated','bright','alive','golden','high'], sad:['hollow','broken','heavy','blue','low'], run:['bolt','sprint','flee','race','dash'], fast:['quick','swift','rapid','breakneck'], slow:['lazy','heavy','crawling','dragging'], night:['dark','midnight','shadow','dusk','black'], light:['glow','shine','flame','spark','beam'], fire:['flame','blaze','burn','ember','spark'], dream:['vision','fantasy','trance','mirage'], fall:['crash','tumble','plummet','sink','drop'], rise:['climb','soar','ascend','lift','swell'], fight:['battle','clash','struggle','war','brawl'], home:['haven','shelter','roots','refuge'], road:['path','highway','route','trail','way'], cold:['frozen','icy','bitter','numb'], strong:['fierce','mighty','solid','iron','tough'], lost:['gone','adrift','stranded','missing'], real:['true','honest','raw','genuine'], pain:['ache','hurt','sting','sorrow','wound'], free:['loose','unchained','wild','open'], time:['moment','hour','era','forever','season'], heart:['soul','chest','core','pulse'], king:['ruler','lord','boss','champion'], gold:['riches','treasure','shine','fortune'] };
   let lyrFindMode='rhyme';
@@ -329,12 +336,22 @@
     // count only rhyme groups with 2+ members for coloring
     const keyCount={}; endKeys.forEach(k=>{ if(k) keyCount[k]=(keyCount[k]||0)+1; });
     const colorForKey={}; let ci=0; Object.keys(keyCount).forEach(k=>{ if(keyCount[k]>=2){ colorForKey[k]=SCHEME_COLORS[ci++ % SCHEME_COLORS.length]; } });
+    // slant end-rhymes: same idea as above but on the vowel-sound key, for end words the strict
+    // s2 suffix match misses entirely (only used as a fallback when a line has no strong match)
+    const endSlantKeys=lines.map(l=>{ const lw=lastWord(l.text); return lw? slantKey(lw) : null; });
+    const slantKeyCount={}; endSlantKeys.forEach(k=>{ if(k) slantKeyCount[k]=(slantKeyCount[k]||0)+1; });
+    const slantColorForKey={}; let sci=0; Object.keys(slantKeyCount).forEach(k=>{ if(slantKeyCount[k]>=2){ slantColorForKey[k]=SCHEME_COLORS[(SCHEME_COLORS.length-1-(sci++)) % SCHEME_COLORS.length]; } });
     // internal rhymes: rhyme keys appearing 2+ times among all words (exclude single)
     const wordKeyCount={}; lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>2){ const k=rkey(w).s3; if(k.length===3) wordKeyCount[k]=(wordKeyCount[k]||0)+1; } }));
     const intColor={}; let ii=0; Object.keys(wordKeyCount).forEach(k=>{ if(wordKeyCount[k]>=3){ intColor[k]=SCHEME_COLORS[(SCHEME_COLORS.length-1- (ii++)) % SCHEME_COLORS.length]; } });
+    // slant internal rhymes: same vowel-sound key as above, over individual words this time
+    const wordSlantCount={}; lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>2){ const k=slantKey(w); if(k) wordSlantCount[k]=(wordSlantCount[k]||0)+1; } }));
+    const slantWordColor={}; let swi=0; Object.keys(wordSlantCount).forEach(k=>{ if(wordSlantCount[k]>=2){ slantWordColor[k]=SCHEME_COLORS[swi++ % SCHEME_COLORS.length]; } });
     const showInternal=$('lyr-show-internal')?.checked;
+    const showSlant=$('lyr-show-slant')?.checked;
     const rows=lines.map((l,idx)=>{
       const key=endKeys[idx]; const endCol=key&&colorForKey[key]?colorForKey[key]:null;
+      const sKey=endSlantKeys[idx]; const endSlantCol=(showSlant && !endCol && sKey && slantColorForKey[sKey])?slantColorForKey[sKey]:null;
       const words=l.text.split(/(\s+)/);
       let lastRealIdx=-1; words.forEach((w,wi)=>{ if(w.trim()) lastRealIdx=wi; });
       const rendered=words.map((w,wi)=>{
@@ -342,12 +359,14 @@
         const clean=w.toLowerCase().replace(/[^a-z]/g,'');
         const isEnd=wi===lastRealIdx;
         if(isEnd && endCol) return `<span style="color:${endCol};font-weight:700;border-bottom:2px solid ${endCol}">${w}</span>`;
+        if(isEnd && endSlantCol) return `<span style="color:${endSlantCol};font-weight:700;border-bottom:2px dotted ${endSlantCol}">${w}</span>`;
         if(showInternal){ const k=clean.length>2?rkey(clean).s3:''; if(k.length===3 && intColor[k] && !isEnd) return `<span style="color:${intColor[k]}">${w}</span>`; }
+        if(showSlant){ const sk=clean.length>2?slantKey(clean):''; if(sk && slantWordColor[sk] && !isEnd) return `<span style="color:${slantWordColor[sk]};text-decoration:underline dotted;text-decoration-color:${slantWordColor[sk]}90">${w}</span>`; }
         return w;
       }).join('');
       const tagc=(TAGS[l.tag]||TAGS[''])[1];
       return `<div class="flex items-baseline gap-2 py-0.5">`+
-        `<span class="text-[10px] font-bold font-mono w-4 text-center shrink-0" style="color:${endCol||'rgba(255,255,255,0.25)'}">${schemeLetters[idx]}</span>`+
+        `<span class="text-[10px] font-bold font-mono w-4 text-center shrink-0" style="color:${endCol||endSlantCol||'rgba(255,255,255,0.25)'}">${schemeLetters[idx]}</span>`+
         (l.tag?`<span class="text-[8px] font-bold shrink-0" style="color:${tagc}">${l.tag[0]}</span>`:'<span class="w-2 shrink-0"></span>')+
         `<span class="text-[13px] text-[#E2E8F0]/90 flex-1 leading-relaxed">${rendered}</span>`+
         `<span class="text-[9px] font-mono text-[#FF88FF]/50 w-6 text-right shrink-0">${sylOfLine(l.text)}</span>`+
@@ -362,12 +381,16 @@
     box.innerHTML=`<div class="p-4 rounded border border-[#FF88FF25] bg-black/30">`+
       `<div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-[#FF88FF15]">`+
         `<div class="text-[9px] tracking-widest text-[#FF88FF]/70">RHYME SCHEME &nbsp;<span class="text-white/90 font-mono">${schemeStr.slice(0,80)}</span></div>`+
+        `<div class="flex items-center gap-3">`+
         `<label class="flex items-center gap-1.5 text-[9px] text-[#B18CFF]/70 tracking-widest cursor-pointer"><input type="checkbox" id="lyr-show-internal" class="accent-[#B18CFF]" ${showInternal?'checked':''}> INTERNAL RHYMES</label>`+
+        `<label class="flex items-center gap-1.5 text-[9px] text-[#FFD60A]/70 tracking-widest cursor-pointer" title="Looser vowel-sound match — catches near-rhymes the strict check misses (money/funny, time/kite)"><input type="checkbox" id="lyr-show-slant" class="accent-[#FFD60A]" ${showSlant?'checked':''}> SLANT RHYMES</label>`+
+        `</div>`+
       `</div>`+
       rows+
       `<div class="mt-3 pt-2 border-t border-[#FF88FF15]"><div class="text-[8px] tracking-widest text-[#FF88FF]/50 mb-1">SYLLABLE CONTOUR (flow evenness)</div>${spark}</div>`+
     `</div>`;
     $('lyr-show-internal')?.addEventListener('change', buildAnalyze);
+    $('lyr-show-slant')?.addEventListener('change', buildAnalyze);
   }
   function setLyrMode(m){
     lyrMode=m; const edit=m==='edit';

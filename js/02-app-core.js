@@ -966,21 +966,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const catId = cat.replace(/[^a-zA-Z0-9]/g, '-');
             const emoji = catEmojis[cat] || '🎵';
             const header = document.createElement('div');
-            header.className = 'text-[11px] font-black tracking-[0.15em] text-[#E2E8F0] uppercase mt-4 mb-2 px-3 py-2.5 bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/20 transition-all rounded shadow-sm';
+            header.className = 'text-[11px] font-black tracking-[0.15em] text-[#E2E8F0] uppercase mt-4 mb-2 px-3 py-2.5 bg-[#00E5FF]/10 border border-[#00E5FF]/20 flex items-center justify-between cursor-pointer hover:bg-[#00E5FF]/20 transition-all rounded shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00E5FF]';
+            header.setAttribute('role', 'button');
+            header.setAttribute('tabindex', '0');
+            header.setAttribute('aria-expanded', 'false');
+            header.setAttribute('aria-controls', `group-${catId}`);
             header.innerHTML = `<span><span class="mr-2">${emoji}</span>${cat}</span><span class="text-[9px] text-[#00E5FF] transform transition-transform duration-300 rotate-[-90deg]" id="icon-${catId}">▼</span>`;
-            
+
             const groupContainer = document.createElement('div');
             groupContainer.id = `group-${catId}`;
             groupContainer.className = 'grid transition-all duration-300';
             groupContainer.style.gridTemplateRows = '0fr';
             groupContainer.style.opacity = '0';
             groupContainer.style.pointerEvents = 'none';
-            
+
             const wrapper = document.createElement('div');
             wrapper.className = 'flex flex-col gap-1 overflow-hidden min-h-0';
             groupContainer.appendChild(wrapper);
-            
-            header.addEventListener('click', () => {
+
+            const toggleGroup = () => {
                 const isCollapsed = groupContainer.style.gridTemplateRows === '0fr';
                 const icon = document.getElementById(`icon-${catId}`);
                 if (isCollapsed) {
@@ -988,12 +992,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     groupContainer.style.opacity = '1';
                     groupContainer.style.pointerEvents = 'auto';
                     if(icon) icon.style.transform = 'rotate(0deg)';
+                    header.setAttribute('aria-expanded', 'true');
                 } else {
                     groupContainer.style.gridTemplateRows = '0fr';
                     groupContainer.style.opacity = '0';
                     groupContainer.style.pointerEvents = 'none';
                     if(icon) icon.style.transform = 'rotate(-90deg)';
+                    header.setAttribute('aria-expanded', 'false');
                 }
+            };
+            header.addEventListener('click', toggleGroup);
+            header.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(); }
             });
 
             genreMenu.appendChild(header);

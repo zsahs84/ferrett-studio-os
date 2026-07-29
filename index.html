@@ -20,7 +20,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v117';
+window.APP_VERSION = 'v118';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';
@@ -352,7 +352,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="starred-tones-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     </section>
 
-    <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 max-w-7xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+    <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176</span></div>
 
         <div class="card border-[#00FF8830] mb-8">
@@ -499,7 +499,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="link-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </div>
 
-    <div id="tab-tracks" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+    <div id="tab-tracks" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex justify-between items-center mb-6 border-b border-[#00FF8820] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00FF88]">CHANNEL SETTINGS DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[SUPPORTS FX CHAIN IMAGES]</span></h2><div class="flex gap-2"><button id="btn-ref-shelf" class="btn-euterpe shrink-0" style="border-color:#B18CFF50;color:#B18CFF;background:rgba(177,140,255,0.08);" title="Reference-track shelf — commercial songs you mix against">★ REFS</button><button id="btn-add-track" class="btn-euterpe-green shrink-0">+ ADD CONFIG</button></div></div>
         <div id="form-track" class="card mb-6 hidden border-[#00FF8840]">
             <h3 id="track-form-title" class="text-[11px] font-bold text-[#00FF88] tracking-widest mb-4 border-b border-[#00FF8820] pb-2">NEW CHANNEL SETTING</h3>
@@ -515,7 +515,7 @@ main { background: rgba(5,8,7,0.72); }
         <div id="track-list" class="grid grid-cols-1 gap-6"></div>
     </div>
 
-    <div id="tab-tones" class="middle-tab p-4 md:p-8 max-w-5xl border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+    <div id="tab-tones" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TONE LIBRARY DB <span class="text-[#E2E8F0]/30 text-[10px] ml-2">[STAR UP TO 10 FOR HOME SCREEN]</span></h2><div class="flex gap-2"><button id="btn-tone-stages" class="btn-euterpe shrink-0" style="border-color:#FFA05C50;color:#FFA05C;background:rgba(255,160,92,0.08);" title="View tones as a gain-stage ladder">⚡ STAGES</button><button id="btn-add-tone" class="btn-euterpe shrink-0">+ ADD TONE</button></div></div>
         <div id="tone-stage-view" class="hidden space-y-4 mb-6"></div>
         <input type="text" id="search-tone" class="input-euterpe w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search custom library...">
@@ -554,7 +554,7 @@ main { background: rgba(5,8,7,0.72); }
     </div>
 
 
-    <section id="tab-toolbox" class="middle-tab p-4 md:p-8 max-w-6xl border-b border-[#7AFFBF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+    <section id="tab-toolbox" class="middle-tab p-4 md:p-8 border-b border-[#7AFFBF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#7AFFBF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#7AFFBF]">TOOLBOX</h2><span class="text-[9px] text-[#7AFFBF]/40 tracking-widest hidden sm:block">EVERY TOOL, SORTED</span></div>
 
         <div class="card border-[#FFD60A40] mb-6 text-center py-8" style="background:linear-gradient(135deg,rgba(255,214,10,0.06),rgba(0,229,255,0.04));">
@@ -1277,7 +1277,7 @@ main { background: rgba(5,8,7,0.72); }
     </div>
     </section>
 
-    <section id="tab-lyrics" class="middle-tab p-4 md:p-8 max-w-4xl border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+    <section id="tab-lyrics" class="middle-tab p-4 md:p-8 border-b border-[#FF88FF14] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
         <div class="flex items-end justify-between border-b border-[#FF88FF20] pb-2 mb-5"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#FF88FF]">LYRICS LAB // CUT-UP ENGINE</h2><span class="text-[9px] text-[#FF88FF]/40 tracking-widest hidden sm:block">DRAG · SHUFFLE · SPLICE</span></div>
 
         <!-- sheet tabs: up to 3 quick-switch tabs, a dropdown for every other sheet (picking one bumps the oldest tab out), + new sheet -->
@@ -10478,7 +10478,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const createTab = (id, color) => {
         const t = document.createElement('section');
         t.id = id;
-        t.className = 'middle-tab p-4 md:p-8 max-w-6xl min-h-[600px] border-b border-[' + color + '14] bg-[rgba(5,8,7,0.4)]';
+        t.className = 'middle-tab p-4 md:p-8 min-h-[600px] border-b border-[' + color + '14] bg-[rgba(5,8,7,0.4)]';
         scrollArea.appendChild(t);
         return t;
     };

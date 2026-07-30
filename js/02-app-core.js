@@ -4053,7 +4053,8 @@ window.lyriaSongBlock = (songId) => {
         try {
             const sys = [
                 'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. This document is pasted ONCE into Flow\'s per-genre custom Instructions (or a named Flow) and stays active for every song generated in this genre afterward — write for reuse across dozens of future songs, not one.',
-                'Write 300-500 words of plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, VOCAL STYLE:, ARRANGEMENT TENDENCIES:, AVOID:). No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
+                'Flow\'s Instructions field comfortably holds up to about 10,000 characters (confirmed by the producer directly), so do not hold back on real, useful detail the way a short blurb would have to — go as long and specific as this genre\'s recipe book actually supports, typically 800-2,000 words. Do NOT pad with filler or repetition just to hit a length; if the recipe book below is thin, a shorter, denser document beats a bloated one.',
+                'Plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, VOCAL STYLE:, ARRANGEMENT TENDENCIES:, AVOID:) — add as many labeled paragraphs as the genre supports, not just one per category. No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
                 'Always include a VOCAL STYLE paragraph — register, phrasing, energy, how it typically sits in the mix for this genre — using the VOCAL STYLE line below as your starting point. Frame it as what to do WHEN a song has vocals, since not every song in this genre will.',
                 'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole document is wasted.',
                 'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ, reverb, or any studio-processing language — Flow cannot act on any of that and it crowds out the musical detail that matters.',
@@ -4065,7 +4066,11 @@ window.lyriaSongBlock = (songId) => {
             // appear, named, in what you write. The recipe book below is already artist-free; lean on it.
             const user = `GENRE: ${genre}\nBACKGROUND (private reference only — never repeat any artist/song name from this in your output): ${meta.desc || ''}\n\nTHIS GENRE'S ACTUAL RECIPE BOOK AND CHARACTER, safe to build from directly:\n${draft}`;
             window.__aiUsage?.begin('Producer Instructions');
-            const written = await window.ferrettAI(sys, user, { creative: true });
+            // HA mode defaults to 1500 max_tokens when nothing is passed (~1100 words) — nowhere near
+            // enough now that this is asking for up to ~2,000 words / 10k characters. Groq/Gemini leave
+            // their own ceiling alone when maxTokens is unset, so this only actually changes anything on
+            // the HA path, and 4000 tokens (~16k chars) leaves real headroom above the 10k target.
+            const written = await window.ferrettAI(sys, user, { creative: true, maxTokens: 4000 });
             const spent = window.__aiUsage?.end();
             const spentStr = window.__aiUsage?.summary(spent) || '';
             if (written && written.trim()) setOut(written.trim());

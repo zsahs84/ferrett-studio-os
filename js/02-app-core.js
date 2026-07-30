@@ -3772,7 +3772,7 @@ window.lyriaSongBlock = (songId) => {
                 'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ or reverb settings. Lyria cannot act on any of that and it crowds out the musical detail that matters.',
                 'The brief lists roles the producer is playing THEMSELVES. Use exactly the instrument they named for that role and never propose an alternative for it — do not offer a synth bass when they said electric bass.',
                 'Roles listed as excluded must not appear at all; state their absence plainly if it shapes the sound.',
-                'The TEMPO given below is this specific song\'s actual tempo, already chosen by the producer — state that exact BPM number in your paragraph. Do not round it, do not substitute a genre-typical tempo instead, even if it looks unusual for the genre.'
+                'The TEMPO given below is this specific song\'s actual tempo, already chosen by the producer — write it as literal digits followed by "BPM" somewhere in your paragraph (e.g. "92 BPM"), not just a pace adjective like "laid-back" or "driving". Do not round it, do not substitute a genre-typical tempo instead, even if it looks unusual for the genre.'
             ].filter(Boolean).join(' ');
             const roleLines = [
                 built.claimed.length ? `PRODUCER IS PLAYING THESE THEMSELVES (use their instrument, suggest no alternative): ${built.claimed.join(', ')}` : '',
@@ -4668,6 +4668,12 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-producer-notes-regenerate')?.addEventListener('click', () => window.runProducerNotesGenerate());
     document.getElementById('btn-producer-notes-copy')?.addEventListener('click', () => { const out = document.getElementById('producer-notes-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-producer-notes-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
     document.getElementById('btn-producer-notes-save')?.addEventListener('click', () => window.saveProducerNotes());
+    // The box is editable now (tweak the AI's wording, fix a detail, whatever) — keep the char/token
+    // readout honest as you type instead of freezing it at whatever it said at generate time.
+    document.getElementById('producer-notes-output')?.addEventListener('input', (e) => {
+        const countEl = document.getElementById('producer-notes-count');
+        if (countEl) countEl.textContent = `${e.target.value.length.toLocaleString()} chars · ~${Math.ceil(e.target.value.length / 4).toLocaleString()} tokens`;
+    });
     document.getElementById('producer-notes-saved-list')?.addEventListener('click', (e) => {
         const loadBtn = e.target.closest('.producer-notes-saved-load');
         const copyBtn = e.target.closest('.producer-notes-saved-copy');

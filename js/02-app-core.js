@@ -3951,6 +3951,11 @@ window.lyriaSongBlock = (songId) => {
             `TEMPO: ${bpmOverride || `${meta.bpm[0]}-${meta.bpm[1]} BPM`} (typically ~${window.getGenreBpmMid(genre)} BPM).`,
         ];
         if (instrLines.length) parts.push(`INSTRUMENTATION:\n${instrLines.join('\n')}`);
+        // This genre's own recipe book rarely has a Vox entry (most were built for instrumental
+        // production), so without this the notes never said anything about vocals at all — every future
+        // song prompt for this genre had to add its own vocal direction from scratch. Falls back to the
+        // same per-genre vox data the Lyria Prompt Generator already uses.
+        if (meta.vox) parts.push(`VOCAL STYLE (when this song has vocals): ${lyriaCap(meta.vox)}.`);
         if (keyOverride) parts.push(`KEY: ${keyOverride}.`);
         if (negOverride) parts.push(`AVOID: ${negOverride}.`);
         if (latestKit && Array.isArray(latestKit.palette) && latestKit.palette.length) {
@@ -3996,7 +4001,8 @@ window.lyriaSongBlock = (songId) => {
         try {
             const sys = [
                 'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. This document is pasted ONCE into Flow\'s per-genre custom Instructions (or a named Flow) and stays active for every song generated in this genre afterward — write for reuse across dozens of future songs, not one.',
-                'Write 300-500 words of plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, ARRANGEMENT TENDENCIES:, AVOID:). No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
+                'Write 300-500 words of plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, VOCAL STYLE:, ARRANGEMENT TENDENCIES:, AVOID:). No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
+                'Always include a VOCAL STYLE paragraph — register, phrasing, energy, how it typically sits in the mix for this genre — using the VOCAL STYLE line below as your starting point. Frame it as what to do WHEN a song has vocals, since not every song in this genre will.',
                 'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole document is wasted.',
                 'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ, reverb, or any studio-processing language — Flow cannot act on any of that and it crowds out the musical detail that matters.',
                 'Only name instruments and playing styles that are represented in this genre\'s recipe book below — do not invent instrumentation this genre doesn\'t actually use.'

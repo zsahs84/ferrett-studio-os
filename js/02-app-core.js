@@ -4639,6 +4639,15 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
     document.getElementById('btn-lyria-copy-style')?.addEventListener('click', () => { const out = document.getElementById('lyria-output-style'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy-style'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    // The next stop after this prompt is Flow (flowmusic.app), where it actually gets pasted and
+    // rendered — copy it across in the same click that opens the tab, so there's nothing left to do
+    // there but paste.
+    document.getElementById('btn-lyria-open-flow')?.addEventListener('click', () => {
+        const out = document.getElementById('lyria-output-style'); if (!out) return;
+        out.select();
+        navigator.clipboard?.writeText(out.value).catch(() => document.execCommand('copy'));
+        window.open('https://www.flowmusic.app/', '_blank', 'noopener,noreferrer');
+    });
     document.getElementById('btn-lyria-save')?.addEventListener('click', () => window.saveLyriaPrompt());
     document.getElementById('lyria-saved-list')?.addEventListener('click', (e) => {
         const loadBtn = e.target.closest('.lyria-saved-load');

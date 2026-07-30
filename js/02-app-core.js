@@ -3703,6 +3703,7 @@ window.lyriaSongBlock = (songId) => {
         const notesEl = document.getElementById('lyria-custom-notes'); if (notesEl) notesEl.value = '';
         const aiNote = document.getElementById('lyria-ai-note'); if (aiNote) aiNote.textContent = '';
         const styleOut = document.getElementById('lyria-output-style'); if (styleOut) styleOut.value = '';
+        window.__lyriaLoadedId = null;
         document.getElementById('lyria-modal')?.classList.replace('hidden', 'flex');
     };
     window.closeLyriaModal = () => document.getElementById('lyria-modal')?.classList.replace('flex', 'hidden');
@@ -3714,6 +3715,9 @@ window.lyriaSongBlock = (songId) => {
     // not from the genre name alone.
     window.runLyriaGenerate = async () => {
         const genre = document.getElementById('lyria-genre-select')?.value; if (!genre) return;
+        // A fresh generate is a new unsaved draft, not a continuation of whatever was loaded — SAVE
+        // makes a new take again until something is loaded (or this one is saved) to autosave into.
+        window.__lyriaLoadedId = null;
         const bpm = parseInt(document.getElementById('lyria-bpm')?.value, 10) || undefined;
         const notes = document.getElementById('lyria-custom-notes')?.value || '';
         const key = document.getElementById('lyria-key')?.value || '';
@@ -3826,6 +3830,11 @@ window.lyriaSongBlock = (songId) => {
     // or lyrics do. But shopping sounds for a genre before any lyrics/song exists shouldn't need one:
     // with no song picked, takes fall back to window.db.lyriaPrompts[genre] — same shape and same
     // scroll-back-through-history pattern as producerNotes and genreKits already use.
+    //
+    // Which saved take (if any) the box currently reflects — set by LOAD or by a fresh SAVE, and
+    // cleared by GENERATE or opening the modal fresh. While set, typing in the box autosaves into
+    // that same saved take instead of needing SAVE clicked again.
+    window.__lyriaLoadedId = null;
     window.getSongForLyriaSave = () => {
         const songId = document.getElementById('lyria-song-select')?.value || '';
         if (!songId) return null;
@@ -3879,7 +3888,7 @@ window.lyriaSongBlock = (songId) => {
         const n = target.list.length + 1;
         const name = prompt('Name this take (e.g. "Take 2 — more aggressive drums"):', `Take ${n}`);
         if (name == null) return; // cancelled
-        target.list.push({
+        const entry = {
             id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
             name: name.trim() || `Take ${n}`,
             createdAt: Date.now(),
@@ -3895,7 +3904,10 @@ window.lyriaSongBlock = (songId) => {
                 notes: document.getElementById('lyria-custom-notes')?.value || '',
                 timestamps: !!document.getElementById('lyria-timestamps')?.checked
             }
-        });
+        };
+        target.list.push(entry);
+        // From here on, further edits to the box autosave into this take — no need to hit SAVE again.
+        window.__lyriaLoadedId = entry.id;
         window.saveData();
         window.renderLyriaSavedPrompts();
         window.renderSongBoard?.();
@@ -3904,6 +3916,7 @@ window.lyriaSongBlock = (songId) => {
     window.loadLyriaPrompt = (id) => {
         const target = window.getLyriaSaveTarget(); if (!target) return;
         const p = target.list.find(x => String(x.id) === String(id)); if (!p) return;
+        window.__lyriaLoadedId = p.id;
         const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val; };
         set('lyria-genre-select', p.params.genre);
         set('lyria-mood', p.params.mood);
@@ -3921,7 +3934,7 @@ window.lyriaSongBlock = (songId) => {
         const countEl = document.getElementById('lyria-style-count');
         if (countEl) { countEl.textContent = `${p.prompt.length.toLocaleString()} chars · ~${Math.ceil(p.prompt.length / 4).toLocaleString()} tokens of ${window.LYRIA_INPUT_TOKEN_LIMIT.toLocaleString()}`; countEl.className = 'text-[9px] font-mono text-[#00E5FF]/50'; }
         const note = document.getElementById('lyria-ai-note');
-        if (note) { note.textContent = `Loaded "${p.name}". Tweak any field above and hit GENERATE PROMPT for a fresh variation, or copy this as-is.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
+        if (note) { note.textContent = `Loaded "${p.name}" — editing the prompt text below now autosaves into it. Hit GENERATE PROMPT instead for a fresh variation to save separately.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
         styleOut?.scrollIntoView({ block: 'nearest' });
     };
 
@@ -3937,6 +3950,7 @@ window.lyriaSongBlock = (songId) => {
         if (!confirm(`Delete saved prompt "${p.name}"? This can't be undone.`)) return;
         if (target.song) { target.song.lyriaPrompts = target.list.filter(x => x.id !== p.id); }
         else { window.db.lyriaPrompts[target.genre] = target.list.filter(x => x.id !== p.id); }
+        if (String(window.__lyriaLoadedId) === String(p.id)) window.__lyriaLoadedId = null;
         window.saveData();
         window.renderLyriaSavedPrompts();
         window.renderSongBoard?.();
@@ -3950,6 +3964,10 @@ window.lyriaSongBlock = (songId) => {
     // This reuses the same jargon-free, artist-free rules as buildLyriaPrompt, just written as a
     // fuller reference document instead of a single compact opener sentence.
     window.currentProducerNotesGenre = null;
+    // Which saved version (if any) the box currently reflects — set by LOAD or by a fresh SAVE, and
+    // cleared by GENERATE or opening the modal fresh. While set, typing in the box autosaves into
+    // that same saved version instead of needing SAVE clicked again.
+    window.__producerNotesLoadedId = null;
 
     // The offline-safe draft: no AI call, assembled straight from data already in the Cookbook. Also
     // doubles as the AI's brief when a key IS configured, the same relationship buildLyriaPrompt has
@@ -4002,6 +4020,7 @@ window.lyriaSongBlock = (songId) => {
         document.getElementById('btn-producer-notes-regenerate')?.classList.add('hidden');
         const out = document.getElementById('producer-notes-output'); if (out) out.value = '';
         const note = document.getElementById('producer-notes-ai-note'); if (note) note.textContent = '';
+        window.__producerNotesLoadedId = null;
         window.renderProducerNotesSaved();
         document.getElementById('producer-notes-modal')?.classList.replace('hidden', 'flex');
     };
@@ -4009,6 +4028,9 @@ window.lyriaSongBlock = (songId) => {
 
     window.runProducerNotesGenerate = async () => {
         const genre = window.currentProducerNotesGenre; if (!genre) return;
+        // A fresh generate is a new unsaved draft, not a continuation of whatever was loaded — SAVE
+        // makes a new version again until something is loaded (or this one is saved) to autosave into.
+        window.__producerNotesLoadedId = null;
         const draft = window.buildProducerNotesDraft(genre);
         const out = document.getElementById('producer-notes-output');
         const setOut = (text) => {
@@ -4089,12 +4111,15 @@ window.lyriaSongBlock = (songId) => {
         const n = window.db.producerNotes[genre].length + 1;
         const name = prompt('Name this version (e.g. "V2 - leaner synths"):', `V${n}`);
         if (name == null) return;
-        window.db.producerNotes[genre].push({
+        const entry = {
             id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
             name: name.trim() || `V${n}`,
             createdAt: Date.now(),
             text
-        });
+        };
+        window.db.producerNotes[genre].push(entry);
+        // From here on, further edits to the box autosave into this version — no need to hit SAVE again.
+        window.__producerNotesLoadedId = entry.id;
         window.saveData();
         window.renderProducerNotesSaved();
     };
@@ -4102,13 +4127,14 @@ window.lyriaSongBlock = (songId) => {
     window.loadProducerNotes = (id) => {
         const genre = window.currentProducerNotesGenre; if (!genre) return;
         const p = (window.db.producerNotes?.[genre] || []).find(x => String(x.id) === String(id)); if (!p) return;
+        window.__producerNotesLoadedId = p.id;
         const out = document.getElementById('producer-notes-output'); if (out) out.value = p.text;
         document.getElementById('producer-notes-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-producer-notes-regenerate')?.classList.remove('hidden');
         const countEl = document.getElementById('producer-notes-count');
         if (countEl) countEl.textContent = `${p.text.length.toLocaleString()} chars · ~${Math.ceil(p.text.length / 4).toLocaleString()} tokens`;
         const note = document.getElementById('producer-notes-ai-note');
-        if (note) { note.textContent = `Loaded "${p.name}". Hit GENERATE PRODUCER NOTES for a fresh variation, or copy this as-is.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
+        if (note) { note.textContent = `Loaded "${p.name}" — editing the text below now autosaves into it. Hit GENERATE PRODUCER NOTES instead for a fresh variation to save separately.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
         out?.scrollIntoView({ block: 'nearest' });
     };
 
@@ -4124,6 +4150,7 @@ window.lyriaSongBlock = (songId) => {
         const p = list.find(x => String(x.id) === String(id)); if (!p) return;
         if (!confirm(`Delete saved producer notes "${p.name}"? This can't be undone.`)) return;
         window.db.producerNotes[genre] = list.filter(x => x.id !== p.id);
+        if (String(window.__producerNotesLoadedId) === String(p.id)) window.__producerNotesLoadedId = null;
         window.saveData();
         window.renderProducerNotesSaved();
     };
@@ -4676,6 +4703,22 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
     document.getElementById('btn-lyria-copy-style')?.addEventListener('click', () => { const out = document.getElementById('lyria-output-style'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy-style'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    // The box is editable (tweak the wording, fix a detail). If a saved take is currently loaded,
+    // edits autosave into that same take a moment after you stop typing — same as Producer Notes.
+    // Nothing to autosave into until either LOAD or SAVE has pointed __lyriaLoadedId at a take.
+    document.getElementById('lyria-output-style')?.addEventListener('input', (e) => {
+        const countEl = document.getElementById('lyria-style-count');
+        if (countEl) countEl.textContent = `${e.target.value.length.toLocaleString()} chars · ~${Math.ceil(e.target.value.length / 4).toLocaleString()} tokens of ${window.LYRIA_INPUT_TOKEN_LIMIT.toLocaleString()}`;
+        if (!window.__lyriaLoadedId) return;
+        clearTimeout(window.__lyriaAutosaveTimer);
+        window.__lyriaAutosaveTimer = setTimeout(() => {
+            const target = window.getLyriaSaveTarget(); if (!target) return;
+            const p = target.list.find(x => String(x.id) === String(window.__lyriaLoadedId)); if (!p) return;
+            p.prompt = e.target.value;
+            window.saveData();
+            window.renderLyriaSavedPrompts();
+        }, 700);
+    });
     // The next stop after this prompt is Flow (flowmusic.app), where it actually gets pasted and
     // rendered — copy it across in the same click that opens the tab, so there's nothing left to do
     // there but paste.
@@ -4705,10 +4748,20 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-producer-notes-copy')?.addEventListener('click', () => { const out = document.getElementById('producer-notes-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-producer-notes-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
     document.getElementById('btn-producer-notes-save')?.addEventListener('click', () => window.saveProducerNotes());
     // The box is editable now (tweak the AI's wording, fix a detail, whatever) — keep the char/token
-    // readout honest as you type instead of freezing it at whatever it said at generate time.
+    // readout honest as you type instead of freezing it at whatever it said at generate time. If a
+    // saved version is currently loaded, edits also autosave into it a moment after you stop typing.
     document.getElementById('producer-notes-output')?.addEventListener('input', (e) => {
         const countEl = document.getElementById('producer-notes-count');
         if (countEl) countEl.textContent = `${e.target.value.length.toLocaleString()} chars · ~${Math.ceil(e.target.value.length / 4).toLocaleString()} tokens`;
+        if (!window.__producerNotesLoadedId) return;
+        clearTimeout(window.__producerNotesAutosaveTimer);
+        window.__producerNotesAutosaveTimer = setTimeout(() => {
+            const genre = window.currentProducerNotesGenre; if (!genre) return;
+            const p = (window.db.producerNotes?.[genre] || []).find(x => String(x.id) === String(window.__producerNotesLoadedId)); if (!p) return;
+            p.text = e.target.value;
+            window.saveData();
+            window.renderProducerNotesSaved();
+        }, 700);
     });
     document.getElementById('producer-notes-saved-list')?.addEventListener('click', (e) => {
         const loadBtn = e.target.closest('.producer-notes-saved-load');

@@ -1,7 +1,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v128';
+window.APP_VERSION = 'v129';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const GOOGLE_CLIENT_ID = '722579204865-hl1u9kt0flp6cqasl3perkssf9gv5kst.apps.googleusercontent.com';
 const GOOGLE_API_KEY = 'AIzaSyBmt4asIc5PD3NxJljW5iTwy1VK4LsWrWk';

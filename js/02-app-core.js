@@ -4463,7 +4463,81 @@ ${imagesHtml ? `<h2>SCREENSHOTS</h2>${imagesHtml}` : ''}
     };
 
     window.renderTracks = () => { const list = document.getElementById('track-list'); if(!list) return; list.innerHTML = ''; const filtered = window.db.tracks; filtered.forEach(t => { const c = '#00FF88'; list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-track text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-track text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-export-track text-[10px] font-bold text-[#FF88FF] hover:text-white">📤 EXPORT</button><button data-id="${t.id}" class="btn-del-track text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2"><h4 class="font-bold text-[14px]" style="color: ${c};">${window.escapeHtml(t.inst)}</h4></div><p class="text-[11px] text-[#A7DCC3]/50 mb-3 font-mono border-b pb-2" style="border-color: ${c}20;"><span class="text-white/40">CHAIN:</span> ${window.escapeHtml(t.plugins || 'None')}</p><p class="text-[11px] text-[#E2E8F0]/80 leading-relaxed whitespace-pre-wrap font-mono">${window.escapeHtml(t.notes)}</p>${window.getEmbedHtml(t.reflink)}${window.getImagesHtml(t.images, c, 'tracks', t.id)}</div>`; }); };
-    window.renderTones = () => { const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = [...window.db.tones]; const allBrands = [...new Set(filtered.map(t => t.brand).filter(Boolean))].sort(); window.renderTagBarGeneric('tone-tag-bar', allBrands, window.currentToneTag, window.toneBrandColor, window.setToneTag); if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.brand === window.currentToneTag); if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search) || (t.brand||'').toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; } filtered.forEach(t => { const c = '#00FF88'; const stageColor = window.toneCategoryColor(t.category); const brandColor = window.toneBrandColor(t.brand); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap to pin/unpin" style="border-color: ${c}30;"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button><button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button><button data-id="${t.id}" class="btn-tone-chain text-[10px] font-bold text-[#7FA8D9] hover:text-white" title="Visualize signal chain">🔗</button><button data-id="${t.id}" class="btn-export-tone text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this tone">📤</button><button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-3 flex-wrap"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color:${stageColor}; border-color:${stageColor}40; background:${stageColor}0A;" title="Gain stage">${t.category}</span>${t.brand ? `<button data-tag="${window.escapeHtml(t.brand)}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${brandColor}; border-color:${brandColor}40; background:${brandColor}0A;" title="Filter by ${window.escapeHtml(t.brand)}">${window.escapeHtml(t.brand)}</button>` : ''}${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}<h4 class="font-bold text-[14px] truncate w-full" style="color: ${c};">${window.escapeHtml(t.name)}</h4></div><div class="text-[10px] bg-[rgba(10,15,13,0.8)] p-2 rounded mb-3 space-y-1.5 border font-mono relative overflow-hidden" style="border-color: ${c}14;"><div class="absolute top-0 right-0 bottom-0 w-1 opacity-60" style="background-color: ${stageColor};"></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">NAM:</span> <span class="text-white">${window.escapeHtml(t.nam || 'None')}</span></div><div class="truncate"><span class="font-bold" style="color: ${c}80;">CAB:</span> <span class="text-white">${window.escapeHtml(t.ir || 'None')}</span></div></div><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono">${window.escapeHtml(t.notes)}</p>${window.getImagesHtml(t.images, c, 'tones', t.id)}${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}</div>`; }); };
+    // Rig visual: one amp head sitting on a 4x12 cab, driven by whichever tone is
+    // selected in the dropdown (or clicked from the STAGES ladder). Head trim/nameplate
+    // = brand color, cab trim/nameplate = gain-stage color, so the graphic itself carries
+    // the same color coding the old cards used.
+    const rigTrunc = (s, n) => { s = s || ''; return s.length > n ? s.slice(0, n - 1) + '…' : (s || '—'); };
+    // Scale the nameplate font down as the string gets longer, and let it wrap —
+    // NAM/IR names vary wildly in length so a fixed size either clips short names or overflows long ones.
+    const rigFitFont = (s, min, max) => Math.max(min, Math.min(max, 150 / Math.max((s || '—').length, 8)));
+    const rigPlate = (label, value, color) => `<div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:monospace;color:${color};line-height:1.18;overflow:hidden;padding:0 3px;box-sizing:border-box;">
+        <div style="font-size:7px;letter-spacing:2px;opacity:0.6;font-weight:bold;flex-shrink:0;">${label}</div>
+        <div style="font-size:${rigFitFont(value, 6.5, 12)}px;font-weight:bold;word-break:break-word;overflow-wrap:anywhere;">${value}</div>
+    </div>`;
+    window.renderRigSVG = (t, brandColor, stageColor) => {
+        const nam = window.escapeHtml(rigTrunc(t.nam, 60));
+        const ir = window.escapeHtml(rigTrunc(t.ir, 60));
+        return `<svg viewBox="0 0 440 500" class="w-full h-auto select-none" style="filter:drop-shadow(0 8px 20px rgba(0,0,0,0.55));">
+            <defs>
+                <pattern id="rig-weave" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#0a0f0d"/><line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.05)" stroke-width="2"/></pattern>
+                <radialGradient id="rig-cone" cx="35%" cy="32%" r="72%"><stop offset="0%" stop-color="#3c4341"/><stop offset="65%" stop-color="#111614"/><stop offset="100%" stop-color="#040605"/></radialGradient>
+            </defs>
+            <!-- head -->
+            <rect x="60" y="20" width="320" height="120" rx="12" fill="#0a0f0d" stroke="${brandColor}66" stroke-width="2"/>
+            <rect x="68" y="30" width="88" height="100" rx="4" fill="#0c1110" stroke="${brandColor}33" stroke-width="1"/>
+            <rect x="284" y="30" width="88" height="100" rx="4" fill="#0c1110" stroke="${brandColor}33" stroke-width="1"/>
+            <rect x="160" y="30" width="120" height="100" rx="4" fill="#050807" stroke="${brandColor}40" stroke-width="1"/>
+            ${[1,2,3,4,5].map(i => `<circle cx="${160 + i*20}" cy="50" r="7" fill="#121815" stroke="${brandColor}55" stroke-width="1"/><line x1="${160 + i*20}" y1="50" x2="${160 + i*20 + 5}" y2="45" stroke="${brandColor}80" stroke-width="1.5"/>`).join('')}
+            <foreignObject x="164" y="62" width="112" height="60">${rigPlate('NAM', nam, brandColor)}</foreignObject>
+            <circle cx="350" cy="118" r="5" fill="${stageColor}" opacity="0.9"><animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite"/></circle>
+            <!-- cab -->
+            <rect x="50" y="130" width="340" height="340" rx="14" fill="#0a0f0d" stroke="${stageColor}55" stroke-width="2"/>
+            <rect x="66" y="146" width="308" height="280" rx="8" fill="url(#rig-weave)" stroke="${stageColor}26" stroke-width="1"/>
+            ${[[143,216],[297,216],[143,356],[297,356]].map(([cx,cy]) => `<circle cx="${cx}" cy="${cy}" r="54" fill="#040605" stroke="${stageColor}40" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="44" fill="url(#rig-cone)"/><circle cx="${cx}" cy="${cy}" r="9" fill="#1a1f1c" stroke="${stageColor}30" stroke-width="1"/>`).join('')}
+            <rect x="100" y="434" width="240" height="30" rx="4" fill="#050807" stroke="${stageColor}40" stroke-width="1"/>
+            <foreignObject x="104" y="436" width="232" height="26">${rigPlate('CAB / IR', ir, stageColor)}</foreignObject>
+        </svg>`;
+    };
+    window.renderTones = () => {
+        const list = document.getElementById('tone-list'); const sInput = document.getElementById('search-tone');
+        const search = sInput ? sInput.value.toLowerCase() : ''; if (!list) return;
+        let filtered = [...window.db.tones];
+        const allBrands = [...new Set(filtered.map(t => t.brand).filter(Boolean))].sort();
+        window.renderTagBarGeneric('tone-tag-bar', allBrands, window.currentToneTag, window.toneBrandColor, window.setToneTag);
+        if (window.currentToneTag !== 'ALL') filtered = filtered.filter(t => t.brand === window.currentToneTag);
+        if (search) filtered = filtered.filter(t => t.name.toLowerCase().includes(search) || t.nam.toLowerCase().includes(search) || t.ir.toLowerCase().includes(search) || t.notes.toLowerCase().includes(search) || (t.brand || '').toLowerCase().includes(search));
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        list.innerHTML = '';
+        if (filtered.length === 0) { list.innerHTML = `<div class="text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tones match this tag/search.</div>`; return; }
+        if (!window.currentRigToneId || !filtered.some(t => t.id === window.currentRigToneId)) window.currentRigToneId = filtered[0].id;
+        const t = filtered.find(x => x.id === window.currentRigToneId);
+        const c = '#00FF88'; const stageColor = window.toneCategoryColor(t.category); const brandColor = window.toneBrandColor(t.brand);
+        const options = filtered.map(x => `<option value="${x.id}" ${x.id === t.id ? 'selected' : ''}>${window.escapeHtml(x.name)}${x.brand ? ' — ' + window.escapeHtml(x.brand) : ''} [${x.category}]</option>`).join('');
+        list.innerHTML = `<div class="card relative bg-[rgba(5,8,7,0.8)]" data-tone-id="${t.id}" title="Double-tap the rig to pin/unpin" style="border-color: ${c}30;">
+            <div class="flex items-center gap-2 mb-4 flex-wrap">
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border" style="color:${stageColor}; border-color:${stageColor}40; background:${stageColor}0A;" title="Gain stage">${t.category}</span>
+                ${t.brand ? `<button data-tag="${window.escapeHtml(t.brand)}" class="btn-tag-tone text-[9px] font-bold px-1.5 py-0.5 rounded uppercase border cursor-pointer transition-all hover:brightness-125" style="color:${brandColor}; border-color:${brandColor}40; background:${brandColor}0A;" title="Filter by ${window.escapeHtml(t.brand)}">${window.escapeHtml(t.brand)}</button>` : ''}
+                ${t.starred ? '<span class="text-[10px] text-[#00E5FF]" title="Pinned to Front Page">★</span>' : ''}
+                <select id="tone-rig-select" class="input-euterpe ml-auto !w-auto min-w-[220px] !text-[11px]" title="Load a preset into the rig">${options}</select>
+            </div>
+            <div class="mx-auto" style="max-width:480px;">
+                ${window.renderRigSVG(t, brandColor, stageColor)}
+            </div>
+            <h4 class="font-bold text-[15px] text-center mt-3" style="color: ${c};">${window.escapeHtml(t.name)}</h4>
+            <p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed whitespace-pre-wrap font-mono mt-2">${window.escapeHtml(t.notes)}</p>
+            ${window.getImagesHtml(t.images, c, 'tones', t.id)}
+            ${t.hasAudio ? `<div class="mt-3"><button data-tone-audio="${t.id}" class="btn-play-tone-audio text-[9px] font-bold px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 uppercase tracking-widest cursor-pointer">🔊 Play Reference</button><div id="tone-audio-slot-${t.id}" class="mt-2"></div></div>` : ''}
+            <div class="flex justify-end gap-3 mt-4 pt-3 border-t" style="border-color:${c}14;">
+                <button data-id="${t.id}" class="btn-edit-tone text-[10px] font-bold hover:text-white" style="color: ${c}">EDIT</button>
+                <button data-id="${t.id}" class="btn-clone-tone text-[10px] font-bold text-[#FFD60A] hover:text-white">CLONE</button>
+                <button data-id="${t.id}" class="btn-tone-chain text-[10px] font-bold text-[#7FA8D9] hover:text-white" title="Visualize signal chain">🔗</button>
+                <button data-id="${t.id}" class="btn-export-tone text-[10px] font-bold text-[#FF88FF] hover:text-white" title="Export / share this tone">📤</button>
+                <button data-id="${t.id}" class="btn-del-tone text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button>
+            </div>
+        </div>`;
+        document.getElementById('tone-rig-select')?.addEventListener('change', (e) => { window.currentRigToneId = parseInt(e.target.value, 10); window.renderTones(); });
+    };
     window.renderStarredTones = () => { const list = document.getElementById('starred-tones-list'); if(!list) return; list.innerHTML = ''; const starred = window.db.tones.filter(t => t.starred).slice(0, 10); if (starred.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00FF8820] rounded">No Pinned Tones. Go to Tone DB [Tags] and click [★] to pin up to 10 favorites here.</div>`; return; } starred.forEach(t => { const catColor = window.toneCategoryColor(t.category); const catBg = catColor; list.innerHTML += `<div class="card border-[${catColor}30]"><div class="flex items-center gap-2 mb-1"><h4 class="font-bold text-[12px] tracking-wider truncate" style="color: ${catColor};">${window.escapeHtml(t.name.toUpperCase())}</h4></div><p class="text-[10px] tracking-widest text-[#E2E8F0]/50 mb-3 pb-2 border-b flex justify-between items-center" style="border-color: ${catColor}14;"><span class="truncate pr-2">${window.escapeHtml(t.nam)} + ${window.escapeHtml(t.ir)}</span><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${catBg};"></span></p><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono whitespace-pre-wrap">${window.escapeHtml(t.notes)}</p></div>`; }); };
 
     // Gesture: double-tap a tone card to instantly pin/unpin it (no need to open the edit form).

@@ -830,7 +830,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             const tones = window.db.tones || [];
             wrap.innerHTML = STAGE_ORDER.map(([cat, color]) => {
                 const items = tones.filter(t => (t.category || 'CLEAN') === cat);
-                return `<div class="rounded border p-3 bg-black/30" style="border-color:${color}30;"><div class="text-[10px] font-bold tracking-widest uppercase mb-2 flex items-center gap-2" style="color:${color};"><span class="w-2 h-2 rounded-full" style="background:${color};"></span>${cat} <span class="opacity-50">· ${items.length}</span></div><div class="flex flex-wrap gap-2">${items.length ? items.map(t => `<span class="text-[10px] px-2 py-1 rounded border" style="color:${color};border-color:${color}40;background:${color}0A;" title="${window.escapeHtml(t.nam || '')}${t.ir ? ' / ' + window.escapeHtml(t.ir) : ''}">${window.escapeHtml(t.name || 'Unnamed')}${t.brand ? ` · ${window.escapeHtml(t.brand)}` : ''}</span>`).join('') : '<span class="text-white/25 text-[10px] italic">none</span>'}</div></div>`;
+                return `<div class="rounded border p-3 bg-black/30" style="border-color:${color}30;"><div class="text-[10px] font-bold tracking-widest uppercase mb-2 flex items-center gap-2" style="color:${color};"><span class="w-2 h-2 rounded-full" style="background:${color};"></span>${cat} <span class="opacity-50">· ${items.length}</span></div><div class="flex flex-wrap gap-2">${items.length ? items.map(t => `<button type="button" data-tone-id="${t.id}" class="btn-stage-tone text-[10px] px-2 py-1 rounded border cursor-pointer transition-all hover:brightness-125" style="color:${color};border-color:${color}40;background:${color}0A;" title="Load into the rig — ${window.escapeHtml(t.nam || '')}${t.ir ? ' / ' + window.escapeHtml(t.ir) : ''}">${window.escapeHtml(t.name || 'Unnamed')}${t.brand ? ` · ${window.escapeHtml(t.brand)}` : ''}</button>`).join('') : '<span class="text-white/25 text-[10px] italic">none</span>'}</div></div>`;
             }).join('');
         };
         const setStageView = (on) => {
@@ -959,6 +959,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             if (er) { const r = (window.db.cookbook || []).find(x => x.id === parseInt(er.dataset.id, 10)); if (r) openExport(r.inst, recipeToText(r)); return; }
             const et = e.target.closest('.btn-export-tone');
             if (et) { const t = (window.db.tones || []).find(x => x.id === parseInt(et.dataset.id, 10)); if (t) openExport(t.name, toneToText(t)); return; }
+            const st = e.target.closest('.btn-stage-tone');
+            if (st) { window.currentRigToneId = parseInt(st.dataset.toneId, 10); setStageView(false); window.renderTones?.(); document.getElementById('tone-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
         });
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

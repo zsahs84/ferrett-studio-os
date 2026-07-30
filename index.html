@@ -193,6 +193,7 @@
                         <button id="btn-genre-chapter" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#7AFFBF40] text-[#7AFFBF] hover:bg-[#7AFFBF]/10 cursor-pointer" title="Export this genre as a Markdown cookbook chapter (.md)" aria-label="Export this genre as a Markdown cookbook chapter (.md)">📄 CHAPTER</button>
                         <button id="btn-genre-lyria" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer">🎼 LYRIA PROMPT</button>
                         <button id="btn-genre-kit" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FF88FF60] text-[#FF88FF] bg-[#FF88FF]/8 hover:bg-[#FF88FF]/18 cursor-pointer" title="Build a full per-instrument chain sheet for this genre using only the plugins you own" aria-label="Build a full per-instrument chain sheet for this genre using only the plugins you own">🤖 AI KIT</button>
+                        <button id="btn-genre-producer" type="button" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#FFD60A60] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer" title="Write a reusable producer-instructions block for this genre — paste it once into Google Flow Music's per-genre Instructions/Flow, then every song prompt after that only needs to add what's different" aria-label="Write producer instructions for this genre">🎙️ PRODUCER NOTES</button>
                     </div>
                     <div class="flex flex-col gap-3 text-[9px] tracking-widest font-bold mt-1">
                         <div class="flex flex-col gap-1">
@@ -1641,11 +1642,11 @@
         <div class="card border-[#00E5FF40] relative">
             <button id="close-lyria-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF] uppercase mb-1 pr-8">🎼 Lyria Prompt Generator</h3>
-            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Builds one Lyria 3 prompt from a genre's actual recipe data, plus anything specific you want included. Lyria takes a <b class="text-[#00E5FF]/70">single prompt</b> — musical direction and lyrics together, not separate boxes — so this produces one block to copy. Attach a song and its lyrics go in verbatim under <code class="text-[#FF88FF]">Lyrics:</code> with <code class="text-[#FF88FF]">[Verse 1]</code>-style tags.</p>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Builds one Lyria 3 prompt from a genre's actual recipe data, plus anything specific you want included. Lyria takes a <b class="text-[#00E5FF]/70">single prompt</b> — musical direction and lyrics together, not separate boxes — so this produces one block to copy. Attach any song for its BPM and arrangement structure; if it has lyrics they go in verbatim under <code class="text-[#FF88FF]">Lyrics:</code> with <code class="text-[#FF88FF]">[Verse 1]</code>-style tags.</p>
 
-            <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold block mb-1.5">SONG / LYRICS (optional)</label>
+            <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold block mb-1.5">SONG (optional)</label>
             <select id="lyria-song-select" class="w-full bg-black/50 border border-[#FF88FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-1 focus:outline-none"></select>
-            <p id="lyria-song-note" class="text-[9px] text-[#E2E8F0]/35 mb-4">Pick a song and its lyrics go into the prompt verbatim, with <code class="text-[#FF88FF]">[Section]</code> tags and timings from its arrangement. Leave on “none” for an instrumental.</p>
+            <p id="lyria-song-note" class="text-[9px] text-[#E2E8F0]/35 mb-4">Pick a song to carry its BPM and structure across. If it has lyrics they go into the prompt verbatim, with <code class="text-[#FF88FF]">[Section]</code> tags and timings from its arrangement. Leave on “none” for a one-off instrumental.</p>
 
             <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">GENRE / VIBE</label>
             <select id="lyria-genre-select" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-4 focus:outline-none"></select>
@@ -1661,7 +1662,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="grid grid-cols-3 gap-3 mb-4">
                 <div>
                     <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">BPM</label>
                     <input type="number" id="lyria-bpm" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[#E2E8F0] text-[13px] px-3 py-2 focus:outline-none">
@@ -1669,6 +1670,11 @@
                 <div>
                     <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">KEY (optional)</label>
                     <input type="text" id="lyria-key" list="lyria-key-list" placeholder="e.g. D minor" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">LENGTH SEC (optional)</label>
+                    <input type="number" id="lyria-length" list="lyria-length-list" min="30" max="180" step="5" placeholder="model default" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[#E2E8F0] text-[13px] px-3 py-2 focus:outline-none">
+                    <datalist id="lyria-length-list"><option value="30"><option value="60"><option value="90"><option value="120"><option value="150"><option value="180"></datalist>
                 </div>
             </div>
 
@@ -1701,9 +1707,54 @@
                 <textarea id="lyria-output-style" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-64 resize-y focus:outline-none" readonly></textarea>
                 <div class="flex gap-2 mt-2 mb-4">
                     <button id="btn-lyria-copy-style" type="button" class="btn-euterpe-green flex-1">📋 COPY PROMPT</button>
+                    <button id="btn-lyria-save" type="button" class="btn-euterpe px-3" style="border-color:#FFD60A80;color:#FFD60A" title="Save this exact prompt (and every field above) onto the attached song, so you can pull it back up later" aria-label="Save this prompt to the song">💾 SAVE</button>
                 </div>
 
                 <div id="lyria-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-3"></div>
+            </div>
+
+            <div id="lyria-saved-wrap" class="hidden border-t border-[#FFD60A20] pt-4 mt-1">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold">💾 SAVED PROMPTS FOR THIS SONG</span>
+                    <span id="lyria-saved-hint" class="text-[9px] text-[#E2E8F0]/35"></span>
+                </div>
+                <div id="lyria-saved-list" class="space-y-1.5"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="producer-notes-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 6vh;">
+    <div class="w-full max-w-xl">
+        <div class="card border-[#FFD60A40] relative">
+            <button id="close-producer-notes-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
+            <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">🎙️ Producer Instructions — <span id="producer-notes-genre"></span></h3>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Writes one reusable block describing this genre's sound and production character, from its actual recipe data — paste it once into Google Flow Music's per-genre <b class="text-[#FFD60A]/70">Instructions</b> (Settings → Customize Producer) or a named <b class="text-[#FFD60A]/70">Flow</b>. Every song prompt you generate for this genre afterward only needs to add what's different about that one song.</p>
+
+            <div class="flex gap-2 mb-4">
+                <button id="btn-producer-notes-generate" type="button" class="btn-euterpe-green flex-1">GENERATE PRODUCER NOTES</button>
+                <button id="btn-producer-notes-regenerate" type="button" class="btn-euterpe hidden" title="Generate a different variation" aria-label="Generate a different variation">🎲</button>
+            </div>
+
+            <div id="producer-notes-output-wrap" class="hidden">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold">PRODUCER NOTES — paste this whole block into Flow</label>
+                    <span id="producer-notes-count" class="text-[9px] font-mono text-[#FFD60A]/50"></span>
+                </div>
+                <textarea id="producer-notes-output" class="w-full bg-black/60 border border-[#FFD60A]/30 rounded text-[#FFF3C4] text-[12px] font-mono leading-relaxed px-3 py-3 h-72 resize-y focus:outline-none" readonly></textarea>
+                <div class="flex gap-2 mt-2 mb-4">
+                    <button id="btn-producer-notes-copy" type="button" class="btn-euterpe-green flex-1">📋 COPY NOTES</button>
+                    <button id="btn-producer-notes-save" type="button" class="btn-euterpe px-3" style="border-color:#00E5FF80;color:#00E5FF" title="Save this exact block onto the genre, so you can pull it back up or A/B it against another version later" aria-label="Save these producer notes to the genre">💾 SAVE</button>
+                </div>
+                <div id="producer-notes-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-3"></div>
+            </div>
+
+            <div id="producer-notes-saved-wrap" class="hidden border-t border-[#00E5FF20] pt-4 mt-1">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">💾 SAVED PRODUCER NOTES FOR THIS GENRE</span>
+                    <span id="producer-notes-saved-hint" class="text-[9px] text-[#E2E8F0]/35"></span>
+                </div>
+                <div id="producer-notes-saved-list" class="space-y-1.5"></div>
             </div>
         </div>
     </div>

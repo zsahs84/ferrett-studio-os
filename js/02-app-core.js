@@ -11,6 +11,11 @@ const defaultDb = {
     songBoard: [],
     lyrics: null,
     genreKits: {},
+    // Reusable per-genre "producer instructions" blocks — written once for a genre, pasted into
+    // Google Flow Music's per-genre Instructions/Flow, and reused across every song generated in
+    // that genre afterward. Same shape as genreKits: keyed by genre name, each value a history array
+    // so regenerating adds a new saved take instead of overwriting the last one.
+    producerNotes: {},
     // Bumped whenever defaultDb gains plugins that an existing saved palette should also receive.
     // The load path unions them in once when the saved rev is behind this one.
     paletteRev: 1,
@@ -147,6 +152,7 @@ try {
             window.db.paletteRev = 1;
         }
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
+        if (parsed.producerNotes) window.db.producerNotes = parsed.producerNotes;
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
         if (parsed.accounting) window.db.accounting = parsed.accounting;
     }
@@ -379,6 +385,7 @@ window.findOrPullDriveFile = async function() {
                 // never re-run the union; carrying the cloud's rev lets the next load redo it.
                 if (cloudDb.ownedPlugins) { window.db.ownedPlugins = cloudDb.ownedPlugins; window.db.paletteRev = cloudDb.paletteRev || 0; }
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
+                if (cloudDb.producerNotes) window.db.producerNotes = cloudDb.producerNotes;
                 if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
                 if (cloudDb.accounting) window.db.accounting = cloudDb.accounting;
                 window.saveDataLocally();
@@ -566,6 +573,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
         if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; }
         if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
+        if (incoming.producerNotes) window.db.producerNotes = incoming.producerNotes;
         if (incoming.lyrics) window.db.lyrics = incoming.lyrics;
         if (incoming.accounting) window.db.accounting = incoming.accounting;
         window.currentNoteId = window.db.multiNotes[0].id;
@@ -1074,6 +1082,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('genre-info-bar')?.classList.remove('hidden');
         const kitBtn = document.getElementById('btn-genre-kit');
         if (kitBtn) { const n = kitHistory(genre).length; kitBtn.textContent = n ? `🤖 KITS (${n})` : '🤖 AI KIT'; kitBtn.title = n ? `${n} saved kit${n===1?'':'s'} for this genre — browse or build another` : 'Build a full per-instrument chain sheet for this genre using only the plugins you own'; }
+        const producerBtn = document.getElementById('btn-genre-producer');
+        if (producerBtn) { const pn = (window.db.producerNotes?.[genre] || []).length; producerBtn.textContent = pn ? `🎙️ PRODUCER NOTES (${pn})` : '🎙️ PRODUCER NOTES'; }
         // "2. Select Instrument" lists both the AI kit's roles and this genre's hand-written recipes —
         // see renderInstMenu. renderGenreKit refreshes it itself once a kit is on screen; the branches
         // below only cover the cases where there is no kit to render.
@@ -1584,82 +1594,82 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.LYRIA_GENRE_META = {
-        'TheFerrett': { category: 'HIP HOP', bpm: [85, 95], mood: 'laid-back, truth-telling, self-master cadence', texture: '5-string bass, old drums, gritty underground synths, no strings', desc: 'Centered around electric 5-string bass and dusty basement drum grooves with laid-back truth-telling flows told with the cadence of a self-master. Strict and simple traditional "Verse / Chorus / Verse / Chorus" structure — do not overcomplicate or jumble sections. Verses sound as if Minnesota underground hip-hop (Aesop Rock / Rob Sonic) jammed with a live bass player and drummer in a basement on old gear. The choruses must switch dramatically to be highly melodic and kinda futuristic, backed by massive pop-rock synth walls (similar to Imagine Dragons). CRITICALLY IMPORTANT: Use gritty, abstract synthesizers. NO cinematic strings, NO orchestral elements, NO Disney-movie orchestra. Keep it strictly non-orchestral.' },
-        'G-Funk / 90s West Coast': { category: 'HIP HOP', bpm: [92, 98], mood: 'laid-back, sunny, cruising West Coast swagger', texture: 'warm analog synths, funk-driven groove', desc: '1990s West Coast hip-hop characterized by high-pitched, portamento synthesizer melodies (often from a Moog or Prophet), deep slow grooves, female backing vocals, and heavy P-Funk sampling. The rhythm section relies on thick, live-sounding synth basslines and heavy, rolling drum breaks. It often prioritizes a smooth, cinematic, and polished aesthetic over raw underground grit.' },
-        'Aftermath / Shady 2000s': { category: 'HIP HOP', bpm: [85, 95], mood: 'moody, cinematic, aggressive polish', texture: 'dry and hard-hitting with minor-key tension', desc: 'Early 2000s mainstream hip-hop defined by Dr. Dre\'s hyper-clean, punchy, and cinematic production style. It features staccato piano or pizzicato string loops, perfectly quantized and deeply equalized drums with massive impact, and a distinct lack of dusty vinyl samples. The mix is wide and commercial, emphasizing crystal-clear separation between the pounding low-end and the orchestral, minor-key tension in the highs.' },
-        '80s Def Jam / Arena Rap': { category: 'HIP HOP', bpm: [98, 110], mood: 'loud, brash, rock-fused arena energy', texture: 'distorted, gated reverb, larger-than-life', desc: 'Late 1980s New York hip-hop combining the rebellious energy of heavy metal rock guitar riffs with aggressive, synthesized drum machine loops (typically the Roland TR-808 or DMX). It possesses a loud, brash, stadium-ready aesthetic designed to punch through massive PA systems. The sound heavily utilizes gated reverb on snares and a distinctly raw, DJ-centric scratching element.' },
-        'Soul Assassins / Cypress Hill': { category: 'HIP HOP', bpm: [88, 95], mood: 'grimy, hazy, hypnotic', texture: 'muffled, dusty, dissonant', desc: '90s West Coast underground hip-hop known for its psychedelic, dusty, and deeply menacing atmosphere. It is built almost entirely on obscure, dissonant samples, heavy vinyl crackle, and muddy, subsonic bass tones. The grooves are often sluggish, hypnotic, and intentionally unpolished, creating a hazy, paranoid sonic landscape.' },
-        'Detroit Horrorcore': { category: 'HIP HOP', bpm: [80, 90], mood: 'dark, sinister, carnival-macabre', texture: 'distorted, pitched-down, eerie', desc: 'Midwest horrorcore characterized by macabre gothic themes, unsettling carnival-esque melodies, and fast-paced, chaotic rhythms. The production utilizes highly distorted, pitched-down, and reversed audio samples to create an eerie, nightmare-inducing texture. Drums are often frantic, heavily compressed, and layered over cinematic string sections or creepy music box loops.' },
-        'Early 2000s Southern Bounce': { category: 'HIP HOP', bpm: [138, 148], mood: 'sparse, hyper-punchy, club energy', texture: 'dry 808s, zero reverb, minimalist', desc: 'Southern club rap built on a foundation of minimalist, hyper-punchy TR-808 drum patterns and synthetic, staccato brass or string hits. The production is extremely sparse, leaving massive amounts of empty space in the mix to emphasize the driving, repetitive rhythmic bounce of the 808 sub-bass. It uses almost zero reverb, resulting in a distinctly dry, confrontational, and energetic club sound.' },
-        'Southern Soul / Dungeon Family': { category: 'HIP HOP', bpm: [72, 95], mood: 'warm, soulful, gospel-tinged', texture: 'analog warmth, live/programmed hybrid', desc: 'Atlanta-based hip-hop (OutKast, Goodie Mob) that pioneers the blending of analog warmth and live instrumentation with drum machines. It leans heavily into Southern funk, incorporating live guitars, Hammond organs, live bass guitar licks, and soulful, gospel-tinged musicality. The resulting texture is incredibly organic, warm, and deeply musical, separating it from sample-heavy East Coast styles.' },
-        'Boom-Bap Kings': { category: 'HIP HOP', bpm: [85, 95], mood: 'dusty, gritty, nostalgic head-nod groove', texture: 'sampled, bit-crushed, vinyl-warm', desc: 'Classic 90s East Coast hip-hop defined by gritty, dusty drum breaks (the \'boom-bap\' rhythm), heavily chopped and flipped jazz or soul vinyl samples, and a raw, unpolished underground feel. The kick drums are deeply filtered and the snares crack with analog saturation, often heavily compressed through an SP-1200 or MPC60. The overall vibe relies on a head-nodding swing and the distinct warmth of 12-bit sampling artifacts.' },
-        'Groove Innovators': { category: 'HIP HOP', bpm: [85, 96], mood: 'loose, human, intoxicatingly off-kilter', texture: 'unquantized, wonky, warm', desc: 'Soulquarians-era neo-soul and alternative hip-hop (J Dilla, The Roots) defined by loose, unquantized, human-feeling drum grooves that intentionally push and pull the pocket (the \'Dilla feel\'). The musicality centers on warm, lush jazzy chord progressions played on Fender Rhodes or Moog synthesizers. It completely eschews rigid sequencing in favor of organic micro-timing and a highly emotive, laid-back bounce.' },
-        'Underground Vanguards': { category: 'HIP HOP', bpm: [85, 100], mood: 'abrasive, industrial, cerebral, dense', texture: 'glitchy, aggressive, hyper-detailed', desc: 'Experimental, industrial, and highly cerebral alternative hip-hop focusing on abrasive textures, glitchy IDM (Intelligent Dance Music) elements, and dense, complex layering. The beats often subvert traditional 4/4 structures, incorporating distortion, extreme bit-crushing, and unpredictable metallic percussion. It demands a hyper-detailed, avant-garde mix that challenges traditional hip-hop aesthetics.' },
-        'The Futurists': { category: 'HIP HOP', bpm: [70, 110], mood: 'futuristic, minimal, alien, bouncy', texture: 'clicky, plucky, synthetic', desc: 'Forward-thinking, minimalist production emphasizing alien synthesizer soundscapes, clicky, unconventional percussion, and unorthodox, bouncing rhythmic structures. It often utilizes heavy digital synthesis, FM basslines, and hyper-clean, spatial mixing techniques. The resulting sound is highly synthetic, futuristic, and sparse, prioritizing strange sonic textures over traditional melodies.' },
-        'Wu-Tang Clan / Shaolin Grit': { category: 'HIP HOP', bpm: [85, 95], mood: 'grimy, cinematic, martial-arts mystique', texture: 'dusty, filtered, chopped', desc: 'Mid-90s Staten Island hip-hop defined by ultra-grimy, lo-fi drum loops, vintage soul vocal samples, and esoteric kung-fu movie dialogue snippets. The production (RZA) is famously unpolished, utilizing dissonant piano loops, off-kilter swing, and a dark, cinematic martial-arts mystique. The mix is typically muddy, heavily distorted, and aggressively raw, sounding as if recorded in a concrete basement.' },
-        'Miami Bass / 2 Live Electro': { category: 'HIP HOP', bpm: [125, 135], mood: 'high-energy, bass-heavy party vibe', texture: 'booming 808s, bright synths', desc: 'Fast-paced, high-energy Florida party music (typically 125-135 BPM) driven by booming, sustained Roland TR-808 bass kicks and bright, syncopated electro-synth riffs. The drums are aggressively programmed with rapid-fire hi-hat trills and heavy snare hits designed to rattle car subwoofers. The texture is distinctly synthetic, upbeat, and engineered for maximum dancefloor impact.' },
-        'Old School Electro-Funk (82-87)': { category: 'HIP HOP', bpm: [108, 118], mood: 'robotic, mechanical, retro-futuristic', texture: 'vocoded, cold, machine-groove', desc: 'Early 1980s hip-hop and dance music defined by robotic rhythms, heavy use of vocoders, and cold, mechanical drum machines (TR-808, Oberheim DMX). It heavily borrows from futuristic, Kraftwerk-inspired synthesizer lines and early synth-pop aesthetics. The sound is highly structured, quantized, and retro-futuristic, capturing the birth of electronic dance music intersecting with rap.' },
-        'Memphis Horrorcore / Three 6 Mafia': { category: 'HIP HOP', bpm: [65, 75], mood: 'dark, druggy, menacing, horror-movie', texture: 'pitched-down, wobbly, VHS-grain', desc: '90s Tennessee underground hip-hop defined by its incredibly dark, druggy atmospheres and signature lo-fi cassette tape hiss. The rhythm is driven by heavily distorted TR-808 cowbells, rapid triplet-heavy hi-hats, and massive, sustained sub-bass. The melodies are typically sinister, pitched-down samples of classic soul or horror soundtracks, creating a menacing, hypnotic trance.' },
-        'Bay Area Mob Music': { category: 'HIP HOP', bpm: [90, 100], mood: 'bouncy, rubbery, crew energy', texture: 'synth-bass driven, whistly hooks', desc: '90s Northern California hip-hop characterized by rubbery, funky Moog basslines, rolling mid-tempo drum grooves, and distinct, high-pitched synthesizer \'whistle\' hooks. The rhythm relies heavily on live-sounding drum programming mixed with analog synthesizer funk, prioritizing a bouncing, cruising aesthetic. The texture is smooth, synth-heavy, and heavily influenced by 1970s Parliament-Funkadelic.' },
-        'Native Tongues / Jazz-Rap Loops': { category: 'HIP HOP', bpm: [85, 95], mood: 'warm, conversational, jazzy', texture: 'live-feel samples, mellow', desc: 'Late 80s and early 90s alternative hip-hop (A Tribe Called Quest, De La Soul) focusing on warm, jazzy chord samples featuring Fender Rhodes, upright acoustic bass, and horn sections. The grooves are laid-back and heavily rhythmic, often layering multiple drum breaks to create a complex but smooth swing. The overall texture is positive, earthy, and distinctly Afrocentric, lacking the aggressive distortion of other East Coast styles.' },
-        '__default__': { category: 'GENERAL', bpm: [85, 95], mood: 'classic hip-hop energy', texture: 'boom-bap foundation', desc: 'Standard hip-hop production relying on a solid boom-bap rhythm foundation, fundamental sample chopping, and classic 4/4 rap structures. The drums provide a steady, head-nodding pocket while the melody is typically driven by a flipped soul, funk, or jazz sample. It represents the quintessential, foundational hip-hop sound without leaning into extreme sub-genre specifics.' },
+        'TheFerrett': { category: 'HIP HOP', bpm: [85, 95], mood: 'laid-back, truth-telling, self-master cadence', texture: '5-string bass, old drums, gritty underground synths, no strings', vox: 'dry, half-mumbled conversational rap verses delivered with a self-master\'s calm, exploding into a big, melodic, almost-sung hook', desc: 'Centered around electric 5-string bass and dusty basement drum grooves with laid-back truth-telling flows told with the cadence of a self-master. Strict and simple traditional "Verse / Chorus / Verse / Chorus" structure — do not overcomplicate or jumble sections. Verses sound as if Minnesota underground hip-hop (Aesop Rock / Rob Sonic) jammed with a live bass player and drummer in a basement on old gear. The choruses must switch dramatically to be highly melodic and kinda futuristic, backed by massive pop-rock synth walls (similar to Imagine Dragons). CRITICALLY IMPORTANT: Use gritty, abstract synthesizers. NO cinematic strings, NO orchestral elements, NO Disney-movie orchestra. Keep it strictly non-orchestral.' },
+        'G-Funk / 90s West Coast': { category: 'HIP HOP', bpm: [92, 98], mood: 'laid-back, sunny, cruising West Coast swagger', texture: 'warm analog synths, funk-driven groove', vox: 'smooth, unhurried male rap with a cool, cruising cadence, answered by sung female backing hooks', desc: '1990s West Coast hip-hop characterized by high-pitched, portamento synthesizer melodies (often from a Moog or Prophet), deep slow grooves, female backing vocals, and heavy P-Funk sampling. The rhythm section relies on thick, live-sounding synth basslines and heavy, rolling drum breaks. It often prioritizes a smooth, cinematic, and polished aesthetic over raw underground grit.' },
+        'Aftermath / Shady 2000s': { category: 'HIP HOP', bpm: [85, 95], mood: 'moody, cinematic, aggressive polish', texture: 'dry and hard-hitting with minor-key tension', vox: 'tight, aggressive rap flow sitting crisp and upfront in the mix, minimal ad-libs, punchy enunciation', desc: 'Early 2000s mainstream hip-hop defined by Dr. Dre\'s hyper-clean, punchy, and cinematic production style. It features staccato piano or pizzicato string loops, perfectly quantized and deeply equalized drums with massive impact, and a distinct lack of dusty vinyl samples. The mix is wide and commercial, emphasizing crystal-clear separation between the pounding low-end and the orchestral, minor-key tension in the highs.' },
+        '80s Def Jam / Arena Rap': { category: 'HIP HOP', bpm: [98, 110], mood: 'loud, brash, rock-fused arena energy', texture: 'distorted, gated reverb, larger-than-life', vox: 'shouted, boastful rap delivery built for a crowd, gang-vocal call-and-response hooks', desc: 'Late 1980s New York hip-hop combining the rebellious energy of heavy metal rock guitar riffs with aggressive, synthesized drum machine loops (typically the Roland TR-808 or DMX). It possesses a loud, brash, stadium-ready aesthetic designed to punch through massive PA systems. The sound heavily utilizes gated reverb on snares and a distinctly raw, DJ-centric scratching element.' },
+        'Soul Assassins / Cypress Hill': { category: 'HIP HOP', bpm: [88, 95], mood: 'grimy, hazy, hypnotic', texture: 'muffled, dusty, dissonant', vox: 'nasal, drawled rap cadence, hazy and detached, group chant hooks', desc: '90s West Coast underground hip-hop known for its psychedelic, dusty, and deeply menacing atmosphere. It is built almost entirely on obscure, dissonant samples, heavy vinyl crackle, and muddy, subsonic bass tones. The grooves are often sluggish, hypnotic, and intentionally unpolished, creating a hazy, paranoid sonic landscape.' },
+        'Detroit Horrorcore': { category: 'HIP HOP', bpm: [80, 90], mood: 'dark, sinister, carnival-macabre', texture: 'distorted, pitched-down, eerie', vox: 'frantic, aggressive rap delivery with pitched-down, menacing ad-libs lurking under the lead', desc: 'Midwest horrorcore characterized by macabre gothic themes, unsettling carnival-esque melodies, and fast-paced, chaotic rhythms. The production utilizes highly distorted, pitched-down, and reversed audio samples to create an eerie, nightmare-inducing texture. Drums are often frantic, heavily compressed, and layered over cinematic string sections or creepy music box loops.' },
+        'Early 2000s Southern Bounce': { category: 'HIP HOP', bpm: [138, 148], mood: 'sparse, hyper-punchy, club energy', texture: 'dry 808s, zero reverb, minimalist', vox: 'shouted, repetitive call-and-response hooks, high-energy and built for a room to yell back', desc: 'Southern club rap built on a foundation of minimalist, hyper-punchy TR-808 drum patterns and synthetic, staccato brass or string hits. The production is extremely sparse, leaving massive amounts of empty space in the mix to emphasize the driving, repetitive rhythmic bounce of the 808 sub-bass. It uses almost zero reverb, resulting in a distinctly dry, confrontational, and energetic club sound.' },
+        'Southern Soul / Dungeon Family': { category: 'HIP HOP', bpm: [72, 95], mood: 'warm, soulful, gospel-tinged', texture: 'analog warmth, live/programmed hybrid', vox: 'warm, soulful rap and singing woven together, gospel-tinged ad-libs and loose harmonies', desc: 'Atlanta-based hip-hop (OutKast, Goodie Mob) that pioneers the blending of analog warmth and live instrumentation with drum machines. It leans heavily into Southern funk, incorporating live guitars, Hammond organs, live bass guitar licks, and soulful, gospel-tinged musicality. The resulting texture is incredibly organic, warm, and deeply musical, separating it from sample-heavy East Coast styles.' },
+        'Boom-Bap Kings': { category: 'HIP HOP', bpm: [85, 95], mood: 'dusty, gritty, nostalgic head-nod groove', texture: 'sampled, bit-crushed, vinyl-warm', vox: 'confident, rhythmic rap flow riding right in the pocket, sparse melodic hooks', desc: 'Classic 90s East Coast hip-hop defined by gritty, dusty drum breaks (the \'boom-bap\' rhythm), heavily chopped and flipped jazz or soul vinyl samples, and a raw, unpolished underground feel. The kick drums are deeply filtered and the snares crack with analog saturation, often heavily compressed through an SP-1200 or MPC60. The overall vibe relies on a head-nodding swing and the distinct warmth of 12-bit sampling artifacts.' },
+        'Groove Innovators': { category: 'HIP HOP', bpm: [85, 96], mood: 'loose, human, intoxicatingly off-kilter', texture: 'unquantized, wonky, warm', vox: 'loose rap delivery that falls behind the beat on purpose, soulful, unhurried sung hooks', desc: 'Soulquarians-era neo-soul and alternative hip-hop (J Dilla, The Roots) defined by loose, unquantized, human-feeling drum grooves that intentionally push and pull the pocket (the \'Dilla feel\'). The musicality centers on warm, lush jazzy chord progressions played on Fender Rhodes or Moog synthesizers. It completely eschews rigid sequencing in favor of organic micro-timing and a highly emotive, laid-back bounce.' },
+        'Underground Vanguards': { category: 'HIP HOP', bpm: [85, 100], mood: 'abrasive, industrial, cerebral, dense', texture: 'glitchy, aggressive, hyper-detailed', vox: 'dense, technical rap delivery, abrasive and cerebral, few if any sung hooks', desc: 'Experimental, industrial, and highly cerebral alternative hip-hop focusing on abrasive textures, glitchy IDM (Intelligent Dance Music) elements, and dense, complex layering. The beats often subvert traditional 4/4 structures, incorporating distortion, extreme bit-crushing, and unpredictable metallic percussion. It demands a hyper-detailed, avant-garde mix that challenges traditional hip-hop aesthetics.' },
+        'The Futurists': { category: 'HIP HOP', bpm: [70, 110], mood: 'futuristic, minimal, alien, bouncy', texture: 'clicky, plucky, synthetic', vox: 'clipped, syncopated rap phrasing that bounces with the beat, sparse and minimal', desc: 'Forward-thinking, minimalist production emphasizing alien synthesizer soundscapes, clicky, unconventional percussion, and unorthodox, bouncing rhythmic structures. It often utilizes heavy digital synthesis, FM basslines, and hyper-clean, spatial mixing techniques. The resulting sound is highly synthetic, futuristic, and sparse, prioritizing strange sonic textures over traditional melodies.' },
+        'Wu-Tang Clan / Shaolin Grit': { category: 'HIP HOP', bpm: [85, 95], mood: 'grimy, cinematic, martial-arts mystique', texture: 'dusty, filtered, chopped', vox: 'gruff, off-kilter rap cadence, verses traded back and forth with rough edges left in', desc: 'Mid-90s Staten Island hip-hop defined by ultra-grimy, lo-fi drum loops, vintage soul vocal samples, and esoteric kung-fu movie dialogue snippets. The production (RZA) is famously unpolished, utilizing dissonant piano loops, off-kilter swing, and a dark, cinematic martial-arts mystique. The mix is typically muddy, heavily distorted, and aggressively raw, sounding as if recorded in a concrete basement.' },
+        'Miami Bass / 2 Live Electro': { category: 'HIP HOP', bpm: [125, 135], mood: 'high-energy, bass-heavy party vibe', texture: 'booming 808s, bright synths', vox: 'shouted party-chant hooks, call-and-response energy built for a club floor', desc: 'Fast-paced, high-energy Florida party music (typically 125-135 BPM) driven by booming, sustained Roland TR-808 bass kicks and bright, syncopated electro-synth riffs. The drums are aggressively programmed with rapid-fire hi-hat trills and heavy snare hits designed to rattle car subwoofers. The texture is distinctly synthetic, upbeat, and engineered for maximum dancefloor impact.' },
+        'Old School Electro-Funk (82-87)': { category: 'HIP HOP', bpm: [108, 118], mood: 'robotic, mechanical, retro-futuristic', texture: 'vocoded, cold, machine-groove', vox: 'robotic, vocoded rap and sung hooks, stiff mechanical phrasing', desc: 'Early 1980s hip-hop and dance music defined by robotic rhythms, heavy use of vocoders, and cold, mechanical drum machines (TR-808, Oberheim DMX). It heavily borrows from futuristic, Kraftwerk-inspired synthesizer lines and early synth-pop aesthetics. The sound is highly structured, quantized, and retro-futuristic, capturing the birth of electronic dance music intersecting with rap.' },
+        'Memphis Horrorcore / Three 6 Mafia': { category: 'HIP HOP', bpm: [65, 75], mood: 'dark, druggy, menacing, horror-movie', texture: 'pitched-down, wobbly, VHS-grain', vox: 'dark, triplet-heavy rap flow, pitched-down and menacing ad-libs', desc: '90s Tennessee underground hip-hop defined by its incredibly dark, druggy atmospheres and signature lo-fi cassette tape hiss. The rhythm is driven by heavily distorted TR-808 cowbells, rapid triplet-heavy hi-hats, and massive, sustained sub-bass. The melodies are typically sinister, pitched-down samples of classic soul or horror soundtracks, creating a menacing, hypnotic trance.' },
+        'Bay Area Mob Music': { category: 'HIP HOP', bpm: [90, 100], mood: 'bouncy, rubbery, crew energy', texture: 'synth-bass driven, whistly hooks', vox: 'bouncy, sing-song rap cadence with whistly, melodic hooks', desc: '90s Northern California hip-hop characterized by rubbery, funky Moog basslines, rolling mid-tempo drum grooves, and distinct, high-pitched synthesizer \'whistle\' hooks. The rhythm relies heavily on live-sounding drum programming mixed with analog synthesizer funk, prioritizing a bouncing, cruising aesthetic. The texture is smooth, synth-heavy, and heavily influenced by 1970s Parliament-Funkadelic.' },
+        'Native Tongues / Jazz-Rap Loops': { category: 'HIP HOP', bpm: [85, 95], mood: 'warm, conversational, jazzy', texture: 'live-feel samples, mellow', vox: 'warm, conversational rap flow, easygoing and jazzy in its phrasing', desc: 'Late 80s and early 90s alternative hip-hop (A Tribe Called Quest, De La Soul) focusing on warm, jazzy chord samples featuring Fender Rhodes, upright acoustic bass, and horn sections. The grooves are laid-back and heavily rhythmic, often layering multiple drum breaks to create a complex but smooth swing. The overall texture is positive, earthy, and distinctly Afrocentric, lacking the aggressive distortion of other East Coast styles.' },
+        '__default__': { category: 'GENERAL', bpm: [85, 95], mood: 'classic hip-hop energy', texture: 'boom-bap foundation', vox: 'straightforward rap delivery riding a steady pocket, minimal ornamentation', desc: 'Standard hip-hop production relying on a solid boom-bap rhythm foundation, fundamental sample chopping, and classic 4/4 rap structures. The drums provide a steady, head-nodding pocket while the melody is typically driven by a flipped soul, funk, or jazz sample. It represents the quintessential, foundational hip-hop sound without leaning into extreme sub-genre specifics.' },
 
         
         // ROCK
-        'Alt Rock / 90s Grunge': { category: 'ROCK', bpm: [110, 130], mood: 'angsty, raw, distorted, dynamic', texture: 'heavy fuzz guitars, loud-quiet-loud dynamics, sludgy bass', desc: 'Inspired by early 90s Seattle grunge, this genre relies on extreme dynamic shifts—quiet, moody verses that explode into massive, distorted choruses. Guitars are thick with fuzz and chorus pedals, bass is gritty and grinding, and drums are recorded raw with heavy room sound and loose snare tuning. It eschews polish for emotional rawness.' },
-        'Classic Arena Rock': { category: 'ROCK', bpm: [120, 140], mood: 'triumphant, massive, stadium-ready', texture: 'huge gated drums, screaming guitar solos, wide chorus', desc: 'Big, bold 70s and 80s rock designed to fill stadiums. Features massive, thunderous drum sounds (often using gated reverb), soaring clean vocal harmonies, and highly technical, saturated guitar solos. The mix is extremely wide, glossy, and compressed for maximum radio punch, heavily utilizing chorused guitars and driving eighth-note basslines.' },
-        '70s Punk Rock': { category: 'ROCK', bpm: [160, 200], mood: 'rebellious, frantic, anti-establishment', texture: 'buzzsaw guitars, shouting vocals, frantic drums', desc: 'Raw, unpolished 1970s punk rock characterized by breakneck speeds, simple three-chord progressions, and a decidedly anti-commercial aesthetic. The guitars are bright, aggressive, and heavily distorted (often single-coil bridge pickups). Drums are played frantically with lots of crash cymbals, and vocals are shouted rather than sung. The mix should sound like it was recorded live in a dirty basement.' },
-        'Post-Rock / Ambient Rock': { category: 'ROCK', bpm: [80, 120], mood: 'cinematic, sprawling, emotional, atmospheric', texture: 'delay-soaked guitars, crescendo dynamics, bowed strings', desc: 'Instrumental-heavy rock focusing on long, sprawling compositions and massive emotional crescendos rather than traditional verse-chorus structures. Guitars are heavily processed with massive hall reverbs and rhythmic delays, creating huge walls of atmospheric sound. The rhythm section is patient and hypnotic, building tension over minutes before exploding into triumphant, distorted climaxes.' },
-        'Shoegaze / Dream Pop': { category: 'ROCK', bpm: [90, 120], mood: 'ethereal, swirling, detached, melancholic', texture: 'walls of fuzz, reversed reverb, buried vocals', desc: 'Late 80s and early 90s alternative rock famous for its overwhelming "wall of sound." Guitars are processed through chains of fuzz, chorus, and "reverse reverb" (famously the Yamaha SPX90), creating a swirling, oceanic texture. Vocals are intentionally mixed incredibly low and drenched in reverb, acting as just another textural instrument rather than the focal point. It is hazy, loud, and dreamlike.' },
-        '2000s Pop-Punk': { category: 'ROCK', bpm: [150, 180], mood: 'energetic, angst-ridden, catchy, juvenile', texture: 'distorted power chords, pristine vocals, tight drums', desc: 'Hyper-energetic early 2000s pop-punk (Blink-182, Green Day) blending the speed of punk with the pristine, catchy melodies of pop. The guitars are incredibly tight, utilizing thick, scooped-mid distortion on power chords. Drums are relentlessly fast and heavily compressed for maximum punch. Vocals are nasal, perfectly tuned, and completely upfront in the mix.' },
-        'Classic Psychedelic Rock': { category: 'ROCK', bpm: [90, 115], mood: 'trippy, swirling, expansive, vintage', texture: 'fuzz faces, tape echo, phasers, backwards tape', desc: 'Late 60s and early 70s rock music aiming to replicate mind-altering experiences. Heavily relies on studio experimentation: backwards guitar solos, extreme panning, tape flanging, and swirling Leslie rotary speakers. The guitar tone is built on vintage fuzz pedals (Fuzz Face) and analog tape echoes. The rhythm section is loose, jazzy, and heavily panned across the stereo field.' },
-        'Math Rock / Midwest Emo': { category: 'ROCK', bpm: [120, 160], mood: 'introspective, complex, twinkling, frantic', texture: 'clean tapped guitars, odd time signatures', desc: 'A blend of complex, odd-time-signature rhythmic structures (Math Rock) with the emotional rawness of 90s Midwest Emo. The defining sound is the "twinkly" guitar: clean, compressed Telecasters playing complex, rapidly tapped arpeggios in alternate tunings. Drums are highly technical and syncopated, while the bass provides melodic counterpoint rather than just holding down the root.' },
-        'Garage Rock Revival': { category: 'ROCK', bpm: [130, 170], mood: 'raw, energetic, stripped-down, retro', texture: 'lo-fi, room mics, tube overdrive', desc: 'Early 2000s return to the raw basics of 60s rock (The Strokes, The White Stripes). Production is intentionally lo-fi and stripped back, avoiding modern gloss. Guitars are driven through small, cranked tube combos (like Fender Princetons) for a boxy, biting overdrive. Drums are recorded with minimal microphones to capture the trashy sound of the room, and vocals are often distorted through megaphone or telephone filters.' },
+        'Alt Rock / 90s Grunge': { category: 'ROCK', bpm: [110, 130], mood: 'angsty, raw, distorted, dynamic', texture: 'heavy fuzz guitars, loud-quiet-loud dynamics, sludgy bass', vox: 'raw, strained vocal delivery, quiet and restrained through the verses before tearing into a screamed, cathartic chorus', desc: 'Inspired by early 90s Seattle grunge, this genre relies on extreme dynamic shifts—quiet, moody verses that explode into massive, distorted choruses. Guitars are thick with fuzz and chorus pedals, bass is gritty and grinding, and drums are recorded raw with heavy room sound and loose snare tuning. It eschews polish for emotional rawness.' },
+        'Classic Arena Rock': { category: 'ROCK', bpm: [120, 140], mood: 'triumphant, massive, stadium-ready', texture: 'huge gated drums, screaming guitar solos, wide chorus', vox: 'soaring, powerful clean lead vocal with big, soaring harmonized backing vocals', desc: 'Big, bold 70s and 80s rock designed to fill stadiums. Features massive, thunderous drum sounds (often using gated reverb), soaring clean vocal harmonies, and highly technical, saturated guitar solos. The mix is extremely wide, glossy, and compressed for maximum radio punch, heavily utilizing chorused guitars and driving eighth-note basslines.' },
+        '70s Punk Rock': { category: 'ROCK', bpm: [160, 200], mood: 'rebellious, frantic, anti-establishment', texture: 'buzzsaw guitars, shouting vocals, frantic drums', vox: 'shouted, sneering vocal delivery, raw and deliberately unpolished', desc: 'Raw, unpolished 1970s punk rock characterized by breakneck speeds, simple three-chord progressions, and a decidedly anti-commercial aesthetic. The guitars are bright, aggressive, and heavily distorted (often single-coil bridge pickups). Drums are played frantically with lots of crash cymbals, and vocals are shouted rather than sung. The mix should sound like it was recorded live in a dirty basement.' },
+        'Post-Rock / Ambient Rock': { category: 'ROCK', bpm: [80, 120], mood: 'cinematic, sprawling, emotional, atmospheric', texture: 'delay-soaked guitars, crescendo dynamics, bowed strings', vox: 'sparse, wordless or distant vocal textures, mostly instrumental with voice used as atmosphere', desc: 'Instrumental-heavy rock focusing on long, sprawling compositions and massive emotional crescendos rather than traditional verse-chorus structures. Guitars are heavily processed with massive hall reverbs and rhythmic delays, creating huge walls of atmospheric sound. The rhythm section is patient and hypnotic, building tension over minutes before exploding into triumphant, distorted climaxes.' },
+        'Shoegaze / Dream Pop': { category: 'ROCK', bpm: [90, 120], mood: 'ethereal, swirling, detached, melancholic', texture: 'walls of fuzz, reversed reverb, buried vocals', vox: 'hazy vocal buried low in the mix, washed-out and distant, functioning as texture rather than a focal point', desc: 'Late 80s and early 90s alternative rock famous for its overwhelming "wall of sound." Guitars are processed through chains of fuzz, chorus, and "reverse reverb" (famously the Yamaha SPX90), creating a swirling, oceanic texture. Vocals are intentionally mixed incredibly low and drenched in reverb, acting as just another textural instrument rather than the focal point. It is hazy, loud, and dreamlike.' },
+        '2000s Pop-Punk': { category: 'ROCK', bpm: [150, 180], mood: 'energetic, angst-ridden, catchy, juvenile', texture: 'distorted power chords, pristine vocals, tight drums', vox: 'nasal, pristine, perfectly tuned lead vocal, big gang-vocal shout-along choruses', desc: 'Hyper-energetic early 2000s pop-punk (Blink-182, Green Day) blending the speed of punk with the pristine, catchy melodies of pop. The guitars are incredibly tight, utilizing thick, scooped-mid distortion on power chords. Drums are relentlessly fast and heavily compressed for maximum punch. Vocals are nasal, perfectly tuned, and completely upfront in the mix.' },
+        'Classic Psychedelic Rock': { category: 'ROCK', bpm: [90, 115], mood: 'trippy, swirling, expansive, vintage', texture: 'fuzz faces, tape echo, phasers, backwards tape', vox: 'dreamy, effects-laden vocal, phased and doubled, loose and unhurried phrasing', desc: 'Late 60s and early 70s rock music aiming to replicate mind-altering experiences. Heavily relies on studio experimentation: backwards guitar solos, extreme panning, tape flanging, and swirling Leslie rotary speakers. The guitar tone is built on vintage fuzz pedals (Fuzz Face) and analog tape echoes. The rhythm section is loose, jazzy, and heavily panned across the stereo field.' },
+        'Math Rock / Midwest Emo': { category: 'ROCK', bpm: [120, 160], mood: 'introspective, complex, twinkling, frantic', texture: 'clean tapped guitars, odd time signatures', vox: 'earnest, conversational vocal that strains and cracks at emotional peaks', desc: 'A blend of complex, odd-time-signature rhythmic structures (Math Rock) with the emotional rawness of 90s Midwest Emo. The defining sound is the "twinkly" guitar: clean, compressed Telecasters playing complex, rapidly tapped arpeggios in alternate tunings. Drums are highly technical and syncopated, while the bass provides melodic counterpoint rather than just holding down the root.' },
+        'Garage Rock Revival': { category: 'ROCK', bpm: [130, 170], mood: 'raw, energetic, stripped-down, retro', texture: 'lo-fi, room mics, tube overdrive', vox: 'raw, distorted vocal delivery, snotty and unpolished, minimal harmonies', desc: 'Early 2000s return to the raw basics of 60s rock (The Strokes, The White Stripes). Production is intentionally lo-fi and stripped back, avoiding modern gloss. Guitars are driven through small, cranked tube combos (like Fender Princetons) for a boxy, biting overdrive. Drums are recorded with minimal microphones to capture the trashy sound of the room, and vocals are often distorted through megaphone or telephone filters.' },
 
         // METAL
-        'Modern Djent / Prog Metal': { category: 'METAL', bpm: [130, 170], mood: 'complex, aggressive, mechanical, tight', texture: 'heavily gated, pitch-shifted, syncopated', desc: 'Modern progressive metal defined by hyper-syncopated, heavily palm-muted low-tuned guitar riffs (often 7 or 8 strings). The production is incredibly tight and mechanical, utilizing aggressive noise gates to create stuttering rhythms. Drums are hyper-quantized and sample-replaced for perfect consistency, and ambient, ethereal clean guitars often contrast the brutal low-end.' },
-        'Classic Thrash': { category: 'METAL', bpm: [160, 200], mood: 'fast, aggressive, rebellious, relentless', texture: 'scooped mids, rapid alternate picking', desc: '1980s speed and thrash metal characterized by breakneck tempos, relentless double-bass drumming, and rapid alternate-picked guitar riffs. The guitar tone famously features "scooped mids" (high bass, high treble, low midrange) for a jagged, biting sound. The production is raw, aggressive, and highly kinetic, prioritizing speed and aggression over perfection.' },
-        'Doom / Sludge Metal': { category: 'METAL', bpm: [40, 80], mood: 'crushing, bleak, monolithic, slow', texture: 'fuzz-drenched, down-tuned, subsonic', desc: 'Incredibly slow, heavy, and oppressive metal. Guitars and basses are tuned absurdly low (often down to A or G) and played through massive walls of vintage Orange and Matamp amplifiers drenched in thick, wooly fuzz. The tempo crawls, giving every single snare hit and cymbal crash massive, tectonic weight. The mix is muddy, subsonic, and completely overwhelming.' },
-        'Black Metal': { category: 'METAL', bpm: [140, 220], mood: 'cold, grim, misanthropic, atmospheric', texture: 'tremolo picking, blast beats, lo-fi harshness', desc: 'Scandinavian-style extreme metal prioritizing a "cold" and grim atmosphere over clarity. Guitars use relentless tremolo picking with high-treble, "wasp-swarm" distortion. Drums rely heavily on continuous, exhausting blast beats. The production is historically (and intentionally) terrible—recorded in freezing cabins with cheap microphones to create a harsh, thin, and terrifyingly lo-fi sound.' },
-        'Melodic Death Metal': { category: 'METAL', bpm: [150, 190], mood: 'epic, aggressive, triumphant, driving', texture: 'harmonized leads, galloping rhythms', desc: 'The "Gothenburg sound" combining the brutality of death metal with the melodic sensibilities of traditional heavy metal. It is defined by fast, harmonized dual-guitar leads (playing in thirds) soaring over galloping, palm-muted rhythms. Vocals are aggressive (growls or screams), but the instrumental core is highly melodic, driving, and deeply structured.' },
-        'Nu-Metal / 2000s Alt Metal': { category: 'METAL', bpm: [90, 110], mood: 'angsty, bouncy, aggressive, rhythmic', texture: 'drop-tuned bounce, turntable scratches', desc: 'Late 90s/early 2000s metal that heavily incorporates hip-hop grooves and alternative rock angst. Built on massively down-tuned, rhythmic, bouncing guitar riffs (often 7-string guitars) rather than complex solos. The rhythm section grooves hard like a rap beat, and the mix frequently incorporates DJ turntable scratches, industrial samples, and highly compressed, punchy drums.' },
-        'Symphonic Metal': { category: 'METAL', bpm: [110, 150], mood: 'bombastic, theatrical, epic, orchestral', texture: 'massive choirs, operatic vocals, heavy guitars', desc: 'A bombastic fusion of heavy metal and classical orchestration. The core metal band (distorted guitars, driving bass, double-kick drums) is enveloped by massive, cinematic string sections, brass, and sweeping choirs. Vocals are often operatic (especially female sopranos). The mix is a monumental balancing act, requiring immense width and clarity to fit a full orchestra alongside a heavy metal band.' },
-        'Metalcore / 2010s Hardcore': { category: 'METAL', bpm: [130, 180], mood: 'brutal, emotional, breakdown-heavy', texture: 'stuttering chugs, pristine modern polish', desc: 'A fusion of extreme metal and hardcore punk, famous for its dramatic, half-time "breakdowns" designed for mosh pits. The production is pristine, modern, and hyper-polished. Guitars use Tube Screamers to tighten the low end for perfectly synchronized, staccato chugging. Drums are heavily sample-augmented for maximum attack, and vocals alternate between guttural screams and soaring, auto-tuned clean choruses.' },
+        'Modern Djent / Prog Metal': { category: 'METAL', bpm: [130, 170], mood: 'complex, aggressive, mechanical, tight', texture: 'heavily gated, pitch-shifted, syncopated', vox: 'tight, syncopated clean vocal contrasted against harsh screamed passages', desc: 'Modern progressive metal defined by hyper-syncopated, heavily palm-muted low-tuned guitar riffs (often 7 or 8 strings). The production is incredibly tight and mechanical, utilizing aggressive noise gates to create stuttering rhythms. Drums are hyper-quantized and sample-replaced for perfect consistency, and ambient, ethereal clean guitars often contrast the brutal low-end.' },
+        'Classic Thrash': { category: 'METAL', bpm: [160, 200], mood: 'fast, aggressive, rebellious, relentless', texture: 'scooped mids, rapid alternate picking', vox: 'aggressive, shouted vocal delivery, fast and relentless', desc: '1980s speed and thrash metal characterized by breakneck tempos, relentless double-bass drumming, and rapid alternate-picked guitar riffs. The guitar tone famously features "scooped mids" (high bass, high treble, low midrange) for a jagged, biting sound. The production is raw, aggressive, and highly kinetic, prioritizing speed and aggression over perfection.' },
+        'Doom / Sludge Metal': { category: 'METAL', bpm: [40, 80], mood: 'crushing, bleak, monolithic, slow', texture: 'fuzz-drenched, down-tuned, subsonic', vox: 'low, drawn-out, mournful vocal — clean or growled — stretched over the crawling tempo', desc: 'Incredibly slow, heavy, and oppressive metal. Guitars and basses are tuned absurdly low (often down to A or G) and played through massive walls of vintage Orange and Matamp amplifiers drenched in thick, wooly fuzz. The tempo crawls, giving every single snare hit and cymbal crash massive, tectonic weight. The mix is muddy, subsonic, and completely overwhelming.' },
+        'Black Metal': { category: 'METAL', bpm: [140, 220], mood: 'cold, grim, misanthropic, atmospheric', texture: 'tremolo picking, blast beats, lo-fi harshness', vox: 'harsh, shrieking vocal delivery, thin and distant in the mix', desc: 'Scandinavian-style extreme metal prioritizing a "cold" and grim atmosphere over clarity. Guitars use relentless tremolo picking with high-treble, "wasp-swarm" distortion. Drums rely heavily on continuous, exhausting blast beats. The production is historically (and intentionally) terrible—recorded in freezing cabins with cheap microphones to create a harsh, thin, and terrifyingly lo-fi sound.' },
+        'Melodic Death Metal': { category: 'METAL', bpm: [150, 190], mood: 'epic, aggressive, triumphant, driving', texture: 'harmonized leads, galloping rhythms', vox: 'aggressive growled verses giving way to soaring, melodic clean or harmonized leads', desc: 'The "Gothenburg sound" combining the brutality of death metal with the melodic sensibilities of traditional heavy metal. It is defined by fast, harmonized dual-guitar leads (playing in thirds) soaring over galloping, palm-muted rhythms. Vocals are aggressive (growls or screams), but the instrumental core is highly melodic, driving, and deeply structured.' },
+        'Nu-Metal / 2000s Alt Metal': { category: 'METAL', bpm: [90, 110], mood: 'angsty, bouncy, aggressive, rhythmic', texture: 'drop-tuned bounce, turntable scratches', vox: 'rhythmic, rap-influenced verses erupting into shouted, aggressive choruses', desc: 'Late 90s/early 2000s metal that heavily incorporates hip-hop grooves and alternative rock angst. Built on massively down-tuned, rhythmic, bouncing guitar riffs (often 7-string guitars) rather than complex solos. The rhythm section grooves hard like a rap beat, and the mix frequently incorporates DJ turntable scratches, industrial samples, and highly compressed, punchy drums.' },
+        'Symphonic Metal': { category: 'METAL', bpm: [110, 150], mood: 'bombastic, theatrical, epic, orchestral', texture: 'massive choirs, operatic vocals, heavy guitars', vox: 'operatic, soaring female vocal, theatrical and powerful over the orchestration', desc: 'A bombastic fusion of heavy metal and classical orchestration. The core metal band (distorted guitars, driving bass, double-kick drums) is enveloped by massive, cinematic string sections, brass, and sweeping choirs. Vocals are often operatic (especially female sopranos). The mix is a monumental balancing act, requiring immense width and clarity to fit a full orchestra alongside a heavy metal band.' },
+        'Metalcore / 2010s Hardcore': { category: 'METAL', bpm: [130, 180], mood: 'brutal, emotional, breakdown-heavy', texture: 'stuttering chugs, pristine modern polish', vox: 'guttural screamed verses alternating with soaring, auto-tuned clean choruses', desc: 'A fusion of extreme metal and hardcore punk, famous for its dramatic, half-time "breakdowns" designed for mosh pits. The production is pristine, modern, and hyper-polished. Guitars use Tube Screamers to tighten the low end for perfectly synchronized, staccato chugging. Drums are heavily sample-augmented for maximum attack, and vocals alternate between guttural screams and soaring, auto-tuned clean choruses.' },
 
         // BLUES
-        'Texas Blues Rock': { category: 'BLUES', bpm: [90, 115], mood: 'swaggering, gritty, electrified', texture: 'cranked tube amps, biting Stratocaster tone', desc: 'High-energy electrified blues popularized in Texas, built around heavy, driving shuffle grooves and searing electric guitar solos. The tone is famously centered on single-coil guitars pushed through cranked, overdriven tube amplifiers (like a Fender Super Reverb or a Dumble) and Tube Screamer pedals. It balances the soul of traditional blues with the aggression of rock.' },
-        'Delta Acoustic': { category: 'BLUES', bpm: [60, 85], mood: 'raw, intimate, swampy, acoustic', texture: 'slide guitar, acoustic resonance, foot-stomps', desc: 'Stripped-down, early 20th-century acoustic blues. Relies heavily on fingerpicking, aggressive acoustic slide guitar (often using a glass or metal bottleneck), and simple foot-stomping percussion. The texture is intimate, muddy, and intensely human, heavily colored by the natural room acoustics and the scraping of strings.' },
-        'Chicago Electric Blues': { category: 'BLUES', bpm: [80, 110], mood: 'urban, rolling, amplified, expressive', texture: 'distorted harmonica, walking bass, piano', desc: 'The post-war sound of the blues moving to the city and getting plugged in. Built around a full band: drums, upright or electric bass playing walking lines, piano, and the iconic overdriven sound of a harmonica played through a bullet microphone and a small tube amp. Guitars are electric and cutting, playing call-and-response with the vocals over a rolling shuffle groove.' },
-        'British Blues Explosion': { category: 'BLUES', bpm: [100, 130], mood: 'heavy, saturated, loud, virtuoso', texture: 'Marshall stacks, Les Pauls, heavy drumming', desc: '1960s British interpretation of American blues (Cream, early Led Zeppelin, John Mayall). It took the Chicago blues formula and made it exponentially louder and heavier. Defined by the massive, thick tone of humbucker guitars (Les Pauls) driven into cranked Marshall amplifier stacks. The drumming is jazz-influenced but played with rock aggression, creating a loud, saturated, virtuoso power-trio sound.' },
-        'Swamp Blues': { category: 'BLUES', bpm: [70, 95], mood: 'lazy, humid, hypnotic, laid-back', texture: 'tremolo guitars, sluggish tempo, echo', desc: 'A laid-back, rhythmic variation of Louisiana blues characterized by a lazy, dragging tempo that feels thick and humid. The signature sound is heavily reliant on electric guitars drenched in pulsating tremolo and slapback echo effects. The grooves are hypnotic and sparse, with minimal percussion and a creeping, voodoo-esque atmosphere.' },
-        'Soul Blues / R&B': { category: 'BLUES', bpm: [85, 110], mood: 'smooth, emotive, brassy, sophisticated', texture: 'horn sections, clean Stratocasters, Hammond B3', desc: 'A sophisticated blending of raw blues with the smooth, arranged instrumentation of 60s soul music (Stax/Volt). Features tight, punchy horn sections (trumpet, saxophone), swirling Hammond B3 organs, and pristine, clean rhythm guitars (often Steve Cropper-style Stratocaster playing). The vocals are smooth and deeply emotive, and the groove is incredibly tight and danceable.' },
+        'Texas Blues Rock': { category: 'BLUES', bpm: [90, 115], mood: 'swaggering, gritty, electrified', texture: 'cranked tube amps, biting Stratocaster tone', vox: 'gritty, swaggering vocal delivery, soulful and confident', desc: 'High-energy electrified blues popularized in Texas, built around heavy, driving shuffle grooves and searing electric guitar solos. The tone is famously centered on single-coil guitars pushed through cranked, overdriven tube amplifiers (like a Fender Super Reverb or a Dumble) and Tube Screamer pedals. It balances the soul of traditional blues with the aggression of rock.' },
+        'Delta Acoustic': { category: 'BLUES', bpm: [60, 85], mood: 'raw, intimate, swampy, acoustic', texture: 'slide guitar, acoustic resonance, foot-stomps', vox: 'raw, intimate, weathered vocal delivery, close-mic\'d and unpolished', desc: 'Stripped-down, early 20th-century acoustic blues. Relies heavily on fingerpicking, aggressive acoustic slide guitar (often using a glass or metal bottleneck), and simple foot-stomping percussion. The texture is intimate, muddy, and intensely human, heavily colored by the natural room acoustics and the scraping of strings.' },
+        'Chicago Electric Blues': { category: 'BLUES', bpm: [80, 110], mood: 'urban, rolling, amplified, expressive', texture: 'distorted harmonica, walking bass, piano', vox: 'expressive, shouted call-and-response vocal, urban and gritty', desc: 'The post-war sound of the blues moving to the city and getting plugged in. Built around a full band: drums, upright or electric bass playing walking lines, piano, and the iconic overdriven sound of a harmonica played through a bullet microphone and a small tube amp. Guitars are electric and cutting, playing call-and-response with the vocals over a rolling shuffle groove.' },
+        'British Blues Explosion': { category: 'BLUES', bpm: [100, 130], mood: 'heavy, saturated, loud, virtuoso', texture: 'Marshall stacks, Les Pauls, heavy drumming', vox: 'powerful, wailing bluesy vocal, loud and virtuosic', desc: '1960s British interpretation of American blues (Cream, early Led Zeppelin, John Mayall). It took the Chicago blues formula and made it exponentially louder and heavier. Defined by the massive, thick tone of humbucker guitars (Les Pauls) driven into cranked Marshall amplifier stacks. The drumming is jazz-influenced but played with rock aggression, creating a loud, saturated, virtuoso power-trio sound.' },
+        'Swamp Blues': { category: 'BLUES', bpm: [70, 95], mood: 'lazy, humid, hypnotic, laid-back', texture: 'tremolo guitars, sluggish tempo, echo', vox: 'lazy, drawling, hypnotic vocal delivery, laid far back behind the beat', desc: 'A laid-back, rhythmic variation of Louisiana blues characterized by a lazy, dragging tempo that feels thick and humid. The signature sound is heavily reliant on electric guitars drenched in pulsating tremolo and slapback echo effects. The grooves are hypnotic and sparse, with minimal percussion and a creeping, voodoo-esque atmosphere.' },
+        'Soul Blues / R&B': { category: 'BLUES', bpm: [85, 110], mood: 'smooth, emotive, brassy, sophisticated', texture: 'horn sections, clean Stratocasters, Hammond B3', vox: 'smooth, emotive, soulful vocal delivery, rich with runs and ad-libs', desc: 'A sophisticated blending of raw blues with the smooth, arranged instrumentation of 60s soul music (Stax/Volt). Features tight, punchy horn sections (trumpet, saxophone), swirling Hammond B3 organs, and pristine, clean rhythm guitars (often Steve Cropper-style Stratocaster playing). The vocals are smooth and deeply emotive, and the groove is incredibly tight and danceable.' },
 
         // EDM
-        'Modern House': { category: 'EDM', bpm: [120, 128], mood: 'driving, euphoric, club-ready', texture: 'four-on-the-floor, sidechained, punchy', desc: 'Quintessential modern club music built on a relentless four-on-the-floor kick drum pattern. Production relies heavily on aggressive sidechain compression (ducking the bass and synths every time the kick hits) to create a pumping, hypnotic groove. Features bright, wide synthesizers, crisp hi-hats, and massive build-ups culminating in a driving bass drop.' },
-        'Dubstep / Bass Music': { category: 'EDM', bpm: [140, 150], mood: 'aggressive, chaotic, overwhelming', texture: 'wobble bass, metallic FM synthesis, half-time', desc: 'Heavy, aggressive electronic music anchored by a massive half-time rhythm (snare on beat 3). The defining characteristic is the extreme manipulation of low-frequency oscillators (LFOs) to create aggressive, metallic, and mutating "wobble" basslines, often using complex FM synthesis (like Serum or Massive). The mix is incredibly dense, loud, and engineered to punish subwoofers.' },
-        'Trance / Eurodance': { category: 'EDM', bpm: [135, 145], mood: 'euphoric, uplifting, hypnotic, driving', texture: 'supersaw arpeggios, rolling bass, massive reverb', desc: 'Uplifting, high-BPM electronic music designed to induce a hypnotic state on massive dancefloors. The core sonic signature is the "supersaw" synthesizer—multiple detuned sawtooth waves layered together with massive hall reverb to create a massive, sweeping wall of sound. Features rolling 16th-note basslines, huge snare rolls, and long, emotional, chord-driven breakdowns.' },
-        'Drum & Bass / Jungle': { category: 'EDM', bpm: [160, 180], mood: 'frantic, rhythmic, futuristic, underground', texture: 'chopped breaks, deep sub-bass, fast tempo', desc: 'High-speed UK electronic music driven by incredibly fast, complex, and heavily chopped drum breaks (famously the "Amen break"). Underneath the frantic, rattling percussion sits a continuous, deep, and smooth sub-bass line. The contrast between the hyper-kinetic treble percussion and the slow, rolling low-end creates a distinct, futuristic groove.' },
-        'Techno / Warehouse': { category: 'EDM', bpm: [130, 140], mood: 'dark, industrial, repetitive, driving', texture: 'distorted kicks, minimal, metallic, echoing', desc: 'Dark, minimalist, and highly repetitive electronic music designed for underground warehouses. The sound revolves around a heavy, distorted, and resonant 4/4 kick drum (the "rumble kick") created by heavily processing the kick with reverb and distortion. Melodies are sparse, replacing traditional chords with metallic, atonal synth stabs, industrial percussion, and sweeping white noise.' },
-        'Synthwave / Retrowave': { category: 'EDM', bpm: [85, 115], mood: 'nostalgic, neon, cinematic, 80s', texture: 'analog warmth, gated snares, arpeggiators', desc: 'A modern, cinematic love letter to 1980s pop culture, action movies, and video games. Production exclusively mimics vintage analog gear: Roland Juno arpeggios, massive sweeping Moog basslines, and punchy, heavily gated snare drums (LinnDrum). The mix aims for the warmth and slight pitch-instability of VHS tapes and cassette decks.' },
-        'Future Bass / Melodic Trap': { category: 'EDM', bpm: [140, 160], mood: 'emotional, huge, bouncing, colorful', texture: 'LFO chords, vocal chops, booming 808s', desc: 'A fusion of trap music rhythms with the lush, emotional chord progressions of pop and trance. The signature sound relies on massive, thick synthesizer chords that "pulse" or "flutter" using complex LFO automation on low-pass filters. The drums feature heavy, sustained 808 sub-kicks and rapid hi-hat rolls, and the melodies are often created by pitch-shifting and chopping human vocal samples.' },
-        'Lo-Fi Hip Hop / Chillhop': { category: 'EDM', bpm: [70, 90], mood: 'relaxing, nostalgic, studious, sleepy', texture: 'vinyl crackle, muted highs, jazzy chords', desc: 'Instrumental background music focusing on deep relaxation and nostalgia. The production intentionally degrades the audio: extreme high-frequency roll-offs (muffled sound), heavy vinyl crackle, tape flutter, and background ambient noise (rain, coffee shops). The beats are incredibly laid-back and unquantized, playing simple jazzy piano or guitar loops over soft, dusty drums.' },
+        'Modern House': { category: 'EDM', bpm: [120, 128], mood: 'driving, euphoric, club-ready', texture: 'four-on-the-floor, sidechained, punchy', vox: 'processed, euphoric vocal chops and hooks, more textural than lyrical', desc: 'Quintessential modern club music built on a relentless four-on-the-floor kick drum pattern. Production relies heavily on aggressive sidechain compression (ducking the bass and synths every time the kick hits) to create a pumping, hypnotic groove. Features bright, wide synthesizers, crisp hi-hats, and massive build-ups culminating in a driving bass drop.' },
+        'Dubstep / Bass Music': { category: 'EDM', bpm: [140, 150], mood: 'aggressive, chaotic, overwhelming', texture: 'wobble bass, metallic FM synthesis, half-time', vox: 'aggressive, heavily processed or robotic vocal chops', desc: 'Heavy, aggressive electronic music anchored by a massive half-time rhythm (snare on beat 3). The defining characteristic is the extreme manipulation of low-frequency oscillators (LFOs) to create aggressive, metallic, and mutating "wobble" basslines, often using complex FM synthesis (like Serum or Massive). The mix is incredibly dense, loud, and engineered to punish subwoofers.' },
+        'Trance / Eurodance': { category: 'EDM', bpm: [135, 145], mood: 'euphoric, uplifting, hypnotic, driving', texture: 'supersaw arpeggios, rolling bass, massive reverb', vox: 'soaring, breathy female vocal, emotional and uplifting', desc: 'Uplifting, high-BPM electronic music designed to induce a hypnotic state on massive dancefloors. The core sonic signature is the "supersaw" synthesizer—multiple detuned sawtooth waves layered together with massive hall reverb to create a massive, sweeping wall of sound. Features rolling 16th-note basslines, huge snare rolls, and long, emotional, chord-driven breakdowns.' },
+        'Drum & Bass / Jungle': { category: 'EDM', bpm: [160, 180], mood: 'frantic, rhythmic, futuristic, underground', texture: 'chopped breaks, deep sub-bass, fast tempo', vox: 'chopped, rhythmic vocal samples used more as percussion than melody', desc: 'High-speed UK electronic music driven by incredibly fast, complex, and heavily chopped drum breaks (famously the "Amen break"). Underneath the frantic, rattling percussion sits a continuous, deep, and smooth sub-bass line. The contrast between the hyper-kinetic treble percussion and the slow, rolling low-end creates a distinct, futuristic groove.' },
+        'Techno / Warehouse': { category: 'EDM', bpm: [130, 140], mood: 'dark, industrial, repetitive, driving', texture: 'distorted kicks, minimal, metallic, echoing', vox: 'sparse, robotic or largely absent vocal, used as a textural stab rather than a lead', desc: 'Dark, minimalist, and highly repetitive electronic music designed for underground warehouses. The sound revolves around a heavy, distorted, and resonant 4/4 kick drum (the "rumble kick") created by heavily processing the kick with reverb and distortion. Melodies are sparse, replacing traditional chords with metallic, atonal synth stabs, industrial percussion, and sweeping white noise.' },
+        'Synthwave / Retrowave': { category: 'EDM', bpm: [85, 115], mood: 'nostalgic, neon, cinematic, 80s', texture: 'analog warmth, gated snares, arpeggiators', vox: 'cool, detached vocal delivery with a distant, cavernous quality and retro-styled phrasing', desc: 'A modern, cinematic love letter to 1980s pop culture, action movies, and video games. Production exclusively mimics vintage analog gear: Roland Juno arpeggios, massive sweeping Moog basslines, and punchy, heavily gated snare drums (LinnDrum). The mix aims for the warmth and slight pitch-instability of VHS tapes and cassette decks.' },
+        'Future Bass / Melodic Trap': { category: 'EDM', bpm: [140, 160], mood: 'emotional, huge, bouncing, colorful', texture: 'LFO chords, vocal chops, booming 808s', vox: 'emotional, pitch-shifted vocal chops woven directly into the melody', desc: 'A fusion of trap music rhythms with the lush, emotional chord progressions of pop and trance. The signature sound relies on massive, thick synthesizer chords that "pulse" or "flutter" using complex LFO automation on low-pass filters. The drums feature heavy, sustained 808 sub-kicks and rapid hi-hat rolls, and the melodies are often created by pitch-shifting and chopping human vocal samples.' },
+        'Lo-Fi Hip Hop / Chillhop': { category: 'EDM', bpm: [70, 90], mood: 'relaxing, nostalgic, studious, sleepy', texture: 'vinyl crackle, muted highs, jazzy chords', vox: 'soft, half-mumbled, whispery vocal, or no vocal at all', desc: 'Instrumental background music focusing on deep relaxation and nostalgia. The production intentionally degrades the audio: extreme high-frequency roll-offs (muffled sound), heavy vinyl crackle, tape flutter, and background ambient noise (rain, coffee shops). The beats are incredibly laid-back and unquantized, playing simple jazzy piano or guitar loops over soft, dusty drums.' },
 
         // POP
-        'Synth-Pop': { category: 'POP', bpm: [105, 125], mood: 'nostalgic, shimmering, romantic', texture: 'analog warmth, lush pads, tight electronic drums', desc: 'Modern pop music heavily influenced by 1980s aesthetics. Built around lush, sweeping analog synthesizer pads, bouncing arpeggiators, and tight, punchy electronic drum machines (like the LinnDrum or TR-808). The mix is wide, bright, and polished, featuring heavily chorused guitars, gated snares, and smooth, breathy vocal production dripping in reverb.' },
-        'Modern Top 40': { category: 'POP', bpm: [95, 115], mood: 'pristine, catchy, radio-optimized', texture: 'crystal clear, heavily processed, punchy', desc: 'Current mainstream pop music characterized by absolute sonic perfection and maximum loudness. Features meticulously tuned and comped vocals (often utilizing creative auto-tune), hybrid acoustic/electronic drum kits, and massive, layered sub-bass. Every element is heavily EQed and compressed to carve out its own distinct frequency space, resulting in a hyper-clean, radio-optimized wall of sound.' },
-        '80s City Pop / Vaporwave': { category: 'POP', bpm: [95, 115], mood: 'breezy, luxurious, nostalgic, coastal', texture: 'slap bass, brass hits, lush keys, tape wobble', desc: 'Inspired by 1980s Japanese economic boom music (City Pop) and its modern, slowed-down internet iteration (Vaporwave). Features incredibly slick, jazzy chord progressions, funky slap bass, sparkling Rhodes pianos, and bright brass sections. The mix is luxurious and breezy, often artificially slowed down or saturated with tape modulation to invoke intense nostalgia.' },
-        'Indie Pop / Bedroom Pop': { category: 'POP', bpm: [90, 120], mood: 'intimate, quirky, lo-fi, sincere', texture: 'chorus pedals, cheap synths, dry vocals', desc: 'DIY pop music defined by its intimate, unpolished "bedroom" aesthetic. The production embraces limitations: cheap Casio synthesizers, guitars heavily modulated with chorus and vibrato pedals, and simple, dry drum machine loops. Vocals are typically recorded close to the mic with very little reverb, creating a highly personal, whispering, and sincere atmosphere.' },
-        'K-Pop / Idol Pop': { category: 'POP', bpm: [115, 135], mood: 'maximalist, hyper-energetic, genre-blending', texture: 'EDM drops, rap verses, massive vocal stacks', desc: 'The absolute extreme of maximalist pop production. K-Pop famously blends multiple genres (hip-hop, EDM, R&B, rock) into a single, hyper-structured song. The production features massive, booming EDM bass drops, complex rap verses, and colossal vocal harmonies (often stacking dozens of voices). The mix is exhaustingly dense, bright, and engineered for high-impact visual performance.' },
-        '60s Motown / Brill Building': { category: 'POP', bpm: [100, 130], mood: 'joyful, bouncing, classic, soulful', texture: 'tambourines, upright bass, echo chambers', desc: 'The iconic 1960s Wall of Sound and Motown aesthetic. Built on live, bouncing grooves featuring upright bass, piano, and the distinct, driving 2-and-4 crack of a tambourine and snare hit together. The production relies heavily on bleeding live microphones and massive physical reverb chambers. Vocals are rich, harmonized, and sit perfectly within a dense, mid-heavy mix.' },
-        'Hyperpop / PC Music': { category: 'POP', bpm: [130, 180], mood: 'chaotic, metallic, overwhelming, futuristic', texture: 'extreme pitch-shift, clipping, bubblegum synths', desc: 'An extreme, avant-garde exaggeration of 2000s pop and EDM. The sound is highly abrasive, featuring ear-piercingly bright, metallic synthesizers, brutally distorted 808s, and intentional digital clipping. Vocals are pitch-shifted to absurd, chipmunk-like extremes and heavily auto-tuned. It is a chaotic, sensory-overload collision of bubblegum pop melodies and industrial noise.' },
+        'Synth-Pop': { category: 'POP', bpm: [105, 125], mood: 'nostalgic, shimmering, romantic', texture: 'analog warmth, lush pads, tight electronic drums', vox: 'smooth, breathy vocal delivery with a distant, dreamlike quality, nostalgic phrasing', desc: 'Modern pop music heavily influenced by 1980s aesthetics. Built around lush, sweeping analog synthesizer pads, bouncing arpeggiators, and tight, punchy electronic drum machines (like the LinnDrum or TR-808). The mix is wide, bright, and polished, featuring heavily chorused guitars, gated snares, and smooth, breathy vocal production dripping in reverb.' },
+        'Modern Top 40': { category: 'POP', bpm: [95, 115], mood: 'pristine, catchy, radio-optimized', texture: 'crystal clear, heavily processed, punchy', vox: 'pristine, heavily tuned vocal, confident and radio-ready', desc: 'Current mainstream pop music characterized by absolute sonic perfection and maximum loudness. Features meticulously tuned and comped vocals (often utilizing creative auto-tune), hybrid acoustic/electronic drum kits, and massive, layered sub-bass. Every element is heavily EQed and compressed to carve out its own distinct frequency space, resulting in a hyper-clean, radio-optimized wall of sound.' },
+        '80s City Pop / Vaporwave': { category: 'POP', bpm: [95, 115], mood: 'breezy, luxurious, nostalgic, coastal', texture: 'slap bass, brass hits, lush keys, tape wobble', vox: 'smooth, breezy, effortlessly cool vocal delivery', desc: 'Inspired by 1980s Japanese economic boom music (City Pop) and its modern, slowed-down internet iteration (Vaporwave). Features incredibly slick, jazzy chord progressions, funky slap bass, sparkling Rhodes pianos, and bright brass sections. The mix is luxurious and breezy, often artificially slowed down or saturated with tape modulation to invoke intense nostalgia.' },
+        'Indie Pop / Bedroom Pop': { category: 'POP', bpm: [90, 120], mood: 'intimate, quirky, lo-fi, sincere', texture: 'chorus pedals, cheap synths, dry vocals', vox: 'intimate, close-mic\'d, conversational vocal delivery, understated and sincere', desc: 'DIY pop music defined by its intimate, unpolished "bedroom" aesthetic. The production embraces limitations: cheap Casio synthesizers, guitars heavily modulated with chorus and vibrato pedals, and simple, dry drum machine loops. Vocals are typically recorded close to the mic with very little reverb, creating a highly personal, whispering, and sincere atmosphere.' },
+        'K-Pop / Idol Pop': { category: 'POP', bpm: [115, 135], mood: 'maximalist, hyper-energetic, genre-blending', texture: 'EDM drops, rap verses, massive vocal stacks', vox: 'polished, high-energy vocal trading between rap verses and soaring, stacked harmonies', desc: 'The absolute extreme of maximalist pop production. K-Pop famously blends multiple genres (hip-hop, EDM, R&B, rock) into a single, hyper-structured song. The production features massive, booming EDM bass drops, complex rap verses, and colossal vocal harmonies (often stacking dozens of voices). The mix is exhaustingly dense, bright, and engineered for high-impact visual performance.' },
+        '60s Motown / Brill Building': { category: 'POP', bpm: [100, 130], mood: 'joyful, bouncing, classic, soulful', texture: 'tambourines, upright bass, echo chambers', vox: 'rich, soulful lead vocal with tight, joyful backing harmonies', desc: 'The iconic 1960s Wall of Sound and Motown aesthetic. Built on live, bouncing grooves featuring upright bass, piano, and the distinct, driving 2-and-4 crack of a tambourine and snare hit together. The production relies heavily on bleeding live microphones and massive physical reverb chambers. Vocals are rich, harmonized, and sit perfectly within a dense, mid-heavy mix.' },
+        'Hyperpop / PC Music': { category: 'POP', bpm: [130, 180], mood: 'chaotic, metallic, overwhelming, futuristic', texture: 'extreme pitch-shift, clipping, bubblegum synths', vox: 'pitch-shifted, chipmunk-high, heavily auto-tuned vocal delivery', desc: 'An extreme, avant-garde exaggeration of 2000s pop and EDM. The sound is highly abrasive, featuring ear-piercingly bright, metallic synthesizers, brutally distorted 808s, and intentional digital clipping. Vocals are pitch-shifted to absurd, chipmunk-like extremes and heavily auto-tuned. It is a chaotic, sensory-overload collision of bubblegum pop melodies and industrial noise.' },
 
         // COUNTRY
-        'Modern Nashville': { category: 'COUNTRY', bpm: [80, 110], mood: 'polished, commercial, storytelling', texture: 'bright acoustics, subtle twang, massive drums', desc: 'Contemporary country music that heavily incorporates pop and arena-rock production techniques. While retaining traditional elements like acoustic guitar, pedal steel, and Telecaster twang, it features massive, rock-style drum programming, thick layered bass, and highly polished, compressed vocals. The mix is wide, bright, and commercially optimized for radio.' },
-        'Outlaw Country': { category: 'COUNTRY', bpm: [75, 100], mood: 'gritty, rebellious, unpolished, traditional', texture: 'analog warmth, live band feel, tape saturation', desc: 'A rebellious rejection of polished Nashville sounds, favoring a raw, live-band aesthetic. Features heavy reliance on vintage acoustic instruments, raw electric guitar tones, and organic, unquantized drum performances. The production is decidedly lo-fi and analog, often utilizing tape saturation and natural room reverberation to capture a gritty, traditional, and authentic storytelling atmosphere.' },
-        'Bluegrass / Appalachian': { category: 'COUNTRY', bpm: [120, 160], mood: 'fast, traditional, virtuosic, rustic', texture: 'banjo rolls, mandolin chops, upright bass', desc: 'Fast-paced, acoustic string-band music originating from Appalachia. It is entirely acoustic, featuring no drums or electric instruments. The driving rhythm is created by the "chop" of a mandolin and the slapping of an upright bass, while the banjo and fiddle play blindingly fast, syncopated 16th-note melodies. The sound is incredibly raw, bright, and purely acoustic.' },
-        '90s Neotraditional Country': { category: 'COUNTRY', bpm: [90, 120], mood: 'boot-stomping, honky-tonk, sincere', texture: 'fiddles, pedal steel, scooped Telecasters', desc: 'The massive, radio-friendly country sound of the 1990s (Garth Brooks, Alan Jackson) that brought traditional honky-tonk instruments back into the mainstream. The mix is heavily defined by soaring, weeping pedal steel guitars, bright fiddles, and "chicken-picked" Fender Telecasters. The drums are punchy and acoustic, and the vocals are rich, deep, and soaked in smooth plate reverb.' },
-        'Countrypolitan / Nashville Sound': { category: 'COUNTRY', bpm: [70, 95], mood: 'lush, romantic, sweeping, cinematic', texture: 'string sections, smooth backing vocals, crooning', desc: 'The highly polished 1960s "Nashville Sound" that replaced raw honky-tonk grit with lush pop orchestration. The defining characteristic is the total absence of traditional fiddles and banjos, replaced entirely by smooth, cinematic string sections, sweeping grand pianos, and "ooh/aah" vocal choirs. The lead vocal is delivered in a deep, smooth, crooning style reminiscent of traditional pop standards.' },
-        'Alt-Country / Americana': { category: 'COUNTRY', bpm: [85, 115], mood: 'earthy, melancholic, rootsy, alternative', texture: 'tremolo guitars, dusty acoustics, brushes', desc: 'A modern blending of traditional roots music with alternative rock and indie sensibilities. The production is highly organic and earthy, utilizing vintage microphones, dusty acoustic guitars, and drums played softly with brushes rather than sticks. Electric guitars often use tremolo and spring reverb for a slightly twangy, cinematic atmosphere. It prioritizes emotional weight over commercial polish.' }
+        'Modern Nashville': { category: 'COUNTRY', bpm: [80, 110], mood: 'polished, commercial, storytelling', texture: 'bright acoustics, subtle twang, massive drums', vox: 'polished, storytelling vocal delivery, warm with a subtle twang', desc: 'Contemporary country music that heavily incorporates pop and arena-rock production techniques. While retaining traditional elements like acoustic guitar, pedal steel, and Telecaster twang, it features massive, rock-style drum programming, thick layered bass, and highly polished, compressed vocals. The mix is wide, bright, and commercially optimized for radio.' },
+        'Outlaw Country': { category: 'COUNTRY', bpm: [75, 100], mood: 'gritty, rebellious, unpolished, traditional', texture: 'analog warmth, live band feel, tape saturation', vox: 'gritty, weathered, plainspoken vocal delivery', desc: 'A rebellious rejection of polished Nashville sounds, favoring a raw, live-band aesthetic. Features heavy reliance on vintage acoustic instruments, raw electric guitar tones, and organic, unquantized drum performances. The production is decidedly lo-fi and analog, often utilizing tape saturation and natural room reverberation to capture a gritty, traditional, and authentic storytelling atmosphere.' },
+        'Bluegrass / Appalachian': { category: 'COUNTRY', bpm: [120, 160], mood: 'fast, traditional, virtuosic, rustic', texture: 'banjo rolls, mandolin chops, upright bass', vox: 'high, keening lead vocal with tight, close-harmony backing', desc: 'Fast-paced, acoustic string-band music originating from Appalachia. It is entirely acoustic, featuring no drums or electric instruments. The driving rhythm is created by the "chop" of a mandolin and the slapping of an upright bass, while the banjo and fiddle play blindingly fast, syncopated 16th-note melodies. The sound is incredibly raw, bright, and purely acoustic.' },
+        '90s Neotraditional Country': { category: 'COUNTRY', bpm: [90, 120], mood: 'boot-stomping, honky-tonk, sincere', texture: 'fiddles, pedal steel, scooped Telecasters', vox: 'rich, deep, sincere vocal delivery, classic honky-tonk phrasing', desc: 'The massive, radio-friendly country sound of the 1990s (Garth Brooks, Alan Jackson) that brought traditional honky-tonk instruments back into the mainstream. The mix is heavily defined by soaring, weeping pedal steel guitars, bright fiddles, and "chicken-picked" Fender Telecasters. The drums are punchy and acoustic, and the vocals are rich, deep, and soaked in smooth plate reverb.' },
+        'Countrypolitan / Nashville Sound': { category: 'COUNTRY', bpm: [70, 95], mood: 'lush, romantic, sweeping, cinematic', texture: 'string sections, smooth backing vocals, crooning', vox: 'smooth, deep, crooning vocal delivery', desc: 'The highly polished 1960s "Nashville Sound" that replaced raw honky-tonk grit with lush pop orchestration. The defining characteristic is the total absence of traditional fiddles and banjos, replaced entirely by smooth, cinematic string sections, sweeping grand pianos, and "ooh/aah" vocal choirs. The lead vocal is delivered in a deep, smooth, crooning style reminiscent of traditional pop standards.' },
+        'Alt-Country / Americana': { category: 'COUNTRY', bpm: [85, 115], mood: 'earthy, melancholic, rootsy, alternative', texture: 'tremolo guitars, dusty acoustics, brushes', vox: 'earthy, melancholic, rootsy vocal delivery, understated', desc: 'A modern blending of traditional roots music with alternative rock and indie sensibilities. The production is highly organic and earthy, utilizing vintage microphones, dusty acoustic guitars, and drums played softly with brushes rather than sticks. Electric guitars often use tremolo and spring reverb for a slightly twangy, cinematic atmosphere. It prioritizes emotional weight over commercial polish.' }
     };
 
     window.getGenreMeta = (genre) => window.LYRIA_GENRE_META[genre] || window.LYRIA_GENRE_META['__default__'];
@@ -3389,7 +3399,9 @@ window.lyriaSongBlock = (songId) => {
     // edit into db immediately, and db is reachable from this closure while lyrState is not.
     const sheet = (window.db?.lyrics?.sheets || []).find(sh => sh.id === song.lyricsSheetId || sh.songId === song.id);
     const lines = (sheet?.lines || []).filter(l => (l.text||'').trim());
-    if (!lines.length) return null;
+    // No early return for an empty sheet: an instrumental song still has a title, a tempo, and
+    // maybe an arrangement worth carrying into the prompt. `lyricsBlock` just comes back empty and
+    // every caller downstream already branches on that, not on this function returning non-null.
 
     // Group consecutive lines that share a tag into one section, so the tag heads its block once
     // instead of repeating on every line the way the sheet stores it.
@@ -3481,9 +3493,10 @@ window.lyriaSongBlock = (songId) => {
     };
 };
 
-    // Songs worth offering: they need words, not just a title.
+    // Every song on the board is offerable: a vocal song gets its lyrics appended verbatim, an
+    // instrumental one just carries its title/BPM/arrangement across instead. lyriaSongBlock never
+    // returns null for a song that exists, so this no longer filters on having words.
     window.lyriaSongsWithLyrics = () => (window.db?.songBoard || [])
-        .filter(s => window.lyriaSongBlock(s.id))
         .map(s => ({ id: s.id, title: s.title || 'Untitled' }));
 
     // There is ONE prompt. Lyria 3 takes a single `input` string on the Interactions API and a single
@@ -3517,11 +3530,15 @@ window.lyriaSongBlock = (songId) => {
     //   [Genre & style] + [Mood] + [Instrumentation] + [Tempo & rhythm] + [Vocal style] + [Lyrics]
     // with the lyrics last, introduced by "Lyrics:" exactly as the guide specifies ("Use your own
     // lyrics: Type 'Lyrics:' before the lines you want the model to sing").
-    window.assembleLyriaPrompt = ({ description, key, negative, arrangementBlock, song }) => {
+    window.assembleLyriaPrompt = ({ description, key, negative, length, arrangementBlock, song }) => {
         const parts = [];
         let head = String(description || '').trim();
         if (key && key.trim()) head += (/[.!?]$/.test(head) ? '' : '.') + ` In ${key.trim()}.`;
         parts.push(head);
+        // 3.5 raised the cap from a flat 30s to 30s-3min and actually honors a stated duration, but
+        // Google's own materials don't document a fixed syntax for it the way they do the timestamp
+        // block below — this is a plain stated length, not a verified field name.
+        if (length) parts.push(`Length: ${lyriaFmtTime(length)}.`);
         if (negative && negative.trim()) parts.push(`Avoid: ${negative.trim().replace(/\.$/, '')}.`);
         if (arrangementBlock) parts.push(arrangementBlock);
         if (song && song.lyricsBlock) parts.push(`Lyrics:\n${song.lyricsBlock}`);
@@ -3545,7 +3562,10 @@ window.lyriaSongBlock = (songId) => {
             // The whole point: if the direction already names a bass, this must not go and describe a
             // different one. Same for a role explicitly ruled out.
             if (claimed.has(role) || excluded.has(role)) { if (elements && cats.some(c => (elements[c]||[]).length)) dropped.push(label); return; }
-            const pool = cats.flatMap(c => elements[c] || []);
+            let pool = cats.flatMap(c => elements[c] || []);
+            // No cookbook Vox recipe of your own for this genre — fall back to the genre's baked-in
+            // delivery style so the vocal actually gets described instead of just labeled "vocals".
+            if (role === 'vox' && vocal && !pool.length && meta.vox) pool = [meta.vox];
             if (!pool.length) return;
             const frag = lyriaClean(lyriaPick(pool));
             if (!frag) return;
@@ -3603,8 +3623,9 @@ window.lyriaSongBlock = (songId) => {
         const bpmEl = document.getElementById('lyria-bpm'); if (bpmEl) bpmEl.value = window.getGenreBpmMid(sel.value);
     };
 
-    // Fills the song picker and, when a song is chosen, pulls its arrangement BPM across so the tempo
-    // in the prompt matches the tempo the song is actually written at rather than the genre's midpoint.
+    // Fills the song picker with every song on the board, vocal or instrumental — attaching one
+    // always carries its BPM and (if it has one) its arrangement structure across; a vocal song's
+    // lyrics additionally get appended verbatim under "Lyrics:" later in assembleLyriaPrompt.
     window.populateLyriaSongSelect = (preselectSongId) => {
         const sel = document.getElementById('lyria-song-select'); if (!sel) return;
         const songs = window.lyriaSongsWithLyrics();
@@ -3615,12 +3636,14 @@ window.lyriaSongBlock = (songId) => {
         const sync = () => {
             const blk = sel.value ? window.lyriaSongBlock(sel.value) : null;
             if (blk && blk.bpm) { const b = document.getElementById('lyria-bpm'); if (b) b.value = blk.bpm; }
-            const lyricsNote = blk ? `${blk.lyricsBlock.length.toLocaleString()} chars of lyrics` : '';
             if (note) note.innerHTML = !songs.length
-                ? 'No song has lyrics yet — write some in Lyrics Lab and link the sheet to a Song Board song.'
-                : blk
-                    ? `${blk.sections} section${blk.sections===1?'':'s'} · ${blk.timed ? 'arrangement available for the timed block' : 'no arrangement yet, so no timings available'}${blk.bpm?` · ${blk.bpm} BPM`:''} · ${lyricsNote}. Copied in exactly as written — the AI never rewrites them.`
-                    : 'Pick a song and its lyrics go into the prompt under <code class="text-[#FF88FF]">Lyrics:</code>, with <code class="text-[#FF88FF]">[Verse 1]</code>-style tags from its arrangement. Leave on “none” for an instrumental.';
+                ? 'No songs on the board yet — add one in Song Board first.'
+                : !blk
+                    ? 'Pick a song to carry its BPM and structure across. If it has lyrics they go in verbatim under <code class="text-[#FF88FF]">Lyrics:</code>, with <code class="text-[#FF88FF]">[Verse 1]</code>-style tags from its arrangement. Leave on “none” for a one-off instrumental.'
+                    : blk.lyricsBlock
+                        ? `${blk.sections} section${blk.sections===1?'':'s'} · ${blk.timed ? 'arrangement available for the timed block' : 'no arrangement yet, so no timings available'}${blk.bpm?` · ${blk.bpm} BPM`:''} · ${blk.lyricsBlock.length.toLocaleString()} chars of lyrics. Copied in exactly as written — the AI never rewrites them.`
+                        : `Instrumental — this song has no lyrics yet.${blk.bpm?` ${blk.bpm} BPM carried across.`:''}${blk.timed?' Arrangement available for the timed block.':''}`;
+            window.renderLyriaSavedPrompts?.();
         };
         sel.onchange = sync;
         sync();
@@ -3633,9 +3656,10 @@ window.lyriaSongBlock = (songId) => {
         const moodEl = document.getElementById('lyria-mood'); if (moodEl) moodEl.value = '';
         const texEl = document.getElementById('lyria-texture'); if (texEl) texEl.value = '';
         
-        // populateLyriaSongSelect only pulls BPM across for songs with lyrics (the dropdown is
-        // lyrics-gated). A song opened directly from its Song Board card may have no lyrics yet,
-        // so pull its tempo across directly here rather than losing it to the genre's midpoint.
+        // populateLyriaSongSelect's own sync() already pulls BPM across via lyriaSongBlock, but that
+        // needs a lyric sheet or arrangement to compute from. A song opened directly from its Song
+        // Board card may have neither yet, so pull its tempo straight off the song record too rather
+        // than losing it to the genre's midpoint.
         if (preselectSongId != null) {
             const song = (window.db?.songBoard || []).find(s => String(s.id) === String(preselectSongId));
             if (song) {
@@ -3661,6 +3685,7 @@ window.lyriaSongBlock = (songId) => {
         })();
         if (keyEl) keyEl.value = document.getElementById('ai-override-key')?.value.trim() || kitForOverrides?.keyOverride || '';
         if (negEl) negEl.value = document.getElementById('ai-override-negative')?.value.trim() || kitForOverrides?.negOverride || '';
+        const lenEl = document.getElementById('lyria-length'); if (lenEl) lenEl.value = '';
         const tsEl = document.getElementById('lyria-timestamps'); if (tsEl) tsEl.checked = false;
         document.getElementById('lyria-output-wrap')?.classList.add('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
@@ -3681,19 +3706,24 @@ window.lyriaSongBlock = (songId) => {
         const bpm = parseInt(document.getElementById('lyria-bpm')?.value, 10) || undefined;
         const notes = document.getElementById('lyria-custom-notes')?.value || '';
         const key = document.getElementById('lyria-key')?.value || '';
+        const length = parseInt(document.getElementById('lyria-length')?.value, 10) || undefined;
         const negative = document.getElementById('lyria-negative')?.value || '';
         const wantTimes = !!document.getElementById('lyria-timestamps')?.checked;
         const songId = document.getElementById('lyria-song-select')?.value || '';
         const song = songId ? window.lyriaSongBlock(songId) : null;
-        const built = window.buildLyriaPrompt(genre, notes, bpm, !!song);
+        // `song` truthy just means one is attached — an instrumental song attaches fine, for its BPM
+        // and arrangement, with an empty lyricsBlock. Only an actual lyric sheet should flip the
+        // prompt into vocal framing.
+        const hasLyrics = !!(song && song.lyricsBlock);
+        const built = window.buildLyriaPrompt(genre, notes, bpm, hasLyrics);
         const arrangementBlock = wantTimes ? window.buildLyriaArrangementBlock(song) : '';
-        window.__lyriaLastBuilt = { ...built, song, key, negative, arrangementBlock };
+        window.__lyriaLastBuilt = { ...built, song, key, length, negative, arrangementBlock };
 
         const styleOut = document.getElementById('lyria-output-style');
         // One box, one prompt. The readout is the size of the whole thing — informational only, since
         // the documented limit is 131,072 tokens and nothing written here will approach it.
         const setStyle = (description) => {
-            const full = window.assembleLyriaPrompt({ description, key, negative, arrangementBlock, song });
+            const full = window.assembleLyriaPrompt({ description, key, negative, length, arrangementBlock, song });
             if (styleOut) styleOut.value = full;
             const countEl = document.getElementById('lyria-style-count');
             if (countEl) {
@@ -3713,7 +3743,7 @@ window.lyriaSongBlock = (songId) => {
         const note = document.getElementById('lyria-ai-note');
         const setNote = (msg, ok) => { if (note) { note.textContent = msg; note.className = `text-[10px] mt-3 ${ok ? 'text-[#7AFFBF]/80' : 'text-[#FF5A5A]/80'}`; } };
         const covers = built.dropped.length ? ` Your direction covers ${built.dropped.join(', ')}, so those were left out to avoid doubling up.` : '';
-        const partsNote = song ? ` Lyrics appended verbatim under “Lyrics:”.` : '';
+        const partsNote = hasLyrics ? ` Lyrics appended verbatim under “Lyrics:”.` : '';
         if (!window.__aiIsConfigured || !window.__aiIsConfigured() || !window.ferrettAI) {
             setNote(('Offline draft — add an API key for a written prompt.' + partsNote + covers).trim(), !!(partsNote || covers));
             return;
@@ -3722,21 +3752,22 @@ window.lyriaSongBlock = (songId) => {
         if (gen) { gen.disabled = true; gen.textContent = '…writing'; }
         setNote('Writing a prompt from this genre’s recipes…', true);
         try {
-            // Two briefs, because the job genuinely changes. Without a song this writes an instrumental
-            // description, as it always did. With one, the track has a vocal and a known shape, so the
-            // model is told the structure and asked to write to it — but it is never shown the lyrics
-            // and never asked to produce any, because the real ones get appended after it has finished.
+            // Two briefs, because the job genuinely changes. Without lyrics this writes an instrumental
+            // description, as it always did — whether or not a song is attached. With lyrics, the
+            // track has a vocal and a known shape, so the model is told the structure and asked to
+            // write to it — but it is never shown the lyrics and never asked to produce any, because
+            // the real ones get appended after it has finished.
             const sys = [
-                song
+                hasLyrics
                     ? 'You write prompts for Google Lyria 3, which generates music WITH VOCALS from a single text prompt. The real lyrics are appended to your paragraph by the app afterwards and are NOT your job — describe the music that should carry them.'
                     : 'You write prompts for Google Lyria 3, which generates INSTRUMENTAL music from a single text prompt.',
-                song
+                hasLyrics
                     ? 'Reply with ONE paragraph of 40-70 words. Do NOT write, quote, echo or invent any lyrics. No headings, no preamble, no bullet points.'
                     : 'Reply with ONE paragraph of 40-70 words. No lyrics, no quotes, no headings, no preamble, no bullet points.',
-                song
+                hasLyrics
                     ? 'Describe INSTRUMENTATION, RHYTHM, MOOD, SONIC TEXTURE and the VOCAL delivery the song calls for (register, phrasing, how it sits in the mix).'
                     : 'Describe INSTRUMENTATION, RHYTHM, MOOD and SONIC TEXTURE. Name real instruments and playing styles.',
-                song ? 'You are given the song\'s section order and timings. Write to that shape — say how the arrangement moves between sections rather than describing one static texture.' : '',
+                (song && song.structure) ? 'You are given the song\'s section order and timings. Write to that shape — say how the arrangement moves between sections rather than describing one static texture.' : '',
                 'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole prompt is wasted.',
                 'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ or reverb settings. Lyria cannot act on any of that and it crowds out the musical detail that matters.',
                 'The brief lists roles the producer is playing THEMSELVES. Use exactly the instrument they named for that role and never propose an alternative for it — do not offer a synth bass when they said electric bass.',
@@ -3751,11 +3782,13 @@ window.lyriaSongBlock = (songId) => {
             const moodInput = document.getElementById('lyria-mood')?.value.trim();
             const texInput = document.getElementById('lyria-texture')?.value.trim();
             // Structure only — never the words themselves. Sending the lyrics would put them in reach
-            // of a model whose whole job is rewriting the surrounding text.
+            // of a model whose whole job is rewriting the surrounding text. An instrumental attach
+            // still passes its title/section order across when it has one — just without the "this
+            // is a vocal track" framing, which would be actively wrong for it.
             const songLines = song
-                ? `\nSONG: ${song.title}\nSECTION ORDER${song.timed ? ' AND TIMINGS' : ''}: ${song.structure}${song.totalSecs ? `\nRUNS: ${lyriaFmtTime(song.totalSecs)}` : ''}\nThis is a VOCAL track — the lyrics exist and are supplied separately. Do not write any.`
+                ? `\nSONG: ${song.title}${song.structure ? `\nSECTION ORDER${song.timed ? ' AND TIMINGS' : ''}: ${song.structure}` : ''}${song.totalSecs ? `\nRUNS: ${lyriaFmtTime(song.totalSecs)}` : ''}${hasLyrics ? '\nThis is a VOCAL track — the lyrics exist and are supplied separately. Do not write any.' : ''}`
                 : '';
-            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
+            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${hasLyrics && meta.vox && !built.claimed.includes('vox') ? `\nVOCAL STYLE: ${meta.vox}` : ''}${length ? `\nTARGET LENGTH: ${lyriaFmtTime(length)} — pace the arrangement description to fill this, not a generic 30-second clip.` : ''}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
             window.__aiUsage?.begin('Lyria Prompt Generation');
             const written = await window.ferrettAI(sys, user, { creative: true });
             const spent = window.__aiUsage?.end();
@@ -3775,7 +3808,288 @@ window.lyriaSongBlock = (songId) => {
         }
     };
 
+    // ==================== SAVED LYRIA PROMPTS (per-song) ====================
+    // Saved takes live on the song object itself (song.lyriaPrompts), not a side table — they travel
+    // with the song through export/import/cloud sync exactly like its arrangement or lyrics do.
+    window.getSongForLyriaSave = () => {
+        const songId = document.getElementById('lyria-song-select')?.value || '';
+        if (!songId) return null;
+        return (window.db.songBoard || []).find(s => String(s.id) === String(songId)) || null;
+    };
 
+    window.renderLyriaSavedPrompts = () => {
+        const wrap = document.getElementById('lyria-saved-wrap'); if (!wrap) return;
+        const song = window.getSongForLyriaSave();
+        if (!song) { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+        const saved = song.lyriaPrompts || [];
+        const hint = document.getElementById('lyria-saved-hint');
+        if (hint) hint.textContent = saved.length ? `${saved.length} saved` : 'none yet — generate one, then hit 💾 SAVE';
+        const list = document.getElementById('lyria-saved-list'); if (!list) return;
+        // Newest first — the take you just saved (likely the one you want to A/B against next) is
+        // the one you shouldn't have to scroll for.
+        list.innerHTML = saved.slice().reverse().map(p => `
+            <div class="flex items-center gap-2 p-2 rounded border border-[#FFD60A20] bg-black/30">
+                <div class="flex-1 min-w-0">
+                    <div class="text-[10px] font-bold text-[#FFD60A] truncate">${window.escapeHtml(p.name)}</div>
+                    <div class="text-[9px] text-white/35 font-mono">${new Date(p.createdAt).toLocaleDateString()} · ${p.prompt.length.toLocaleString()} chars</div>
+                </div>
+                <button type="button" class="lyria-saved-load btn-euterpe px-2 py-1 text-[9px] shrink-0" data-id="${p.id}" title="Load every field from this take back into the editor above, to tweak and generate a new variation">✏️ LOAD</button>
+                <button type="button" class="lyria-saved-copy btn-euterpe-green px-2 py-1 text-[9px] shrink-0" data-id="${p.id}" title="Copy this exact saved prompt — handy for A/B against another take">📋</button>
+                <button type="button" class="lyria-saved-del text-white/30 hover:text-[#FF5A5A] text-[13px] px-1 shrink-0" data-id="${p.id}" title="Delete this saved take" aria-label="Delete this saved take">×</button>
+            </div>`).join('') || '<div class="text-[9px] text-white/25 italic py-1">No takes saved yet.</div>';
+    };
+
+    window.saveLyriaPrompt = () => {
+        const song = window.getSongForLyriaSave();
+        if (!song) { alert('Pick a song above first — saved prompts live on that song\'s card, so there\'s nothing to attach this to yet.'); return; }
+        const text = document.getElementById('lyria-output-style')?.value.trim();
+        if (!text) { alert('Generate a prompt first.'); return; }
+        song.lyriaPrompts = song.lyriaPrompts || [];
+        const n = song.lyriaPrompts.length + 1;
+        const name = prompt('Name this take (e.g. "Take 2 — more aggressive drums"):', `Take ${n}`);
+        if (name == null) return; // cancelled
+        song.lyriaPrompts.push({
+            id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
+            name: name.trim() || `Take ${n}`,
+            createdAt: Date.now(),
+            prompt: text,
+            params: {
+                genre: document.getElementById('lyria-genre-select')?.value || '',
+                mood: document.getElementById('lyria-mood')?.value || '',
+                texture: document.getElementById('lyria-texture')?.value || '',
+                bpm: document.getElementById('lyria-bpm')?.value || '',
+                key: document.getElementById('lyria-key')?.value || '',
+                length: document.getElementById('lyria-length')?.value || '',
+                negative: document.getElementById('lyria-negative')?.value || '',
+                notes: document.getElementById('lyria-custom-notes')?.value || '',
+                timestamps: !!document.getElementById('lyria-timestamps')?.checked
+            }
+        });
+        window.saveData();
+        window.renderLyriaSavedPrompts();
+        window.renderSongBoard?.();
+    };
+
+    window.loadLyriaPrompt = (id) => {
+        const song = window.getSongForLyriaSave(); if (!song) return;
+        const p = (song.lyriaPrompts || []).find(x => String(x.id) === String(id)); if (!p) return;
+        const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val; };
+        set('lyria-genre-select', p.params.genre);
+        set('lyria-mood', p.params.mood);
+        set('lyria-texture', p.params.texture);
+        set('lyria-bpm', p.params.bpm);
+        set('lyria-key', p.params.key);
+        set('lyria-length', p.params.length);
+        set('lyria-negative', p.params.negative);
+        set('lyria-custom-notes', p.params.notes);
+        const ts = document.getElementById('lyria-timestamps'); if (ts) ts.checked = !!p.params.timestamps;
+        const styleOut = document.getElementById('lyria-output-style'); if (styleOut) styleOut.value = p.prompt;
+        document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
+        document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
+        const lh = document.getElementById('btn-lyria-hide'); if (lh) { lh.classList.remove('hidden'); lh.textContent = 'HIDE'; }
+        const countEl = document.getElementById('lyria-style-count');
+        if (countEl) { countEl.textContent = `${p.prompt.length.toLocaleString()} chars · ~${Math.ceil(p.prompt.length / 4).toLocaleString()} tokens of ${window.LYRIA_INPUT_TOKEN_LIMIT.toLocaleString()}`; countEl.className = 'text-[9px] font-mono text-[#00E5FF]/50'; }
+        const note = document.getElementById('lyria-ai-note');
+        if (note) { note.textContent = `Loaded "${p.name}". Tweak any field above and hit GENERATE PROMPT for a fresh variation, or copy this as-is.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
+        styleOut?.scrollIntoView({ block: 'nearest' });
+    };
+
+    window.copyLyriaSavedPrompt = (id) => {
+        const song = window.getSongForLyriaSave(); if (!song) return;
+        const p = (song.lyriaPrompts || []).find(x => String(x.id) === String(id)); if (!p) return;
+        navigator.clipboard?.writeText(p.prompt).catch(() => {});
+    };
+
+    window.deleteLyriaPrompt = (id) => {
+        const song = window.getSongForLyriaSave(); if (!song) return;
+        const p = (song.lyriaPrompts || []).find(x => String(x.id) === String(id)); if (!p) return;
+        if (!confirm(`Delete saved prompt "${p.name}"? This can't be undone.`)) return;
+        song.lyriaPrompts = song.lyriaPrompts.filter(x => x.id !== p.id);
+        window.saveData();
+        window.renderLyriaSavedPrompts();
+        window.renderSongBoard?.();
+    };
+
+    // ==================== PRODUCER INSTRUCTIONS (per-genre, for Google Flow Music) ====================
+    // Google Flow Music (Lyria 3 Pro's consumer front end) has its own persistence: a global
+    // "Instructions" field under Settings -> Customize Producer, auto-applied to every session, and
+    // named "Flows" (custom slash commands) meant to be swapped per genre. Genre-level character
+    // belongs in one of those, written ONCE, rather than re-described in every per-song Lyria prompt.
+    // This reuses the same jargon-free, artist-free rules as buildLyriaPrompt, just written as a
+    // fuller reference document instead of a single compact opener sentence.
+    window.currentProducerNotesGenre = null;
+
+    // The offline-safe draft: no AI call, assembled straight from data already in the Cookbook. Also
+    // doubles as the AI's brief when a key IS configured, the same relationship buildLyriaPrompt has
+    // to the AI-written version of a song prompt.
+    window.buildProducerNotesDraft = (genre) => {
+        const meta = window.getGenreMeta(genre);
+        const bpmOverride = document.getElementById('ai-override-bpm')?.value.trim();
+        const moodOverride = document.getElementById('ai-override-mood')?.value.trim();
+        const texOverride = document.getElementById('ai-override-texture')?.value.trim();
+        const keyOverride = document.getElementById('ai-override-key')?.value.trim();
+        const negOverride = document.getElementById('ai-override-negative')?.value.trim();
+        const elements = window.extractGenreElements(genre);
+        const cats = Object.keys(elements).filter(c => (elements[c] || []).length);
+        const instrLines = cats.map(c => {
+            const descs = elements[c].map(d => lyriaClean(d)).filter(Boolean);
+            return descs.length ? `- ${c}: ${descs.join('; ')}` : '';
+        }).filter(Boolean);
+        const kits = window.kitHistory ? window.kitHistory(genre) : [];
+        const latestKit = kits.length ? kits[kits.length - 1] : null;
+        // meta.desc is producer shorthand ("sounds like X jammed with Y") and often names real artists
+        // as a private reference point — fine as AI context, never fine as the literal text someone
+        // pastes into Flow. buildLyriaPrompt's own output is the same artist-free, jargon-free
+        // description already trusted as the no-API-key fallback everywhere else in the app, so reuse
+        // it here instead of re-deriving a second "is this safe" pass.
+        const safeSummary = window.buildLyriaPrompt(genre, '', undefined, false).prompt;
+        const parts = [
+            `SOUND: ${safeSummary}`,
+            `PRODUCTION CHARACTER: ${moodOverride || meta.mood}. ${texOverride || meta.texture}.`,
+            `TEMPO: ${bpmOverride || `${meta.bpm[0]}-${meta.bpm[1]} BPM`} (typically ~${window.getGenreBpmMid(genre)} BPM).`,
+        ];
+        if (instrLines.length) parts.push(`INSTRUMENTATION:\n${instrLines.join('\n')}`);
+        if (keyOverride) parts.push(`KEY: ${keyOverride}.`);
+        if (negOverride) parts.push(`AVOID: ${negOverride}.`);
+        if (latestKit && Array.isArray(latestKit.palette) && latestKit.palette.length) {
+            parts.push(`GEAR ON HAND (for reference only — never name plugins in what you paste into Flow): ${latestKit.palette.join(', ')}.`);
+        }
+        return parts.join('\n\n');
+    };
+
+    window.openProducerNotesModal = (genre) => {
+        if (!genre) return;
+        window.currentProducerNotesGenre = genre;
+        const label = document.getElementById('producer-notes-genre'); if (label) label.textContent = genre;
+        document.getElementById('producer-notes-output-wrap')?.classList.add('hidden');
+        document.getElementById('btn-producer-notes-regenerate')?.classList.add('hidden');
+        const out = document.getElementById('producer-notes-output'); if (out) out.value = '';
+        const note = document.getElementById('producer-notes-ai-note'); if (note) note.textContent = '';
+        window.renderProducerNotesSaved();
+        document.getElementById('producer-notes-modal')?.classList.replace('hidden', 'flex');
+    };
+    window.closeProducerNotesModal = () => document.getElementById('producer-notes-modal')?.classList.replace('flex', 'hidden');
+
+    window.runProducerNotesGenerate = async () => {
+        const genre = window.currentProducerNotesGenre; if (!genre) return;
+        const draft = window.buildProducerNotesDraft(genre);
+        const out = document.getElementById('producer-notes-output');
+        const setOut = (text) => {
+            if (out) out.value = text;
+            const countEl = document.getElementById('producer-notes-count');
+            if (countEl) countEl.textContent = `${text.length.toLocaleString()} chars · ~${Math.ceil(text.length / 4).toLocaleString()} tokens`;
+        };
+        setOut(draft);
+        document.getElementById('producer-notes-output-wrap')?.classList.remove('hidden');
+        document.getElementById('btn-producer-notes-regenerate')?.classList.remove('hidden');
+        const note = document.getElementById('producer-notes-ai-note');
+        const setNote = (msg, ok) => { if (note) { note.textContent = msg; note.className = `text-[10px] mt-3 ${ok ? 'text-[#7AFFBF]/80' : 'text-[#FF5A5A]/80'}`; } };
+        if (!window.__aiIsConfigured || !window.__aiIsConfigured() || !window.ferrettAI) {
+            setNote('Offline draft, built straight from this genre\'s recipes — add an API key for a fuller written version.', false);
+            return;
+        }
+        const gen = document.getElementById('btn-producer-notes-generate');
+        if (gen) { gen.disabled = true; gen.textContent = '…writing'; }
+        setNote('Writing producer instructions from this genre\'s recipes…', true);
+        try {
+            const sys = [
+                'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. This document is pasted ONCE into Flow\'s per-genre custom Instructions (or a named Flow) and stays active for every song generated in this genre afterward — write for reuse across dozens of future songs, not one.',
+                'Write 300-500 words of plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, ARRANGEMENT TENDENCIES:, AVOID:). No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
+                'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole document is wasted.',
+                'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ, reverb, or any studio-processing language — Flow cannot act on any of that and it crowds out the musical detail that matters.',
+                'Only name instruments and playing styles that are represented in this genre\'s recipe book below — do not invent instrumentation this genre doesn\'t actually use.'
+            ].join(' ');
+            const meta = window.getGenreMeta(genre);
+            // meta.desc is the producer's own private shorthand and often names real influences
+            // ("sounds like X jammed with Y") — useful context for you to write from, but it must never
+            // appear, named, in what you write. The recipe book below is already artist-free; lean on it.
+            const user = `GENRE: ${genre}\nBACKGROUND (private reference only — never repeat any artist/song name from this in your output): ${meta.desc || ''}\n\nTHIS GENRE'S ACTUAL RECIPE BOOK AND CHARACTER, safe to build from directly:\n${draft}`;
+            window.__aiUsage?.begin('Producer Instructions');
+            const written = await window.ferrettAI(sys, user, { creative: true });
+            const spent = window.__aiUsage?.end();
+            const spentStr = window.__aiUsage?.summary(spent) || '';
+            if (written && written.trim()) setOut(written.trim());
+            setNote(`Written for "${genre}".${spentStr ? ` · 💲 ${spentStr}` : ''}`, true);
+        } catch (e) {
+            setNote('⚠ ' + e.message + ' — showing the offline draft instead.', false);
+        } finally {
+            if (gen) { gen.disabled = false; gen.textContent = 'GENERATE PRODUCER NOTES'; }
+        }
+    };
+
+    window.renderProducerNotesSaved = () => {
+        const wrap = document.getElementById('producer-notes-saved-wrap'); if (!wrap) return;
+        const genre = window.currentProducerNotesGenre;
+        if (!genre) { wrap.classList.add('hidden'); return; }
+        wrap.classList.remove('hidden');
+        window.db.producerNotes = window.db.producerNotes || {};
+        const saved = window.db.producerNotes[genre] || [];
+        const hint = document.getElementById('producer-notes-saved-hint');
+        if (hint) hint.textContent = saved.length ? `${saved.length} saved` : 'none yet — generate one, then hit 💾 SAVE';
+        // Keep the genre-bar button's count in sync without waiting for a full selectGenre() re-run.
+        const producerBtn = document.getElementById('btn-genre-producer');
+        if (producerBtn) producerBtn.textContent = saved.length ? `🎙️ PRODUCER NOTES (${saved.length})` : '🎙️ PRODUCER NOTES';
+        const list = document.getElementById('producer-notes-saved-list'); if (!list) return;
+        list.innerHTML = saved.slice().reverse().map(p => `
+            <div class="flex items-center gap-2 p-2 rounded border border-[#00E5FF20] bg-black/30">
+                <div class="flex-1 min-w-0">
+                    <div class="text-[10px] font-bold text-[#00E5FF] truncate">${window.escapeHtml(p.name)}</div>
+                    <div class="text-[9px] text-white/35 font-mono">${new Date(p.createdAt).toLocaleDateString()} · ${p.text.length.toLocaleString()} chars</div>
+                </div>
+                <button type="button" class="producer-notes-saved-load btn-euterpe px-2 py-1 text-[9px] shrink-0" data-id="${p.id}" title="Load this version back into the box above">✏️ LOAD</button>
+                <button type="button" class="producer-notes-saved-copy btn-euterpe-green px-2 py-1 text-[9px] shrink-0" data-id="${p.id}" title="Copy this exact saved version — handy for A/B against another take">📋</button>
+                <button type="button" class="producer-notes-saved-del text-white/30 hover:text-[#FF5A5A] text-[13px] px-1 shrink-0" data-id="${p.id}" title="Delete this saved version" aria-label="Delete this saved version">×</button>
+            </div>`).join('') || '<div class="text-[9px] text-white/25 italic py-1">No versions saved yet.</div>';
+    };
+
+    window.saveProducerNotes = () => {
+        const genre = window.currentProducerNotesGenre; if (!genre) return;
+        const text = document.getElementById('producer-notes-output')?.value.trim();
+        if (!text) { alert('Generate producer notes first.'); return; }
+        window.db.producerNotes = window.db.producerNotes || {};
+        window.db.producerNotes[genre] = window.db.producerNotes[genre] || [];
+        const n = window.db.producerNotes[genre].length + 1;
+        const name = prompt('Name this version (e.g. "V2 - leaner synths"):', `V${n}`);
+        if (name == null) return;
+        window.db.producerNotes[genre].push({
+            id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
+            name: name.trim() || `V${n}`,
+            createdAt: Date.now(),
+            text
+        });
+        window.saveData();
+        window.renderProducerNotesSaved();
+    };
+
+    window.loadProducerNotes = (id) => {
+        const genre = window.currentProducerNotesGenre; if (!genre) return;
+        const p = (window.db.producerNotes?.[genre] || []).find(x => String(x.id) === String(id)); if (!p) return;
+        const out = document.getElementById('producer-notes-output'); if (out) out.value = p.text;
+        document.getElementById('producer-notes-output-wrap')?.classList.remove('hidden');
+        document.getElementById('btn-producer-notes-regenerate')?.classList.remove('hidden');
+        const countEl = document.getElementById('producer-notes-count');
+        if (countEl) countEl.textContent = `${p.text.length.toLocaleString()} chars · ~${Math.ceil(p.text.length / 4).toLocaleString()} tokens`;
+        const note = document.getElementById('producer-notes-ai-note');
+        if (note) { note.textContent = `Loaded "${p.name}". Hit GENERATE PRODUCER NOTES for a fresh variation, or copy this as-is.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
+        out?.scrollIntoView({ block: 'nearest' });
+    };
+
+    window.copyProducerNotesSaved = (id) => {
+        const genre = window.currentProducerNotesGenre; if (!genre) return;
+        const p = (window.db.producerNotes?.[genre] || []).find(x => String(x.id) === String(id)); if (!p) return;
+        navigator.clipboard?.writeText(p.text).catch(() => {});
+    };
+
+    window.deleteProducerNotes = (id) => {
+        const genre = window.currentProducerNotesGenre; if (!genre) return;
+        const list = window.db.producerNotes?.[genre] || [];
+        const p = list.find(x => String(x.id) === String(id)); if (!p) return;
+        if (!confirm(`Delete saved producer notes "${p.name}"? This can't be undone.`)) return;
+        window.db.producerNotes[genre] = list.filter(x => x.id !== p.id);
+        window.saveData();
+        window.renderProducerNotesSaved();
+    };
 
     // === PLUGIN COVERAGE GAP-CHECK ===
     window.db.ownedPlugins = window.db.ownedPlugins || [];
@@ -4325,6 +4639,36 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
     document.getElementById('btn-lyria-copy-style')?.addEventListener('click', () => { const out = document.getElementById('lyria-output-style'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy-style'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    document.getElementById('btn-lyria-save')?.addEventListener('click', () => window.saveLyriaPrompt());
+    document.getElementById('lyria-saved-list')?.addEventListener('click', (e) => {
+        const loadBtn = e.target.closest('.lyria-saved-load');
+        const copyBtn = e.target.closest('.lyria-saved-copy');
+        const delBtn = e.target.closest('.lyria-saved-del');
+        if (loadBtn) window.loadLyriaPrompt(loadBtn.dataset.id);
+        else if (copyBtn) {
+            window.copyLyriaSavedPrompt(copyBtn.dataset.id);
+            const orig = copyBtn.textContent; copyBtn.textContent = '✓'; setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+        }
+        else if (delBtn) window.deleteLyriaPrompt(delBtn.dataset.id);
+    });
+    document.getElementById('btn-genre-producer')?.addEventListener('click', () => { const g = window.currentCookbookGenre; if (g) window.openProducerNotesModal(g); });
+    document.getElementById('close-producer-notes-modal')?.addEventListener('click', () => window.closeProducerNotesModal());
+    document.getElementById('producer-notes-modal')?.addEventListener('click', (e) => { if (e.target.id === 'producer-notes-modal') window.closeProducerNotesModal(); });
+    document.getElementById('btn-producer-notes-generate')?.addEventListener('click', () => window.runProducerNotesGenerate());
+    document.getElementById('btn-producer-notes-regenerate')?.addEventListener('click', () => window.runProducerNotesGenerate());
+    document.getElementById('btn-producer-notes-copy')?.addEventListener('click', () => { const out = document.getElementById('producer-notes-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-producer-notes-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    document.getElementById('btn-producer-notes-save')?.addEventListener('click', () => window.saveProducerNotes());
+    document.getElementById('producer-notes-saved-list')?.addEventListener('click', (e) => {
+        const loadBtn = e.target.closest('.producer-notes-saved-load');
+        const copyBtn = e.target.closest('.producer-notes-saved-copy');
+        const delBtn = e.target.closest('.producer-notes-saved-del');
+        if (loadBtn) window.loadProducerNotes(loadBtn.dataset.id);
+        else if (copyBtn) {
+            window.copyProducerNotesSaved(copyBtn.dataset.id);
+            const orig = copyBtn.textContent; copyBtn.textContent = '✓'; setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+        }
+        else if (delBtn) window.deleteProducerNotes(delBtn.dataset.id);
+    });
     // Re-run the build when the timed-arrangement toggle changes, so the box reflects it immediately
     // instead of needing GENERATE again (and without spending another AI call — the description is
     // reused from the last build).
@@ -4336,6 +4680,7 @@ window.lyriaSongBlock = (songId) => {
         if (out) out.value = window.assembleLyriaPrompt({
             description: b.written || b.prompt,
             key: document.getElementById('lyria-key')?.value || '',
+            length: parseInt(document.getElementById('lyria-length')?.value, 10) || undefined,
             negative: document.getElementById('lyria-negative')?.value || '',
             arrangementBlock: wantTimes ? window.buildLyriaArrangementBlock(b.song) : '',
             song: b.song

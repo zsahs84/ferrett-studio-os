@@ -77,7 +77,7 @@
               <button type="button" class="song-arr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
               <button type="button" class="song-lyr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.lyricsSheetId!=null?'text-[#FF88FF]':'text-white/25'} hover:text-[#FF88FF]" data-song-id="${s.id}">📝 ${s.lyricsSheetId!=null?'Open lyrics':'New lyrics'}</button>
             </div>
-            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length||s.kitId||s.kit)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}${(s.kitId||s.kit)?' · 🤖 kit':''}</button>
+            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length||s.kitId||s.kit)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}${(s.kitId||s.kit)?' · 🤖 kit':''}${(s.lyriaPrompts||[]).length?` · 💾 ${s.lyriaPrompts.length}`:''}</button>
           </div>`;
         }).join('')}</div>
       </div>`;
@@ -116,6 +116,8 @@
     const bpmEl=$('song-detail-bpm'); if(bpmEl) bpmEl.value=song.bpm||'';
     $('song-detail-arr-btn').textContent = '🎼 '+(song.arrangement?'Edit arrangement':'Attach arrangement');
     $('song-detail-lyr-btn').textContent = '📝 '+(song.lyricsSheetId!=null?'Open lyrics':'New lyrics');
+    const lyriaBtn=$('song-detail-lyria-btn');
+    if(lyriaBtn) lyriaBtn.textContent = '🎼 LYRIA PROMPT'+((song.lyriaPrompts||[]).length?` (${song.lyriaPrompts.length} saved)`:' (uses this song\'s tempo)');
     document.querySelectorAll('.song-detail-matrix').forEach(cb=>{ cb.checked = !!(song.matrix && song.matrix[cb.dataset.stem]); });
     const list=$('song-detail-tracks-list');
     const linkedTracks=(song.trackIds||[]).map(id=>(window.db.tracks||[]).find(t=>t.id===id)).filter(Boolean);

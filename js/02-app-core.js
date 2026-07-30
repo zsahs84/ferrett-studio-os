@@ -16,6 +16,10 @@ const defaultDb = {
     // that genre afterward. Same shape as genreKits: keyed by genre name, each value a history array
     // so regenerating adds a new saved take instead of overwriting the last one.
     producerNotes: {},
+    // Saved Lyria prompt takes with no song attached — shopping sounds for a genre before any
+    // lyrics/song exists. Same shape as producerNotes: keyed by genre, each value a history array.
+    // A take made WITH a song attached still lives on that song (song.lyriaPrompts) as before.
+    lyriaPrompts: {},
     // Bumped whenever defaultDb gains plugins that an existing saved palette should also receive.
     // The load path unions them in once when the saved rev is behind this one.
     paletteRev: 1,
@@ -153,6 +157,7 @@ try {
         }
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.producerNotes) window.db.producerNotes = parsed.producerNotes;
+        if (parsed.lyriaPrompts) window.db.lyriaPrompts = parsed.lyriaPrompts;
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
         if (parsed.accounting) window.db.accounting = parsed.accounting;
     }
@@ -386,6 +391,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.ownedPlugins) { window.db.ownedPlugins = cloudDb.ownedPlugins; window.db.paletteRev = cloudDb.paletteRev || 0; }
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.producerNotes) window.db.producerNotes = cloudDb.producerNotes;
+                if (cloudDb.lyriaPrompts) window.db.lyriaPrompts = cloudDb.lyriaPrompts;
                 if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
                 if (cloudDb.accounting) window.db.accounting = cloudDb.accounting;
                 window.saveDataLocally();
@@ -574,6 +580,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; }
         if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
         if (incoming.producerNotes) window.db.producerNotes = incoming.producerNotes;
+        if (incoming.lyriaPrompts) window.db.lyriaPrompts = incoming.lyriaPrompts;
         if (incoming.lyrics) window.db.lyrics = incoming.lyrics;
         if (incoming.accounting) window.db.accounting = incoming.accounting;
         window.currentNoteId = window.db.multiNotes[0].id;
@@ -1084,6 +1091,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kitBtn) { const n = kitHistory(genre).length; kitBtn.textContent = n ? `🤖 KITS (${n})` : '🤖 AI KIT'; kitBtn.title = n ? `${n} saved kit${n===1?'':'s'} for this genre — browse or build another` : 'Build a full per-instrument chain sheet for this genre using only the plugins you own'; }
         const producerBtn = document.getElementById('btn-genre-producer');
         if (producerBtn) { const pn = (window.db.producerNotes?.[genre] || []).length; producerBtn.textContent = pn ? `🎙️ PRODUCER NOTES (${pn})` : '🎙️ PRODUCER NOTES'; }
+        const lyriaBtn = document.getElementById('btn-genre-lyria');
+        if (lyriaBtn) { const ln = (window.db.lyriaPrompts?.[genre] || []).length; lyriaBtn.textContent = ln ? `🎼 LYRIA PROMPT (${ln})` : '🎼 LYRIA PROMPT'; lyriaBtn.title = ln ? `${ln} saved prompt${ln===1?'':'s'} for this genre with no song attached — open to browse or build another` : ''; }
         // "2. Select Instrument" lists both the AI kit's roles and this genre's hand-written recipes —
         // see renderInstMenu. renderGenreKit refreshes it itself once a kit is on screen; the branches
         // below only cover the cases where there is no kit to render.
@@ -3811,23 +3820,42 @@ window.lyriaSongBlock = (songId) => {
         }
     };
 
-    // ==================== SAVED LYRIA PROMPTS (per-song) ====================
-    // Saved takes live on the song object itself (song.lyriaPrompts), not a side table — they travel
-    // with the song through export/import/cloud sync exactly like its arrangement or lyrics do.
+    // ==================== SAVED LYRIA PROMPTS (per-song, or per-genre with no song attached) ====================
+    // A take made with a song attached still lives on that song (song.lyriaPrompts), not a side
+    // table — it travels with the song through export/import/cloud sync exactly like its arrangement
+    // or lyrics do. But shopping sounds for a genre before any lyrics/song exists shouldn't need one:
+    // with no song picked, takes fall back to window.db.lyriaPrompts[genre] — same shape and same
+    // scroll-back-through-history pattern as producerNotes and genreKits already use.
     window.getSongForLyriaSave = () => {
         const songId = document.getElementById('lyria-song-select')?.value || '';
         if (!songId) return null;
         return (window.db.songBoard || []).find(s => String(s.id) === String(songId)) || null;
     };
 
+    // Resolves where saved takes currently live: the attached song's own list, or this genre's list
+    // when no song is attached. Returns null only when neither a song nor a genre is picked yet.
+    window.getLyriaSaveTarget = () => {
+        const song = window.getSongForLyriaSave();
+        if (song) { song.lyriaPrompts = song.lyriaPrompts || []; return { list: song.lyriaPrompts, song, genre: null }; }
+        const genre = document.getElementById('lyria-genre-select')?.value || '';
+        if (!genre) return null;
+        window.db.lyriaPrompts = window.db.lyriaPrompts || {};
+        window.db.lyriaPrompts[genre] = window.db.lyriaPrompts[genre] || [];
+        return { list: window.db.lyriaPrompts[genre], song: null, genre };
+    };
+
     window.renderLyriaSavedPrompts = () => {
         const wrap = document.getElementById('lyria-saved-wrap'); if (!wrap) return;
-        const song = window.getSongForLyriaSave();
-        if (!song) { wrap.classList.add('hidden'); return; }
+        const target = window.getLyriaSaveTarget();
+        if (!target) { wrap.classList.add('hidden'); return; }
         wrap.classList.remove('hidden');
-        const saved = song.lyriaPrompts || [];
+        const saved = target.list;
+        const label = document.getElementById('lyria-saved-label');
+        if (label) label.textContent = target.song ? '💾 SAVED PROMPTS FOR THIS SONG' : '💾 SAVED PROMPTS FOR THIS GENRE';
         const hint = document.getElementById('lyria-saved-hint');
-        if (hint) hint.textContent = saved.length ? `${saved.length} saved` : 'none yet — generate one, then hit 💾 SAVE';
+        if (hint) hint.textContent = saved.length
+            ? `${saved.length} saved${target.genre ? ' to this genre' : ''}`
+            : `none yet${target.genre ? ' for this genre' : ''} — generate one, then hit 💾 SAVE`;
         const list = document.getElementById('lyria-saved-list'); if (!list) return;
         // Newest first — the take you just saved (likely the one you want to A/B against next) is
         // the one you shouldn't have to scroll for.
@@ -3844,15 +3872,14 @@ window.lyriaSongBlock = (songId) => {
     };
 
     window.saveLyriaPrompt = () => {
-        const song = window.getSongForLyriaSave();
-        if (!song) { alert('Pick a song above first — saved prompts live on that song\'s card, so there\'s nothing to attach this to yet.'); return; }
+        const target = window.getLyriaSaveTarget();
+        if (!target) { alert('Pick a genre above first (or attach a song) — saved prompts need one or the other to live on.'); return; }
         const text = document.getElementById('lyria-output-style')?.value.trim();
         if (!text) { alert('Generate a prompt first.'); return; }
-        song.lyriaPrompts = song.lyriaPrompts || [];
-        const n = song.lyriaPrompts.length + 1;
+        const n = target.list.length + 1;
         const name = prompt('Name this take (e.g. "Take 2 — more aggressive drums"):', `Take ${n}`);
         if (name == null) return; // cancelled
-        song.lyriaPrompts.push({
+        target.list.push({
             id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
             name: name.trim() || `Take ${n}`,
             createdAt: Date.now(),
@@ -3875,8 +3902,8 @@ window.lyriaSongBlock = (songId) => {
     };
 
     window.loadLyriaPrompt = (id) => {
-        const song = window.getSongForLyriaSave(); if (!song) return;
-        const p = (song.lyriaPrompts || []).find(x => String(x.id) === String(id)); if (!p) return;
+        const target = window.getLyriaSaveTarget(); if (!target) return;
+        const p = target.list.find(x => String(x.id) === String(id)); if (!p) return;
         const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val; };
         set('lyria-genre-select', p.params.genre);
         set('lyria-mood', p.params.mood);
@@ -3899,16 +3926,17 @@ window.lyriaSongBlock = (songId) => {
     };
 
     window.copyLyriaSavedPrompt = (id) => {
-        const song = window.getSongForLyriaSave(); if (!song) return;
-        const p = (song.lyriaPrompts || []).find(x => String(x.id) === String(id)); if (!p) return;
+        const target = window.getLyriaSaveTarget(); if (!target) return;
+        const p = target.list.find(x => String(x.id) === String(id)); if (!p) return;
         navigator.clipboard?.writeText(p.prompt).catch(() => {});
     };
 
     window.deleteLyriaPrompt = (id) => {
-        const song = window.getSongForLyriaSave(); if (!song) return;
-        const p = (song.lyriaPrompts || []).find(x => String(x.id) === String(id)); if (!p) return;
+        const target = window.getLyriaSaveTarget(); if (!target) return;
+        const p = target.list.find(x => String(x.id) === String(id)); if (!p) return;
         if (!confirm(`Delete saved prompt "${p.name}"? This can't be undone.`)) return;
-        song.lyriaPrompts = song.lyriaPrompts.filter(x => x.id !== p.id);
+        if (target.song) { target.song.lyriaPrompts = target.list.filter(x => x.id !== p.id); }
+        else { window.db.lyriaPrompts[target.genre] = target.list.filter(x => x.id !== p.id); }
         window.saveData();
         window.renderLyriaSavedPrompts();
         window.renderSongBoard?.();
@@ -4643,7 +4671,7 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-open-lyria-tools')?.addEventListener('click', () => window.openLyriaModal());
     document.getElementById('close-lyria-modal')?.addEventListener('click', () => window.closeLyriaModal());
     document.getElementById('lyria-modal')?.addEventListener('click', (e) => { if (e.target.id === 'lyria-modal') window.closeLyriaModal(); });
-    document.getElementById('lyria-genre-select')?.addEventListener('change', (e) => { const bpmEl = document.getElementById('lyria-bpm'); if (bpmEl) bpmEl.value = window.getGenreBpmMid(e.target.value); });
+    document.getElementById('lyria-genre-select')?.addEventListener('change', (e) => { const bpmEl = document.getElementById('lyria-bpm'); if (bpmEl) bpmEl.value = window.getGenreBpmMid(e.target.value); window.renderLyriaSavedPrompts?.(); });
     document.getElementById('btn-lyria-generate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });

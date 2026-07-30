@@ -3771,7 +3771,8 @@ window.lyriaSongBlock = (songId) => {
                 'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole prompt is wasted.',
                 'NEVER mention plugins, mixing moves, dB, Hz, compression, EQ or reverb settings. Lyria cannot act on any of that and it crowds out the musical detail that matters.',
                 'The brief lists roles the producer is playing THEMSELVES. Use exactly the instrument they named for that role and never propose an alternative for it — do not offer a synth bass when they said electric bass.',
-                'Roles listed as excluded must not appear at all; state their absence plainly if it shapes the sound.'
+                'Roles listed as excluded must not appear at all; state their absence plainly if it shapes the sound.',
+                'The TEMPO given below is this specific song\'s actual tempo, already chosen by the producer — state that exact BPM number in your paragraph. Do not round it, do not substitute a genre-typical tempo instead, even if it looks unusual for the genre.'
             ].filter(Boolean).join(' ');
             const roleLines = [
                 built.claimed.length ? `PRODUCER IS PLAYING THESE THEMSELVES (use their instrument, suggest no alternative): ${built.claimed.join(', ')}` : '',
@@ -3788,7 +3789,7 @@ window.lyriaSongBlock = (songId) => {
             const songLines = song
                 ? `\nSONG: ${song.title}${song.structure ? `\nSECTION ORDER${song.timed ? ' AND TIMINGS' : ''}: ${song.structure}` : ''}${song.totalSecs ? `\nRUNS: ${lyriaFmtTime(song.totalSecs)}` : ''}${hasLyrics ? '\nThis is a VOCAL track — the lyrics exist and are supplied separately. Do not write any.' : ''}`
                 : '';
-            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${hasLyrics && meta.vox && !built.claimed.includes('vox') ? `\nVOCAL STYLE: ${meta.vox}` : ''}${length ? `\nTARGET LENGTH: ${lyriaFmtTime(length)} — pace the arrangement description to fill this, not a generic 30-second clip.` : ''}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
+            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: exactly ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM — this is the song's actual tempo, not a genre estimate; state this number\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${hasLyrics && meta.vox && !built.claimed.includes('vox') ? `\nVOCAL STYLE: ${meta.vox}` : ''}${length ? `\nTARGET LENGTH: ${lyriaFmtTime(length)} — pace the arrangement description to fill this, not a generic 30-second clip.` : ''}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
             window.__aiUsage?.begin('Lyria Prompt Generation');
             const written = await window.ferrettAI(sys, user, { creative: true });
             const spent = window.__aiUsage?.end();

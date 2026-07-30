@@ -376,8 +376,13 @@
   // needed after a Drive pull lands newer lyrics than whatever's already cached in this tab session.
   window.lyrForceReload=()=>{ lyrState=null; };
   window.lyrStateHasContent=lyrStateHasContent; // lets a Drive pull refuse to let an empty cloud copy stomp real local lyrics
-  // exposed for the AI co-pilot (keeps lyrState the single source of truth)
+  // exposed for the AI co-pilot (keeps lyrState the single source of truth) — tagged, because the
+  // AI needs section context to rewrite/analyze sensibly.
   window.lyrGetActiveText=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).filter(x=>x.trim()).join('\n'); };
+  // Plain words only, no [Verse]-style tags — for the COPY button. Tagged output has its own home in
+  // the Lyria Prompt Generator (attach the song there for the tagged/timed version); this one is for
+  // pasting lyrics somewhere that doesn't want the tags at all.
+  window.lyrGetActiveTextPlain=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };
   window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[(.+?)\]\s*(.*)$/); const parsed=m?parseTagHeader(m[1]):null; if(parsed&&parsed.tag) s.lines.push({text:m[2],tag:parsed.tag,halfTime:parsed.halfTime,alt}); else s.lines.push({text:item,tag:'',alt}); } }); saveLyr(); renderLyr(); };
   // ---- bridge for the AI Co-Pilot script (separate closure) to reach the selection/line state above ----
@@ -670,7 +675,7 @@
       $('btn-lyr-read')?.addEventListener('click',toggleRead);
       $('btn-lyr-spark')?.addEventListener('click',spark);
       $('btn-lyr-copy')?.addEventListener('click',()=>{
-        const text=window.lyrGetActiveText?window.lyrGetActiveText():''; if(!text.trim()) return;
+        const text=window.lyrGetActiveTextPlain?window.lyrGetActiveTextPlain():''; if(!text.trim()) return;
         const done=()=>{ const b=$('btn-lyr-copy'); if(b){ const o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1200); } };
         const fallback=()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); done(); };
         if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);

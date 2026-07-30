@@ -641,6 +641,13 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
                 const chips = [];
                 if (t.toneRef && toneNm(t.toneRef)) chips.push(`<button class="gx-jump text-[8px] font-bold px-1.5 py-0.5 rounded border border-[#00E5FF40] text-[#00E5FF] cursor-pointer" data-scope="tones" data-id="${t.toneRef}">🎸 ${toneNm(t.toneRef)}</button>`);
                 if (t.recipeRef && recipeNm(t.recipeRef)) chips.push(`<button class="gx-jump text-[8px] font-bold px-1.5 py-0.5 rounded border border-[#00FF8840] text-[#00FF88] cursor-pointer" data-scope="cookbook" data-id="${t.recipeRef}">📖 ${recipeNm(t.recipeRef)}</button>`);
+                // The song link was one-way: you attach a channel setting to a song from the Song
+                // Board's detail modal, and then the channel setting itself never mentions it — so
+                // "which songs did I actually use this chain on" was only answerable from the other
+                // end, one song at a time. Same backlink treatment tones already get.
+                (window.db.songBoard || []).forEach(s => {
+                    if ((s.trackIds || []).includes(t.id)) chips.push(`<button class="song-jump text-[8px] font-bold px-1.5 py-0.5 rounded border border-[#B18CFF40] text-[#B18CFF] cursor-pointer" data-song-id="${s.id}">🎵 ${window.escapeHtml(s.title || 'Untitled')}</button>`);
+                });
                 if (chips.length) { const d = document.createElement('div'); d.className = 'track-refs flex flex-wrap gap-1.5 mt-2'; d.innerHTML = chips.join(''); card.appendChild(d); }
             });
         };
@@ -940,6 +947,8 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         document.addEventListener('click', (e) => {
             const gj = e.target.closest('.gx-jump');
             if (gj) { window.__gearJump(gj.dataset.scope, parseInt(gj.dataset.id, 10)); return; }
+            const sj = e.target.closest('.song-jump');
+            if (sj) { window.openSongDetail?.(parseInt(sj.dataset.songId, 10)); return; }
             const tc = e.target.closest('.btn-tone-chain');
             if (tc) { const t = (window.db.tones || []).find(x => x.id === parseInt(tc.dataset.id, 10)); if (t) openToneChain(t); return; }
             const ck = e.target.closest('.btn-recipe-cook');

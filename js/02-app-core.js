@@ -1068,21 +1068,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const obpm = document.getElementById('ai-override-bpm'); if(obpm) { obpm.value = ''; obpm.placeholder = `${meta.bpm[0]}-${meta.bpm[1]}`; }
         const omood = document.getElementById('ai-override-mood'); if(omood) { omood.value = ''; omood.placeholder = meta.mood; }
         const otex = document.getElementById('ai-override-texture'); if(otex) { otex.value = ''; otex.placeholder = meta.texture; }
+        // Key and Keep-out have no per-genre default to fall back on, so they just clear.
+        const okey = document.getElementById('ai-override-key'); if(okey) okey.value = '';
+        const oneg = document.getElementById('ai-override-negative'); if(oneg) oneg.value = '';
         document.getElementById('genre-info-bar')?.classList.remove('hidden');
         const kitBtn = document.getElementById('btn-genre-kit');
         if (kitBtn) { const n = kitHistory(genre).length; kitBtn.textContent = n ? `🤖 KITS (${n})` : '🤖 AI KIT'; kitBtn.title = n ? `${n} saved kit${n===1?'':'s'} for this genre — browse or build another` : 'Build a full per-instrument chain sheet for this genre using only the plugins you own'; }
-        // The instrument list is driven entirely by saved AI Kit generations for this genre now —
-        // no more hand-typed cookbook entries here. renderGenreKit fills in "2. Select Instrument"
-        // (left) itself once a kit is chosen; this only handles the "nothing generated yet" case.
-        const instMenu = document.getElementById('inst-menu'); if(instMenu) instMenu.innerHTML = '';
+        // "2. Select Instrument" lists both the AI kit's roles and this genre's hand-written recipes —
+        // see renderInstMenu. renderGenreKit refreshes it itself once a kit is on screen; the branches
+        // below only cover the cases where there is no kit to render.
         const hist = kitHistory(genre);
         if (hist.length === 0) {
+            renderInstMenu(genre, null, null);
+            const written = (window.db.cookbook || []).filter(r => r.genre === genre);
+            // A genre with typed recipes and no kit is not empty, and must not say it is. Open the
+            // first recipe so the pane shows real content instead of an advert for a paid call.
+            if (written.length) { window.selectInst(written[0].id); return; }
             const disp = document.getElementById('recipe-display');
             if (disp) disp.innerHTML = `<div class="h-full flex flex-col items-center justify-center gap-4 text-center px-8 border-2 border-dashed border-[#00FF8810] rounded-lg min-h-[400px]">
-                <div class="text-[12px] text-[#E2E8F0]/40 tracking-widest uppercase">None made yet, hit the AI button.</div>
-                <button id="btn-empty-genre-kit" type="button" class="btn-euterpe" style="border-color:#FF88FF60;color:#FF88FF;background:rgba(255,136,255,0.08);">🤖 AI KIT</button>
+                <div class="text-[12px] text-[#E2E8F0]/40 tracking-widest uppercase">Nothing here yet.</div>
+                <div class="flex gap-2 flex-wrap justify-center">
+                    <button id="btn-empty-genre-kit" type="button" class="btn-euterpe" style="border-color:#FF88FF60;color:#FF88FF;background:rgba(255,136,255,0.08);">🤖 AI KIT</button>
+                    <button id="btn-empty-genre-recipe" type="button" class="btn-euterpe-green">+ ADD RECIPE</button>
+                </div>
             </div>`;
             document.getElementById('btn-empty-genre-kit')?.addEventListener('click', () => document.getElementById('btn-genre-kit')?.click());
+            document.getElementById('btn-empty-genre-recipe')?.addEventListener('click', () => document.getElementById('btn-add-cookbook')?.click());
             return;
         }
         const newest = hist[hist.length - 1];
@@ -1092,6 +1103,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.selectInst = (id) => {
         window.currentCookbookId = id; const buttons = document.getElementById('inst-menu')?.children || [];
         for(let btn of buttons) { if(parseInt(btn.dataset.id, 10) === id) btn.classList.add('active-inst'); else btn.classList.remove('active-inst'); }
+        // Kit roles carry their selected state in inline Tailwind classes rather than .active-inst, so
+        // the loop above can't unselect them — without this, picking a hand-written recipe leaves the
+        // previously-open kit role lit up too and the list shows two selections at once.
+        document.querySelectorAll('#inst-menu .kit-inst-btn').forEach(b => b.className = b.className
+            .replace('bg-[#FF88FF]/15', '').replace('border-[#FF88FF60]', 'border-transparent').replace(' text-[#FF88FF] ', ' text-[#FF88FF]/60 '));
         const data = window.db.cookbook.find(r => r.id === id); if(!data) return;
 
         let imagesHtml = '';
@@ -2217,6 +2233,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // naming one of them. A low impossible-count over a low checked-count says nothing; the rate is
     // only meaningful against the coverage it was measured over, so both always travel together.
     const REAPER_STOCK_RE = /^(rea[a-z]*|js[:\s]|video processor)/i;
+    // Not every line in a chain is a plugin. A chain legitimately starts with where the sound came
+    // from — "Clean DI Electric Guitar — played live with laid-back timing", a sample, a vocal take —
+    // and those steps have no plugin to own and no knob to set. Judged as plugins they fail twice
+    // over: "not your gear" (it isn't in the palette, because it was never a plugin) and "no setting"
+    // (there's no knob value in "played live"). Across 640 real chain steps the DI line was the ONLY
+    // off-palette hit in the whole book, i.e. the counter's entire output was this false alarm — and a
+    // linter you learn to disbelieve is worse than no linter, which is the rule the rest of this file
+    // is built on. Recognised sources are skipped by both counters and by nothing else.
+    const NON_PLUGIN_SOURCE_RE = /^(?:(?:clean|dirty|live|acoustic|electric|upright|real|raw|mono|stereo)\s+)*(?:di\b|d\.i\.|direct[- ]in|direct[- ]injec\w*|line[- ]in|sample[ds]?\b|loop\b|one[- ]shot|vocal take|lead vocal|backing vocal|ad-?libs?\b|guitar|bass|drum kit|drums|piano|keys|vinyl|field recording|foley|midi\b)/i;
+    const NON_PLUGIN_HINT_RE = /\b(d\.?i\.?\b|direct[- ]in|played live|live take|tracked live|no amp|amp-?less|dry signal|straight in|sampled?\b|re-?amp\w*)\b/i;
+    const isNonPluginSource = (name, whole) => NON_PLUGIN_SOURCE_RE.test(name) && NON_PLUGIN_HINT_RE.test(whole);
     // "Plugin Name — settings" is the format the prompt asks for; take the head as the unit, and treat
     // an en/em dash, a colon or a hyphen-with-spaces as the divider. Anything before a divider that's
     // longer than a plugin name is probably prose, so cap it.
@@ -2236,7 +2263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // owned list is the honest reference — flagging everything as invented would be a lie.
         const known = palette.length ? palette : owned;
         const out = { recipes: 0, steps: 0, checked: 0, checkedSpecific: 0, impossible: 0, offPalette: 0,
-                      empty: 0, specific: 0, stacked: 0, offPaletteNames: [], impossibleNotes: [], stackedNotes: [] };
+                      empty: 0, specific: 0, stacked: 0, sources: 0, offPaletteNames: [], impossibleNotes: [], stackedNotes: [] };
         (kit && kit.instruments || []).forEach(inst => (inst.recipes || []).forEach(r => {
             out.recipes++;
             const stackNotes = window.lintChainStack(r.chain);
@@ -2257,12 +2284,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (/\d/.test(stepSettings(step))) out.checkedSpecific++;
                 }
                 const name = stepPlugin(step);
-                if (name && !REAPER_STOCK_RE.test(name) && !snapToOwned(name, known)) {
+                const source = name && isNonPluginSource(name, step);
+                if (source) out.sources++;
+                if (name && !source && !REAPER_STOCK_RE.test(name) && !snapToOwned(name, known)) {
                     out.offPalette++;
                     if (!out.offPaletteNames.includes(name)) out.offPaletteNames.push(name);
                 }
                 const set = stepSettings(step);
-                if (!set || set.length < 8 || /\bto taste\b/i.test(set)) out.empty++;
+                if (source) { /* a performance/source line has no knob to leave unset */ }
+                else if (!set || set.length < 8 || /\bto taste\b/i.test(set)) out.empty++;
                 else if (/\d/.test(set)) out.specific++;
             });
         }));
@@ -2652,6 +2682,10 @@ ${owned.join(', ')}`;
         const bpmOverride = document.getElementById('ai-override-bpm')?.value.trim();
         const moodOverride = document.getElementById('ai-override-mood')?.value.trim();
         const texOverride = document.getElementById('ai-override-texture')?.value.trim();
+        // Recorded on the kit alongside mood/texture so they travel to the Lyria panel later. Key also
+        // goes into the kit brief itself — it genuinely shapes what chain a producer reaches for.
+        const keyOverride = document.getElementById('ai-override-key')?.value.trim();
+        const negOverride = document.getElementById('ai-override-negative')?.value.trim();
 
         const batches = [];
         for (let i = 0; i < window.KIT_SLOTS.length; i += KIT_BATCH) batches.push(window.KIT_SLOTS.slice(i, i + KIT_BATCH));
@@ -2682,7 +2716,7 @@ ${owned.join(', ')}`;
 DESCRIPTION: ${meta.desc || ''}
 TEMPO: ${bpmOverride || `${meta.bpm[0]}-${meta.bpm[1]}`} BPM
 MOOD: ${moodOverride || meta.mood}
-TEXTURE: ${texOverride || meta.texture}
+TEXTURE: ${texOverride || meta.texture}${keyOverride ? `\nKEY: ${keyOverride}` : ''}
 
 ${usingPalette ? `YOUR PALETTE FOR THIS GENRE (${gear.length}) — build every chain from these` : `OWNED PLUGINS (${gear.length}) — use only these`}:
 ${gear.join(', ')}`;
@@ -2813,6 +2847,7 @@ ${gear.join(', ')}`;
             // anonymous artefact and any later comparison between models is guesswork.
             const newKit = { id: Date.now()+Math.floor(Math.random()*1000), genre, generatedAt: Date.now(), overview: (overview||'').trim(), instruments, palette: usingPalette ? palette : null, partial: failed.length ? failed : null,
                 moodOverride: moodOverride || null, texOverride: texOverride || null,
+                keyOverride: keyOverride || null, negOverride: negOverride || null,
                 model: window.__aiModelLabel ? window.__aiModelLabel() : null, buildSecs: Math.round((Date.now()-startedAt)/1000),
                 usage: window.__aiUsage?.end() || null };
             hist.push(newKit);
@@ -2899,20 +2934,44 @@ ${gear.join(', ')}`;
         </div>`;
     };
 
-    // Builds the "2. Select Instrument" list (left column) from a kit's instrument slots, since that
-    // list is now driven entirely by what the AI has generated and saved — no more hand-typed entries.
-    function renderKitInstMenu(genre, kit, activeSlot) {
+    // Builds the "2. Select Instrument" list (left column). It shows BOTH sources of chains for this
+    // genre, because there are two and always were: the roles in whichever AI kit is on screen, and
+    // the recipes typed by hand into the Cookbook form (or brought in by IMPORT PACK / FRANKENSTEIN).
+    // For a while this list was kit-only, which meant every hand-written recipe was still saved,
+    // still searchable, still linkable from Channel Settings — and completely unreachable from the
+    // tab that owns it. A genre with six typed recipes and no kit said "None made yet".
+    // `kit` may be null (genre with no kits yet); either group is omitted when empty.
+    function renderInstMenu(genre, kit, activeSlot) {
         const instMenuEl = document.getElementById('inst-menu'); if (!instMenuEl) return;
         const esc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const head = (txt, color) => `<div class="text-[8px] tracking-[0.18em] uppercase font-bold px-1 pt-2 pb-1" style="color:${color}99">${txt}</div>`;
+        const parts = [];
+
         const insts = (kit && kit.instruments) || [];
-        if (!insts.length) { instMenuEl.innerHTML = '<div class="text-[10px] text-[#E2E8F0]/30 italic px-1 py-2">None created, hit the AI button.</div>'; return; }
-        instMenuEl.innerHTML = insts.map(inst => {
-            const on = inst.slot === activeSlot;
-            const n = (inst.recipes || []).length;
-            return `<button type="button" class="kit-inst-btn w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border transition-colors ${on ? 'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]' : 'border-transparent text-[#FF88FF]/60 hover:text-[#FF88FF] hover:bg-[#FF88FF]/5'}" data-slot="${esc(inst.slot)}">${esc(inst.slot)} <span class="opacity-50 normal-case">(${n})</span></button>`;
-        }).join('');
+        if (insts.length) {
+            parts.push(head(`AI kit · ${insts.length} role${insts.length===1?'':'s'}`, '#FF88FF'));
+            parts.push(...insts.map(inst => {
+                const on = inst.slot === activeSlot;
+                const n = (inst.recipes || []).length;
+                return `<button type="button" class="kit-inst-btn w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border transition-colors ${on ? 'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]' : 'border-transparent text-[#FF88FF]/60 hover:text-[#FF88FF] hover:bg-[#FF88FF]/5'}" data-slot="${esc(inst.slot)}">${esc(inst.slot)} <span class="opacity-50 normal-case">(${n})</span></button>`;
+            }));
+        }
+
+        const written = (window.db.cookbook || []).filter(r => r.genre === genre);
+        if (written.length) {
+            parts.push(head(`Your recipes · ${written.length}`, '#00FF88'));
+            parts.push(...written.map(r => {
+                const on = r.id === window.currentCookbookId;
+                return `<button type="button" class="cb-recipe-btn w-full text-left px-3 py-2 text-[10px] rounded tracking-widest uppercase truncate font-bold border transition-colors ${on ? 'active-inst' : 'border-transparent text-[#00FF88]/60 hover:text-[#00FF88] hover:bg-[#00FF88]/5'}" data-id="${r.id}">${esc(r.inst || 'Untitled')}</button>`;
+            }));
+        }
+
+        if (!parts.length) parts.push('<div class="text-[10px] text-[#E2E8F0]/30 italic px-1 py-2">Nothing here yet — hit 🤖 AI KIT above, or + ADD RECIPE to write one yourself.</div>');
+        instMenuEl.innerHTML = parts.join('');
         instMenuEl.querySelectorAll('.kit-inst-btn').forEach(b => b.addEventListener('click', () => window.renderGenreKit(genre, { kitId: kit.id, slot: b.dataset.slot })));
+        instMenuEl.querySelectorAll('.cb-recipe-btn').forEach(b => b.addEventListener('click', () => window.selectInst(parseInt(b.dataset.id, 10))));
     }
+    window.renderInstMenu = renderInstMenu;
 
     // opts.kitId: a real id shows that saved kit;
     // undefined defaults to the newest kit when history exists. opts.slot lets an
@@ -2947,7 +3006,7 @@ ${gear.join(', ')}`;
         const insts = kit.instruments || [];
         const active = insts.find(i => i.slot === opts.slot) || insts[0] || null;
 
-        renderKitInstMenu(genre, kit, active && active.slot);
+        renderInstMenu(genre, kit, active && active.slot);
 
         const recipeHtml = !active ? `<div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[11px] tracking-widest uppercase border-2 border-dashed border-[#FF88FF10] rounded-lg min-h-[300px] text-center px-6">${insts.length===0?'This kit has no instruments left — delete the kit itself, or hit + NEW to build another.':"This genre didn't come back with any usable instrument roles."}</div>` :
             !(active.recipes||[]).length ? `<div class="text-[10px] text-white/25 italic py-4 text-center">No recipes left for this instrument — deleted them all. Use 🗑 DELETE INSTRUMENT above to drop the slot too.</div>` :
@@ -3023,6 +3082,7 @@ ${gear.join(', ')}`;
                         ${s.impossible?`<br><br><b class="text-[#FF9E9E]">Impossible settings:</b><br><span class="text-[#FF9E9E]/90">${s.impossibleNotes.map(esc).join('<br>')}</span>`:''}
                         ${s.offPalette?`<br><b>Not your gear:</b> ${esc(s.offPaletteNames.slice(0,6).join(', '))}${s.offPaletteNames.length>6?` +${s.offPaletteNames.length-6} more`:''} — invented outright, or named too loosely to match anything you own.`:''}
                         ${s.empty?`<br><b>${s.empty}</b> step${s.empty===1?'':'s'} name a plugin without saying what to do with it.`:''}
+                        ${s.sources?`<br><b>${s.sources}</b> step${s.sources===1?'':'s'} are the sound source rather than a plugin (a DI take, a sample, a live performance) — not judged as gear, since there is no knob to check.`:''}
                         ${s.stacked?`<br><b>Two amps:</b> ${s.stackedNotes.map(esc).join('<br>')}`:''}
                     </div>
                 </div>`;
@@ -3078,7 +3138,10 @@ ${gear.join(', ')}`;
             const h = kitHistory(genre);
             const i = h.findIndex(k => k.id === kit.id);
             if (i >= 0) h.splice(i, 1);
-            window.db.genreKits[genre] = h;
+            // Drop the key rather than leaving genreKits[genre] = [] behind. An empty array reads as
+            // "this genre has a kit history" everywhere that tests the key, and four of them had
+            // already accumulated in the vault from earlier deletes.
+            if (h.length) window.db.genreKits[genre] = h; else delete window.db.genreKits[genre];
             window.saveData();
             if (h.length) window.renderGenreKit(genre, { kitId: 'new' });
             else window.selectGenre(genre); // nothing left to browse — don't auto-trigger a fresh (paid) generation
@@ -3295,20 +3358,28 @@ ${gear.join(', ')}`;
     const lyriaFmtTime = (secs) => `${Math.floor(secs/60)}:${String(Math.round(secs%60)).padStart(2,'0')}`;
     const lyriaTagCase = (t) => String(t||'').trim().replace(/\s+/g,' ').replace(/\w\S*/g, w => w[0].toUpperCase()+w.slice(1).toLowerCase());
 
-    // The one thing here I could not verify: exactly how Lyria wants a timestamp written alongside a
-    // section tag. This is the format, in one place — if it turns out to want something else, change
-    // this function and nothing else needs touching. Set LYRIA_TIME_TAGS false for plain tags.
-   // The official Lyria 3 timestamp format expects [Start - End] Section Name
-window.LYRIA_TIME_TAGS = true;
-window.lyriaSectionHeader = (tag, secs, endSecs) => {
-    const tagName = lyriaTagCase(tag) || 'Section';
-    if (window.LYRIA_TIME_TAGS && secs != null && endSecs != null) {
-        return `[${lyriaFmtTime(secs)} - ${lyriaFmtTime(endSecs)} ${tagName}]`;
-    } else if (window.LYRIA_TIME_TAGS && secs != null) {
-        return `[${lyriaFmtTime(secs)} ${tagName}]`;
-    }
-    return `[${tagName}]`;
-};
+    // VERIFIED against Google's own docs (Vertex "Lyria music generation prompt guide", updated
+    // 2026-07-28, and the Gemini API music-generation guide). The earlier note here said the timestamp
+    // format could not be verified, and the format it guessed — [0:00 - 0:32 Intro], name inside the
+    // bracket — was wrong. Both guides document exactly two shapes, and they are NOT interchangeable:
+    //
+    //   Supplying your own words   ->  a bare tag on its own line, lyrics underneath:
+    //                                    [Verse 1]
+    //                                    Walking through the neon glow,
+    //
+    //   Directing the arrangement  ->  "Provide timestamps in [mm:ss - mm:ss] format", section name
+    //                                  OUTSIDE the bracket, colon, then what happens:
+    //                                    [0:00 - 0:12] Intro: Begin with a soft lo-fi beat.
+    //                                    Intensity: 2/10 (Very Low)
+    //
+    // The old code produced a hybrid of the two (timestamps inside the tag AND raw lyrics under it)
+    // that appears in neither guide. `timed` picks the shape; nothing else needs to know the syntax.
+    window.lyriaSectionHeader = (tag, secs, endSecs, timed) => {
+        const tagName = String(tag || '').trim() || 'Section';
+        if (timed && secs != null && endSecs != null) return `[${lyriaFmtTime(secs)} - ${lyriaFmtTime(endSecs)}] ${tagName}:`;
+        if (timed && secs != null) return `[${lyriaFmtTime(secs)}] ${tagName}:`;
+        return `[${tagName}]`;
+    };
 
 window.lyriaSongBlock = (songId) => {
     const song = (window.db?.songBoard || []).find(s => String(s.id) === String(songId));
@@ -3346,7 +3417,8 @@ window.lyriaSongBlock = (songId) => {
         const secPerBar = 4 * (60 / bpm);
         let t = 0;
         timeline = arr.sections.map(s => {
-            const out = { tag: s.name, time: t, endTime: t + (s.bars * secPerBar) };
+            const out = { tag: s.name, time: t, endTime: t + (s.bars * secPerBar),
+                          intensity: window.arrIntensityOf ? window.arrIntensityOf(s) : null };
             t += s.bars * secPerBar;
             return out;
         });
@@ -3359,23 +3431,34 @@ window.lyriaSongBlock = (songId) => {
     const used = new Set();
 
     blocks.forEach(b => {
-        let matchedTime = null;
-        let matchedEndTime = null;
+        // The lyric sheet only ever stores a BASE tag ("VERSE") — the numbering lives on the
+        // arrangement ("Verse 1", "Verse 2"). Google's own custom-lyrics example uses the numbered
+        // form, and it is the only thing telling the model these are two different verses rather than
+        // a repeat, so prefer the matched arrangement name and keep the bare tag as the fallback.
+        let matchedName = null, matchedTime = null, matchedEndTime = null;
         if (structure.length) {
-            const bBase = lyriaTagCase(b.tag).replace(/\s*\d+$/, '').trim();
+            // Compare canonical tag keys, not display names: the lyric sheet stores "PRE" while the
+            // arrangement stores "Pre-Chorus", and a string compare of those two never matches.
+            const keyOf = window.lyrTagKeyFor || ((n) => String(n||'').toUpperCase().replace(/\s+\d+$/,'').trim());
+            const bBase = keyOf(b.tag);
             const idx = structure.findIndex((st, i) => {
                 if (used.has(i)) return false;
-                const stBase = lyriaTagCase(st.tag).replace(/\s*\d+$/, '').trim();
-                return stBase === bBase || lyriaTagCase(st.tag) === lyriaTagCase(b.tag);
+                return keyOf(st.tag) === bBase;
             });
             if (idx >= 0) {
                 used.add(idx);
+                matchedName = structure[idx].tag;
                 matchedTime = structure[idx].time;
                 matchedEndTime = structure[idx].endTime;
             }
         }
         if (lyricText) lyricText += '\n\n';
-        lyricText += window.lyriaSectionHeader(b.tag, matchedTime, matchedEndTime) + '\n';
+        // Always the bare-tag shape here: this block carries the actual words, and the timed shape is
+        // documented for describing what happens in a segment, not for heading a lyric.
+        // Prefer the arrangement's name (numbered, properly spelled); fall back to the tag's own
+        // display name so an unmatched section still reads "Pre-Chorus" rather than "Pre".
+        const fallbackName = window.lyrTagDisplay ? window.lyrTagDisplay(b.tag) : lyriaTagCase(b.tag);
+        lyricText += window.lyriaSectionHeader(matchedName || fallbackName, null, null, false) + '\n';
         lyricText += b.lines.join('\n');
     });
 
@@ -3389,6 +3472,7 @@ window.lyriaSongBlock = (songId) => {
         title: song.title || 'Untitled',
         lyricsBlock: lyricText.trim(),
         structure: structureLine,
+        timeline: timeline,          // full timed sections incl. per-section intensity
         sections: uniqueTags.length,
         bpm: bpm,
         timed: !!timeline.length,
@@ -3402,51 +3486,55 @@ window.lyriaSongBlock = (songId) => {
         .filter(s => window.lyriaSongBlock(s.id))
         .map(s => ({ id: s.id, title: s.title || 'Untitled' }));
 
-    // Modern text-to-music models take the style/genre description and the lyric sheet as two
-    // separate fields, and both are capped — a style box loses everything past ~1,000 characters,
-    // a lyrics box past ~3,000. Mixing them, or overflowing either, is why a prompt that reads fine
-    // comes back with the model singing the section tags. This box owns the lyrics-side split.
-    window.LYRIA_STYLE_CHAR_LIMIT = 1000;
-    window.LYRIA_LYRICS_CHAR_LIMIT = 3000;
+    // There is ONE prompt. Lyria 3 takes a single `input` string on the Interactions API and a single
+    // "Prompt box" in the Vertex console — there is no style field and no lyrics field, and no
+    // documented character limit on either. The model's stated input limit is 131,072 TOKENS, roughly
+    // half a million characters; the longest song in this vault is 3,415.
+    //
+    // This replaces a two-box UI that split lyrics at 3,000 characters into "Part 1 / Part 2" for the
+    // user to paste in sequence. That was wrong twice over: the limit does not exist, and the
+    // workflow it described is impossible — "Multi-turn editing: Music generation is a single-turn
+    // process. Iterative editing or refining a generated clip through multiple prompts is not
+    // supported." Pasting part 2 never extended part 1; it started an unrelated song from half a
+    // lyric sheet. The counter below is kept purely as a size readout, not as a limit.
+    window.LYRIA_INPUT_TOKEN_LIMIT = 131072;
 
-    // Splits a lyricsBlock (blocks separated by a blank line, each headed by its own [Section] tag —
-    // the shape lyriaSongBlock() builds) into chunks that fit the lyrics-box limit, breaking ONLY at
-    // section boundaries so a chunk is never handed to Lyria mid-section. A single section that is
-    // by itself bigger than the limit (a very long verse) is the one case that still has to be cut
-    // mid-section — it splits by line instead, repeating the header on each fragment so every part
-    // still reads as belonging to that section.
-    window.splitLyricsForLyria = (lyricsBlock, limit) => {
-        limit = limit || window.LYRIA_LYRICS_CHAR_LIMIT;
-        const blocks = String(lyricsBlock || '').split(/\n\n+/).filter(Boolean);
-        const chunks = [];
-        let current = [];
-        const flush = () => { if (current.length) { chunks.push(current.join('\n\n')); current = []; } };
-
-        blocks.forEach(block => {
-            if (block.length > limit) {
-                flush();
-                const lines = block.split('\n');
-                const header = lines[0];
-                let sub = [header];
-                lines.slice(1).forEach(line => {
-                    if (sub.concat(line).join('\n').length > limit && sub.length > 1) {
-                        chunks.push(sub.join('\n'));
-                        sub = [`${header} (cont.)`];
-                    }
-                    sub.push(line);
-                });
-                if (sub.length > 1) chunks.push(sub.join('\n'));
-                return;
-            }
-            const candidateLen = current.join('\n\n').length + (current.length ? 2 : 0) + block.length;
-            if (candidateLen > limit && current.length) flush();
-            current.push(block);
-        });
-        flush();
-        return chunks.length ? chunks : [''];
+    // The timed-arrangement block, in the documented shape. Only built when the user asks for it,
+    // because the same guide is explicit that timestamps describe what HAPPENS in a segment — they
+    // are an alternative to handing over lyrics, not a decoration on top of them.
+    window.buildLyriaArrangementBlock = (song) => {
+        if (!song || !Array.isArray(song.timeline) || !song.timeline.length) return '';
+        return song.timeline.map(s => {
+            const head = window.lyriaSectionHeader(s.tag, s.time, s.endTime, true);
+            const inten = s.intensity != null && window.arrIntensityLabel
+                ? ` Intensity: ${s.intensity}/10 (${window.arrIntensityLabel(s.intensity)})`
+                : '';
+            return `${head}${inten}`;
+        }).join('\n');
     };
 
-    window.buildLyriaPrompt = (genre, customNotes, bpmOverride) => {
+    // Assembles the finished prompt in the documented order:
+    //   [Genre & style] + [Mood] + [Instrumentation] + [Tempo & rhythm] + [Vocal style] + [Lyrics]
+    // with the lyrics last, introduced by "Lyrics:" exactly as the guide specifies ("Use your own
+    // lyrics: Type 'Lyrics:' before the lines you want the model to sing").
+    window.assembleLyriaPrompt = ({ description, key, negative, arrangementBlock, song }) => {
+        const parts = [];
+        let head = String(description || '').trim();
+        if (key && key.trim()) head += (/[.!?]$/.test(head) ? '' : '.') + ` In ${key.trim()}.`;
+        parts.push(head);
+        if (negative && negative.trim()) parts.push(`Avoid: ${negative.trim().replace(/\.$/, '')}.`);
+        if (arrangementBlock) parts.push(arrangementBlock);
+        if (song && song.lyricsBlock) parts.push(`Lyrics:\n${song.lyricsBlock}`);
+        return parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+    };
+
+    // `vocal` flips the openers from instrumental to sung. It matters more than it looks: this draft is
+    // not only the AI's brief, it is what stays in the style box when there is no API key configured
+    // and when the AI call fails (the catch below deliberately keeps the draft rather than blanking
+    // it). On both of those paths the user copies the style box and the lyric parts together — and a
+    // style prompt opening "An instrumental G-Funk beat" handed over alongside four verses of words is
+    // a prompt arguing with itself.
+    window.buildLyriaPrompt = (genre, customNotes, bpmOverride, vocal) => {
         const meta = window.getGenreMeta(genre);
         const bpm = bpmOverride || window.getGenreBpmMid(genre);
         const elements = window.extractGenreElements(genre);
@@ -3478,7 +3566,12 @@ window.lyriaSongBlock = (songId) => {
         // Four openers rather than one, so the 🎲 gives a genuinely different prompt instead of the
         // same sentence with one clause swapped.
         const shortGenre = genre.split('/')[0].trim();
-        const opener = lyriaPick([
+        const opener = lyriaPick(vocal ? [
+            `A ${shortGenre} track with vocals at ${bpm} BPM. ${lyriaCap(meta.mood)}.`,
+            `${lyriaCap(meta.mood)} ${shortGenre} with a lead vocal, ${bpm} BPM.`,
+            `A ${bpm} BPM ${shortGenre} song, vocal-led — ${meta.mood}.`,
+            `${lyriaCap(shortGenre)} at ${bpm} BPM with sung/rapped vocals, ${meta.mood}.`
+        ] : [
             `An instrumental ${shortGenre} beat at ${bpm} BPM. ${lyriaCap(meta.mood)}.`,
             `${lyriaCap(meta.mood)} instrumental ${shortGenre}, ${bpm} BPM.`,
             `A ${bpm} BPM ${shortGenre} instrumental — ${meta.mood}.`,
@@ -3488,6 +3581,9 @@ window.lyriaSongBlock = (songId) => {
         const parts = [opener];
         if (fragments.length) parts.push(fragments.map(lyriaCap).join('. ') + '.');
         if (customNotes && customNotes.trim()) parts.push(`${lyriaCap(customNotes.trim().replace(/\.$/, ''))}.`);
+        // Kept as prose inside the prompt rather than moved to Vertex's negative_prompt field: this
+        // output is copied by hand, and the roles named here are ones the producer's own direction
+        // ruled out, which reads better inline than as a bare exclusion list.
         const negatives = window.LYRIA_ROLES.filter(r => excluded.has(r.role)).map(r => r.label);
         if (negatives.length) parts.push(`No ${negatives.join(', no ')}.`);
         parts.push(lyriaPick([
@@ -3519,15 +3615,12 @@ window.lyriaSongBlock = (songId) => {
         const sync = () => {
             const blk = sel.value ? window.lyriaSongBlock(sel.value) : null;
             if (blk && blk.bpm) { const b = document.getElementById('lyria-bpm'); if (b) b.value = blk.bpm; }
-            const lyricsNote = blk
-                ? (() => { const n = window.splitLyricsForLyria(blk.lyricsBlock, window.LYRIA_LYRICS_CHAR_LIMIT).length;
-                    return n > 1 ? `lyrics split into ${n} parts for Lyria's ~3,000-char box` : `lyrics fit in one ${blk.lyricsBlock.length}-char part`; })()
-                : '';
+            const lyricsNote = blk ? `${blk.lyricsBlock.length.toLocaleString()} chars of lyrics` : '';
             if (note) note.innerHTML = !songs.length
                 ? 'No song has lyrics yet — write some in Lyrics Lab and link the sheet to a Song Board song.'
                 : blk
-                    ? `${blk.sections} section${blk.sections===1?'':'s'} · ${blk.timed ? 'timed from its arrangement' : 'no arrangement yet, so tags go in without times'}${blk.bpm?` · ${blk.bpm} BPM`:''} · ${lyricsNote}. Copied in exactly as written — the AI never rewrites them.`
-                    : 'Pick a song and its lyrics come back as their own boxes, with <code class="text-[#FF88FF]">[Section]</code> tags and timings from its arrangement. Leave on “none” for an instrumental.';
+                    ? `${blk.sections} section${blk.sections===1?'':'s'} · ${blk.timed ? 'arrangement available for the timed block' : 'no arrangement yet, so no timings available'}${blk.bpm?` · ${blk.bpm} BPM`:''} · ${lyricsNote}. Copied in exactly as written — the AI never rewrites them.`
+                    : 'Pick a song and its lyrics go into the prompt under <code class="text-[#FF88FF]">Lyrics:</code>, with <code class="text-[#FF88FF]">[Verse 1]</code>-style tags from its arrangement. Leave on “none” for an instrumental.';
         };
         sel.onchange = sync;
         sync();
@@ -3555,9 +3648,21 @@ window.lyriaSongBlock = (songId) => {
                 }
             }
         }
+        // Carry Key / Keep-out across from the genre's own override boxes in the Cookbook, the same way
+        // mood and texture already travel — the LYRIA PROMPT button sits directly under those fields,
+        // so anything typed there is meant for this prompt.
+        const keyEl = document.getElementById('lyria-key');
+        const negEl = document.getElementById('lyria-negative');
+        const kitForOverrides = (() => {
+            if (preselectSongId == null) return null;
+            const s = (window.db?.songBoard || []).find(x => String(x.id) === String(preselectSongId));
+            if (!s) return null;
+            return ((s.kitId != null && s.kitGenre && window.findKit) ? window.findKit(s.kitGenre, s.kitId) : null) || s.kit || null;
+        })();
+        if (keyEl) keyEl.value = document.getElementById('ai-override-key')?.value.trim() || kitForOverrides?.keyOverride || '';
+        if (negEl) negEl.value = document.getElementById('ai-override-negative')?.value.trim() || kitForOverrides?.negOverride || '';
+        const tsEl = document.getElementById('lyria-timestamps'); if (tsEl) tsEl.checked = false;
         document.getElementById('lyria-output-wrap')?.classList.add('hidden');
-        document.getElementById('lyria-lyrics-wrap')?.classList.add('hidden');
-        const lyricsParts = document.getElementById('lyria-lyrics-parts'); if (lyricsParts) lyricsParts.innerHTML = '';
         document.getElementById('btn-lyria-regenerate')?.classList.add('hidden');
         const notesEl = document.getElementById('lyria-custom-notes'); if (notesEl) notesEl.value = '';
         const aiNote = document.getElementById('lyria-ai-note'); if (aiNote) aiNote.textContent = '';
@@ -3571,54 +3676,33 @@ window.lyriaSongBlock = (songId) => {
     // configured the draft becomes the AI's brief rather than the final answer — the model writes the
     // prose, but it is writing from this genre's real recipes and this producer's real direction,
     // not from the genre name alone.
-    // Renders the lyrics half of the modal into standalone, individually-copyable parts. Kept apart
-    // from runLyriaGenerate because it depends only on which song is attached, not on whether the AI
-    // path runs — the parts should be on screen instantly, before any network round trip.
-    window.renderLyriaLyrics = (song) => {
-        const wrap = document.getElementById('lyria-lyrics-wrap');
-        const container = document.getElementById('lyria-lyrics-parts');
-        if (!wrap || !container) return;
-        if (!song || !song.lyricsBlock) {
-            wrap.classList.add('hidden'); container.innerHTML = '';
-            if (window.__lyriaLastBuilt) window.__lyriaLastBuilt.lyricsParts = 0;
-            return;
-        }
-        const parts = window.splitLyricsForLyria(song.lyricsBlock, window.LYRIA_LYRICS_CHAR_LIMIT);
-        if (window.__lyriaLastBuilt) window.__lyriaLastBuilt.lyricsParts = parts.length;
-        container.innerHTML = parts.map((text, i) => `
-            <div class="border border-[#FF88FF]/30 rounded p-2">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[9px] font-bold tracking-widest text-[#FF88FF]">PART ${i + 1} OF ${parts.length}</span>
-                    <span class="text-[9px] font-mono ${text.length > window.LYRIA_LYRICS_CHAR_LIMIT ? 'text-[#FF5A5A]' : 'text-[#FF88FF]/50'}">${text.length} / ${window.LYRIA_LYRICS_CHAR_LIMIT}</span>
-                </div>
-                <textarea readonly class="w-full bg-black/60 border border-[#FF88FF]/20 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-28 resize-none focus:outline-none">${window.escapeHtml(text)}</textarea>
-                <button type="button" data-copy-part="${i}" class="btn-euterpe w-full mt-2 text-[10px]">📋 COPY PART ${i + 1}${i === 0 ? ' — start here' : ` — extend with this`}</button>
-            </div>
-        `).join('');
-        container._parts = parts;
-        wrap.classList.remove('hidden');
-    };
-
     window.runLyriaGenerate = async () => {
         const genre = document.getElementById('lyria-genre-select')?.value; if (!genre) return;
         const bpm = parseInt(document.getElementById('lyria-bpm')?.value, 10) || undefined;
         const notes = document.getElementById('lyria-custom-notes')?.value || '';
+        const key = document.getElementById('lyria-key')?.value || '';
+        const negative = document.getElementById('lyria-negative')?.value || '';
+        const wantTimes = !!document.getElementById('lyria-timestamps')?.checked;
         const songId = document.getElementById('lyria-song-select')?.value || '';
         const song = songId ? window.lyriaSongBlock(songId) : null;
-        const built = window.buildLyriaPrompt(genre, notes, bpm);
-        window.__lyriaLastBuilt = { ...built, song };
+        const built = window.buildLyriaPrompt(genre, notes, bpm, !!song);
+        const arrangementBlock = wantTimes ? window.buildLyriaArrangementBlock(song) : '';
+        window.__lyriaLastBuilt = { ...built, song, key, negative, arrangementBlock };
 
         const styleOut = document.getElementById('lyria-output-style');
-        const setStyle = (text) => {
-            if (styleOut) styleOut.value = text;
+        // One box, one prompt. The readout is the size of the whole thing — informational only, since
+        // the documented limit is 131,072 tokens and nothing written here will approach it.
+        const setStyle = (description) => {
+            const full = window.assembleLyriaPrompt({ description, key, negative, arrangementBlock, song });
+            if (styleOut) styleOut.value = full;
             const countEl = document.getElementById('lyria-style-count');
             if (countEl) {
-                countEl.textContent = `${text.length} / ${window.LYRIA_STYLE_CHAR_LIMIT}`;
-                countEl.className = `text-[9px] font-mono ${text.length > window.LYRIA_STYLE_CHAR_LIMIT ? 'text-[#FF5A5A]' : 'text-[#00E5FF]/50'}`;
+                countEl.textContent = `${full.length.toLocaleString()} chars · ~${Math.ceil(full.length / 4).toLocaleString()} tokens of ${window.LYRIA_INPUT_TOKEN_LIMIT.toLocaleString()}`;
+                countEl.className = 'text-[9px] font-mono text-[#00E5FF]/50';
             }
+            return full;
         };
         setStyle(built.prompt);
-        window.renderLyriaLyrics(song);
 
         document.getElementById('lyria-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-lyria-regenerate')?.classList.remove('hidden');
@@ -3629,7 +3713,7 @@ window.lyriaSongBlock = (songId) => {
         const note = document.getElementById('lyria-ai-note');
         const setNote = (msg, ok) => { if (note) { note.textContent = msg; note.className = `text-[10px] mt-3 ${ok ? 'text-[#7AFFBF]/80' : 'text-[#FF5A5A]/80'}`; } };
         const covers = built.dropped.length ? ` Your direction covers ${built.dropped.join(', ')}, so those were left out to avoid doubling up.` : '';
-        const partsNote = song ? ` Lyrics are split into ${window.__lyriaLastBuilt.lyricsParts || 1} part${(window.__lyriaLastBuilt.lyricsParts || 1) === 1 ? '' : 's'} below.` : '';
+        const partsNote = song ? ` Lyrics appended verbatim under “Lyrics:”.` : '';
         if (!window.__aiIsConfigured || !window.__aiIsConfigured() || !window.ferrettAI) {
             setNote(('Offline draft — add an API key for a written prompt.' + partsNote + covers).trim(), !!(partsNote || covers));
             return;
@@ -3644,8 +3728,8 @@ window.lyriaSongBlock = (songId) => {
             // and never asked to produce any, because the real ones get appended after it has finished.
             const sys = [
                 song
-                    ? 'You write prompts for Google Lyria, which generates music WITH VOCALS from a text description plus a separate lyric sheet. The lyrics are supplied separately and are NOT your job — describe the music that should carry them.'
-                    : 'You write prompts for Google Lyria / MusicFX, which generates INSTRUMENTAL music from a short text description.',
+                    ? 'You write prompts for Google Lyria 3, which generates music WITH VOCALS from a single text prompt. The real lyrics are appended to your paragraph by the app afterwards and are NOT your job — describe the music that should carry them.'
+                    : 'You write prompts for Google Lyria 3, which generates INSTRUMENTAL music from a single text prompt.',
                 song
                     ? 'Reply with ONE paragraph of 40-70 words. Do NOT write, quote, echo or invent any lyrics. No headings, no preamble, no bullet points.'
                     : 'Reply with ONE paragraph of 40-70 words. No lyrics, no quotes, no headings, no preamble, no bullet points.',
@@ -3796,13 +3880,25 @@ window.lyriaSongBlock = (songId) => {
         window.refreshAllUI();
     };
 
-    window.switchTab = (tabId) => {
+    // Everything that must happen when a tab is left, in one place. Exported because the nav is not
+    // the only thing that switches tabs any more: 12-tab-init.js adds its own top-level buttons and
+    // used to swap the .active class directly, which meant leaving the Toolbox by that route left the
+    // metronome (and the tuner, the test tone, the routine timer...) audibly running on a tab with no
+    // transport on it, and nothing to stop it short of a reload.
+    window.leaveTab = (tabId) => {
         if (tabId !== 'toolbox') { window.stopMetronome?.(); window.stopTuner?.(); window.stopRoutine?.(false); window.stopTestTone?.(); window.stopBeatSketch?.(); window.stopToolsAudio?.(); }
         if (tabId === 'toolbox') { window.renderSessionStats?.(); window.refreshLab?.(); window.refreshTools?.(); }
         if (tabId === 'lyrics') { window.refreshLyrics?.(); }
+        document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' });
+    };
+
+    window.switchTab = (tabId) => {
+        window.leaveTab(tabId);
         document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active')); const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) { targetTab.classList.add('active'); document.getElementById('tab-scroll-area')?.scrollTo({ top: 0, behavior: 'instant' }); }
-        document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); });
+        // .style.boxShadow as well as the classes: 12-tab-init.js lights its own top-level buttons with
+        // an inline glow, and a class-only reset leaves that glow behind on every tab already visited.
+        document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active-nav-green', 'active-nav-cyan'); btn.classList.add('text-[#7AFFBF]/60', 'border-transparent'); btn.style.boxShadow = ''; });
         const activeBtn = document.getElementById(`nav-${tabId}`);
         if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); activeBtn.classList.add('active-nav-green'); }
     };
@@ -4229,11 +4325,21 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-lyria-regenerate')?.addEventListener('click', () => window.runLyriaGenerate());
     document.getElementById('btn-lyria-hide')?.addEventListener('click', () => { const w = document.getElementById('lyria-output-wrap'), h = document.getElementById('btn-lyria-hide'); if (!w || !h) return; const nowHidden = w.classList.toggle('hidden'); h.textContent = nowHidden ? 'SHOW' : 'HIDE'; });
     document.getElementById('btn-lyria-copy-style')?.addEventListener('click', () => { const out = document.getElementById('lyria-output-style'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-lyria-copy-style'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
-    document.getElementById('lyria-lyrics-parts')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-copy-part]'); if (!btn) return;
-        const container = document.getElementById('lyria-lyrics-parts');
-        const text = container?._parts?.[parseInt(btn.dataset.copyPart, 10)]; if (text == null) return;
-        navigator.clipboard?.writeText(text).then(() => { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); }).catch(() => {});
+    // Re-run the build when the timed-arrangement toggle changes, so the box reflects it immediately
+    // instead of needing GENERATE again (and without spending another AI call — the description is
+    // reused from the last build).
+    document.getElementById('lyria-timestamps')?.addEventListener('change', () => {
+        if (document.getElementById('lyria-output-wrap')?.classList.contains('hidden')) return;
+        const b = window.__lyriaLastBuilt; if (!b) return;
+        const wantTimes = !!document.getElementById('lyria-timestamps')?.checked;
+        const out = document.getElementById('lyria-output-style');
+        if (out) out.value = window.assembleLyriaPrompt({
+            description: b.written || b.prompt,
+            key: document.getElementById('lyria-key')?.value || '',
+            negative: document.getElementById('lyria-negative')?.value || '',
+            arrangementBlock: wantTimes ? window.buildLyriaArrangementBlock(b.song) : '',
+            song: b.song
+        });
     });
     document.getElementById('btn-import-recipes')?.addEventListener('click', () => document.getElementById('recipe-pack-input')?.click());
     document.getElementById('recipe-pack-input')?.addEventListener('change', (e) => { const file = e.target.files[0]; if (file) window.importRecipePack(file); e.target.value = ''; });

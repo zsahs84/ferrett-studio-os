@@ -12,7 +12,50 @@
   const LYR_KEY='ferrett_os_lyrics_v1';
   // one color per section type, shared with ARR_TYPES in the Arrangement Timeline so a Chorus/Hook/etc
   // looks the same everywhere: per-line tag glyphs, the structure strip chips, arrangement rows, and the bar graph
-  const TAGS={ '':['·','#E2E8F0'], 'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#FF88FF'], 'HOOK':['H','#FFA05C'], 'BRIDGE':['B','#B18CFF'], 'SOLO':['S','#4DFFDF'], 'DROP':['D','#00FF88'], 'OUTRO':['◆','#FF5A5A'] };
+  // Google publishes no closed list of section tags — the guides say "section tags LIKE [Verse],
+  // [Chorus], and [Bridge]", and their own worked example uses [Build], which is not in that list.
+  // The vocabulary is open, so this table is a convenience (glyph + colour + a name the arranger
+  // knows), NOT a whitelist: parseTagHeader passes anything it doesn't recognise straight through as
+  // a custom tag rather than dropping it. Keys are the canonical uppercase form; DISPLAY overrides
+  // the title-cased default where the real section name isn't just the key capitalised.
+  const TAGS={ '':['·','#E2E8F0'],
+    'INTRO':['◇','#7AFFBF'], 'VERSE':['V','#00E5FF'], 'PRE':['P','#FFD60A'], 'CHORUS':['C','#FF88FF'],
+    'POST':['c','#FF6FD8'], 'HOOK':['H','#FFA05C'], 'REFRAIN':['R','#FFB37A'], 'BRIDGE':['B','#B18CFF'],
+    'BUILD':['↗','#FFD60A'], 'DROP':['D','#00FF88'], 'BREAKDOWN':['↘','#4DFFDF'], 'BREAK':['—','#68E5D0'],
+    'SOLO':['S','#4DFFDF'], 'INSTRUMENTAL':['♪','#7AFFBF'], 'INTERLUDE':['~','#9BE8C8'],
+    'ADLIB':['a','#FFA05C'], 'SPOKEN':['"','#D8D8E8'], 'CHANT':['!','#FF9E6F'],
+    'VAMP':['∞','#C9A8FF'], 'CODA':['§','#FF7A7A'], 'REPRISE':['↻','#C9A8FF'], 'SKIT':['✂','#C8C8D8'],
+    'TAG':['t','#FF8E8E'], 'OUTRO':['◆','#FF5A5A'],
+    'CUSTOM':['★','#B18CFF'] };
+  // Section names that aren't just the key title-cased.
+  const TAG_DISPLAY={ 'PRE':'Pre-Chorus', 'POST':'Post-Chorus', 'ADLIB':'Ad-Lib' };
+  // Longest / most specific first — "PRECHORUS" has to beat "CHORUS", "BREAKDOWN" has to beat "BREAK".
+  // Matched against the header squashed to letters only, so "Pre-Chorus", "Pre Chorus" and
+  // "prechorus" all land on the same tag.
+  const TAG_MATCH=[['PRECHORUS','PRE'],['POSTCHORUS','POST'],['BREAKDOWN','BREAKDOWN'],['BUILDUP','BUILD'],
+    ['INSTRUMENTAL','INSTRUMENTAL'],['INTERLUDE','INTERLUDE'],['REFRAIN','REFRAIN'],['REPRISE','REPRISE'],
+    ['ADLIB','ADLIB'],['ADLIBS','ADLIB'],['INTRO','INTRO'],['OUTRO','OUTRO'],['BRIDGE','BRIDGE'],
+    ['CHORUS','CHORUS'],['VERSE','VERSE'],['HOOK','HOOK'],['SOLO','SOLO'],['DROP','DROP'],['BUILD','BUILD'],
+    ['BREAK','BREAK'],['SPOKEN','SPOKEN'],['CHANT','CHANT'],['VAMP','VAMP'],['CODA','CODA'],['SKIT','SKIT'],
+    ['PRE','PRE'],['POST','POST'],['TAG','TAG']];
+  const titleCase=(s)=>String(s||'').toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase());
+  // Canonical tag key for ANY spelling of a section — a raw tag ("PRE"), a display name
+  // ("Pre-Chorus"), a numbered arrangement name ("Chorus 2"), a half-time one. This is the single
+  // comparison key used whenever a lyric block has to be matched to an arrangement section; matching
+  // on the display names instead silently failed the moment a section's name stopped being one word
+  // ("PRE" vs "Pre-Chorus"), which cost the lyric header its proper name and its timestamp.
+  window.lyrTagKeyFor=(name)=>{
+    const clean=String(name||'').replace(/\s*\(Half Time\)/i,'').replace(/[\s-]+\d+[A-Za-z]?$/,'').trim();
+    if(!clean) return '';
+    const squashed=clean.toUpperCase().replace(/[^A-Z]/g,'');
+    const hit=TAG_MATCH.find(([pat])=>squashed.includes(pat));
+    return hit?hit[1]:clean.toUpperCase().replace(/\s+/g,' ');
+  };
+  // Display name for a tag: known ones get their proper name, custom ones keep the user's words.
+  window.lyrTagDisplay=(tag)=>TAG_DISPLAY[tag] || titleCase(tag);
+  // Style lookup that never falls through to the untagged style for a real custom tag — otherwise a
+  // [Guitar Solo] line would render identically to a line with no tag at all.
+  const tagStyle=(tag)=>TAGS[tag] || (tag ? TAGS['CUSTOM'] : TAGS['']);
   // Derives an ordered arrangement section list straight from the CURRENT lyric lines — this is the
   // single source of truth for lyrics->arrangement sync, called both at initial paste and live on
   // every subsequent edit (see saveLyr below). A maximal run of consecutive lines sharing the same
@@ -26,7 +69,9 @@
     lines.forEach(ln=>{
       const tag=ln.tag||''; const half=!!ln.halfTime;
       if(tag && tag===currentTag && half===currentHalf){ current.bars+=half?2:1; }
-      else if(tag){ current={ name: tag.charAt(0)+tag.slice(1).toLowerCase()+(half?' (Half Time)':''), bars: half?2:1, _tag:tag }; sections.push(current); currentTag=tag; currentHalf=half; }
+      // lyrTagDisplay gives "Pre-Chorus" rather than "Pre", and title-cases a custom tag properly
+      // ("GUITAR SOLO" -> "Guitar Solo") instead of the old first-letter-only capitalisation.
+      else if(tag){ current={ name: window.lyrTagDisplay(tag)+(half?' (Half Time)':''), bars: half?2:1, _tag:tag }; sections.push(current); currentTag=tag; currentHalf=half; }
       else { currentTag=null; currentHalf=null; current=null; }
     });
     const countByTag={}; sections.forEach(s=>{ countByTag[s._tag]=(countByTag[s._tag]||0)+1; });
@@ -43,9 +88,22 @@
     inner=(inner||'').trim();
     const halfTime=/half\s*time/i.test(inner);
     inner=inner.replace(/\(?\s*half\s*time\s*\)?/i,'').trim();
-    const tm=inner.match(/^([A-Za-z]+)(?:\s+\d+)?$/);
-    const base=tm?tm[1].toUpperCase():'';
-    return { tag: TAGS[base]?base:'', halfTime };
+    // Strip a trailing number/letter ("Verse 1", "Chorus 2", "Verse 2B") — sectionsFromLines renumbers
+    // repeated tags from the actual line order, so the one written in the header is not kept.
+    inner=inner.replace(/[\s-]+\d+[A-Za-z]?$/,'').replace(/\s*[x×]\s*\d+$/i,'').trim();
+    if(!inner) return { tag:'', halfTime };
+    // Recognise a known tag from the letters-only form, most specific first. The original version
+    // demanded the whole header be one bare word, which quietly failed on every compound a songwriter
+    // actually types — [Pre-Chorus], [Post Chorus], [Guitar Solo], [Hook / Chorus].
+    const squashed=inner.toUpperCase().replace(/[^A-Z]/g,'');
+    const hit=TAG_MATCH.find(([pat])=>squashed.includes(pat));
+    if(hit) return { tag: hit[1], halfTime };
+    // Unknown -> keep it as a CUSTOM tag rather than discarding it. Lyria's tag vocabulary is open,
+    // so there is no such thing as a section name we should refuse. Dropping one was never cosmetic:
+    // an untagged line breaks the run in sectionsFromLines WITHOUT starting a section, so the whole
+    // part vanished from the arrangement, every timestamp after it shifted, and the Lyria prompt got
+    // a bare "[Section]" header where [Breakdown] should have been.
+    return { tag: inner.toUpperCase().replace(/\s+/g,' ').slice(0,40), halfTime, custom:true };
   }
   // Parses a whole pasted song written with [Section] headers on their own line (e.g. "[Verse 1]",
   // "[Chorus Half Time]") into per-line {text,tag,halfTime} triples — every non-blank line under a
@@ -160,7 +218,7 @@
   function renderLines(){
     const box=$('lyr-lines'); if(!box) return; const sheet=activeSheet(); const showSyl=$('lyr-show-syl')?.checked;
     box.innerHTML=sheet.lines.map((ln,i)=>{
-      const tc=(TAGS[ln.tag]||TAGS[''])[1];
+      const tc=tagStyle(ln.tag)[1];
       const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
       return `<div class="lyr-row flex items-center gap-1.5 group${ln.alt?' lyr-row-alt':''}" data-i="${i}" title="${ln.alt?'Punch-up alternative — pick your favorite, delete the rest':''}">`+
         `<input type="checkbox" class="lyr-select accent-[#FFD60A] shrink-0 cursor-pointer" data-i="${i}"${lyrSelected.has(ln)?' checked':''} title="Select for Punch Up / Delete">`+
@@ -212,7 +270,15 @@
   // looks up a section's color the same way sectionsFromLines derives its tag — strip a trailing
   // numeral ("Verse 1" -> VERSE) and match against TAGS, so chips use the same palette as the
   // per-line tag glyphs/dropdown and (via the identical mapping in ARR_TYPES) the Arrangement Timeline
-  function colorForSection(name){ const base=(name||'').toUpperCase().replace(/\s*\(HALF TIME\)/,'').replace(/\s+\d+$/,'').trim(); return (TAGS[base]||TAGS[''])[1]; }
+  // Section names are display names ("Pre-Chorus", "Guitar Solo"), so resolve them back through the
+  // same matcher the parser uses instead of assuming the name IS the tag key.
+  function colorForSection(name){
+    const clean=(name||'').replace(/\s*\(Half Time\)/i,'').replace(/\s+\d+$/,'').trim();
+    if(!clean) return TAGS[''][1];
+    const squashed=clean.toUpperCase().replace(/[^A-Z]/g,'');
+    const hit=TAG_MATCH.find(([pat])=>squashed.includes(pat));
+    return tagStyle(hit?hit[1]:clean.toUpperCase())[1];
+  }
   function renderStructureStrip(){
     const el=$('lyr-structure-strip'); if(!el) return;
     const sheet=activeSheet();
@@ -364,7 +430,7 @@
         if(showSlant){ const sk=clean.length>2?slantKey(clean):''; if(sk && slantWordColor[sk] && !isEnd) return `<span style="color:${slantWordColor[sk]};text-decoration:underline dotted;text-decoration-color:${slantWordColor[sk]}90">${w}</span>`; }
         return w;
       }).join('');
-      const tagc=(TAGS[l.tag]||TAGS[''])[1];
+      const tagc=tagStyle(l.tag)[1];
       return `<div class="flex items-baseline gap-2 py-0.5">`+
         `<span class="text-[10px] font-bold font-mono w-4 text-center shrink-0" style="color:${endCol||endSlantCol||'rgba(255,255,255,0.25)'}">${schemeLetters[idx]}</span>`+
         (l.tag?`<span class="text-[8px] font-bold shrink-0" style="color:${tagc}">${l.tag[0]}</span>`:'<span class="w-2 shrink-0"></span>')+

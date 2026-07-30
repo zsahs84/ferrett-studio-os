@@ -3,13 +3,34 @@
 // so returning clients pick up the new copy instead of a stale cache.
 // Keep the number in sync with window.APP_VERSION at the top of index.html —
 // one version number for both, not two drifting counters.
-const CACHE_VERSION = 'ferrett-os-v127';
+const CACHE_VERSION = 'ferrett-os-v128';
 
+// EVERY file the app needs to boot. index.html stopped being self-contained when it was split into
+// external CSS/JS, and this list wasn't updated to match — so a cold install (new device, or
+// "add to home screen" then straight offline) precached the HTML and none of the code it loads,
+// and came up as a blank unstyled page. The runtime cache-first handler below papers over it after
+// one online visit, but a precache that doesn't list the app isn't a precache.
+// Adding a js/ file? Add it here too.
 const APP_SHELL = [
   './',
   './index.html',
   './share-handler.html',
   './manifest.json',
+  './styles.css',
+  './js/00-bootstrap.js',
+  './js/01-core-utils.js',
+  './js/02-app-core.js',
+  './js/03-quick-search.js',
+  './js/04-addons.js',
+  './js/05-toolbox-widgets.js',
+  './js/06-lyrics-lab.js',
+  './js/07-scale-explorer.js',
+  './js/08-ai-settings.js',
+  './js/09-tuner.js',
+  './js/10-file-decode.js',
+  './js/11-sw-register.js',
+  './js/12-tab-init.js',
+  './js/vendor-qrcode.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',

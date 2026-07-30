@@ -43,6 +43,12 @@ window.addEventListener('DOMContentLoaded', () => {
     moveCard('arr-list', tabSongBoard);
     moveCard('struct-list', tabSongBoard);
     moveCard('set-list', tabSongBoard);
+    // Those four cards were the entire contents of the Toolbox's "arrange" panel, and no button on
+    // the Toolbox dashboard ever pointed at it — so once they are moved it is an empty hidden div
+    // that only shows up as a puzzle next time someone greps for tbx-panel-*. Drop the husk.
+    // (It stays in index.html: that is where the cards are authored, they are only relocated here.)
+    const arrangeHusk = document.getElementById('tbx-panel-arrange');
+    if (arrangeHusk && !arrangeHusk.querySelector('.card')) arrangeHusk.remove();
 
     // To Settings
     tabSettings.innerHTML = '<div class="flex items-end justify-between border-b border-[#FFD60A20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#FFD60A]">SYSTEM & CALIBRATION</h2></div>';
@@ -69,22 +75,27 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Move Vault & UI Theme into Settings
+    // Give Settings a Vault & Theme card. This used to move `vaultBtn.parentElement`, which is the
+    // <div class="flex gap-1"> that also wraps BACKUP and RESTORE — so the whole group left the header
+    // and the two things you actually want one keystroke away in a panic (write a backup, restore one)
+    // ended up two clicks deep in a settings tab. Move only the buttons this card is about, and leave
+    // BACKUP/RESTORE where they were.
+    const sysCard = document.createElement('div');
+    sysCard.className = 'card border-[#FFD60A40] mb-6';
+    sysCard.innerHTML = '<h3 class="text-[11px] font-bold text-[#FFD60A] tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">DATA VAULT &amp; THEME</h3>';
     const vaultBtn = document.getElementById('btn-open-vault-modal');
-    if (vaultBtn && vaultBtn.parentElement) {
-        const sysCard = document.createElement('div');
-        sysCard.className = 'card border-[#FFD60A40] mb-6';
-        sysCard.innerHTML = '<h3 class="text-[11px] font-bold text-[#FFD60A] tracking-widest mb-4 border-b border-[#FFD60A20] pb-2">DATA VAULT & THEME</h3>';
-        sysCard.appendChild(vaultBtn.parentElement);
-        
-        const themeBtn = document.getElementById('btn-cycle-theme');
-        if (themeBtn) {
-            themeBtn.className = 'btn-euterpe px-4 py-2 w-full mt-4';
-            themeBtn.innerHTML = '🎨 CYCLE UI THEME';
-            sysCard.appendChild(themeBtn);
-        }
-        tabSettings.appendChild(sysCard);
+    if (vaultBtn) {
+        vaultBtn.className = 'btn-euterpe px-4 py-2 w-full';
+        vaultBtn.innerHTML = '🗄 VAULT — LOCAL STORAGE USAGE';
+        sysCard.appendChild(vaultBtn);
     }
+    const themeBtn = document.getElementById('btn-cycle-theme');
+    if (themeBtn) {
+        themeBtn.className = 'btn-euterpe px-4 py-2 w-full mt-4';
+        themeBtn.innerHTML = '🎨 CYCLE UI THEME';
+        sysCard.appendChild(themeBtn);
+    }
+    if (sysCard.children.length > 1) tabSettings.appendChild(sysCard);
 
     // 3. BUILD THE NEW NAV BAR
     const oldNavs = Array.from(sideNav.querySelectorAll('.nav-btn'));
@@ -126,28 +137,40 @@ window.addEventListener('DOMContentLoaded', () => {
         this.innerHTML = toolsDropdown.classList.contains('hidden') ? '🧰 Tools ▾' : '🧰 Tools ▴';
     });
 
-    // Logic to style and switch the new primary tabs
+    // Logic to style and switch the new primary tabs.
+    // `paint` is split out because the highlight has to be reapplied after the proxy path below runs:
+    // the old nav button's own handler calls switchTab, which resets every .nav-btn including this one.
+    // The reset MUST clear the inline boxShadow too — it is set inline here, so a class-only reset
+    // left a green glow on every tab ever visited and the nav ended up showing four active buttons.
+    const paint = (btn) => {
+        document.querySelectorAll('#side-nav .nav-btn').forEach(el => {
+            el.classList.remove('active-nav-green', 'text-[#00FF88]', 'border-[#00FF8835]');
+            el.style.boxShadow = '';
+        });
+        btn.classList.add('active-nav-green', 'text-[#00FF88]', 'border-[#00FF8835]');
+        btn.style.boxShadow = '0 0 12px rgba(0,255,136,0.12)';
+    };
+
     const wireNav = (newId, targetTabId, oldProxyId) => {
         const btn = document.getElementById(newId);
         if (!btn) return;
         btn.addEventListener('click', () => {
-            // Style resets
-            document.querySelectorAll('#side-nav .nav-btn').forEach(el => el.classList.remove('active-nav-green', 'text-[#00FF88]', 'border-[#00FF8835]'));
-            btn.classList.add('active-nav-green', 'text-[#00FF88]', 'border-[#00FF8835]');
-            btn.style.boxShadow = '0 0 12px rgba(0,255,136,0.12)';
-            
+            paint(btn);
             if (oldProxyId) {
-                // If it's an existing tab, let the original OS logic run, then force our active state to stick
+                // An existing tab: let the original OS logic run (it owns the per-tab refresh hooks),
+                // then reassert our highlight, which its own nav reset will have just cleared.
                 document.getElementById(oldProxyId).click();
                 setTimeout(() => {
                     document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active'));
                     document.getElementById(targetTabId).classList.add('active');
-                    document.querySelectorAll('#side-nav .nav-btn').forEach(el => el.classList.remove('active-nav-green', 'text-[#00FF88]', 'border-[#00FF8835]', 'shadow-[0_0_12px_rgba(0,255,136,0.12)]'));
-                    btn.classList.add('active-nav-green', 'text-[#00FF88]', 'border-[#00FF8835]');
-                    btn.style.boxShadow = '0 0 12px rgba(0,255,136,0.12)';
+                    paint(btn);
                 }, 10);
             } else {
-                // Standard switch for new tabs
+                // One of the three tabs this file creates. These have no old nav button to proxy
+                // through, so the teardown switchTab would have done has to be invoked directly —
+                // otherwise the metronome/tuner/test-tone keep running after you leave the Toolbox,
+                // and the new tab opens at the previous tab's scroll offset instead of the top.
+                window.leaveTab?.(targetTabId);
                 document.querySelectorAll('.middle-tab').forEach(el => el.classList.remove('active'));
                 document.getElementById(targetTabId).classList.add('active');
             }

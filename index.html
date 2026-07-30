@@ -11,7 +11,9 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>Euterpe Creativity Workbench (v82)</title>
+<!-- Placeholder only: 00-bootstrap.js rewrites this from window.APP_VERSION, which is the single
+     source of truth. Left version-less so it can't sit here going stale (it said v82 at v127). -->
+<title>Euterpe Creativity Workbench</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -183,7 +185,7 @@
 
         <div id="cookbook-split-view" class="flex flex-col md:flex-row border border-[#00FF8820] rounded-lg overflow-hidden bg-[#0A0F0D]">
             <div class="w-full md:w-[35%] border-r border-[#00FF8820] bg-[rgba(5,8,7,0.8)] flex flex-col">
-                <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[550px] overflow-y-auto pr-2" id="genre-menu"></div></div>
+                <div class="p-4 border-b border-[#00FF8810]"><h3 class="text-[10px] text-[#00E5FF] font-bold mb-3 tracking-widest uppercase">1. Select Vibe / Genre</h3><div class="flex flex-col gap-1 max-h-[34vh] md:max-h-[38vh] overflow-y-auto pr-2" id="genre-menu"></div></div>
                 <div id="genre-info-bar" class="hidden px-4 py-3 border-b border-[#00FF8810] bg-black/30 flex flex-col gap-3">
                     <span id="genre-bpm-readout" class="hidden text-[9px] font-bold tracking-widest text-[#FFD60A]/80"></span>
                     <div class="flex gap-2 flex-wrap">
@@ -205,9 +207,27 @@
                             <label class="text-[#FFD60A]/60">TEXTURE</label>
                             <textarea id="ai-override-texture" rows="3" class="bg-black/40 border border-[#FFD60A]/20 rounded text-[#FFD60A] px-2 py-1.5 focus:outline-none focus:border-[#FFD60A] w-full placeholder-[#FFD60A]/30 resize-none transition-colors"></textarea>
                         </div>
+                        <!-- Key and Negative are both documented Lyria 3 prompt parameters we weren't using.
+                             Intensity is documented too but is PER SECTION ("Intensity: 3/10 (Low)" on each
+                             timed segment), so it lives on each row of the Arrangement Timeline instead of
+                             here — a single song-wide intensity would be the wrong shape for it. -->
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#FFD60A]/60">KEY</label>
+                            <input type="text" id="ai-override-key" list="lyria-key-list" placeholder="e.g. D minor" class="bg-black/40 border border-[#FFD60A]/20 rounded text-[#FFD60A] px-2 py-1.5 focus:outline-none focus:border-[#FFD60A] w-full placeholder-[#FFD60A]/30 transition-colors">
+                            <datalist id="lyria-key-list"><option value="C major"><option value="G major"><option value="D major"><option value="A major"><option value="E major"><option value="F major"><option value="Bb major"><option value="Eb major"><option value="A minor"><option value="E minor"><option value="B minor"><option value="F# minor"><option value="D minor"><option value="G minor"><option value="C minor"><option value="F minor"></datalist>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[#FFD60A]/60">NEGATIVE <span class="text-[#FFD60A]/30 normal-case tracking-normal">— keep out</span></label>
+                            <textarea id="ai-override-negative" rows="2" placeholder="e.g. vocals, cymbal crashes, distorted guitar" class="bg-black/40 border border-[#FFD60A]/20 rounded text-[#FFD60A] px-2 py-1.5 focus:outline-none focus:border-[#FFD60A] w-full placeholder-[#FFD60A]/30 resize-none transition-colors"></textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
+                <!-- Both lists are capped in vh rather than px so the whole left column — genres, the
+                     genre's controls, and the instrument list — fits one screen on a laptop. At the old
+                     fixed 550px/400px the AI KIT button sat ~80px below the fold and the instrument
+                     switcher ~500px below it, which meant changing instrument inside a 12-role kit was
+                     scroll down, click, scroll back up, every time. -->
+                <div class="p-4 flex-1"><h3 class="text-[10px] text-[#00FF88] font-bold mb-3 tracking-widest uppercase">2. Select Instrument</h3><div class="flex flex-col gap-1 max-h-[30vh] md:max-h-[34vh] overflow-y-auto pr-2 scrollbar-hide" id="inst-menu"><div class="text-[10px] text-[#E2E8F0]/30 italic">Select a vibe first...</div></div></div>
             </div>
             <div class="w-full md:w-[65%] p-6 md:p-8 bg-[rgba(10,15,13,0.8)] overflow-y-auto max-h-[800px] relative" id="recipe-display">
                 <div class="h-full flex items-center justify-center text-[#E2E8F0]/30 text-[12px] tracking-widest uppercase border-2 border-dashed border-[#00FF8810] rounded-lg min-h-[400px]">Awaiting Selection...</div>
@@ -1621,7 +1641,7 @@
         <div class="card border-[#00E5FF40] relative">
             <button id="close-lyria-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#00E5FF] uppercase mb-1 pr-8">🎼 Lyria Prompt Generator</h3>
-            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Builds a music-generation prompt from a genre's actual recipe data, plus anything specific you want included. Attach a song and its lyrics come back as their own boxes, split under Lyria's ~3,000-character limit — copy Part 1 in, generate, then extend with Part 2, Part 3, and so on.</p>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Builds one Lyria 3 prompt from a genre's actual recipe data, plus anything specific you want included. Lyria takes a <b class="text-[#00E5FF]/70">single prompt</b> — musical direction and lyrics together, not separate boxes — so this produces one block to copy. Attach a song and its lyrics go in verbatim under <code class="text-[#FF88FF]">Lyrics:</code> with <code class="text-[#FF88FF]">[Verse 1]</code>-style tags.</p>
 
             <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold block mb-1.5">SONG / LYRICS (optional)</label>
             <select id="lyria-song-select" class="w-full bg-black/50 border border-[#FF88FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-1 focus:outline-none"></select>
@@ -1641,11 +1661,31 @@
                 </div>
             </div>
 
-            <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">BPM</label>
-            <input type="number" id="lyria-bpm" class="w-32 bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[#E2E8F0] text-[13px] px-3 py-2 mb-4 focus:outline-none">
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">BPM</label>
+                    <input type="number" id="lyria-bpm" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-center text-[#E2E8F0] text-[13px] px-3 py-2 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">KEY (optional)</label>
+                    <input type="text" id="lyria-key" list="lyria-key-list" placeholder="e.g. D minor" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 focus:outline-none">
+                </div>
+            </div>
 
             <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold block mb-1.5">ANY SPECIFIC REQUESTS? (optional)</label>
             <textarea id="lyria-custom-notes" class="w-full bg-black/50 border border-[#00E5FF]/40 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-4 h-16 resize-none focus:outline-none" placeholder="e.g. use electric bass, minimal kick/snare kit, no strings"></textarea>
+
+            <label class="text-[9px] tracking-widest text-[#FF8888]/70 font-bold block mb-1.5">KEEP OUT (optional)</label>
+            <textarea id="lyria-negative" class="w-full bg-black/50 border border-[#FF8888]/30 rounded text-[#E2E8F0] text-[12px] px-3 py-2 mb-1 h-12 resize-none focus:outline-none" placeholder="e.g. vocals, cymbal crashes, distorted guitar"></textarea>
+            <p class="text-[9px] text-[#E2E8F0]/35 mb-4">Goes in as a plain "Avoid:" line. Vertex AI also has a real <code class="text-[#FF8888]">negative_prompt</code> field — paste it there instead if you're using the API.</p>
+
+            <!-- Two documented shapes, and they are not interchangeable: bare [Verse 1] tags when you are
+                 supplying the words, or [0:00 - 0:12] Intro: <what happens> when you are directing the
+                 arrangement. Off by default because a song with lyrics attached wants the first one. -->
+            <label class="flex items-center gap-2 text-[9px] tracking-widest text-[#B18CFF]/80 font-bold mb-4 cursor-pointer">
+                <input type="checkbox" id="lyria-timestamps" class="accent-[#B18CFF]">
+                ADD TIMED ARRANGEMENT BLOCK <span class="text-[#B18CFF]/40 normal-case tracking-normal">— [0:00 - 0:12] Intro: … Intensity: 2/10</span>
+            </label>
 
             <div class="flex gap-2 mb-4">
                 <button id="btn-lyria-generate" type="button" class="btn-euterpe-green flex-1">GENERATE PROMPT</button>
@@ -1655,17 +1695,12 @@
 
             <div id="lyria-output-wrap" class="hidden">
                 <div class="flex items-center justify-between mb-1.5">
-                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">STYLE PROMPT</label>
-                    <span id="lyria-style-count" class="text-[9px] font-mono text-[#00E5FF]/50">0 / 1000</span>
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">PROMPT — paste this whole block into Lyria</label>
+                    <span id="lyria-style-count" class="text-[9px] font-mono text-[#00E5FF]/50"></span>
                 </div>
-                <textarea id="lyria-output-style" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-24 resize-none focus:outline-none" readonly></textarea>
+                <textarea id="lyria-output-style" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-64 resize-y focus:outline-none" readonly></textarea>
                 <div class="flex gap-2 mt-2 mb-4">
-                    <button id="btn-lyria-copy-style" type="button" class="btn-euterpe flex-1">📋 COPY STYLE PROMPT</button>
-                </div>
-
-                <div id="lyria-lyrics-wrap" class="hidden">
-                    <label class="text-[9px] tracking-widest text-[#FF88FF]/70 font-bold block mb-1.5">LYRICS — feed to Lyria one part at a time, in order</label>
-                    <div id="lyria-lyrics-parts" class="flex flex-col gap-3"></div>
+                    <button id="btn-lyria-copy-style" type="button" class="btn-euterpe-green flex-1">📋 COPY PROMPT</button>
                 </div>
 
                 <div id="lyria-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-3"></div>

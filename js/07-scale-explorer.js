@@ -92,6 +92,7 @@
   // ==================== SONG DETAILS MODAL (title/note/length, arrangement+lyrics jump, linked tracks) ====================
   let songDetailId=null;
   function openSongDetail(id){ songDetailId=id; const m=$('song-detail-modal'); m.classList.remove('hidden'); m.classList.add('flex'); renderSongDetail(); }
+  window.openSongDetail = openSongDetail; // used by the song backlink chips on Channel Settings cards
   function closeSongDetail(){ const m=$('song-detail-modal'); m.classList.add('hidden'); m.classList.remove('flex'); songDetailId=null; }
   function populateSongDetailTrackSelect(song){
     const sel=$('song-detail-track-select'); if(!sel) return;
@@ -178,7 +179,42 @@
   // ==================== ARRANGEMENT TIMELINE ====================
   const ARR_KEY='ferrett_os_arrange_v1';
   // colors match TAGS in the Lyrics Lab so a section type looks the same everywhere
-  const ARR_TYPES=[['Intro',4,'#7AFFBF'],['Verse',16,'#00E5FF'],['Pre',4,'#FFD60A'],['Chorus',8,'#FF88FF'],['Hook',8,'#FFA05C'],['Bridge',8,'#B18CFF'],['Solo',8,'#4DFFDF'],['Drop',8,'#00FF88'],['Outro',4,'#FF5A5A']];
+  // name, default bars, colour, default intensity (1-10), common? (shown as a one-tap button).
+  // The full list mirrors the lyric tag vocabulary in 06-lyrics-lab.js. It is not a whitelist —
+  // "+ OTHER…" below adds any section name you like, because Lyria's tag vocabulary is open and a
+  // name this table has never heard of is still a perfectly good section.
+  // Intensity is a documented Lyria 3 per-segment parameter ("Intensity: 3/10 (Low)") — it belongs to
+  // a SECTION, not to the song, which is why it lives here next to bars rather than in the genre
+  // overrides. These are only the starting values a section type usually sits at; every row is
+  // editable in the timeline and whatever is set there wins.
+  const ARR_TYPES=[
+    ['Intro',4,'#7AFFBF',2,1],        ['Verse',16,'#00E5FF',4,1],       ['Pre-Chorus',4,'#FFD60A',6,1],
+    ['Chorus',8,'#FF88FF',8,1],       ['Post-Chorus',4,'#FF6FD8',6,1],  ['Hook',8,'#FFA05C',8,1],
+    ['Bridge',8,'#B18CFF',3,1],       ['Build',4,'#FFD60A',7,1],        ['Drop',8,'#00FF88',10,1],
+    ['Breakdown',8,'#4DFFDF',3,1],    ['Solo',8,'#4DFFDF',7,1],         ['Outro',4,'#FF5A5A',2,1],
+    ['Refrain',4,'#FFB37A',7,0],      ['Break',2,'#68E5D0',3,0],        ['Instrumental',8,'#7AFFBF',5,0],
+    ['Interlude',4,'#9BE8C8',3,0],    ['Ad-Lib',4,'#FFA05C',5,0],       ['Spoken',4,'#D8D8E8',2,0],
+    ['Chant',4,'#FF9E6F',7,0],        ['Vamp',4,'#C9A8FF',4,0],         ['Coda',4,'#FF7A7A',3,0],
+    ['Reprise',8,'#C9A8FF',6,0],      ['Skit',4,'#C8C8D8',1,0],         ['Tag',2,'#FF8E8E',3,0]];
+  // Sections saved before the vocabulary grew used the short forms; keep resolving them.
+  const ARR_ALIAS={ 'pre':'Pre-Chorus', 'post':'Post-Chorus', 'adlib':'Ad-Lib', 'ad lib':'Ad-Lib' };
+  // The wording Google's examples use alongside the number, so the prompt reads the way the docs do.
+  window.arrIntensityLabel=(n)=>{ n=Math.max(1,Math.min(10,Math.round(+n||0)));
+    return n<=2?'Very Low':n===3?'Low':n===4?'Medium-Low':n<=6?'Medium':n===7?'Medium-High':n===8?'High':'Very High'; };
+  // Base name -> ARR_TYPES row, so "Verse 1"/"Chorus 2"/"Chorus (Half Time)"/legacy "Pre" all resolve.
+  // A custom section nobody has ever heard of resolves to nothing and gets neutral defaults, which is
+  // the point — it still works, it just isn't styled.
+  function arrTypeOf(name){
+    const base=(name||'').replace(/\s*\(Half Time\)/i,'').replace(/\s+\d+$/,'').trim();
+    if(!base) return null;
+    const lower=base.toLowerCase();
+    const canonical=ARR_ALIAS[lower]||base;
+    return ARR_TYPES.find(x=>x[0].toLowerCase()===canonical.toLowerCase())
+        || ARR_TYPES.find(x=>x[0].toLowerCase().replace(/[^a-z]/g,'')===lower.replace(/[^a-z]/g,''))
+        || null;
+  }
+  window.arrDefaultIntensity=(name)=>{ const t=arrTypeOf(name); return t?t[3]:5; };
+  window.arrIntensityOf=(s)=>(s && s.intensity!=null) ? s.intensity : window.arrDefaultIntensity(s&&s.name);
   let arrData=null;
   function loadArr(){ try{ const r=localStorage.getItem(ARR_KEY); if(r) return JSON.parse(r); }catch(e){} return {bpm:90,sections:[],attachedSongId:null}; }
   function saveArr(){
@@ -218,7 +254,7 @@
     const lyriaSel=document.getElementById('lyria-song-select');
     if(lyriaSel && lyriaSel.value===String(songId) && lyriaSel.onchange) lyriaSel.onchange();
   };
-  function colorFor(name){ const base=(name||'').replace(/\s*\(Half Time\)/i,'').replace(/\s+\d+$/,'').trim(); const t=ARR_TYPES.find(x=>x[0]===base); return t?t[2]:'#B18CFF'; }
+  function colorFor(name){ const t=arrTypeOf(name); return t?t[2]:'#B18CFF'; }
   function fmtT(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m+':'+String(s).padStart(2,'0'); }
   function populateArrSongSelect(){
     const sel=$('arr-song-select'); if(!sel) return;
@@ -260,7 +296,16 @@
     const song=(window.db.songBoard||[]).find(s=>s.id===songId);
     if(!song) return;
     const bpm=song.bpm||(song.arrangement&&song.arrangement.bpm)||90, secPerBar=4*(60/bpm);
-    const newSections=sections.map(s=>({name:s.name,bars:s.bars}));
+    // Carry any hand-set intensity across the rebuild. This function re-derives the arrangement from
+    // the lyric lines on every edit, so without this, typing one more line into a verse would silently
+    // reset every intensity in the song back to its section-type default.
+    const prev=(song.arrangement&&song.arrangement.sections)||[];
+    const carried={}; prev.forEach((p,i)=>{ if(p && p.intensity!=null) carried[p.name+'#'+i]=p.intensity; });
+    const newSections=sections.map((s,i)=>{
+      const keep = carried[s.name+'#'+i] != null ? carried[s.name+'#'+i]
+                 : (prev.find(p=>p && p.name===s.name && p.intensity!=null)||{}).intensity;
+      return keep!=null ? {name:s.name,bars:s.bars,intensity:keep} : {name:s.name,bars:s.bars};
+    });
     if(song.arrangement && song.arrangement.bpm===bpm && JSON.stringify(song.arrangement.sections)===JSON.stringify(newSections)) return;
     song.arrangement={ bpm, sections: newSections };
     song.bpm=bpm;
@@ -278,11 +323,20 @@
     const bpm=Math.max(40,Math.min(220,+($('arr-bpm')?.value||arrData.bpm||90))); arrData.bpm=bpm;
     const secPerBar=4*(60/bpm);
     const list=$('arr-list'); if(!list) return;
-    list.innerHTML=arrData.sections.map((s,i)=>`<div class="arr-row flex items-center gap-2 p-1.5 rounded border" style="border-color:${colorFor(s.name)}30;background:${colorFor(s.name)}0A" data-i="${i}" draggable="true"><span class="cursor-grab text-white/25 text-[12px]">⠿</span><span class="text-[11px] font-bold w-16" style="color:${colorFor(s.name)}">${window.escapeHtml(s.name)}</span><input type="number" value="${s.bars}" min="1" max="128" class="arr-bars w-14 bg-black/40 border border-white/10 rounded text-center text-[11px] text-white px-1 py-0.5 focus:outline-none" data-i="${i}"><span class="text-[9px] text-white/40">bars</span><span class="text-[10px] font-mono text-white/60 flex-1 text-right">${fmtT(s.bars*secPerBar)}</span><button class="arr-del text-white/25 hover:text-[#FF5A5A] text-[13px]" data-i="${i}">×</button></div>`).join('')||'<div class="text-[10px] text-white/25 italic py-2">Add sections above to build your arrangement.</div>';
+    list.innerHTML=arrData.sections.map((s,i)=>{
+      const inten=window.arrIntensityOf(s), isDefault=(s.intensity==null);
+      return `<div class="arr-row flex items-center gap-2 p-1.5 rounded border" style="border-color:${colorFor(s.name)}30;background:${colorFor(s.name)}0A" data-i="${i}" draggable="true"><span class="cursor-grab text-white/25 text-[12px]">⠿</span><span class="text-[11px] font-bold w-28 shrink-0 leading-tight" style="color:${colorFor(s.name)}" title="${window.escapeHtml(s.name)}">${window.escapeHtml(s.name)}</span><input type="number" value="${s.bars}" min="1" max="128" class="arr-bars w-14 bg-black/40 border border-white/10 rounded text-center text-[11px] text-white px-1 py-0.5 focus:outline-none" data-i="${i}"><span class="text-[9px] text-white/40">bars</span><span class="text-[9px] text-white/40 ml-1">int</span><input type="number" value="${inten}" min="1" max="10" class="arr-int w-11 bg-black/40 border rounded text-center text-[11px] px-1 py-0.5 focus:outline-none ${isDefault?'text-white/40 border-white/10':'text-[#FFD60A] border-[#FFD60A]/40'}" data-i="${i}" title="Intensity 1-10 for this section — goes into the Lyria prompt as &quot;Intensity: ${inten}/10 (${window.arrIntensityLabel(inten)})&quot;.${isDefault?' Dimmed = the default for a '+window.escapeHtml(s.name)+'; type to override.':''}"><span class="text-[10px] font-mono text-white/60 flex-1 text-right">${fmtT(s.bars*secPerBar)}</span><button class="arr-del text-white/25 hover:text-[#FF5A5A] text-[13px]" data-i="${i}">×</button></div>`;
+    }).join('')||'<div class="text-[10px] text-white/25 italic py-2">Add sections above to build your arrangement.</div>';
     const total=arrData.sections.reduce((a,s)=>a+s.bars,0)*secPerBar;
     const bar=$('arr-bar'); if(bar){ bar.innerHTML=arrData.sections.map(s=>`<div style="flex:${s.bars};background:${colorFor(s.name)}90" title="${window.escapeHtml(s.name)} ${s.bars} bars"></div>`).join(''); }
     const tot=$('arr-total'); if(tot) tot.textContent=`TOTAL: ${arrData.sections.reduce((a,s)=>a+s.bars,0)} bars · ${fmtT(total)}`;
     list.querySelectorAll('.arr-bars').forEach(inp=>inp.addEventListener('input',()=>{ arrData.sections[+inp.dataset.i].bars=Math.max(1,+inp.value||1); saveArr(); renderArr(); }));
+    // Blank the box to go back to the section type's default rather than being stuck with a number.
+    list.querySelectorAll('.arr-int').forEach(inp=>inp.addEventListener('change',()=>{
+      const s=arrData.sections[+inp.dataset.i];
+      if(inp.value==='') delete s.intensity; else s.intensity=Math.max(1,Math.min(10,+inp.value||window.arrDefaultIntensity(s.name)));
+      saveArr(); renderArr(); // saveArr already mirrors sections onto the attached song
+    }));
     list.querySelectorAll('.arr-del').forEach(b=>b.addEventListener('click',()=>{ arrData.sections.splice(+b.dataset.i,1); saveArr(); renderArr(); }));
     let dragI=null;
     list.querySelectorAll('.arr-row').forEach(row=>{ row.addEventListener('dragstart',()=>dragI=+row.dataset.i); row.addEventListener('dragover',(e)=>e.preventDefault()); row.addEventListener('drop',()=>{ const to=+row.dataset.i; if(dragI===null||dragI===to) return; const [m]=arrData.sections.splice(dragI,1); arrData.sections.splice(to,0,m); saveArr(); renderArr(); dragI=null; }); });
@@ -406,7 +460,30 @@
     }
     // arrangement (loaded before song board so the board can reflect the attached song on first paint)
     if($('arr-list')){
-      const add=$('arr-add-btns'); if(add){ add.innerHTML=ARR_TYPES.map(t=>`<button class="arr-add btn-euterpe px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join(''); add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name:b.dataset.n,bars:+b.dataset.b}); saveArr(); renderArr(); })); }
+      const add=$('arr-add-btns');
+      if(add){
+        const pushSection=(name,bars)=>{ if(!arrData) arrData=loadArr(); arrData.sections.push({name,bars:+bars||4}); saveArr(); renderArr(); };
+        const common=ARR_TYPES.filter(t=>t[4]), rest=ARR_TYPES.filter(t=>!t[4]);
+        add.innerHTML=common.map(t=>`<button class="arr-add btn-euterpe px-2 py-1 text-[9px]" style="border-color:${t[2]}60;color:${t[2]}" data-n="${t[0]}" data-b="${t[1]}">+ ${t[0]}</button>`).join('')
+          + `<select id="arr-add-more" class="bg-black/50 border border-[#B18CFF]/40 rounded text-[#B18CFF] text-[9px] px-1.5 py-1 focus:outline-none" title="Every other section type, plus any name you want — Lyria accepts section tags it has never seen.">`
+          + `<option value="">+ OTHER…</option>`
+          + rest.map(t=>`<option value="${window.escapeHtml(t[0])}" data-b="${t[1]}">+ ${window.escapeHtml(t[0])}</option>`).join('')
+          + `<option value="__custom__">+ CUSTOM NAME…</option></select>`;
+        add.querySelectorAll('.arr-add').forEach(b=>b.addEventListener('click',()=>pushSection(b.dataset.n,b.dataset.b)));
+        $('arr-add-more')?.addEventListener('change',(e)=>{
+          const sel=e.target, v=sel.value; sel.value='';
+          if(!v) return;
+          if(v==='__custom__'){
+            // Free text on purpose. There is no list of section names Lyria will refuse, so there is
+            // no list this app should refuse either.
+            const name=(prompt('Section name — anything you like ("Guitar Solo", "Breakdown", "Beat Switch"):')||'').trim();
+            if(name) pushSection(name.slice(0,40),4);
+            return;
+          }
+          const opt=sel.querySelector(`option[value="${CSS.escape(v)}"]`);
+          pushSection(v, opt?opt.dataset.b:4);
+        });
+      }
       $('arr-bpm')?.addEventListener('input',()=>{ renderArr(); saveArr(); renderSongBoard(); if(typeof renderSongDetail==='function') renderSongDetail(); });
       $('btn-arr-markers')?.addEventListener('click',arrToMarkers);
       $('btn-arr-attach')?.addEventListener('click',()=>{
@@ -454,11 +531,17 @@
         if(!parsed || !parsed.lines.length) return;
         const t=$('songboard-title'); const title=(t.value||'').trim()||'Untitled';
         window.db.songBoard = window.db.songBoard || [];
-        const song={ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:'', length:null, status:'lyrics' };
+        // Read the same three fields + ADD SONG reads. They sit in the row directly above this button,
+        // so anything typed there is plainly meant for the song being created — and BPM especially is
+        // not cosmetic: applyParsedSectionsToSong below derives every section's bar length from it, and
+        // those lengths become the [0:00 - 0:32 Section] timings in the Lyria prompt. Dropping it here
+        // silently fell through to that function's hardcoded 90.
+        const bpm=Math.max(40,Math.min(300,parseInt($('songboard-bpm')?.value,10)||0))||null;
+        const song={ id:Date.now()*1000+Math.floor(Math.random()*1000), title, note:($('songboard-note')?.value||'').trim(), length:null, bpm, status:'lyrics' };
         window.db.songBoard.push(song);
         window.saveData();
         window.lyrLoadParsedLines?.(song.id, title, parsed.lines); // links the sheet and builds the arrangement from the parsed lines
-        t.value=''; $('songboard-note').value=''; $('songboard-len').value='';
+        t.value=''; $('songboard-note').value=''; $('songboard-len').value=''; if($('songboard-bpm')) $('songboard-bpm').value='';
         renderSongBoard(); populateArrSongSelect(); populateSetlistTracks();
         $('songboard-paste-panel').classList.add('hidden'); $('songboard-paste-text').value='';
       });

@@ -5,6 +5,15 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v141 — 2026-07-30
+- Lyria Prompt Generator and Producer Notes AI system prompts: fixed a real word-association bleed
+  where a "warm" TEXTURE (audio warmth — tape/tube saturation, EQ tilt) pulled sunny/daylight
+  imagery like "sun-soaked skies" into a song whose actual MOOD was night/dark/wintry, contradicting
+  the intended vibe. Added an explicit rule distinguishing the two: tonal words in MOOD ("warm
+  summer night, top down") describe a real scene and should be taken literally, while the same
+  words in TEXTURE ("warm acoustic guitar") describe sound color only and must never invent or
+  override the scene MOOD actually calls for.
+
 ## v140 — 2026-07-30
 - Producer Notes generation: raised the target from a hard 300-500 words to up to ~2,000 words
   (~10,000 characters, confirmed as Flow's actual Instructions field ceiling) — the AI is told to

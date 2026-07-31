@@ -5,6 +5,17 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v143 — 2026-07-31
+- Added a new METAL genre, "Industrial Dream State" (female-fronted post-hardcore / alt-metal /
+  screamo with industrial rock production) — built from a producer-supplied breakdown of the
+  sound's vocal dynamics, guitar/bass/drum character, and thematic core.
+- Producer Notes generation: the system prompt was telling the model to target "800-2,000 words"
+  right next to a "don't pad" warning, which anchored output low — it was landing around 6k
+  characters despite the 10k ceiling raised in v140. Reframed the target as a floor
+  to write toward (2,200-3,200 words / 9,000-10,000+ characters) with explicit permission to run
+  past 10k when the genre's recipe book supports it. Also raised the generation's max_tokens
+  headroom while staying under Groq's free-tier 8000 TPM cap (prompt + completion together).
+
 ## v142 — 2026-07-30
 - Moved the Test-Tone & Noise Lab (SINE/WHITE/PINK/SWEEP) from the Toolbox's Monitoring & Room panel
   onto the Settings tab, right under the SPL gauge and CAL button. Fixes a real regression: since the

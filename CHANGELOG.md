@@ -5,6 +5,21 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v144 — 2026-07-31
+- Producer Notes generation was silently falling back to the offline draft on every single
+  Gemini call after the v143 length target increase. Not a model capability limit — the
+  `ferrettAI` client aborts any call after a flat 45s by default, and a ~3,000-word document
+  routinely takes longer than that to finish writing, so the fetch got cut off mid-stream and
+  read as a failure every time. Same problem the AI Kit's chain-sheet generation already hit and
+  fixed; Producer Notes now gets the same 90s timeout.
+- Producer Notes generation now shows a progress bar + elapsed-time label while it writes. The
+  call isn't streamed, so it's a time-based estimate against the 90s budget above rather than
+  real token progress, but it's enough to tell "still working on a big document" apart from
+  "frozen" during the 60-70s a fully-detailed write-up can take. Wording deliberately calls it
+  a "document", never a "recipe" — the AI Kit's chain-sheet build already has its own real,
+  step-counted progress bar ("Building the {genre} kit… N / M instrument roles") for the actual
+  per-instrument recipes; these are two different things producing two different outputs.
+
 ## v143 — 2026-07-31
 - Added a new METAL genre, "Industrial Dream State" (female-fronted post-hardcore / alt-metal /
   screamo with industrial rock production) — built from a producer-supplied breakdown of the

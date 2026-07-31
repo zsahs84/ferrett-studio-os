@@ -1737,6 +1737,13 @@
                 <button id="btn-producer-notes-regenerate" type="button" class="btn-euterpe hidden" title="Generate a different variation" aria-label="Generate a different variation">🎲</button>
             </div>
 
+            <div id="producer-notes-progress-wrap" class="hidden mb-4">
+                <div class="w-full h-[3px] bg-black/40 rounded overflow-hidden">
+                    <div id="producer-notes-progress-bar" class="h-full bg-gradient-to-r from-[#FFD60A] to-[#00E5FF] transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div id="producer-notes-progress-label" class="text-[9px] text-[#FFD60A]/60 font-mono mt-1"></div>
+            </div>
+
             <div id="producer-notes-output-wrap" class="hidden">
                 <div class="flex items-center justify-between mb-1.5">
                     <label class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold">PRODUCER NOTES — editable, paste this whole block into Flow</label>

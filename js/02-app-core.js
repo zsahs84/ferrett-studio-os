@@ -4052,6 +4052,33 @@ window.lyriaSongBlock = (songId) => {
         const gen = document.getElementById('btn-producer-notes-generate');
         if (gen) { gen.disabled = true; gen.textContent = '…writing'; }
         setNote('Writing producer instructions from this genre\'s recipes…', true);
+        // This call isn't streamed, so there's no real token-by-token progress to show — this bar
+        // is a time-based estimate against the 90s timeoutMs below, just so a 60-70s wait for the
+        // full producer-instructions document reads as "still working" instead of "did this freeze?"
+        // Deliberately says "document", never "recipe" — this writes a single reusable Flow
+        // instructions block FROM the genre's recipes, it isn't a recipe itself. The AI Kit's own
+        // progress bar (kitProgress(), earlier in this file) builds actual per-instrument recipes
+        // and says so — "Building the {genre} kit…" / "N / M instrument roles" — keep the two
+        // distinct if either one's wording changes later.
+        const progWrap = document.getElementById('producer-notes-progress-wrap');
+        const progBar = document.getElementById('producer-notes-progress-bar');
+        const progLabel = document.getElementById('producer-notes-progress-label');
+        let progTimer = null;
+        const estimatedMs = 90000;
+        const startedAt = Date.now();
+        const tickProgress = () => {
+            const elapsedS = Math.round((Date.now() - startedAt) / 1000);
+            const pct = Math.min(96, ((Date.now() - startedAt) / estimatedMs) * 100);
+            if (progBar) progBar.style.width = `${pct}%`;
+            if (progLabel) progLabel.textContent = `Writing the producer instructions document… ${elapsedS}s elapsed — a fully-detailed genre can take up to ~90s`;
+        };
+        if (progWrap) { progWrap.classList.remove('hidden'); if (progBar) progBar.style.width = '0%'; tickProgress(); progTimer = setInterval(tickProgress, 400); }
+        const stopProgress = (finishedOk) => {
+            if (progTimer) { clearInterval(progTimer); progTimer = null; }
+            if (!progWrap) return;
+            if (finishedOk && progBar) progBar.style.width = '100%';
+            setTimeout(() => progWrap.classList.add('hidden'), finishedOk ? 400 : 0);
+        };
         try {
             const sys = [
                 'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. This document is pasted ONCE into Flow\'s per-genre custom Instructions (or a named Flow) and stays active for every song generated in this genre afterward — write for reuse across dozens of future songs, not one.',
@@ -4076,12 +4103,20 @@ window.lyriaSongBlock = (songId) => {
             // prompt — this system+genre prompt runs well under 2,000 tokens, so 5000 completion tokens
             // (~20k chars, real headroom above the 10k target) still leaves comfortable margin instead of
             // risking Groq's "Request too large" the way asking for 7000+ would on a full recipe book.
-            const written = await window.ferrettAI(sys, user, { creative: true, maxTokens: 5000 });
+            // ferrettAI's default abort timer is 45s (see the AbortController line in 08-ai-settings.js)
+            // — plenty for a short answer, nowhere near enough for a model to actually write ~3,000 words
+            // of prose. Without this, the fetch gets aborted client-side before the model finishes, which
+            // reads as a failure and silently falls back to the offline draft every single time, even
+            // though the model was never actually incapable of producing that much text. The AI Kit's
+            // chain-sheet generation hit this exact problem and fixed it the same way — 90s here too.
+            const written = await window.ferrettAI(sys, user, { creative: true, maxTokens: 5000, timeoutMs: 90000 });
             const spent = window.__aiUsage?.end();
             const spentStr = window.__aiUsage?.summary(spent) || '';
             if (written && written.trim()) setOut(written.trim());
+            stopProgress(true);
             setNote(`Written for "${genre}".${spentStr ? ` · 💲 ${spentStr}` : ''}`, true);
         } catch (e) {
+            stopProgress(false);
             setNote('⚠ ' + e.message + ' — showing the offline draft instead.', false);
         } finally {
             if (gen) { gen.disabled = false; gen.textContent = 'GENERATE PRODUCER NOTES'; }

@@ -5,7 +5,15 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
-## v141 — 2026-07-30
+## v142 — 2026-07-30
+- Moved the Test-Tone & Noise Lab (SINE/WHITE/PINK/SWEEP) from the Toolbox's Monitoring & Room panel
+  onto the Settings tab, right under the SPL gauge and CAL button. Fixes a real regression: since the
+  SPL gauge moved out of the always-visible sidebar into its own Settings tab, calibrating meant
+  playing pink noise in the Toolbox, then switching to Settings to read the gauge — but `leaveTab()`
+  stops the test tone on every tab switch that isn't 'toolbox', so the noise cut out the instant you
+  left to go check the meter. Now both live on one screen; no tab switch needed to calibrate. The
+  Monitoring & Room panel's remaining Ear-Fatigue Timer card drops to a single column so it doesn't
+  leave an empty gap where the Noise Lab used to sit.
 - Lyria Prompt Generator and Producer Notes AI system prompts: fixed a real word-association bleed
   where a "warm" TEXTURE (audio warmth — tape/tube saturation, EQ tilt) pulled sunny/daylight
   imagery like "sun-soaked skies" into a song whose actual MOOD was night/dark/wintry, contradicting

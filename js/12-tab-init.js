@@ -63,6 +63,21 @@ window.addEventListener('DOMContentLoaded', () => {
         tabSettings.appendChild(splCard);
     }
 
+    // Move the Test-Tone & Noise Lab (its PINK button) in right under the SPL gauge, on the same
+    // tab as the CAL button. It used to live in the Toolbox's Monitoring & Room panel, which meant
+    // playing pink noise there and then navigating here to read the gauge — but leaveTab() stops the
+    // test tone on every tab switch that isn't 'toolbox' (see window.leaveTab below), so the noise
+    // cut out the instant you left to go check the meter. Keeping both on one screen sidesteps that
+    // entirely: play PINK, watch the gauge, hit CAL, all without switching tabs. moveCard() carries
+    // the existing #btn-lab-tone-toggle / .lab-tone-src listeners across intact, same as SPL above.
+    const monitorGrid = document.getElementById('btn-lab-tone-toggle')?.closest('.grid');
+    moveCard('btn-lab-tone-toggle', tabSettings);
+    document.getElementById('btn-lab-tone-toggle')?.closest('.card')?.classList.add('mb-6');
+    // That card was one of two side-by-side in a 2-column grid (with Ear-Fatigue Timer) back in the
+    // Toolbox panel. Pulling it out leaves Ear-Fatigue alone with an empty gap next to it on desktop
+    // widths — drop to a single column now that there's only one card left to lay out.
+    if (monitorGrid && monitorGrid.querySelectorAll(':scope > .card').length === 1) monitorGrid.classList.replace('md:grid-cols-2', 'md:grid-cols-1');
+
     // Move AI Setup Modal into Settings
     const aiModal = document.getElementById('ai-modal');
     if (aiModal) {

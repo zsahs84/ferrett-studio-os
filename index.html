@@ -53,9 +53,14 @@
   </div>
 
   <div class="flex flex-wrap items-center justify-end gap-2 md:gap-4">
-    <button id="btn-open-cmdk" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Search everything" aria-label="Search everything">
+    <button id="btn-open-cmdk" class="flex items-center gap-1.5 px-2.5 py-1.5 md:px-4 md:min-w-[240px] md:justify-center rounded border border-[#00E5FF40] bg-[#00E5FF]/8 text-[#00E5FF] hover:bg-[#00E5FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Search everything" aria-label="Search everything">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <span class="hidden sm:inline">SEARCH</span><kbd class="hidden sm:inline px-1 py-0.5 rounded bg-[#00E5FF15] border border-[#00E5FF30] text-[8px]">⌘K</kbd>
+    </button>
+    <button id="btn-hud-break" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF5A5A40] bg-[#FF5A5A]/8 text-[#FF5A5A] hover:bg-[#FF5A5A]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Ear-fatigue break timer — click to open" aria-label="Ear-fatigue break timer — click to open">
+      <span id="hud-break-dot" class="w-1.5 h-1.5 rounded-full bg-[#FF5A5A]/25 shrink-0"></span>
+      <span class="hidden sm:inline">BREAK</span>
+      <span id="hud-break-clock" class="font-mono normal-case tracking-normal text-[11px]">45:00</span>
     </button>
     <button id="btn-open-shortcuts" class="hidden lg:flex items-center justify-center w-8 h-8 rounded border border-[#00FF8830] text-[#00FF88]/60 hover:text-[#00FF88] hover:border-[#00FF8860] transition-all cursor-pointer text-[11px] font-bold" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts (?)">?</button>
     <button id="btn-toggle-focus" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-[#FF88FF40] bg-[#FF88FF]/8 text-[#FF88FF] hover:bg-[#FF88FF]/18 transition-all cursor-pointer font-bold text-[9px] tracking-widest uppercase" title="Now Playing — log what you're working on" aria-label="Now Playing — log what you're working on"><span>▶</span><span class="hidden sm:inline">FOCUS</span></button>
@@ -874,7 +879,7 @@
                 </div>
                 <button id="btn-lab-tone-toggle" type="button" class="btn-euterpe-green px-6 py-2">▶ PLAY</button>
             </div>
-            <div class="card border-[#FF5A5A40]">
+            <div id="lab-break-card" class="card border-[#FF5A5A40]">
                 <h4 class="text-[11px] text-[#FF5A5A] font-bold tracking-widest mb-3 border-b border-[#FF5A5A20] pb-2">👂 EAR-FATIGUE / BREAK TIMER</h4>
                 <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Pomodoro for your ears. Mixing decisions rot after ~45 min at volume. Chimes when it's time to rest.</p>
                 <div class="text-center mb-4">
@@ -1033,7 +1038,12 @@
                     <div class="flex gap-2 mb-2"><input type="text" id="ai-mix-in" placeholder="vocals harsh, low end muddy" class="flex-1 bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none"><button id="btn-ai-mix" type="button" class="btn-euterpe-green px-3 py-2 text-[10px]">GET FIXES</button></div>
                 </div>
             </div>
-            <div class="flex items-center gap-2"><span id="ai-brain-spinner" class="hidden text-[10px] text-[#00E5FF] animate-pulse">thinking…</span></div>
+            <div id="ai-brain-progress-wrap" class="hidden mt-2">
+                <div class="w-full h-[3px] bg-black/40 rounded overflow-hidden">
+                    <div id="ai-brain-progress-bar" class="h-full bg-gradient-to-r from-[#00E5FF] to-[#B18CFF] transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div id="ai-brain-progress-label" class="text-[9px] text-[#00E5FF]/60 font-mono mt-1"></div>
+            </div>
             <div id="ai-brain-out-controls" class="hidden gap-2 mt-3">
                 <button id="btn-ai-brain-redo" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">↻ REDO</button>
                 <button id="btn-ai-brain-save-note" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88">📝 SAVE AS NOTE</button>
@@ -1369,7 +1379,12 @@
                 <button id="btn-ai-lyr-cont" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet" aria-label="Continue from what's on the sheet">↳ CONTINUE</button>
                 <button id="btn-ai-lyr-punch" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked" aria-label="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
                 <button id="btn-ai-lyr-title" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines" aria-label="Suggest titles / hook lines">🏷 TITLES</button>
-                <span id="ai-lyr-spinner" class="hidden text-[10px] text-[#00E5FF] self-center animate-pulse">thinking…</span>
+            </div>
+            <div id="ai-lyr-progress-wrap" class="hidden mt-2">
+                <div class="w-full h-[3px] bg-black/40 rounded overflow-hidden">
+                    <div id="ai-lyr-progress-bar" class="h-full bg-gradient-to-r from-[#00E5FF] to-[#B18CFF] transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div id="ai-lyr-progress-label" class="text-[9px] text-[#00E5FF]/60 font-mono mt-1"></div>
             </div>
             <div id="ai-lyr-titles" class="hidden flex-wrap gap-1.5 mt-2"></div>
             <div id="ai-lyr-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
@@ -1699,6 +1714,13 @@
                 <button id="btn-lyria-hide" type="button" class="btn-tool-icon hidden">HIDE</button>
             </div>
 
+            <div id="lyria-progress-wrap" class="hidden mb-4">
+                <div class="w-full h-[3px] bg-black/40 rounded overflow-hidden">
+                    <div id="lyria-progress-bar" class="h-full bg-gradient-to-r from-[#00E5FF] to-[#B18CFF] transition-all duration-300" style="width:0%"></div>
+                </div>
+                <div id="lyria-progress-label" class="text-[9px] text-[#00E5FF]/60 font-mono mt-1"></div>
+            </div>
+
             <div id="lyria-output-wrap" class="hidden">
                 <div class="flex items-center justify-between mb-1.5">
                     <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">PROMPT — paste this whole block into Lyria</label>
@@ -1764,6 +1786,18 @@
                 </div>
                 <div id="producer-notes-saved-list" class="space-y-1.5"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="break-alarm-modal" class="fixed inset-0 bg-[#050807]/95 backdrop-blur-md z-[999999] hidden flex-col items-center justify-center p-4 text-center">
+    <div class="card border-[#FF5A5A60] max-w-sm">
+        <div class="text-[40px] mb-2">👂</div>
+        <h3 class="text-[15px] font-bold tracking-widest text-[#FF5A5A] uppercase mb-2">Time For An Ear Break</h3>
+        <p class="text-[11px] text-[#E2E8F0]/60 mb-5">Mixing decisions rot after time at volume — step away for at least 5 minutes before trusting what you hear next.</p>
+        <div class="flex gap-2 justify-center">
+            <button id="btn-break-alarm-snooze" type="button" class="btn-euterpe px-4 py-2" title="Keep working a bit longer, then remind me again in 5 minutes" aria-label="Snooze 5 minutes">SNOOZE 5</button>
+            <button id="btn-break-alarm-dismiss" type="button" class="btn-euterpe-green px-5 py-2">GOT IT</button>
         </div>
     </div>
 </div>

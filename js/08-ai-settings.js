@@ -410,12 +410,16 @@
   async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ window.__aiUsage?.begin('Settings: Test Connection'); const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); window.__aiUsage?.end(); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
 
   // ---- lyrics AI ----
-  const spin=(id,on)=>{ const el=$(id); if(el) el.classList.toggle('hidden',!on); };
+  // All four actions below share one progress bar (window.startAiProgress, defined in
+  // js/02-app-core.js) instead of the old plain "thinking…" spinner — same visual language as
+  // Producer Notes and the Lyria Prompt Generator. These calls are short (a handful of lines or
+  // titles), so a generous estimate isn't needed; 8s is enough to fill smoothly for a typical reply.
   function note(id,msg){ const el=$(id); if(el) el.textContent=msg||''; }
+  const lyrProgress = (verb) => window.startAiProgress('ai-lyr-progress-wrap','ai-lyr-progress-bar','ai-lyr-progress-label', verb, 8000);
   async function lyrGen(){
     if(!isConfigured()){ openAiModal(); return; }
     const theme=$('ai-lyr-theme').value.trim()||'anything'; const style=$('ai-lyr-style').value;
-    spin('ai-lyr-spinner',true); note('ai-lyr-note','');
+    const progress=lyrProgress('Writing lyric lines'); note('ai-lyr-note','');
     try{
       const sys='You are a professional songwriter. Output ONLY lyric lines — one per line, no title, no numbering, no commentary, no section labels unless natural like [Hook]. Keep lines singable and vivid.';
       window.__aiUsage?.begin('Lyrics: Generate');
@@ -423,12 +427,13 @@
       window.__aiUsage?.end();
       const lines=toLines(txt); if(!lines.length) throw new Error('No usable lines came back.');
       window.lyrAddLines(lines);
-    }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
+      progress.stop(true);
+    }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
   async function lyrContinue(){
     if(!isConfigured()){ openAiModal(); return; }
     const cur=(window.lyrGetActiveText&&window.lyrGetActiveText())||''; if(!cur.trim()){ note('ai-lyr-note','Write or generate a few lines first.'); return; }
-    spin('ai-lyr-spinner',true); note('ai-lyr-note','');
+    const progress=lyrProgress('Continuing the lyric'); note('ai-lyr-note','');
     try{
       const sys='You are a songwriter. Continue the given lyric in the same voice, theme, and rhythm. Output ONLY the new lines — one per line, no commentary.';
       window.__aiUsage?.begin('Lyrics: Continue');
@@ -436,7 +441,8 @@
       window.__aiUsage?.end();
       const lines=toLines(txt); if(!lines.length) throw new Error('No usable lines came back.');
       window.lyrAddLines(lines);
-    }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
+      progress.stop(true);
+    }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
   async function lyrPunch(){
     if(!isConfigured()){ openAiModal(); return; }
@@ -447,7 +453,9 @@
       if(!last){ note('ai-lyr-note','Nothing to punch up yet — check a line, or write one first.'); return; }
       targets=[last];
     }
-    spin('ai-lyr-spinner',true); note('ai-lyr-note','');
+    // One bar for the whole batch, not one per line — a multi-line punch-up is still one wait from
+    // the user's point of view, sized a bit longer since it can be several sequential calls deep.
+    const progress=lyrProgress(targets.length>1?`Punching up ${targets.length} lines`:'Punching up the line'); note('ai-lyr-note','');
     try{
       window.lyrBeginBatchEdit&&window.lyrBeginBatchEdit();
       const sys='You are a punch-in lyric editor. Given one line, output 3 punchier alternative versions — one per line, no numbering, no commentary. Keep the syllable count close.';
@@ -462,14 +470,15 @@
       }
       if(!addedAny) throw new Error('No alternatives came back.');
       window.lyrFinishBatchEdit&&window.lyrFinishBatchEdit();
+      progress.stop(true);
       note('ai-lyr-note', usingSelection ? 'Added alternatives right under each checked line (highlighted) — keep your favorite, delete the rest.' : 'Added alternatives right under the last line (highlighted) — keep your favorite, delete the rest.');
-    }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
+    }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
 
   async function lyrTitle(){
     if(!isConfigured()){ openAiModal(); return; }
     const cur=(window.lyrGetActiveText&&window.lyrGetActiveText())||''; if(!cur.trim()){ note('ai-lyr-note','Write or generate a few lines first.'); return; }
-    spin('ai-lyr-spinner',true); note('ai-lyr-note','');
+    const progress=lyrProgress('Naming the song'); note('ai-lyr-note','');
     try{
       const sys='You name songs. Given lyrics, output 5 short, evocative song-title options — one per line, no numbering, no quotes, no commentary.';
       window.__aiUsage?.begin('Lyrics: Generate Titles');
@@ -479,7 +488,8 @@
       box.innerHTML=titles.map(t=>`<button class="ai-title-chip text-[11px] px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer" data-t="${window.escapeHtml(t)}">${window.escapeHtml(t)}</button>`).join('');
       box.classList.remove('hidden'); box.classList.add('flex');
       box.querySelectorAll('.ai-title-chip').forEach(c=>c.addEventListener('click',()=>{ const ti=$('lyr-title'); if(ti){ ti.value=c.dataset.t; ti.dispatchEvent(new Event('input',{bubbles:true})); } }));
-    }catch(e){ note('ai-lyr-note', e.message); } finally{ spin('ai-lyr-spinner',false); }
+      progress.stop(true);
+    }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
 
   function init(){

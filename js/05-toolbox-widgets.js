@@ -94,20 +94,18 @@
     setToneBtn(true);
   }
 
-  // ---------- 4. EAR-FATIGUE / BREAK TIMER ----------
-  let breakTotal=45*60, breakLeft=45*60, breakTimer=null;
+  // fmtClock is also used by the Idea Catcher memo recorder below (section 5) — kept even though the
+  // break timer that originally lived in this section no longer needs it.
   const fmtClock = (s)=>{ const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); };
+
+  // ---------- 4. EAR-FATIGUE / BREAK TIMER ----------
+  // State/countdown/wiring now lives in js/02-app-core.js (window.breakState, toggleBreakTimer,
+  // paintBreakUI, the global 1s tick) so it's one persisted timer that keeps counting down and can
+  // interrupt regardless of which tab is open, instead of a bare in-memory counter tied to this panel
+  // being mounted. This file just keeps the audio chime, exposed as window.playBreakChime, since it
+  // already owns the shared AudioContext helpers used by the tone generator above.
   function chime(){ const ac=ensureAC(); if(!ac) return; [880,660,880].forEach((f,i)=>{ const o=ac.createOscillator(), g=ac.createGain(); o.frequency.value=f; o.connect(g); g.connect(ac.destination); const t=ac.currentTime+i*0.28; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.26); o.start(t); o.stop(t+0.28); }); }
-  function paintBreak(){ const c=$('lab-break-clock'); if(c) c.textContent=fmtClock(breakLeft); }
-  function stopBreak(reset){ if(breakTimer){ clearInterval(breakTimer); breakTimer=null; } if(reset){ breakLeft=breakTotal; paintBreak(); const s=$('lab-break-state'); if(s){s.textContent='READY'; s.style.color='';} } const b=$('btn-lab-break-toggle'); if(b) b.textContent='▶ START'; }
-  function toggleBreak(){
-    const b=$('btn-lab-break-toggle'), st=$('lab-break-state');
-    if(breakTimer){ stopBreak(false); if(st) st.textContent='PAUSED'; return; }
-    if(breakLeft<=0){ breakLeft=breakTotal; paintBreak(); }
-    if(st){ st.textContent='MIXING — EARS ON THE CLOCK'; st.style.color=''; }
-    if(b) b.textContent='❚❚ PAUSE';
-    breakTimer=setInterval(()=>{ breakLeft--; paintBreak(); if(breakLeft<=0){ clearInterval(breakTimer); breakTimer=null; chime(); const s=$('lab-break-state'); if(s){ s.textContent='⏸ REST YOUR EARS — 5 MIN'; s.style.color='#FF5A5A'; } if(b) b.textContent='▶ START'; } }, 1000);
-  }
+  window.playBreakChime = chime;
 
   // ---------- 5. IDEA CATCHER (tap → track) ----------
   let ideaTaps=[];
@@ -419,10 +417,7 @@
     $('lab-tone-freq')?.addEventListener('input',(e)=>{ $('lab-tone-freq-val').textContent=e.target.value+' Hz'; if(labPlaying && labType==='sine' && labNode?.frequency) labNode.frequency.value=+e.target.value; });
     $('lab-tone-vol')?.addEventListener('input',(e)=>{ $('lab-tone-vol-val').textContent=e.target.value+'%'; if(labGain) labGain.gain.value=volFrac(); });
     $('btn-lab-tone-toggle')?.addEventListener('click',()=>{ if(labPlaying) window.stopTestTone(); else startTone(); });
-    // break timer
-    document.querySelectorAll('.lab-break-preset').forEach(b=>b.addEventListener('click',()=>{ breakTotal=(+b.dataset.mins)*60; stopBreak(true); }));
-    $('btn-lab-break-toggle')?.addEventListener('click', toggleBreak);
-    $('btn-lab-break-reset')?.addEventListener('click',()=>stopBreak(true));
+    // break timer wiring lives in js/02-app-core.js now (window.setBreakPreset / toggleBreakTimer / resetBreakTimer)
     // idea catcher
     $('btn-lab-idea-tap')?.addEventListener('click', ideaTap);
     $('btn-lab-idea-save')?.addEventListener('click', spawnTrackStub);

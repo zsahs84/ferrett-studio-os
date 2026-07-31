@@ -246,6 +246,116 @@ window.updateSessionUI = () => {
     else { dot.style.animation = 'none'; dot.style.opacity = '0.25'; dot.style.boxShadow = 'none'; label.textContent = 'PAUSED'; label.style.color = 'rgba(226,232,240,0.4)'; }
 };
 
+// === EAR-FATIGUE / BREAK TIMER (persisted, global — same pattern as the session stopwatch above) ===
+// Used to be a bare in-memory countdown owned entirely by the Toolbox panel (js/05-toolbox-widgets.js):
+// no state survived a reload, and the interval kept ticking in the background with nothing surfacing
+// that fact outside that one panel. This is the single source of truth now — time-based (remainingMs +
+// startedAt, not a decrementing counter) so it's correct across tab switches, backgrounding and reloads
+// without needing its own always-alive interval; the global tick near the session timer below just
+// recomputes and paints. js/05-toolbox-widgets.js keeps only the audio chime, exposed as
+// window.playBreakChime, since it already owns the shared AudioContext helpers.
+window.BREAK_KEY = 'ferrett_os_break_v1';
+window.loadBreakState = () => {
+    try { const raw = window.localStorage.getItem(window.BREAK_KEY); if (raw) { const p = JSON.parse(raw); if (typeof p.totalMs === 'number') return p; } } catch (e) {}
+    return { totalMs: 45 * 60000, remainingMs: 45 * 60000, running: false, startedAt: null, firedAt: null };
+};
+window.breakState = window.loadBreakState();
+window.saveBreakState = () => { try { window.localStorage.setItem(window.BREAK_KEY, JSON.stringify(window.breakState)); } catch (e) {} };
+window.getBreakRemainingMs = () => window.breakState.running ? Math.max(0, window.breakState.remainingMs - (Date.now() - window.breakState.startedAt)) : window.breakState.remainingMs;
+window.fmtBreakClock = (ms) => { const secs = Math.max(0, Math.round(ms / 1000)); return String(Math.floor(secs / 60)).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0'); };
+
+window.setBreakPreset = (mins) => {
+    window.breakState.totalMs = mins * 60000; window.breakState.remainingMs = window.breakState.totalMs;
+    window.breakState.running = false; window.breakState.startedAt = null; window.breakState.firedAt = null;
+    window.saveBreakState(); window.dismissBreakAlarm?.(); window.paintBreakUI();
+};
+window.toggleBreakTimer = () => {
+    if (window.breakState.running) {
+        window.breakState.remainingMs = window.getBreakRemainingMs(); window.breakState.running = false; window.breakState.startedAt = null;
+    } else {
+        if (window.breakState.remainingMs <= 0) window.breakState.remainingMs = window.breakState.totalMs;
+        window.breakState.running = true; window.breakState.startedAt = Date.now(); window.breakState.firedAt = null;
+        window.requestBreakNotifyPermission?.();
+    }
+    window.saveBreakState(); window.paintBreakUI();
+};
+window.resetBreakTimer = () => {
+    window.breakState.remainingMs = window.breakState.totalMs; window.breakState.running = false;
+    window.breakState.startedAt = null; window.breakState.firedAt = null;
+    window.saveBreakState(); window.dismissBreakAlarm?.(); window.paintBreakUI();
+};
+// Only ever called from a real click (toggleBreakTimer's START path) — never on load — so this never
+// fires the permission prompt unprompted; Notification.requestPermission() silently no-ops outside a
+// user gesture in most browsers anyway.
+window.requestBreakNotifyPermission = () => {
+    if (!('Notification' in window) || Notification.permission !== 'default') return;
+    try { Notification.requestPermission(); } catch (e) {}
+};
+
+window.paintBreakUI = () => {
+    const remaining = window.getBreakRemainingMs();
+    const txt = window.fmtBreakClock(remaining);
+    const clockEl = document.getElementById('lab-break-clock'); if (clockEl) clockEl.textContent = txt;
+    const hudClockEl = document.getElementById('hud-break-clock'); if (hudClockEl) hudClockEl.textContent = txt;
+    const running = window.breakState.running;
+    const fired = !running && (window.breakState.firedAt || remaining <= 0);
+    const ready = !running && !fired && remaining >= window.breakState.totalMs;
+    const toggleBtn = document.getElementById('btn-lab-break-toggle'); if (toggleBtn) toggleBtn.textContent = running ? '❚❚ PAUSE' : '▶ START';
+    const stateEl = document.getElementById('lab-break-state');
+    if (stateEl) {
+        if (running) { stateEl.textContent = 'MIXING — EARS ON THE CLOCK'; stateEl.style.color = ''; }
+        else if (fired) { stateEl.textContent = '⏸ REST YOUR EARS — 5 MIN'; stateEl.style.color = '#FF5A5A'; }
+        else if (ready) { stateEl.textContent = 'READY'; stateEl.style.color = ''; }
+        else { stateEl.textContent = 'PAUSED'; stateEl.style.color = ''; }
+    }
+    const hudDot = document.getElementById('hud-break-dot');
+    if (hudDot) {
+        if (running || fired) { hudDot.style.background = '#FF5A5A'; hudDot.style.opacity = '1'; hudDot.classList.add('animate-pulse'); }
+        else { hudDot.style.background = ''; hudDot.style.opacity = ''; hudDot.classList.remove('animate-pulse'); }
+    }
+};
+
+// document.title flash so a break that fires while a totally different browser tab (or app) has focus
+// still shows up somewhere — the in-app modal below only helps if this tab is actually the visible one.
+window.__breakTitleFlash = null; window.__breakOrigTitle = null;
+window.startBreakTitleFlash = () => {
+    if (window.__breakTitleFlash) return;
+    window.__breakOrigTitle = document.title; let on = false;
+    window.__breakTitleFlash = setInterval(() => { document.title = (on = !on) ? '👂 BREAK TIME' : window.__breakOrigTitle; }, 1000);
+};
+window.stopBreakTitleFlash = () => {
+    if (window.__breakTitleFlash) { clearInterval(window.__breakTitleFlash); window.__breakTitleFlash = null; }
+    if (window.__breakOrigTitle) { document.title = window.__breakOrigTitle; window.__breakOrigTitle = null; }
+};
+
+// The actual interrupt: audible chime (works regardless of which app-tab is showing, same document),
+// an in-app overlay that sits above every other modal (z-[999999]) so it's visible no matter which
+// Euterpe tab was open, a flashing browser-tab title, and — only when this tab isn't even the focused
+// one — a real OS notification, since the modal and chime can't reach outside the browser tab itself.
+window.fireBreakAlarm = () => {
+    window.breakState.running = false; window.breakState.remainingMs = 0; window.breakState.startedAt = null; window.breakState.firedAt = Date.now();
+    window.saveBreakState(); window.paintBreakUI();
+    window.playBreakChime?.();
+    window.startBreakTitleFlash();
+    document.getElementById('break-alarm-modal')?.classList.replace('hidden', 'flex');
+    if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState === 'hidden') {
+        try { new Notification('👂 Time for an ear break', { body: 'Mixing decisions rot after time at volume — step away for a few minutes.' }); } catch (e) {}
+    }
+};
+window.dismissBreakAlarm = (snoozeMins) => {
+    document.getElementById('break-alarm-modal')?.classList.replace('flex', 'hidden');
+    window.stopBreakTitleFlash();
+    if (snoozeMins) {
+        window.breakState.remainingMs = snoozeMins * 60000; window.breakState.running = true;
+        window.breakState.startedAt = Date.now(); window.breakState.firedAt = null;
+        window.saveBreakState(); window.paintBreakUI();
+    }
+};
+window.tickBreakTimer = () => {
+    window.paintBreakUI();
+    if (window.breakState.running && window.getBreakRemainingMs() <= 0) window.fireBreakAlarm();
+};
+
 // === SESSION LOG (per-day totals for hours/streak stats — separate from the live elapsed-since-reset timecode) ===
 window.SESSION_LOG_KEY = 'ferrett_os_session_log_v1';
 window.sessionLog = (() => { try { const raw = window.localStorage.getItem(window.SESSION_LOG_KEY); if (raw) return JSON.parse(raw); } catch (e) {} return {}; })();
@@ -3709,6 +3819,39 @@ window.lyriaSongBlock = (songId) => {
     };
     window.closeLyriaModal = () => document.getElementById('lyria-modal')?.classList.replace('flex', 'hidden');
 
+    // === Generic "AI is working" progress bar — shared by every AI-generation surface in the app ===
+    // None of ferrettAI's calls are streamed, so there's never real token-by-token progress — but a
+    // call that can take anywhere from a couple seconds to 90s still needs *some* visible sign of
+    // life, or it reads as frozen rather than working. One pair of start/stop functions instead of
+    // reimplementing the same setInterval/paint logic at every call site (Producer Notes was the
+    // first, and is now rebuilt on top of this instead of carrying its own bespoke copy).
+    // wrapId/barId/labelId: the three element ids to drive. verb: what's happening, shown as
+    // "{verb}… Ns elapsed" — keep it specific to what's actually being generated (a document, a
+    // prompt, a lyric line) so two different AI features never read as the same thing.
+    // estimatedMs: the bar fills toward this over time, capped just under 100% until stop(true).
+    window.startAiProgress = (wrapId, barId, labelId, verb, estimatedMs) => {
+        const wrap = document.getElementById(wrapId); const bar = document.getElementById(barId); const label = document.getElementById(labelId);
+        if (wrap) wrap.classList.remove('hidden');
+        if (bar) bar.style.width = '0%';
+        const startedAt = Date.now();
+        const tick = () => {
+            const elapsedS = Math.round((Date.now() - startedAt) / 1000);
+            const pct = Math.min(96, ((Date.now() - startedAt) / estimatedMs) * 100);
+            if (bar) bar.style.width = `${pct}%`;
+            if (label) label.textContent = `${verb}… ${elapsedS}s elapsed`;
+        };
+        tick();
+        const timer = setInterval(tick, 400);
+        return {
+            stop(finishedOk) {
+                clearInterval(timer);
+                if (!wrap) return;
+                if (finishedOk && bar) bar.style.width = '100%';
+                setTimeout(() => wrap.classList.add('hidden'), finishedOk ? 400 : 0);
+            }
+        };
+    };
+
     // The local builder is still what runs first: it is instant, free, works with no key, and its
     // role analysis is what tells the model which instruments are already spoken for. When a key IS
     // configured the draft becomes the AI's brief rather than the final answer — the model writes the
@@ -3767,6 +3910,10 @@ window.lyriaSongBlock = (songId) => {
         const gen = document.getElementById('btn-lyria-generate');
         if (gen) { gen.disabled = true; gen.textContent = '…writing'; }
         setNote('Writing a prompt from this genre’s recipes…', true);
+        // Short single-paragraph reply, so this usually finishes in a few seconds — the 15s estimate
+        // just needs to fill smoothly for a typical call, not model a worst case the way Producer
+        // Notes' 90s does.
+        const progress = window.startAiProgress('lyria-progress-wrap', 'lyria-progress-bar', 'lyria-progress-label', 'Writing the Lyria prompt', 15000);
         try {
             // Two briefs, because the job genuinely changes. Without lyrics this writes an instrumental
             // description, as it always did — whether or not a song is attached. With lyrics, the
@@ -3816,8 +3963,10 @@ window.lyriaSongBlock = (songId) => {
                 window.__lyriaLastBuilt.written = desc; // remembered so Enhance can work on it alone
                 setStyle(desc);
             }
+            progress.stop(true);
             setNote(((song ? `Written around “${song.title}”.` : 'Written from this genre’s recipes.') + partsNote + covers + (spentStr ? ` · 💲 ${spentStr}` : '')).trim(), true);
         } catch (e) {
+            progress.stop(false);
             // The draft is already in the box and is a perfectly usable prompt — say what happened
             // rather than blanking it, so a rate limit costs nothing.
             setNote('⚠ ' + e.message + ' — showing the offline draft instead.', false);
@@ -4052,33 +4201,12 @@ window.lyriaSongBlock = (songId) => {
         const gen = document.getElementById('btn-producer-notes-generate');
         if (gen) { gen.disabled = true; gen.textContent = '…writing'; }
         setNote('Writing producer instructions from this genre\'s recipes…', true);
-        // This call isn't streamed, so there's no real token-by-token progress to show — this bar
-        // is a time-based estimate against the 90s timeoutMs below, just so a 60-70s wait for the
-        // full producer-instructions document reads as "still working" instead of "did this freeze?"
         // Deliberately says "document", never "recipe" — this writes a single reusable Flow
         // instructions block FROM the genre's recipes, it isn't a recipe itself. The AI Kit's own
         // progress bar (kitProgress(), earlier in this file) builds actual per-instrument recipes
         // and says so — "Building the {genre} kit…" / "N / M instrument roles" — keep the two
-        // distinct if either one's wording changes later.
-        const progWrap = document.getElementById('producer-notes-progress-wrap');
-        const progBar = document.getElementById('producer-notes-progress-bar');
-        const progLabel = document.getElementById('producer-notes-progress-label');
-        let progTimer = null;
-        const estimatedMs = 90000;
-        const startedAt = Date.now();
-        const tickProgress = () => {
-            const elapsedS = Math.round((Date.now() - startedAt) / 1000);
-            const pct = Math.min(96, ((Date.now() - startedAt) / estimatedMs) * 100);
-            if (progBar) progBar.style.width = `${pct}%`;
-            if (progLabel) progLabel.textContent = `Writing the producer instructions document… ${elapsedS}s elapsed — a fully-detailed genre can take up to ~90s`;
-        };
-        if (progWrap) { progWrap.classList.remove('hidden'); if (progBar) progBar.style.width = '0%'; tickProgress(); progTimer = setInterval(tickProgress, 400); }
-        const stopProgress = (finishedOk) => {
-            if (progTimer) { clearInterval(progTimer); progTimer = null; }
-            if (!progWrap) return;
-            if (finishedOk && progBar) progBar.style.width = '100%';
-            setTimeout(() => progWrap.classList.add('hidden'), finishedOk ? 400 : 0);
-        };
+        // distinct if either one's wording changes later. 90s estimate matches the timeoutMs below.
+        const progress = window.startAiProgress('producer-notes-progress-wrap', 'producer-notes-progress-bar', 'producer-notes-progress-label', 'Writing the producer instructions document', 90000);
         try {
             const sys = [
                 'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. This document is pasted ONCE into Flow\'s per-genre custom Instructions (or a named Flow) and stays active for every song generated in this genre afterward — write for reuse across dozens of future songs, not one.',
@@ -4113,10 +4241,10 @@ window.lyriaSongBlock = (songId) => {
             const spent = window.__aiUsage?.end();
             const spentStr = window.__aiUsage?.summary(spent) || '';
             if (written && written.trim()) setOut(written.trim());
-            stopProgress(true);
+            progress.stop(true);
             setNote(`Written for "${genre}".${spentStr ? ` · 💲 ${spentStr}` : ''}`, true);
         } catch (e) {
-            stopProgress(false);
+            progress.stop(false);
             setNote('⚠ ' + e.message + ' — showing the offline draft instead.', false);
         } finally {
             if (gen) { gen.disabled = false; gen.textContent = 'GENERATE PRODUCER NOTES'; }
@@ -5105,7 +5233,25 @@ window.cloneTone = (id) => {
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') window.pauseSessionOnExit(); });
     window.addEventListener('pagehide', () => window.pauseSessionOnExit());
     window.addEventListener('beforeunload', () => window.pauseSessionOnExit());
-    
+
+    // Ear-fatigue break timer — global tick + wiring for both the Toolbox panel controls and the
+    // always-visible header widget. Deliberately NOT gated behind the Toolbox tab being open/active,
+    // unlike leaveTab()'s teardown list above for the metronome/tuner/test-tone/etc. — those are audio
+    // sources meant to stop the instant you leave that tab, this is meant to keep counting down no
+    // matter where you are in the app.
+    document.querySelectorAll('.lab-break-preset').forEach(b => b.addEventListener('click', () => window.setBreakPreset(+b.dataset.mins)));
+    document.getElementById('btn-lab-break-toggle')?.addEventListener('click', () => window.toggleBreakTimer());
+    document.getElementById('btn-lab-break-reset')?.addEventListener('click', () => window.resetBreakTimer());
+    document.getElementById('btn-hud-break')?.addEventListener('click', () => window.jumpToBreakTimer?.());
+    document.getElementById('btn-break-alarm-dismiss')?.addEventListener('click', () => window.dismissBreakAlarm());
+    document.getElementById('btn-break-alarm-snooze')?.addEventListener('click', () => window.dismissBreakAlarm(5));
+    window.jumpToBreakTimer = () => {
+        window.switchTab('toolbox'); window.openTbxPanel?.('monitor');
+        setTimeout(() => document.getElementById('lab-break-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+    };
+    window.paintBreakUI();
+    setInterval(window.tickBreakTimer, 1000);
+
     // VU meters: decorative random animation by default; toggle to drive them from real mic input.
     function rV() { return 3 + Math.pow(Math.random(), 0.7)*18; }
     const vL = document.querySelectorAll('#vuLeft .vu-bar'); const vR = document.querySelectorAll('#vuRight .vu-bar');

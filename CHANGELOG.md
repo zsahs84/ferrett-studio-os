@@ -5,6 +5,24 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v145 — 2026-07-31
+- Ear-Fatigue / Break Timer is now a persisted, global timer instead of a bare in-memory countdown
+  owned by the Toolbox panel. It used to reset on every reload and give no signal outside that one
+  panel when it hit zero; now it's time-based (survives reloads, backgrounding, and tab switches)
+  and, when it fires, interrupts regardless of which app tab is open: an audible chime, a full-screen
+  "TIME FOR AN EAR BREAK" overlay with SNOOZE 5 / GOT IT, a flashing browser-tab title, and — only
+  when the tab isn't even focused — a real OS notification.
+- Added a live "BREAK mm:ss" countdown to the header, next to a widened SEARCH bar, so the time
+  remaining is visible from anywhere in the app; clicking it jumps straight to the Toolbox panel.
+- Every AI-generation surface now shows the same "still working" progress bar Producer Notes got in
+  v144 — the Lyria Prompt Generator, all four Lyrics Lab AI Co-Pilot actions (Generate/Continue/Punch
+  Up/Titles, replacing the old plain "thinking…" spinner), and all four Toolbox AI Studio Brain tools
+  (Ask/Chords/Reimagine Recipe/Mix Fixes). Pulled the bar/label logic out into one shared
+  `window.startAiProgress()` helper (also used to rebuild Producer Notes' own bar) instead of
+  duplicating the same setInterval/paint code at every call site — each surface just supplies its own
+  verb ("Writing the Lyria prompt", "Punching up 2 lines", "Reimagining the recipe", etc.) so two
+  different AI features never read as the same thing.
+
 ## v144 — 2026-07-31
 - Producer Notes generation was silently falling back to the offline draft on every single
   Gemini call after the v143 length target increase. Not a model capability limit — the

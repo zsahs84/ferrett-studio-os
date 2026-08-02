@@ -5,6 +5,19 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v146 — 2026-08-01
+- Replaced the placeholder "F" app icon/favicon (a leftover generic letter mark, never updated after
+  the app was renamed to Euterpe) with a real mark pulled from the actual splash artwork: the "E" from
+  the neon EUTERPE wordmark, isolated and re-composited onto a clean black field. Tried the full
+  wordmark first, but at realistic home-screen icon sizes (40-60px) seven thin neon letters packed
+  into one icon just blur into mush — a single bold letterform reads correctly at every size while
+  staying authentically pulled from the same artwork (same font, glow, and color). Regenerated
+  `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, and `apple-touch-icon.png` — same
+  filenames, so no manifest.json or index.html changes needed. Also fixed a real pre-existing bug in
+  `icon-maskable-512.png`: it had a transparent margin around a pre-rounded shape, which is wrong for
+  a maskable icon (the OS applies its own mask/rounding to a full-bleed image) and would have shown
+  odd gaps once actually installed as a PWA. All four icons are now full-bleed, opaque, no transparency.
+
 ## v145 — 2026-07-31
 - Ear-Fatigue / Break Timer is now a persisted, global timer instead of a bare in-memory countdown
   owned by the Toolbox panel. It used to reset on every reload and give no signal outside that one

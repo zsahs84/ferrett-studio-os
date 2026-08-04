@@ -5,6 +5,27 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v147 — 2026-08-03
+- Lyrics Lab AI Co-Pilot rebuilt around **whole songs** instead of 8 lines at a time.
+  - New **🎵 WRITE FULL SONG** writes every section of a real structure in one pass, with `[Section]`
+    headers. Ten song forms (Modern Pop, Hip-Hop/Rap, Verse-Chorus Rock, Ballad, AABA, EDM/Dance,
+    Simple V/C, plus Auto, Match-the-linked-song, and Custom). "Auto" picks the form from the genre's
+    own Cookbook category; "Match this sheet's linked song" writes to that song's real arrangement and
+    bar counts; "Custom" takes a `Name Bars` list. A live preview shows the resolved sections and total
+    line count before you spend a call. Repeated sections are told to reuse their first version's words
+    verbatim, the way an actual chorus does.
+  - The generator now reads the **genre Cookbook** like every other AI tool in the app — its `mood`,
+    its `vox` (vocal style) and its description. Previously this was the *only* AI feature writing from
+    a hardcoded 6-item style list with no access to any of that. **Topic** and **Mood** are now separate
+    fields (mood defaults to the genre's own), plus a **Perspective** picker.
+  - The old ✨ GENERATE is now **✨ ONE SECTION**, with its own section-tag and line-count controls.
+- Full CRUD on generated lyrics. AI output no longer drops straight into your sheet — it lands in an
+  editable **draft box** with INSERT INTO SHEET / ＋ AS NEW SHEET / COPY / SAVE TAKE / DISCARD. Inserting
+  converts `[Section]` headers into per-line tags, so the arrangement rebuilds itself. **Saved takes**
+  live per sheet with LOAD / COPY / DELETE and autosave-on-edit into the loaded take — same pattern as
+  Lyria Prompts and Producer Notes. CONTINUE routes through the draft box too, so a continuation you
+  don't like costs one DISCARD instead of hunting down pasted lines.
+
 ## v146 — 2026-08-01
 - Replaced the placeholder "F" app icon/favicon (a leftover generic letter mark, never updated after
   the app was renamed to Euterpe) with a real mark pulled from the actual splash artwork: the "E" from

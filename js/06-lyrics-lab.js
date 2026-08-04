@@ -293,7 +293,9 @@
       + ((sections&&sections.length) ? `<button id="btn-lyr-insert-structure" type="button" class="text-[9px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#B18CFF60] text-[#B18CFF] hover:bg-[#B18CFF20] ml-1">+ INSERT AS HEADERS</button>` : '');
     $('btn-lyr-insert-structure')?.addEventListener('click',()=>{ window.lyrAddLines(sections.map(s=>`[${s.name}]`)); });
   }
-  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); renderStructureStrip(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); }
+  // renderLyrTakes lives in the AI Co-Pilot closure (js/08-ai-settings.js) but the saved-takes list is
+  // per-sheet, so it has to repaint whenever the active sheet changes — which is exactly here.
+  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); renderStructureStrip(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); window.renderLyrTakes?.(); }
 
   // ---- built-in rhyme bank ----
   const RHYME_BANK='time rhyme climb prime mind find grind line shine sign design fire desire higher wire light night fight right sight tight bright flight sky high fly try eye cry die lie why day way say play stay away pray grey fade made way pain rain chain brain gain train plane game name flame fame blame shame ground sound found around down town crown clown gold cold bold soul road load code mode flow low grow show know glow slow snow soul roll control goal whole heart start apart part smart dark spark heavy ready steady heart hard guard hold gold fold told sold cold night alright tonight world word heard bird hurt work dirt love above enough tough rough stuff stay pay away today gun run fun done son one gone alone zone throne home roam dome smoke broke woke hope dope rope scope real feel deal steel steal wheel money honey funny sunny run done street beat heat sweet complete defeat repeat mine fine wine divine live give real deal fear tear near clear year hear dream team scheme cream king ring thing bring sing wing swing sting'.split(' ');
@@ -391,6 +393,51 @@
   window.lyrBeginBatchEdit=()=>{ if(!lyrState) initLyrState(); pushUndo(); };
   window.lyrInsertAltsAfterLine=(ln,alts)=>{ if(!lyrState||!alts||!alts.length) return false; const s=activeSheet(); const idx=s.lines.indexOf(ln); if(idx<0) return false; s.lines.splice(idx+1,0,...alts.map(a=>({text:a,tag:'',alt:true}))); return true; };
   window.lyrFinishBatchEdit=()=>{ lyrSelected.clear(); saveLyr(); renderLyr(); };
+
+  // The arrangement of the Song Board song this sheet is linked to, as [[name, bars], ...] — lets the
+  // AI song builder write to the shape a song ALREADY has (its real section order and bar counts)
+  // instead of a generic template. Null when the sheet isn't linked or that song has no arrangement.
+  window.lyrLinkedArrangement=()=>{
+    if(!lyrState) initLyrState();
+    const sheet=activeSheet(); if(sheet.songId==null) return null;
+    const song=(window.db&&window.db.songBoard||[]).find(s=>String(s.id)===String(sheet.songId));
+    const secs=song && song.arrangement && Array.isArray(song.arrangement.sections) ? song.arrangement.sections : null;
+    if(!secs || !secs.length) return null;
+    return { title: song.title||'', sections: secs.map(s=>[String(s.name||'Section'), Math.max(1, parseInt(s.bars,10)||8)]) };
+  };
+  // Creates a brand-new sheet from a block of text and switches to it, leaving the current sheet
+  // untouched — the "＋ AS NEW SHEET" path out of the AI draft box.
+  window.lyrNewSheetFromLines=(title, arr)=>{
+    if(!lyrState) initLyrState();
+    const sheet={ id:Date.now(), title:title||'Untitled', lines:[{text:'',tag:''}] };
+    lyrState.sheets.push(sheet); lyrState.activeId=sheet.id;
+    lyrUndo=[]; lyrSelected.clear();
+    saveLyr(); renderLyr();
+    if(Array.isArray(arr) && arr.length) window.lyrAddLines(arr);
+    return sheet.id;
+  };
+
+  // ---- saved lyric takes (per sheet) ----
+  // A take is a whole block of lyric text kept BESIDE the sheet instead of merged into it, so several
+  // drafts of the same verse can sit side by side without any of them touching your actual lines
+  // until you pick one. Stored on the sheet itself (sheet.takes), so takes travel through
+  // export / import / Drive sync exactly like the lines do — same shape and same LOAD/COPY/DELETE
+  // pattern as the Lyria Prompt and Producer Notes take lists.
+  window.lyrTakes = {
+    list: () => { if(!lyrState) initLyrState(); const s=activeSheet(); s.takes=s.takes||[]; return s.takes; },
+    get: (id) => window.lyrTakes.list().find(t=>String(t.id)===String(id)) || null,
+    sheetTitle: () => { if(!lyrState) initLyrState(); return activeSheet().title||'Untitled'; },
+    add: (name, text, params) => {
+      const list=window.lyrTakes.list();
+      const take={ id:Date.now()*1000+Math.floor(Math.random()*1000), name:name||`Take ${list.length+1}`, createdAt:Date.now(), text:text||'', params:params||{} };
+      list.push(take); saveLyr(); return take;
+    },
+    // Text-only update — this is what the debounced autosave calls while you type in a loaded take,
+    // so editing a saved take never needs SAVE pressed again (same behaviour as the other two lists).
+    update: (id, text) => { const t=window.lyrTakes.get(id); if(!t) return null; t.text=text; saveLyr(); return t; },
+    rename: (id, name) => { const t=window.lyrTakes.get(id); if(!t||!name) return null; t.name=name; saveLyr(); return t; },
+    remove: (id) => { if(!lyrState) initLyrState(); const s=activeSheet(); s.takes=(s.takes||[]).filter(t=>String(t.id)!==String(id)); saveLyr(); }
+  };
 
   // ---- ANALYZE MODE: rhyme scheme, internal rhymes, contour ----
   let lyrMode='edit';

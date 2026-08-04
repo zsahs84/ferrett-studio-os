@@ -416,17 +416,196 @@
   // titles), so a generous estimate isn't needed; 8s is enough to fill smoothly for a typical reply.
   function note(id,msg){ const el=$(id); if(el) el.textContent=msg||''; }
   const lyrProgress = (verb) => window.startAiProgress('ai-lyr-progress-wrap','ai-lyr-progress-bar','ai-lyr-progress-label', verb, 8000);
+  // ---- song forms ----
+  // Machine-readable counterparts to the display-only SONG STRUCTURE TEMPLATES card in the Lyrics Lab.
+  // [sectionName, bars] — bars doubles as the line count asked of the model, since one line per bar is
+  // the convention the sheet itself already assumes (see sectionsFromLines in js/06-lyrics-lab.js), so
+  // an inserted song lands with a bar count that matches its arrangement without any extra mapping.
+  const SONG_FORMS=[
+    ['auto',   "Auto — match the genre's usual shape", null],
+    ['simple', 'Simple — Verse / Chorus ×2',           [['Verse',8],['Chorus',8],['Verse',8],['Chorus',8]]],
+    ['pop',    'Modern Pop',                           [['Intro',2],['Verse',8],['Pre-Chorus',4],['Chorus',8],['Verse',8],['Pre-Chorus',4],['Chorus',8],['Bridge',8],['Chorus',8],['Outro',2]]],
+    ['hiphop', 'Hip-Hop / Rap',                        [['Intro',4],['Hook',8],['Verse',16],['Hook',8],['Verse',16],['Hook',8],['Verse',12],['Outro',4]]],
+    ['rock',   'Verse-Chorus Rock',                    [['Intro',2],['Verse',8],['Chorus',8],['Verse',8],['Chorus',8],['Bridge',8],['Chorus',8],['Outro',4]]],
+    ['ballad', 'Ballad',                               [['Verse',8],['Chorus',8],['Verse',8],['Chorus',8],['Bridge',8],['Chorus',8]]],
+    ['aaba',   'AABA (32-bar standard)',               [['Verse',8],['Verse',8],['Bridge',8],['Verse',8]]],
+    ['edm',    'EDM / Dance',                          [['Intro',4],['Build',4],['Drop',8],['Breakdown',4],['Build',4],['Drop',8],['Outro',4]]],
+    ['linked', "Match this sheet's linked song",       null],
+    ['custom', 'Custom…',                              null]
+  ];
+  // Which template a genre falls back to on "Auto", keyed off the Cookbook's own category field so a
+  // new genre in an existing category is handled without touching this list.
+  const FORM_BY_CATEGORY={ 'HIP HOP':'hiphop', 'ROCK':'rock', 'METAL':'rock', 'POP':'pop', 'EDM':'edm', 'COUNTRY':'ballad' };
+
+  function lyrGenreMeta(){
+    const genre=$('ai-lyr-genre')?.value||'';
+    let meta=null;
+    if(genre && window.getGenreMeta){ try{ meta=window.getGenreMeta(genre); }catch(e){} }
+    return { genre, meta };
+  }
+  // Repeated section names get numbered the way an arrangement does ("Verse 1", "Verse 2"), so the
+  // model can be told plainly that "Chorus 2" repeats "Chorus 1" verbatim.
+  function numberSections(sections){
+    const total={}; sections.forEach(([n])=>{ total[n]=(total[n]||0)+1; });
+    const seen={};
+    return sections.map(([n,bars])=>{
+      if(total[n]>1){ seen[n]=(seen[n]||0)+1; return [`${n} ${seen[n]}`, bars, n]; }
+      return [n, bars, n];
+    });
+  }
+  function parseCustomForm(text){
+    return String(text||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const m=l.match(/^(.*?)[\s·:-]+(\d{1,2})\s*$/);
+      if(m) return [m[1].trim(), Math.max(1, Math.min(32, parseInt(m[2],10)||8))];
+      return [l.replace(/\s+\d+$/,'').trim(), 8];
+    }).filter(s=>s[0]);
+  }
+  // The section list the WRITE FULL SONG button will actually use, resolving auto/linked/custom.
+  function resolveForm(){
+    const key=$('ai-lyr-form')?.value||'auto';
+    if(key==='custom') return { key, sections:parseCustomForm($('ai-lyr-form-custom')?.value), label:'Custom' };
+    if(key==='linked'){
+      const link=window.lyrLinkedArrangement?.();
+      return { key, sections: link?link.sections:[], label: link?`${link.title||'linked song'}'s arrangement`:'linked song' };
+    }
+    if(key==='auto'){
+      const { meta }=lyrGenreMeta();
+      const pick=FORM_BY_CATEGORY[meta&&meta.category]||'simple';
+      const row=SONG_FORMS.find(f=>f[0]===pick);
+      return { key, sections:row?row[2]:[], label:`Auto → ${row?row[1]:'Simple'}` };
+    }
+    const row=SONG_FORMS.find(f=>f[0]===key);
+    return { key, sections:row?row[2]:[], label:row?row[1]:key };
+  }
+  function renderFormPreview(){
+    const el=$('ai-lyr-form-preview'); if(!el) return;
+    const custom=$('ai-lyr-form-custom-wrap');
+    if(custom) custom.classList.toggle('hidden', ($('ai-lyr-form')?.value||'')!=='custom');
+    const f=resolveForm();
+    if(!f.sections.length){
+      el.textContent = f.key==='linked'
+        ? 'This sheet isn\'t linked to a Song Board song with an arrangement yet — pick another form.'
+        : 'Add at least one section above.';
+      el.className='text-[9px] text-[#FF5A5A]/60 font-mono mb-3 leading-relaxed';
+      return;
+    }
+    const numbered=numberSections(f.sections);
+    const bars=numbered.reduce((s,x)=>s+x[1],0);
+    el.textContent=`${f.label}: ` + numbered.map(([n,b])=>`${n} ${b}`).join(' · ') + `  —  ${numbered.length} sections, ${bars} lines`;
+    el.className='text-[9px] text-[#00E5FF]/45 font-mono mb-3 leading-relaxed';
+  }
+
+  // ---- draft box ----
+  // Every generator below writes HERE rather than into the sheet, so nothing touches the user's lines
+  // until they press INSERT. __lyrTakeLoadedId mirrors the Lyria/Producer Notes pattern: while a saved
+  // take is loaded, edits in the box autosave back into that take.
+  window.__lyrTakeLoadedId=null;
+  function lyrDraftSet(text, keepTakeLink){
+    const out=$('ai-lyr-out'); if(!out) return;
+    out.value=text||'';
+    if(!keepTakeLink) window.__lyrTakeLoadedId=null;
+    $('ai-lyr-out-wrap')?.classList.remove('hidden');
+    lyrDraftCount();
+    out.scrollIntoView({block:'nearest'});
+  }
+  function lyrDraftCount(){
+    const out=$('ai-lyr-out'), el=$('ai-lyr-out-count'); if(!out||!el) return;
+    const lines=out.value.split('\n').filter(l=>l.trim() && !/^\[.*\]$/.test(l.trim())).length;
+    const secs=(out.value.match(/^\[.*\]\s*$/gm)||[]).length;
+    el.textContent=`${secs?secs+' sections · ':''}${lines} lines · ${out.value.length.toLocaleString()} chars`;
+  }
+  // Turns the draft's "[Section]" headers into per-line tags, which is the shape lyrAddLines wants.
+  // Bare header lines set the running tag and are dropped; the sheet re-derives its section list (and
+  // the linked song's arrangement) from the tagged lines themselves.
+  function draftToTagged(text){
+    const out=[]; let tag='';
+    String(text||'').split('\n').forEach(raw=>{
+      const l=raw.trim(); if(!l) return;
+      const header=l.match(/^\[(.+?)\]\s*$/);
+      if(header){ tag=header[1].trim(); return; }
+      const inline=l.match(/^\[(.+?)\]\s*(.+)$/);
+      if(inline){ tag=inline[1].trim(); out.push(`[${tag}] ${inline[2].trim()}`); return; }
+      out.push(tag?`[${tag}] ${l}`:l);
+    });
+    return out;
+  }
+
+  async function lyrSong(){
+    if(!isConfigured()){ openAiModal(); return; }
+    const form=resolveForm();
+    if(!form.sections.length){ note('ai-lyr-note','Pick a song form with at least one section first.'); return; }
+    const { genre, meta }=lyrGenreMeta();
+    const theme=$('ai-lyr-theme')?.value.trim()||'';
+    const mood=$('ai-lyr-mood')?.value.trim() || (meta&&meta.mood) || '';
+    const pov=$('ai-lyr-pov')?.value||'';
+    const numbered=numberSections(form.sections);
+    // A full song is a much bigger reply than the other three actions, so this one gets its own
+    // longer progress estimate, token ceiling and timeout — the shared 8s bar and the HA path's
+    // default 1500-token cap would both cut a real song off part-written.
+    const progress=lyrProgress('Writing the full song');
+    note('ai-lyr-note','');
+    try{
+      const sys=[
+        'You are a professional songwriter. Write a COMPLETE song — every section of the structure given, in the order given.',
+        'FORMAT, exactly: each section starts with its name alone on its own line in square brackets, spelled exactly as given (e.g. [Verse 1]), followed by that section\'s lyric lines, one per line. Nothing before the first header, nothing after the last line. No numbering, no commentary, no markdown, no chord names, no production notes.',
+        'Write exactly the number of lines each section asks for. That number is its bar count and one line per bar is the convention.',
+        'A section that repeats (Chorus 2 after Chorus 1, a returning Hook) must repeat the SAME words as its first appearance, word for word, the way a real song does. Never write fresh lyrics for a repeat.',
+        'Keep the syllable count and stress pattern consistent within a section so the lines sit on a grid and can actually be sung or rapped.',
+        'Instrumental-only sections (Intro, Outro, Build, Drop, Breakdown, Solo) should carry very few words or a short repeated chant/ad-lib rather than full sentences — do not force full verses into them.',
+        'NEVER name a real artist, producer, band or song title.'
+      ].join(' ');
+      const structureLines=numbered.map(([name,bars])=>`[${name}] — ${bars} lines`).join('\n');
+      const repeats=numbered.filter(([name,,base])=>numbered.filter(x=>x[2]===base).length>1 && /\s2$|\s3$|\s4$/.test(name));
+      const user=[
+        `GENRE: ${genre||'(none chosen — write to the topic and mood alone)'}`,
+        meta&&meta.desc?`GENRE BACKGROUND (private reference — never repeat any artist or song name from this in the lyrics): ${meta.desc}`:'',
+        meta&&meta.vox?`VOCAL STYLE for this genre — write lines that suit this delivery: ${meta.vox}`:'',
+        `MOOD: ${mood||'(your choice, but keep it consistent)'}`,
+        `TOPIC / WHAT IT IS ABOUT: ${theme||'(your choice — pick one concrete situation and stay with it)'}`,
+        pov?`PERSPECTIVE: write in ${pov}.`:'',
+        repeats.length?`REPEATS: ${repeats.map(r=>r[0]).join(', ')} must reuse their first version's words exactly.`:'',
+        '',
+        'STRUCTURE — write every one of these, in this order, with these line counts:',
+        structureLines
+      ].filter(Boolean).join('\n');
+      window.__aiUsage?.begin('Lyrics: Full Song');
+      const txt=await window.ferrettAI(sys, user, { creative:true, maxTokens:3000, timeoutMs:120000 });
+      window.__aiUsage?.end();
+      if(!txt || !txt.trim()) throw new Error('Nothing came back.');
+      lyrDraftSet(txt.trim().replace(/^```[a-z]*\n?|```$/g,'').trim());
+      progress.stop(true);
+      note('ai-lyr-note','');
+      const gotSections=(($('ai-lyr-out')?.value.match(/^\[.*\]\s*$/gm))||[]).length;
+      if(gotSections && gotSections<numbered.length){
+        note('ai-lyr-note', `Only ${gotSections} of ${numbered.length} sections came back — the model may have run short. Edit the draft, or hit WRITE FULL SONG again.`);
+      }
+    }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
+  }
+
   async function lyrGen(){
     if(!isConfigured()){ openAiModal(); return; }
-    const theme=$('ai-lyr-theme').value.trim()||'anything'; const style=$('ai-lyr-style').value;
-    const progress=lyrProgress('Writing lyric lines'); note('ai-lyr-note','');
+    const { genre, meta }=lyrGenreMeta();
+    const theme=$('ai-lyr-theme')?.value.trim()||'';
+    const mood=$('ai-lyr-mood')?.value.trim() || (meta&&meta.mood) || '';
+    const pov=$('ai-lyr-pov')?.value||'';
+    const section=$('ai-lyr-section')?.value||'';
+    const count=Math.max(2, Math.min(32, parseInt($('ai-lyr-count')?.value,10)||8));
+    const progress=lyrProgress(`Writing ${count} lines`); note('ai-lyr-note','');
     try{
-      const sys='You are a professional songwriter. Output ONLY lyric lines — one per line, no title, no numbering, no commentary, no section labels unless natural like [Hook]. Keep lines singable and vivid.';
+      const sys='You are a professional songwriter. Output ONLY lyric lines — one per line, no title, no numbering, no commentary. Keep every line singable and speakable out loud, with a consistent syllable count and stress pattern so the lines sit on a grid. Never name a real artist, producer, band or song title.';
+      const user=[
+        `Write exactly ${count} lines${section?` for a [${section}] section`:''}.`,
+        genre?`GENRE: ${genre}`:'',
+        meta&&meta.vox?`VOCAL STYLE to suit: ${meta.vox}`:'',
+        `MOOD: ${mood||'(your choice)'}`,
+        `TOPIC: ${theme||'(your choice — one concrete situation)'}`,
+        pov?`PERSPECTIVE: ${pov}.`:''
+      ].filter(Boolean).join('\n');
       window.__aiUsage?.begin('Lyrics: Generate');
-      const txt=await window.ferrettAI(sys, `Write 8 lines of ${style} about: ${theme}.`, {creative:true});
+      const txt=await window.ferrettAI(sys, user, {creative:true});
       window.__aiUsage?.end();
       const lines=toLines(txt); if(!lines.length) throw new Error('No usable lines came back.');
-      window.lyrAddLines(lines);
+      lyrDraftSet((section?`[${section}]\n`:'')+lines.join('\n'));
       progress.stop(true);
     }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
@@ -440,7 +619,9 @@
       const txt=await window.ferrettAI(sys, `Continue with 4 more lines:\n\n${cur}`, {creative:true});
       window.__aiUsage?.end();
       const lines=toLines(txt); if(!lines.length) throw new Error('No usable lines came back.');
-      window.lyrAddLines(lines);
+      // Into the draft box like every other generator — nothing reaches the sheet until INSERT, so a
+      // continuation you don't like costs an ✕ DISCARD instead of hunting down four pasted lines.
+      lyrDraftSet(lines.join('\n'));
       progress.stop(true);
     }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
@@ -492,6 +673,84 @@
     }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
 
+  // ---- draft actions + saved takes (full CRUD on generated lyrics) ----
+  function lyrDraftText(){ return ($('ai-lyr-out')?.value||'').trim(); }
+
+  function lyrInsertDraft(){
+    const arr=draftToTagged(lyrDraftText());
+    if(!arr.length){ note('ai-lyr-note','Nothing in the draft to insert.'); return; }
+    window.lyrAddLines(arr);
+    note('ai-lyr-note',`Added ${arr.length} line${arr.length===1?'':'s'} to “${window.lyrTakes?.sheetTitle?.()||'the sheet'}”. Section headers became line tags, so the arrangement rebuilt itself.`);
+    $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
+  }
+  function lyrDraftToNewSheet(){
+    const arr=draftToTagged(lyrDraftText());
+    if(!arr.length){ note('ai-lyr-note','Nothing in the draft to save.'); return; }
+    const name=prompt('Name the new sheet:', $('ai-lyr-theme')?.value.trim() || 'Untitled');
+    if(name===null) return;
+    window.lyrNewSheetFromLines?.(name.trim()||'Untitled', arr);
+    note('ai-lyr-note',`Started a new sheet — “${name.trim()||'Untitled'}”.`);
+    $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
+  }
+  function lyrSaveTake(){
+    const text=lyrDraftText();
+    if(!text){ note('ai-lyr-note','Generate or write something first.'); return; }
+    const list=window.lyrTakes?.list?.()||[];
+    const suggested=`Take ${list.length+1}`;
+    const name=prompt('Name this take (e.g. "Take 2 — darker second verse"):', suggested);
+    if(name===null) return;
+    const take=window.lyrTakes.add(name.trim()||suggested, text, {
+      genre:$('ai-lyr-genre')?.value||'', mood:$('ai-lyr-mood')?.value||'',
+      topic:$('ai-lyr-theme')?.value||'', form:$('ai-lyr-form')?.value||'', pov:$('ai-lyr-pov')?.value||''
+    });
+    // Edits from here autosave into this take, so small tweaks never need SAVE pressed again.
+    window.__lyrTakeLoadedId=take.id;
+    window.renderLyrTakes();
+    note('ai-lyr-note',`Saved “${take.name}”. Edits to the draft now autosave into it.`);
+    $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
+  }
+  window.renderLyrTakes=()=>{
+    const wrap=$('ai-lyr-takes-wrap'); if(!wrap||!window.lyrTakes) return;
+    const takes=window.lyrTakes.list();
+    wrap.classList.toggle('hidden', !takes.length);
+    const hint=$('ai-lyr-takes-hint');
+    if(hint) hint.textContent=takes.length?`${takes.length} saved`:'';
+    const list=$('ai-lyr-takes-list'); if(!list) return;
+    // Newest first — the take you just saved is the one you're most likely to want back.
+    list.innerHTML=takes.slice().reverse().map(t=>{
+      const lines=String(t.text||'').split('\n').filter(l=>l.trim() && !/^\[.*\]$/.test(l.trim())).length;
+      const on=String(window.__lyrTakeLoadedId)===String(t.id);
+      return `<div class="flex items-center gap-2 p-2 rounded border ${on?'border-[#FFD60A60] bg-[#FFD60A]/5':'border-[#FFD60A20] bg-black/30'}">
+        <div class="flex-1 min-w-0">
+          <div class="text-[10px] font-bold text-[#FFD60A] truncate">${window.escapeHtml(t.name)}${on?' <span class="text-[8px] text-[#FFD60A]/60 font-normal">· editing</span>':''}</div>
+          <div class="text-[9px] text-white/35 font-mono">${new Date(t.createdAt).toLocaleDateString()} · ${lines} lines${t.params&&t.params.genre?' · '+window.escapeHtml(t.params.genre):''}</div>
+        </div>
+        <button type="button" class="lyr-take-load btn-euterpe px-2 py-1 text-[9px] shrink-0" data-id="${t.id}" title="Load this take back into the draft box">✏️ LOAD</button>
+        <button type="button" class="lyr-take-copy btn-euterpe-green px-2 py-1 text-[9px] shrink-0" data-id="${t.id}" title="Copy this take as plain text">📋</button>
+        <button type="button" class="lyr-take-del text-white/30 hover:text-[#FF5A5A] text-[13px] px-1 shrink-0" data-id="${t.id}" title="Delete this take" aria-label="Delete this take">×</button>
+      </div>`;
+    }).join('');
+  };
+  function lyrLoadTake(id){
+    const t=window.lyrTakes?.get(id); if(!t) return;
+    window.__lyrTakeLoadedId=t.id;
+    lyrDraftSet(t.text, true);
+    const p=t.params||{};
+    const set=(elId,v)=>{ const el=$(elId); if(el && v!=null && v!=='') el.value=v; };
+    set('ai-lyr-genre',p.genre); set('ai-lyr-mood',p.mood); set('ai-lyr-theme',p.topic);
+    set('ai-lyr-form',p.form); set('ai-lyr-pov',p.pov);
+    renderFormPreview(); window.renderLyrTakes();
+    note('ai-lyr-note',`Loaded “${t.name}” — editing the draft now autosaves into it.`);
+    $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
+  }
+  function lyrDeleteTake(id){
+    const t=window.lyrTakes?.get(id); if(!t) return;
+    if(!confirm(`Delete saved take “${t.name}”? This can't be undone.`)) return;
+    window.lyrTakes.remove(id);
+    if(String(window.__lyrTakeLoadedId)===String(id)) window.__lyrTakeLoadedId=null;
+    window.renderLyrTakes();
+  }
+
   function init(){
     // modal wiring
     AI_MODES.forEach(k=>$('ai-mode-'+k)?.addEventListener('click',()=>setModalMode(k)));
@@ -521,7 +780,62 @@
     $('btn-ai-lyr-punch')?.addEventListener('click',lyrPunch);
     $('btn-lyr-punch-selected')?.addEventListener('click',lyrPunch);
     $('btn-ai-lyr-title')?.addEventListener('click',lyrTitle);
-    $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrGen(); });
+    $('btn-ai-lyr-song')?.addEventListener('click',lyrSong);
+    $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrSong(); });
+
+    // Genre list comes from the Cookbook itself, so a genre added there shows up here with no wiring.
+    // Deferred to the next tick because this closure and the Cookbook's own init both run at load and
+    // allCookbookGenres isn't guaranteed to exist yet when the AI script's init fires.
+    setTimeout(()=>{
+      const gsel=$('ai-lyr-genre');
+      if(gsel && window.allCookbookGenres){
+        const genres=window.allCookbookGenres().sort();
+        gsel.innerHTML='<option value="">— no genre —</option>'+genres.map(g=>`<option value="${window.escapeHtml(g)}">${window.escapeHtml(g)}</option>`).join('');
+      }
+      const fsel=$('ai-lyr-form');
+      if(fsel) fsel.innerHTML=SONG_FORMS.map(([k,label])=>`<option value="${k}">${label}</option>`).join('');
+      renderFormPreview();
+      window.renderLyrTakes?.();
+    },0);
+    $('ai-lyr-form')?.addEventListener('change',renderFormPreview);
+    $('ai-lyr-genre')?.addEventListener('change',renderFormPreview);
+    $('ai-lyr-form-custom')?.addEventListener('input',renderFormPreview);
+
+    // draft box
+    $('btn-ai-lyr-insert')?.addEventListener('click',lyrInsertDraft);
+    $('btn-ai-lyr-newsheet')?.addEventListener('click',lyrDraftToNewSheet);
+    $('btn-ai-lyr-save')?.addEventListener('click',lyrSaveTake);
+    $('btn-ai-lyr-copy')?.addEventListener('click',(e)=>{
+      const out=$('ai-lyr-out'); if(!out) return;
+      out.select(); navigator.clipboard?.writeText(out.value).catch(()=>document.execCommand('copy'));
+      const b=e.currentTarget, orig=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=orig,1500);
+    });
+    $('btn-ai-lyr-discard')?.addEventListener('click',()=>{
+      const out=$('ai-lyr-out'); if(out) out.value='';
+      $('ai-lyr-out-wrap')?.classList.add('hidden');
+      window.__lyrTakeLoadedId=null; window.renderLyrTakes?.(); note('ai-lyr-note','');
+    });
+    // Keeps the counter honest as you type, and autosaves into the loaded take after a pause — same
+    // debounced-write behaviour as the Lyria Prompt and Producer Notes boxes.
+    $('ai-lyr-out')?.addEventListener('input',(e)=>{
+      lyrDraftCount();
+      if(!window.__lyrTakeLoadedId) return;
+      clearTimeout(window.__lyrTakeAutosaveTimer);
+      window.__lyrTakeAutosaveTimer=setTimeout(()=>{
+        window.lyrTakes?.update(window.__lyrTakeLoadedId, e.target.value);
+        window.renderLyrTakes?.();
+      },700);
+    });
+    $('ai-lyr-takes-list')?.addEventListener('click',(e)=>{
+      const load=e.target.closest('.lyr-take-load'), copy=e.target.closest('.lyr-take-copy'), del=e.target.closest('.lyr-take-del');
+      if(load) lyrLoadTake(load.dataset.id);
+      else if(copy){
+        const t=window.lyrTakes?.get(copy.dataset.id); if(!t) return;
+        navigator.clipboard?.writeText(t.text).catch(()=>{});
+        const orig=copy.textContent; copy.textContent='✓'; setTimeout(()=>copy.textContent=orig,1200);
+      }
+      else if(del) lyrDeleteTake(del.dataset.id);
+    });
     updateStatus();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();

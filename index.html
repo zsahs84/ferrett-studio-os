@@ -1369,16 +1369,63 @@
                 <h4 class="text-[11px] text-[#00E5FF] font-bold tracking-widest">✨ AI CO-PILOT <span id="ai-status-lyr" class="text-[8px] font-normal ml-1"></span></h4>
                 <button id="btn-ai-settings-lyr" type="button" class="text-[10px] text-[#00E5FF]/60 hover:text-[#00E5FF] cursor-pointer bg-transparent border-0">⚙ setup</button>
             </div>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Powered by your own Groq-in-Home-Assistant. Generates into the current sheet — cut it up, keep what sticks.</p>
-            <div class="flex flex-wrap gap-2 mb-3">
-                <input type="text" id="ai-lyr-theme" placeholder="theme / mood / who it's about…" class="flex-1 min-w-[160px] bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
-                <select id="ai-lyr-style" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[11px] px-2 py-2 focus:outline-none"><option value="hip-hop bars">Hip-hop bars</option><option value="a soulful hook">Soul hook</option><option value="a rock verse">Rock verse</option><option value="a pop chorus">Pop chorus</option><option value="dark trap">Dark trap</option><option value="folk storytelling">Folk story</option></select>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-3">Writes a <b class="text-[#00E5FF]/70">whole song</b> to a real structure, using the chosen genre's own recipe data — its mood and its vocal style — not just a genre name. Output lands in a draft box below: edit it, copy it, save it as a take, or drop it into the sheet.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                <div>
+                    <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">TOPIC / WHAT IT'S ABOUT</label>
+                    <input type="text" id="ai-lyr-theme" placeholder="e.g. leaving a town you outgrew" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none placeholder-[#C9FFE6]/25">
+                </div>
+                <div>
+                    <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">MOOD</label>
+                    <input type="text" id="ai-lyr-mood" list="ai-lyr-mood-list" placeholder="blank = use the genre's own mood" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none placeholder-[#C9FFE6]/25">
+                    <datalist id="ai-lyr-mood-list"><option value="defiant"><option value="wistful"><option value="menacing"><option value="euphoric"><option value="exhausted"><option value="tender"><option value="paranoid"><option value="triumphant"><option value="bitter"><option value="hopeful"><option value="numb"><option value="restless"></datalist>
+                </div>
             </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                <div>
+                    <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">GENRE — carries its vocal style</label>
+                    <select id="ai-lyr-genre" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[#E2E8F0] text-[11px] px-2 py-2 focus:outline-none"></select>
+                </div>
+                <div>
+                    <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">SONG FORM</label>
+                    <select id="ai-lyr-form" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[#E2E8F0] text-[11px] px-2 py-2 focus:outline-none"></select>
+                </div>
+                <div>
+                    <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">PERSPECTIVE</label>
+                    <select id="ai-lyr-pov" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[#E2E8F0] text-[11px] px-2 py-2 focus:outline-none">
+                        <option value="">— writer's choice —</option>
+                        <option value="first person (I / me)">First person (I / me)</option>
+                        <option value="second person, addressing someone directly (you)">Second person (you)</option>
+                        <option value="third person, telling someone else's story">Third person (they)</option>
+                        <option value="a narrator observing the scene from outside">Outside narrator</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Only shown for the "Custom…" form option. One section per line, "Name Bars". -->
+            <div id="ai-lyr-form-custom-wrap" class="hidden mb-2">
+                <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">CUSTOM STRUCTURE — one section per line, <code class="text-[#B18CFF]">Name Bars</code></label>
+                <textarea id="ai-lyr-form-custom" rows="5" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-3 py-2 focus:outline-none font-mono" placeholder="Intro 4&#10;Hook 8&#10;Verse 16&#10;Hook 8&#10;Outro 4"></textarea>
+            </div>
+            <div id="ai-lyr-form-preview" class="text-[9px] text-[#00E5FF]/45 font-mono mb-3 leading-relaxed"></div>
             <div class="flex flex-wrap gap-2">
-                <button id="btn-ai-lyr-gen" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]">✨ GENERATE</button>
+                <button id="btn-ai-lyr-song" type="button" class="btn-euterpe-green px-4 py-2 text-[10px]" title="Writes every section of the chosen form in one pass, with [Section] headers" aria-label="Write a full song">🎵 WRITE FULL SONG</button>
+                <button id="btn-ai-lyr-gen" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Just one section, using the section + line count below the buttons" aria-label="Write one section only">✨ ONE SECTION</button>
                 <button id="btn-ai-lyr-cont" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet" aria-label="Continue from what's on the sheet">↳ CONTINUE</button>
                 <button id="btn-ai-lyr-punch" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked" aria-label="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
                 <button id="btn-ai-lyr-title" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines" aria-label="Suggest titles / hook lines">🏷 TITLES</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+                <span class="text-[8px] tracking-widest text-[#00E5FF]/40 font-bold">FOR ✨ ONE SECTION →</span>
+                <select id="ai-lyr-section" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[#00E5FF] text-[10px] px-2 py-1 focus:outline-none">
+                    <option value="Verse">Verse</option><option value="Chorus">Chorus</option><option value="Hook">Hook</option>
+                    <option value="Pre-Chorus">Pre-Chorus</option><option value="Bridge">Bridge</option><option value="Intro">Intro</option>
+                    <option value="Outro">Outro</option><option value="Refrain">Refrain</option><option value="">no tag</option>
+                </select>
+                <input type="number" id="ai-lyr-count" value="8" min="2" max="32" class="w-16 bg-black/50 border border-[#00E5FF]/25 rounded text-center text-[#00E5FF] text-[10px] px-2 py-1 focus:outline-none" title="How many lines" aria-label="How many lines">
+                <span class="text-[8px] tracking-widest text-[#00E5FF]/40">LINES</span>
             </div>
             <div id="ai-lyr-progress-wrap" class="hidden mt-2">
                 <div class="w-full h-[3px] bg-black/40 rounded overflow-hidden">
@@ -1388,6 +1435,32 @@
             </div>
             <div id="ai-lyr-titles" class="hidden flex-wrap gap-1.5 mt-2"></div>
             <div id="ai-lyr-note" class="text-[10px] text-[#FF5A5A]/80 mt-2"></div>
+
+            <!-- Draft review box. Generated lyrics land HERE rather than going straight into the sheet,
+                 so a full song can be read, edited, copied or saved without ever touching your lines. -->
+            <div id="ai-lyr-out-wrap" class="hidden border-t border-[#00E5FF20] pt-3 mt-3">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">DRAFT — edit freely before you keep it</label>
+                    <span id="ai-lyr-out-count" class="text-[9px] font-mono text-[#00E5FF]/50"></span>
+                </div>
+                <textarea id="ai-lyr-out" class="w-full bg-black/60 border border-[#00E5FF]/30 rounded text-[#C9FFE6] text-[12px] font-mono leading-relaxed px-3 py-3 h-56 resize-y focus:outline-none"></textarea>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <button id="btn-ai-lyr-insert" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]" title="Adds these lines to the sheet below — [Section] headers become line tags and rebuild the arrangement" aria-label="Insert into sheet">↓ INSERT INTO SHEET</button>
+                    <button id="btn-ai-lyr-newsheet" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF" title="Start a brand-new lyric sheet from this draft, leaving the current one untouched" aria-label="Save as new sheet">＋ AS NEW SHEET</button>
+                    <button id="btn-ai-lyr-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the draft as plain text" aria-label="Copy draft">📋 COPY</button>
+                    <button id="btn-ai-lyr-save" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Keep this draft beside the sheet as a named take you can come back to" aria-label="Save as take">💾 SAVE TAKE</button>
+                    <button id="btn-ai-lyr-discard" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A" aria-label="Discard draft">✕ DISCARD</button>
+                </div>
+            </div>
+
+            <!-- Saved takes for the active sheet — same LOAD/COPY/DELETE pattern as Lyria Prompts. -->
+            <div id="ai-lyr-takes-wrap" class="hidden border-t border-[#FFD60A20] pt-3 mt-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold">💾 SAVED TAKES FOR THIS SHEET</span>
+                    <span id="ai-lyr-takes-hint" class="text-[9px] text-[#E2E8F0]/35"></span>
+                </div>
+                <div id="ai-lyr-takes-list" class="space-y-1.5"></div>
+            </div>
         </div>
     </section>
 

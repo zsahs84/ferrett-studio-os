@@ -440,6 +440,33 @@
     return sheet.id;
   };
 
+  // ---- section runs, for the chord-suggestion AI ----
+  // A "run" is a maximal block of consecutive lines sharing one tag — the same grouping the
+  // arrangement is derived from. Repeats are numbered ("Verse 1", "Verse 2") so the model can be told
+  // that a returning section usually reuses its earlier progression. Carries the actual words, because
+  // matching chords to what a section SAYS is the whole point; carries firstIndex so an accepted
+  // progression knows which line to be written onto.
+  window.lyrSectionRuns=()=>{
+    if(!lyrState) initLyrState();
+    const lines=activeSheet().lines; const runs=[]; let cur=null;
+    lines.forEach((ln,i)=>{
+      const tag=ln.tag||'';
+      if(!cur || cur.tag!==tag){ cur={ tag, name: tag?window.lyrTagDisplay(tag):'Untagged', firstIndex:i, indices:[i], lines:[ln.text||''] }; runs.push(cur); }
+      else { cur.indices.push(i); cur.lines.push(ln.text||''); }
+    });
+    const withWords=runs.filter(r=>r.lines.some(t=>t.trim()));
+    const total={}; withWords.forEach(r=>{ total[r.name]=(total[r.name]||0)+1; });
+    const seen={};
+    withWords.forEach(r=>{ if(total[r.name]>1){ seen[r.name]=(seen[r.name]||0)+1; r.label=`${r.name} ${seen[r.name]}`; } else r.label=r.name; });
+    return withWords;
+  };
+  window.lyrSetChordsAt=(index, chords)=>{
+    if(!lyrState) initLyrState();
+    const s=activeSheet(); if(!s.lines[index]) return false;
+    s.lines[index].chords=String(chords||''); saveLyr(); renderLines(); return true;
+  };
+  window.lyrHasAnyChords=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.some(l=>(l.chords||'').trim()); };
+
   // ---- saved lyric takes (per sheet) ----
   // A take is a whole block of lyric text kept BESIDE the sheet instead of merged into it, so several
   // drafts of the same verse can sit side by side without any of them touching your actual lines

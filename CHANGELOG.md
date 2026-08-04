@@ -5,6 +5,22 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v149 — 2026-08-03
+- **🎹 CHORDS** in the AI Co-Pilot suggests a progression matched to the song rather than pulled out of
+  the air. It reads the lyrics already on the sheet **section by section** — the actual words — plus the
+  chosen genre (its character description and typical tempo), the mood, the topic, and an optional
+  **KEY** field. The model is told to give sections different harmonic jobs (a verse that cycles, a
+  pre-chorus that builds, a chorus that lifts and resolves, a bridge that leaves the tonic), to reuse a
+  progression when a section repeats the way a real song does, and to let the words drive the colour.
+  Each suggestion comes back with a one-line reason naming what in the mood or lyrics led there.
+- Suggestions are reviewed before anything is written: a per-section list with the chosen key, then
+  APPLY TO SHEET / COPY / DISCARD. Applying writes each progression onto the first line of its section
+  and switches the chord row on; if any line already has chords it asks first. Sections are matched
+  back by id, so an out-of-order or partial reply can never write a chorus progression onto a verse.
+- The lyric/chord separation from v148 still holds in the direction that matters: this is the only
+  action that writes chords, and the lyric-writing paths (generation, CONTINUE, PUNCH UP) still never
+  see or emit them.
+
 ## v148 — 2026-08-03
 - Chord annotations in the Lyrics Lab. Each line can carry a plain hand-typed chord string above it
   (`Bb  C#m  Am  E7`) — nothing is parsed or validated, whatever you type is what shows. A **CHORDS**

@@ -1384,7 +1384,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
                 <div>
                     <label class="text-[8px] tracking-widest text-[#00E5FF]/60 font-bold block mb-1">GENRE — carries its vocal style</label>
                     <select id="ai-lyr-genre" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[#E2E8F0] text-[11px] px-2 py-2 focus:outline-none"></select>
@@ -1403,6 +1403,11 @@
                         <option value="a narrator observing the scene from outside">Outside narrator</option>
                     </select>
                 </div>
+                <div>
+                    <label class="text-[8px] tracking-widest text-[#FFD60A]/60 font-bold block mb-1">KEY — for 🎹 CHORDS</label>
+                    <input type="text" id="ai-lyr-key" list="ai-lyr-key-list" placeholder="blank = let it choose" class="w-full bg-black/50 border border-[#FFD60A]/25 rounded text-[#FFD60A] text-[11px] px-2 py-2 focus:outline-none placeholder-[#FFD60A]/25">
+                    <datalist id="ai-lyr-key-list"><option value="C major"><option value="G major"><option value="D major"><option value="A major"><option value="E major"><option value="F major"><option value="Bb major"><option value="Eb major"><option value="A minor"><option value="E minor"><option value="B minor"><option value="F# minor"><option value="D minor"><option value="G minor"><option value="C minor"><option value="F minor"></datalist>
+                </div>
             </div>
 
             <!-- Only shown for the "Custom…" form option. One section per line, "Name Bars". -->
@@ -1417,6 +1422,7 @@
                 <button id="btn-ai-lyr-cont" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Continue from what's on the sheet" aria-label="Continue from what's on the sheet">↳ CONTINUE</button>
                 <button id="btn-ai-lyr-punch" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Punches up checked line(s) in the sheet below, or the last line if none are checked" aria-label="Punches up checked line(s) in the sheet below, or the last line if none are checked">↑ PUNCH UP</button>
                 <button id="btn-ai-lyr-title" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF" title="Suggest titles / hook lines" aria-label="Suggest titles / hook lines">🏷 TITLES</button>
+                <button id="btn-ai-lyr-chords" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Reads the words already on this sheet, section by section, and suggests a progression that fits the genre, the mood and what each section actually says" aria-label="Suggest a chord progression">🎹 CHORDS</button>
             </div>
             <div class="flex flex-wrap items-center gap-2 mt-2">
                 <span class="text-[8px] tracking-widest text-[#00E5FF]/40 font-bold">FOR ✨ ONE SECTION →</span>
@@ -1451,6 +1457,21 @@
                     <button id="btn-ai-lyr-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the draft as plain text" aria-label="Copy draft">📋 COPY</button>
                     <button id="btn-ai-lyr-save" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Keep this draft beside the sheet as a named take you can come back to" aria-label="Save as take">💾 SAVE TAKE</button>
                     <button id="btn-ai-lyr-discard" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A" aria-label="Discard draft">✕ DISCARD</button>
+                </div>
+            </div>
+
+            <!-- Suggested chord progression, per section. Reviewed here before anything is written to
+                 the sheet, and never applied to a line the user hasn't seen a suggestion for. -->
+            <div id="ai-lyr-chords-wrap" class="hidden border-t border-[#FFD60A20] pt-3 mt-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] tracking-widest text-[#FFD60A]/70 font-bold">🎹 SUGGESTED PROGRESSION</span>
+                    <span id="ai-lyr-chords-key-out" class="text-[9px] font-mono text-[#FFD60A]/60"></span>
+                </div>
+                <div id="ai-lyr-chords-list" class="space-y-1.5 mb-2"></div>
+                <div class="flex flex-wrap gap-2">
+                    <button id="btn-ai-lyr-chords-apply" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]" title="Writes each progression onto the first line of its section and turns the CHORDS row on" aria-label="Apply chords to sheet">↓ APPLY TO SHEET</button>
+                    <button id="btn-ai-lyr-chords-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" aria-label="Copy progression">📋 COPY</button>
+                    <button id="btn-ai-lyr-chords-discard" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A" aria-label="Discard progression">✕ DISCARD</button>
                 </div>
             </div>
 

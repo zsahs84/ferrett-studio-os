@@ -673,6 +673,107 @@
     }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
 
+  // ---- chord progression suggestion ----
+  // The one AI action that touches chords, and it only ever WRITES the chord field — it reads the
+  // lyrics to decide, but the lyric-writing paths above still never see or emit a chord. That
+  // separation is deliberate: PUNCH UP and CONTINUE can't quietly rewrite your harmony.
+  function parseJsonLoose(txt){
+    const s=String(txt||'').trim().replace(/^```[a-z]*\n?/,'').replace(/```$/,'').trim();
+    try{ return JSON.parse(s); }catch(e){}
+    const m=s.match(/\{[\s\S]*\}/);
+    if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
+    return null;
+  }
+  function renderChordSuggestion(){
+    const sug=window.__lyrChordSuggestion, wrap=$('ai-lyr-chords-wrap'); if(!wrap) return;
+    if(!sug || !sug.sections.length){ wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    const k=$('ai-lyr-chords-key-out'); if(k) k.textContent=sug.key?`key of ${sug.key}`:'';
+    const list=$('ai-lyr-chords-list'); if(!list) return;
+    list.innerHTML=sug.sections.map(x=>`
+      <div class="p-2 rounded border border-[#FFD60A20] bg-black/30">
+        <div class="flex items-baseline gap-2 flex-wrap">
+          <span class="text-[9px] font-bold tracking-widest text-[#FFD60A]/70 shrink-0">${window.escapeHtml(x.label||'')}</span>
+          <span class="text-[12px] font-mono font-bold text-[#FFD60A]">${window.escapeHtml(x.progression||'')}</span>
+        </div>
+        ${x.why?`<div class="text-[9px] text-white/40 mt-1 leading-relaxed">${window.escapeHtml(x.why)}</div>`:''}
+      </div>`).join('');
+  }
+  function chordSuggestionText(){
+    const sug=window.__lyrChordSuggestion; if(!sug) return '';
+    return (sug.key?`Key: ${sug.key}\n\n`:'')+sug.sections.map(x=>`${x.label}\n${x.progression}${x.why?`\n  — ${x.why}`:''}`).join('\n\n');
+  }
+  function applyChordSuggestion(){
+    const sug=window.__lyrChordSuggestion; if(!sug) return;
+    const targets=sug.sections.filter(x=>x.lineIndex!=null);
+    if(!targets.length){ note('ai-lyr-note','Nothing to apply — the sections no longer match this sheet.'); return; }
+    if(window.lyrHasAnyChords?.() && !confirm('Some lines on this sheet already have chords.\n\nApply anyway? This overwrites the first line of each section it covers; other lines keep what they have.')) return;
+    let n=0;
+    targets.forEach(x=>{ if(window.lyrSetChordsAt(x.lineIndex, x.progression)) n++; });
+    // Applying chords you can't see would be a strange outcome, so make sure the row is on.
+    const cb=$('lyr-show-chords');
+    if(cb && !cb.checked){ cb.checked=true; cb.dispatchEvent(new Event('change')); }
+    note('ai-lyr-note',`Wrote ${n} progression${n===1?'':'s'} onto the first line of each section — edit them like any hand-typed chord.`);
+    $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
+  }
+
+  async function lyrChords(){
+    if(!isConfigured()){ openAiModal(); return; }
+    const runs=window.lyrSectionRuns?.()||[];
+    if(!runs.length){ note('ai-lyr-note','Write or insert some lyrics first — the progression is matched to what each section actually says.'); return; }
+    const { genre, meta }=lyrGenreMeta();
+    const mood=$('ai-lyr-mood')?.value.trim() || (meta&&meta.mood) || '';
+    const key=$('ai-lyr-key')?.value.trim() || '';
+    const topic=$('ai-lyr-theme')?.value.trim() || '';
+    const progress=lyrProgress('Matching chords to the words'); note('ai-lyr-note','');
+    try{
+      const sys=[
+        'You are a songwriter and arranger choosing a chord progression for a song that is already written. You are given the actual lyrics, section by section, plus the genre and mood. Match the harmony to THAT material — never return a generic or random progression.',
+        'Reply with JSON only: {"key":"<key you chose or were given>","sections":[{"id":<the section id given>,"progression":"<chords separated by two spaces>","why":"<one short sentence>"}]}. One entry per section id, in the order given, no extra keys, no commentary outside the JSON.',
+        'progression must be plain chord symbols a player can read straight off the page — Am, F, C, G, Bb, C#m, E7, Dm7, Fmaj7, G/B, Asus2. Never roman numerals, never tab, never note-by-note spellings, never explanations inside that field. Two to eight chords.',
+        'Everything must sit in the stated key. A borrowed or secondary chord is allowed only where it earns its place, and if you use one, say so in "why".',
+        'Sections that repeat (Chorus 1 and Chorus 2, a returning Hook) should share the same progression the way a real song does, unless the words in the later one clearly turn somewhere different.',
+        'Give the sections different harmonic jobs: a verse that sits and cycles, a pre-chorus that builds tension, a chorus that lifts and resolves, a bridge that leaves the home chord. An intro or outro can be a shortened version of a section next to it.',
+        'Let the words and mood drive the colour — minor and modal for grim, bitter or paranoid material; major with suspensions for open or triumphant; a flattened or unresolved cadence where the lyric refuses to resolve. "why" must name what in the mood or the actual words led you there, in one sentence.'
+      ].join(' ');
+      // Lyrics are trimmed per section: enough for the model to hear what the section is doing without
+      // paying for a whole sheet twice over on a long song.
+      const sectionBlock=runs.map((r,i)=>{
+        const words=r.lines.filter(t=>t.trim()).slice(0,6);
+        return `[id ${i}] ${r.label} — ${r.lines.filter(t=>t.trim()).length} lines\n` + words.map(w=>'    '+w).join('\n');
+      }).join('\n\n');
+      const user=[
+        `GENRE: ${genre||'(none chosen — go by the mood and the words)'}`,
+        meta&&meta.desc?`GENRE CHARACTER (private reference — do not quote any artist name from this): ${meta.desc}`:'',
+        meta&&Array.isArray(meta.bpm)?`TYPICAL TEMPO: ${meta.bpm[0]}-${meta.bpm[1]} BPM`:'',
+        `MOOD: ${mood||'(infer it from the words)'}`,
+        topic?`TOPIC: ${topic}`:'',
+        key?`KEY: ${key} — use this key.`:'KEY: not specified — choose one that suits the mood and report it.',
+        '',
+        'SECTIONS — the real lyrics. Match a progression to what each one actually says:',
+        sectionBlock
+      ].filter(Boolean).join('\n');
+      window.__aiUsage?.begin('Lyrics: Chord Progression');
+      const txt=await window.ferrettAI(sys, user, { creative:true, json:true, maxTokens:1600, timeoutMs:60000 });
+      window.__aiUsage?.end();
+      const parsed=parseJsonLoose(txt);
+      if(!parsed || !Array.isArray(parsed.sections) || !parsed.sections.length) throw new Error('Could not read a progression out of the reply.');
+      // Match each returned entry back to a real run by the id we handed out, so a reordered or
+      // partial reply can never write a chorus progression onto a verse.
+      const sections=parsed.sections.map(x=>{
+        const run=runs[Number(x.id)];
+        if(!run || !x.progression) return null;
+        return { label:run.label, progression:String(x.progression).trim(), why:x.why?String(x.why).trim():'', lineIndex:run.firstIndex };
+      }).filter(Boolean);
+      if(!sections.length) throw new Error('The reply did not line up with this sheet\'s sections.');
+      window.__lyrChordSuggestion={ key:parsed.key?String(parsed.key).trim():key, sections };
+      renderChordSuggestion();
+      $('ai-lyr-chords-wrap')?.scrollIntoView({block:'nearest'});
+      progress.stop(true);
+      if(sections.length<runs.length) note('ai-lyr-note',`Got ${sections.length} of ${runs.length} sections — apply these, or run it again for the rest.`);
+    }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
+  }
+
   // ---- draft actions + saved takes (full CRUD on generated lyrics) ----
   function lyrDraftText(){ return ($('ai-lyr-out')?.value||'').trim(); }
 
@@ -781,6 +882,14 @@
     $('btn-lyr-punch-selected')?.addEventListener('click',lyrPunch);
     $('btn-ai-lyr-title')?.addEventListener('click',lyrTitle);
     $('btn-ai-lyr-song')?.addEventListener('click',lyrSong);
+    $('btn-ai-lyr-chords')?.addEventListener('click',lyrChords);
+    $('btn-ai-lyr-chords-apply')?.addEventListener('click',applyChordSuggestion);
+    $('btn-ai-lyr-chords-copy')?.addEventListener('click',(e)=>{
+      const t=chordSuggestionText(); if(!t) return;
+      navigator.clipboard?.writeText(t).catch(()=>{});
+      const b=e.currentTarget, o=b.textContent; b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=o,1500);
+    });
+    $('btn-ai-lyr-chords-discard')?.addEventListener('click',()=>{ window.__lyrChordSuggestion=null; renderChordSuggestion(); note('ai-lyr-note',''); });
     $('ai-lyr-theme')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') lyrSong(); });
 
     // Genre list comes from the Cookbook itself, so a genre added there shows up here with no wiring.

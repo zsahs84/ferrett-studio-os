@@ -5,6 +5,18 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v148 — 2026-08-03
+- Chord annotations in the Lyrics Lab. Each line can carry a plain hand-typed chord string above it
+  (`Bb  C#m  Am  E7`) — nothing is parsed or validated, whatever you type is what shows. A **CHORDS**
+  checkbox next to SYLLABLES toggles the chord row on and off and remembers the setting between
+  sessions. Chords live on the line itself, so they ride along through cut-up shuffles and
+  drag-reorders; a line whose chords are hidden shows a small ♪ so it never looks empty when it isn't.
+  `.TXT` export and PRINT always include chords when a line has them, regardless of the toggle —
+  print puts them on their own monospace line above the lyric, the usual chord-sheet layout.
+- The AI is deliberately unaware of chords: `lyrGetActiveText` / `lyrGetActiveTextPlain` (the only
+  lyric text the co-pilot ever receives) omit the field entirely, so generation, CONTINUE and PUNCH UP
+  stay strictly about words and can never rewrite or invent a chord.
+
 ## v147 — 2026-08-03
 - Lyrics Lab AI Co-Pilot rebuilt around **whole songs** instead of 8 lines at a time.
   - New **🎵 WRITE FULL SONG** writes every section of a real structure in one pass, with `[Section]`

@@ -10,6 +10,9 @@
 
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
+  // Chord-line visibility is a view preference, not sheet data, so it lives in localStorage next to
+  // the other UI toggles rather than in the vault.
+  const LYR_CHORDS_KEY='ferrett_os_lyr_show_chords_v1';
   // one color per section type, shared with ARR_TYPES in the Arrangement Timeline so a Chorus/Hook/etc
   // looks the same everywhere: per-line tag glyphs, the structure strip chips, arrangement rows, and the bar graph
   // Google publishes no closed list of section tags — the guides say "section tags LIKE [Verse],
@@ -217,6 +220,12 @@
   }
   function renderLines(){
     const box=$('lyr-lines'); if(!box) return; const sheet=activeSheet(); const showSyl=$('lyr-show-syl')?.checked;
+    // Chords are hand-typed annotations (Bb, C#m, Am, E7) that live on the line itself, so they ride
+    // along with it through cut-up shuffles and drag-reorders — the chord belongs to that line, not to
+    // a position on the page. Nothing parses or validates them; whatever you type is what shows.
+    // The AI never sees this field: lyrGetActiveText/lyrGetActiveTextPlain deliberately omit it, so
+    // punch-ups and continuations stay strictly about words.
+    const showChords=$('lyr-show-chords')?.checked;
     box.innerHTML=sheet.lines.map((ln,i)=>{
       const tc=tagStyle(ln.tag)[1];
       const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
@@ -225,16 +234,27 @@
         `<span class="lyr-handle cursor-grab text-white/20 hover:text-[#FF88FF] text-[13px] select-none shrink-0" draggable="true" title="Drag to reorder">⠿</span>`+
         (ln.alt?`<span class="lyr-alt-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#FFD60A50] text-[#FFD60A] shrink-0">ALT</span>`:'')+
         `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
-        `<input type="text" class="lyr-text flex-1 bg-transparent border-b ${ln.alt?'border-[#FFD60A40]':'border-white/10'} focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
+        `<div class="flex-1 min-w-0 flex flex-col">`+
+          (showChords?`<input type="text" class="lyr-chords bg-transparent border-0 text-[11px] font-mono font-bold text-[#FFD60A]/90 px-1 pt-0.5 pb-0 focus:outline-none placeholder-[#FFD60A]/20" value="${(ln.chords||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="Bb   C#m   Am   E7" spellcheck="false" autocomplete="off" draggable="false" aria-label="Chords for this line">`:'')+
+          `<input type="text" class="lyr-text w-full bg-transparent border-b ${ln.alt?'border-[#FFD60A40]':'border-white/10'} focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
+        `</div>`+
         (showSyl?`<span class="text-[9px] font-mono text-[#FF88FF]/60 w-6 text-right shrink-0">${syl||''}</span>`:'')+
+        // Chords hidden but present: say so, rather than letting a line look empty when it isn't.
+        (!showChords && (ln.chords||'').trim()?`<span class="text-[10px] text-[#FFD60A]/50 shrink-0" title="This line has chords — tick CHORDS to see or edit them">♪</span>`:'')+
         `<button class="lyr-del text-white/20 hover:text-[#FF5A5A] text-[13px] shrink-0 opacity-0 group-hover:opacity-100" data-i="${i}" title="Delete line">×</button>`+
         `</div>`;
     }).join('');
     // text edit
     box.querySelectorAll('.lyr-text').forEach(inp=>{
-      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.parentElement.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
+      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.closest('.lyr-row')?.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
       inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const i=+inp.dataset.i; activeSheet().lines.splice(i+1,0,{text:'',tag:activeSheet().lines[i].tag}); saveLyr(); renderLines(); const nx=box.querySelector(`.lyr-text[data-i="${i+1}"]`); nx&&nx.focus(); } });
       inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
+    });
+    // Chord edits save straight to the line and never re-render (a re-render would steal focus
+    // mid-typing). Enter drops down into that line's lyric box, which is the natural next keystroke.
+    box.querySelectorAll('.lyr-chords').forEach(inp=>{
+      inp.addEventListener('input',()=>{ activeSheet().lines[+inp.dataset.i].chords=inp.value; saveLyr(); });
+      inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); box.querySelector(`.lyr-text[data-i="${inp.dataset.i}"]`)?.focus(); } });
     });
     box.querySelectorAll('.lyr-tag').forEach(sel=> sel.addEventListener('change',()=>{ activeSheet().lines[+sel.dataset.i].tag=sel.value; saveLyr(); renderLines(); }));
     box.querySelectorAll('.lyr-del').forEach(b=> b.addEventListener('click',()=>{ pushUndo(); const s=activeSheet(); const ln=s.lines[+b.dataset.i]; lyrSelected.delete(ln); s.lines.splice(+b.dataset.i,1); if(!s.lines.length) s.lines.push({text:'',tag:''}); saveLyr(); renderLines(); updateLyrMeta(); }));
@@ -345,7 +365,10 @@
     const b=$('lyr-lines'); if(b){ b.style.transition='none'; b.style.opacity='0.3'; requestAnimationFrame(()=>{ b.style.transition='opacity .3s'; b.style.opacity='1'; }); }
   }
   function lyrExport(){
-    const s=activeSheet(); const txt=s.lines.map(l=>(l.tag?`[${l.tag}] `:'')+l.text).join('\n');
+    // Chords go out as their own line above the lyric, the way a chord sheet is normally written —
+    // and they're included whether or not the CHORDS toggle happens to be on, since a .txt is the
+    // copy you keep. Lines with no chords are unchanged, so a lyrics-only sheet exports as before.
+    const s=activeSheet(); const txt=s.lines.map(l=>((l.chords||'').trim()?(l.chords.trim()+'\n'):'')+(l.tag?`[${l.tag}] `:'')+l.text).join('\n');
     const blob=new Blob([`${s.title||'Untitled'}\n\n${txt}`],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(s.title||'lyrics').replace(/[^a-z0-9]+/gi,'_')+'.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
   }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
@@ -708,6 +731,8 @@
       $('btn-lyr-delete-selected')?.addEventListener('click',()=>{ const s=activeSheet(); if(!lyrSelected.size) return; if(!confirm(`Delete ${lyrSelected.size} selected line(s)?`)) return; pushUndo(); s.lines=s.lines.filter(ln=>!lyrSelected.has(ln)); if(!s.lines.length) s.lines.push({text:'',tag:''}); lyrSelected.clear(); saveLyr(); renderLyr(); });
       $('btn-lyr-clear-selected')?.addEventListener('click',()=>{ lyrSelected.clear(); renderLines(); });
       $('lyr-show-syl')?.addEventListener('change',renderLines);
+      // Remembered across sessions — a chord chart isn't something you want to re-enable every visit.
+      $('lyr-show-chords')?.addEventListener('change',(e)=>{ try{ localStorage.setItem(LYR_CHORDS_KEY, e.target.checked?'1':'0'); }catch(err){} renderLines(); });
       $('btn-lyr-export')?.addEventListener('click',lyrExport);
       $('btn-lyr-rhyme')?.addEventListener('click',findRhymes);
       $('lyr-rhyme-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') findRhymes(); });
@@ -728,6 +753,7 @@
         if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
         else fallback();
       });
+      try{ const cb=$('lyr-show-chords'); if(cb) cb.checked = localStorage.getItem(LYR_CHORDS_KEY)==='1'; }catch(e){}
       renderLyr();
     }
     // beat

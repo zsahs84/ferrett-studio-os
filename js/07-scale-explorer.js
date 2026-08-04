@@ -392,9 +392,12 @@
   }
   function lyrPrint(){
     const sheet=activeLyrSheet(); if(!sheet){ alert('No lyrics to print.'); return; }
-    const rows=sheet.lines.map(l=>{ if(!l.text.trim() && !l.tag) return '<div class="sp">&nbsp;</div>'; return `<div class="ln">${l.tag?`<span class="tag">[${l.tag}]</span> `:''}${(l.text||'').replace(/</g,'&lt;')}</div>`; }).join('');
+    // Chords print as a monospace line above their lyric — the standard chord-sheet layout, and the
+    // reason a printout is worth making at all if you're playing from it. Always included when the
+    // line has them, independent of the on-screen CHORDS toggle.
+    const rows=sheet.lines.map(l=>{ if(!l.text.trim() && !l.tag && !(l.chords||'').trim()) return '<div class="sp">&nbsp;</div>'; const ch=(l.chords||'').trim()?`<div class="ch">${l.chords.replace(/</g,'&lt;')}</div>`:''; return ch+`<div class="ln">${l.tag?`<span class="tag">[${l.tag}]</span> `:''}${(l.text||'').replace(/</g,'&lt;')}</div>`; }).join('');
     const w=window.open('','_blank','width=640,height=800'); if(!w){ alert('Popup blocked — allow popups to print.'); return; }
-    w.document.write(`<!doctype html><html><head><meta charset="utf8"><title>${(sheet.title||'Lyrics')}</title><style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:0 20px;color:#111;line-height:1.7}h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px}.ln{font-size:15px}.tag{color:#a21caf;font-weight:bold;font-size:11px;letter-spacing:1px}.sp{height:10px}.foot{margin-top:40px;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:8px}@media print{.noprint{display:none}}</style></head><body><h1>${(sheet.title||'Untitled')}</h1>${rows}<div class="foot">EUTERPE_OS · ${new Date().toLocaleDateString()}</div><button class="noprint" onclick="window.print()" style="margin-top:20px;padding:8px 16px">Print / Save PDF</button></body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf8"><title>${(sheet.title||'Lyrics')}</title><style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:0 20px;color:#111;line-height:1.7}h1{font-size:24px;border-bottom:2px solid #111;padding-bottom:8px}.ln{font-size:15px}.tag{color:#a21caf;font-weight:bold;font-size:11px;letter-spacing:1px}.sp{height:10px}.ch{font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;font-weight:bold;color:#b45309;white-space:pre;line-height:1.3;margin-top:6px}.foot{margin-top:40px;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:8px}@media print{.noprint{display:none}}</style></head><body><h1>${(sheet.title||'Untitled')}</h1>${rows}<div class="foot">EUTERPE_OS · ${new Date().toLocaleDateString()}</div><button class="noprint" onclick="window.print()" style="margin-top:20px;padding:8px 16px">Print / Save PDF</button></body></html>`);
     w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} }, 350);
   }
 

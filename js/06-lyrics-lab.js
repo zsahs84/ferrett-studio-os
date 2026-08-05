@@ -218,6 +218,85 @@
       moreSel.innerHTML='<option value="">+ SONG ▾</option>'+others.map(s=>`<option value="${s.id}">${window.escapeHtml((s.title||'Untitled').slice(0,30))}</option>`).join('');
     }
   }
+  // ==================== POSITIONED CHORD MARKS ====================
+  // A chord isn't a label for the whole line, it's a change that happens ON a particular word — so a
+  // mark is {c:'Am', p:<character index into line.text>} and renders directly above that character.
+  // v148 stored a single free-text string per line (line.chords, "Am  F  C  G"); that field is still
+  // read, migrated to marks the first time a line is rendered, and deliberately left in place as the
+  // pre-migration record so REVERT CHORDS can put it back.
+  function lyrMarksOf(ln){
+    if(Array.isArray(ln.marks)) return ln.marks;
+    const legacy=(ln.chords||'').trim();
+    if(!legacy){ ln.marks=[]; return ln.marks; }
+    // Best-effort migration: spread the old chord list across the line's word starts, which is where
+    // a change almost always lands. Positions are a guess by definition — that's what dragging is for.
+    const chords=legacy.split(/\s{1,}/).filter(Boolean);
+    const text=ln.text||'';
+    const starts=[]; const re=/\S+/g; let m;
+    while((m=re.exec(text))) starts.push(m.index);
+    ln.marks=chords.map((c,i)=>{
+      const p = starts.length ? starts[Math.min(Math.round(i*(starts.length/Math.max(1,chords.length))), starts.length-1)] : 0;
+      return { c, p };
+    });
+    // Two chords can land on the same word on a short line; nudge duplicates apart so both stay grabbable.
+    ln.marks.forEach((mk,i)=>{ if(i && mk.p<=ln.marks[i-1].p) mk.p=Math.min((ln.text||'').length, ln.marks[i-1].p+1); });
+    return ln.marks;
+  }
+  const lyrSortMarks=(marks)=>marks.sort((a,b)=>a.p-b.p||String(a.c).localeCompare(String(b.c)));
+  window.lyrLineHasChords=(ln)=>!!(Array.isArray(ln.marks)?ln.marks.length:(ln.chords||'').trim());
+
+  // Pixel offset of a character index inside a lyric input, measured in that input's own font so the
+  // chord sits over the right letter in a proportional typeface (no monospace lyrics required).
+  let _measCtx=null;
+  // Canvas wants a valid CSS font shorthand. getComputedStyle().font is empty in Chrome, and building
+  // it from the longhands drags in font-variant:none — not legal in the shorthand, so the canvas
+  // silently discards the whole thing and measures in 10px sans-serif. Only the four parts that are
+  // always valid go in here.
+  function fontOf(el){
+    const cs=getComputedStyle(el);
+    if(cs.font) return cs.font;
+    return `${cs.fontStyle==='normal'?'':cs.fontStyle+' '}${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`.trim();
+  }
+  function measureUpTo(text, idx, font){
+    if(!_measCtx) _measCtx=document.createElement('canvas').getContext('2d');
+    _measCtx.font=font;
+    return _measCtx.measureText(String(text||'').slice(0, Math.max(0,idx))).width;
+  }
+  function nearestCharIndex(text, x, font){
+    const t=String(text||''); let best=0, bestD=Infinity;
+    for(let i=0;i<=t.length;i++){ const d=Math.abs(measureUpTo(t,i,font)-x); if(d<bestD){ bestD=d; best=i; } }
+    return best;
+  }
+  // Lays every chip out over its line. Called after each render and on resize, because the offsets
+  // depend on the rendered width of the text, which the DOM only knows once it's on screen.
+  function layoutChordChips(scope){
+    (scope||document).querySelectorAll('.lyr-chordlane').forEach(lane=>{
+      const row=lane.closest('.lyr-row'); const input=row?.querySelector('.lyr-text'); if(!input) return;
+      const font=fontOf(input);
+      const padLeft=parseFloat(getComputedStyle(input).paddingLeft)||0;
+      lane.querySelectorAll('.lyr-chip').forEach(chip=>{
+        const p=parseInt(chip.dataset.p,10)||0;
+        chip.style.left=Math.max(0, padLeft + measureUpTo(input.value, p, font) - input.scrollLeft)+'px';
+      });
+    });
+  }
+  window.lyrLayoutChordChips=layoutChordChips;
+  // A plain-text chord line for export / print / copy — spaces pad each chord to its column, which is
+  // exactly how a chord sheet is written and reads correctly in any monospace viewer.
+  function chordLineFor(ln){
+    const marks=lyrSortMarks(lyrMarksOf(ln).slice());
+    if(!marks.length) return '';
+    let out='';
+    marks.forEach(mk=>{
+      const want=Math.max(0, mk.p|0);
+      if(out.length<want) out+=' '.repeat(want-out.length);
+      else if(out.length) out+=' ';
+      out+=mk.c;
+    });
+    return out;
+  }
+  window.lyrChordLineFor=chordLineFor;
+
   function renderLines(){
     const box=$('lyr-lines'); if(!box) return; const sheet=activeSheet(); const showSyl=$('lyr-show-syl')?.checked;
     // Chords are hand-typed annotations (Bb, C#m, Am, E7) that live on the line itself, so they ride
@@ -235,12 +314,14 @@
         (ln.alt?`<span class="lyr-alt-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#FFD60A50] text-[#FFD60A] shrink-0">ALT</span>`:'')+
         `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
         `<div class="flex-1 min-w-0 flex flex-col">`+
-          (showChords?`<input type="text" class="lyr-chords bg-transparent border-0 text-[11px] font-mono font-bold text-[#FFD60A]/90 px-1 pt-0.5 pb-0 focus:outline-none placeholder-[#FFD60A]/20" value="${(ln.chords||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="Bb   C#m   Am   E7" spellcheck="false" autocomplete="off" draggable="false" aria-label="Chords for this line">`:'')+
+          (showChords?`<div class="lyr-chordlane relative h-[17px] cursor-copy" data-i="${i}" title="Click anywhere here to drop a chord on that word · drag a chord to slide it · click a chord to rename it (empty deletes)">`+
+            lyrSortMarks(lyrMarksOf(ln).slice()).map((mk,mi)=>`<span class="lyr-chip absolute top-0 text-[11px] font-mono font-bold text-[#FFD60A] bg-[#FFD60A]/10 border border-[#FFD60A]/30 rounded px-1 leading-[15px] cursor-grab select-none whitespace-nowrap hover:bg-[#FFD60A]/25" data-i="${i}" data-mi="${mi}" data-p="${mk.p}">${window.escapeHtml(mk.c)}</span>`).join('')+
+          `</div>`:'')+
           `<input type="text" class="lyr-text w-full bg-transparent border-b ${ln.alt?'border-[#FFD60A40]':'border-white/10'} focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
         `</div>`+
         (showSyl?`<span class="text-[9px] font-mono text-[#FF88FF]/60 w-6 text-right shrink-0">${syl||''}</span>`:'')+
         // Chords hidden but present: say so, rather than letting a line look empty when it isn't.
-        (!showChords && (ln.chords||'').trim()?`<span class="text-[10px] text-[#FFD60A]/50 shrink-0" title="This line has chords — tick CHORDS to see or edit them">♪</span>`:'')+
+        (!showChords && window.lyrLineHasChords(ln)?`<span class="text-[10px] text-[#FFD60A]/50 shrink-0" title="This line has chords — tick CHORDS to see or edit them">♪</span>`:'')+
         `<button class="lyr-del text-white/20 hover:text-[#FF5A5A] text-[13px] shrink-0 opacity-0 group-hover:opacity-100" data-i="${i}" title="Delete line">×</button>`+
         `</div>`;
     }).join('');
@@ -249,13 +330,70 @@
       inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.closest('.lyr-row')?.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
       inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const i=+inp.dataset.i; activeSheet().lines.splice(i+1,0,{text:'',tag:activeSheet().lines[i].tag}); saveLyr(); renderLines(); const nx=box.querySelector(`.lyr-text[data-i="${i+1}"]`); nx&&nx.focus(); } });
       inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
+      // Editing the words moves every character after the caret, so the chords above have to follow.
+      // Same on scroll, for a line long enough to overflow its box.
+      const relayout=()=>layoutChordChips(inp.closest('.lyr-row'));
+      inp.addEventListener('input',relayout);
+      inp.addEventListener('scroll',relayout);
     });
-    // Chord edits save straight to the line and never re-render (a re-render would steal focus
-    // mid-typing). Enter drops down into that line's lyric box, which is the natural next keystroke.
-    box.querySelectorAll('.lyr-chords').forEach(inp=>{
-      inp.addEventListener('input',()=>{ activeSheet().lines[+inp.dataset.i].chords=inp.value; saveLyr(); });
-      inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); box.querySelector(`.lyr-text[data-i="${inp.dataset.i}"]`)?.focus(); } });
+    // ---- chord lane: click to place, drag to slide, click a chip to rename ----
+    const laneFont=(row)=>{ const inp=row.querySelector('.lyr-text'); return { font: fontOf(inp), pad: parseFloat(getComputedStyle(inp).paddingLeft)||0, inp }; };
+    box.querySelectorAll('.lyr-chordlane').forEach(lane=>{
+      // Click on empty lane space = add a chord at the character you clicked over.
+      lane.addEventListener('mousedown',(e)=>{
+        if(e.target.classList.contains('lyr-chip')) return; // handled by the chip's own drag
+        const row=lane.closest('.lyr-row'); const { font, pad, inp }=laneFont(row);
+        const x=e.clientX-lane.getBoundingClientRect().left-pad+inp.scrollLeft;
+        const p=nearestCharIndex(inp.value, Math.max(0,x), font);
+        const name=prompt('Chord to place here (e.g. Am, F, C#m7, G/B):','');
+        if(name===null || !name.trim()) return;
+        pushUndo();
+        const ln=activeSheet().lines[+lane.dataset.i];
+        lyrMarksOf(ln).push({ c:name.trim(), p });
+        lyrSortMarks(ln.marks);
+        saveLyr(); renderLines();
+      });
     });
+    box.querySelectorAll('.lyr-chip').forEach(chip=>{
+      // Drag horizontally to slide the chord along the line. Movement under ~4px counts as a click,
+      // so a plain click still opens the rename prompt rather than nudging the chord by a pixel.
+      chip.addEventListener('mousedown',(e)=>{
+        e.preventDefault(); e.stopPropagation();
+        const lane=chip.closest('.lyr-chordlane'); const row=chip.closest('.lyr-row');
+        const { font, pad, inp }=laneFont(row);
+        const ln=activeSheet().lines[+chip.dataset.i];
+        const marks=lyrSortMarks(lyrMarksOf(ln)); const mk=marks[+chip.dataset.mi];
+        if(!mk) return;
+        const startX=e.clientX; let moved=false, newP=mk.p;
+        chip.style.cursor='grabbing'; chip.style.zIndex='5';
+        const onMove=(ev)=>{
+          if(Math.abs(ev.clientX-startX)>4) moved=true;
+          if(!moved) return;
+          const x=ev.clientX-lane.getBoundingClientRect().left-pad+inp.scrollLeft;
+          newP=nearestCharIndex(inp.value, Math.max(0,x), font);
+          chip.style.left=Math.max(0, pad+measureUpTo(inp.value,newP,font)-inp.scrollLeft)+'px';
+        };
+        const onUp=()=>{
+          document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
+          chip.style.cursor=''; chip.style.zIndex='';
+          if(moved){ pushUndo(); mk.p=newP; lyrSortMarks(ln.marks); saveLyr(); renderLines(); return; }
+          const name=prompt('Rename this chord (blank deletes it):', mk.c);
+          if(name===null) return;
+          pushUndo();
+          if(!name.trim()) ln.marks=marks.filter(x=>x!==mk); else mk.c=name.trim();
+          saveLyr(); renderLines();
+        };
+        document.addEventListener('mousemove',onMove); document.addEventListener('mouseup',onUp);
+      });
+    });
+    // Offsets are measured on a canvas, not read back from the DOM, so this works immediately and
+    // does NOT need to wait for a paint. It must not: requestAnimationFrame never fires while the tab
+    // is backgrounded, which left every chord stacked at x=0 until something forced a re-render.
+    // The two follow-ups cover the cases where metrics legitimately change after this call — a web
+    // font swapping in late, and any layout the browser hasn't settled yet.
+    layoutChordChips(box);
+    setTimeout(()=>layoutChordChips(box), 0);
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>layoutChordChips(box)).catch(()=>{});
     box.querySelectorAll('.lyr-tag').forEach(sel=> sel.addEventListener('change',()=>{ activeSheet().lines[+sel.dataset.i].tag=sel.value; saveLyr(); renderLines(); }));
     box.querySelectorAll('.lyr-del').forEach(b=> b.addEventListener('click',()=>{ pushUndo(); const s=activeSheet(); const ln=s.lines[+b.dataset.i]; lyrSelected.delete(ln); s.lines.splice(+b.dataset.i,1); if(!s.lines.length) s.lines.push({text:'',tag:''}); saveLyr(); renderLines(); updateLyrMeta(); }));
     box.querySelectorAll('.lyr-select').forEach(cb=> cb.addEventListener('change',()=>{ const ln=activeSheet().lines[+cb.dataset.i]; if(cb.checked) lyrSelected.add(ln); else lyrSelected.delete(ln); updateLyrSelectBar(); }));
@@ -368,7 +506,9 @@
     // Chords go out as their own line above the lyric, the way a chord sheet is normally written —
     // and they're included whether or not the CHORDS toggle happens to be on, since a .txt is the
     // copy you keep. Lines with no chords are unchanged, so a lyrics-only sheet exports as before.
-    const s=activeSheet(); const txt=s.lines.map(l=>((l.chords||'').trim()?(l.chords.trim()+'\n'):'')+(l.tag?`[${l.tag}] `:'')+l.text).join('\n');
+    // The chord line is space-padded to the same columns as the words below it, so the alignment you
+    // dragged into place survives into the .txt exactly as a chord sheet should read.
+    const s=activeSheet(); const txt=s.lines.map(l=>{ const ch=chordLineFor(l); const pre=l.tag?`[${l.tag}] `:''; return (ch?(' '.repeat(pre.length)+ch+'\n'):'')+pre+l.text; }).join('\n');
     const blob=new Blob([`${s.title||'Untitled'}\n\n${txt}`],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(s.title||'lyrics').replace(/[^a-z0-9]+/gi,'_')+'.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
   }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
@@ -460,12 +600,39 @@
     withWords.forEach(r=>{ if(total[r.name]>1){ seen[r.name]=(seen[r.name]||0)+1; r.label=`${r.name} ${seen[r.name]}`; } else r.label=r.name; });
     return withWords;
   };
-  window.lyrSetChordsAt=(index, chords)=>{
+  // Writes positioned marks onto one line. marks = [{c,p}] with p a character index into that line.
+  window.lyrSetMarksAt=(index, marks)=>{
     if(!lyrState) initLyrState();
-    const s=activeSheet(); if(!s.lines[index]) return false;
-    s.lines[index].chords=String(chords||''); saveLyr(); renderLines(); return true;
+    const s=activeSheet(); const ln=s.lines[index]; if(!ln) return false;
+    ln.marks=lyrSortMarks((marks||[]).filter(m=>m&&String(m.c).trim()).map(m=>({ c:String(m.c).trim(), p:Math.max(0, Math.min((ln.text||'').length, m.p|0)) })));
+    return true;
   };
-  window.lyrHasAnyChords=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.some(l=>(l.chords||'').trim()); };
+  window.lyrHasAnyChords=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.some(l=>window.lyrLineHasChords(l)); };
+  // One undo checkpoint for a whole AI application, so a single ↶ UNDO puts an existing song back
+  // exactly as it was — the "undo for old songs" this needs to be safe to try on finished work.
+  window.lyrBeginChordEdit=()=>{ if(!lyrState) initLyrState(); pushUndo(); };
+  window.lyrCommitChordEdit=()=>{ saveLyr(); renderLines(); };
+  // Snapshot of every line's chords, for "save the old version before the AI touches it".
+  window.lyrSnapshotChords=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>({ marks:(l.marks||[]).map(m=>({c:m.c,p:m.p})), chords:l.chords||'' })); };
+  window.lyrRestoreChords=(snap)=>{
+    if(!lyrState||!Array.isArray(snap)) return false;
+    const s=activeSheet();
+    s.lines.forEach((l,i)=>{ if(snap[i]){ l.marks=snap[i].marks.map(m=>({c:m.c,p:m.p})); l.chords=snap[i].chords; } });
+    saveLyr(); renderLines(); return true;
+  };
+
+  // Deep-copies the active sheet (words, tags, chords and all) and switches to the copy. Backs the
+  // "apply chords as a new version" path, so re-chording a finished song never risks the original.
+  window.lyrDuplicateSheet=(title)=>{
+    if(!lyrState) initLyrState();
+    const src=activeSheet();
+    const copy={ id:Date.now(), title:title||((src.title||'Untitled')+' (chords)'),
+      lines:src.lines.map(l=>({ text:l.text, tag:l.tag, halfTime:l.halfTime, chords:l.chords||'', marks:(l.marks||[]).map(m=>({c:m.c,p:m.p})) })) };
+    lyrState.sheets.push(copy); lyrState.activeId=copy.id;
+    lyrUndo=[]; lyrSelected.clear();
+    saveLyr(); renderLyr();
+    return copy.id;
+  };
 
   // ---- saved lyric takes (per sheet) ----
   // A take is a whole block of lyric text kept BESIDE the sheet instead of merged into it, so several
@@ -781,6 +948,8 @@
         else fallback();
       });
       try{ const cb=$('lyr-show-chords'); if(cb) cb.checked = localStorage.getItem(LYR_CHORDS_KEY)==='1'; }catch(e){}
+      // Chord offsets are measured against the rendered line, so a width change invalidates them.
+      window.addEventListener('resize',()=>layoutChordChips());
       renderLyr();
     }
     // beat

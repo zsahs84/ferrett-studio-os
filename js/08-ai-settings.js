@@ -684,36 +684,75 @@
     if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
     return null;
   }
+  // "[Am]walking out [F]slow" -> marks anchored to character positions in the plain lyric. Models are
+  // reliable at putting a bracket before the right WORD and hopeless at counting characters, so the
+  // markers carry the position and we do the arithmetic.
+  function parseMarkedLine(marked){
+    const s=String(marked||''); const marks=[]; let plain='', i=0;
+    while(i<s.length){
+      if(s[i]==='['){
+        const end=s.indexOf(']', i);
+        if(end>i){ const c=s.slice(i+1,end).trim(); if(c) marks.push({ c, p:plain.length }); i=end+1; continue; }
+      }
+      plain+=s[i]; i++;
+    }
+    return { marks, plain:plain.trim() };
+  }
+  // Space-pads a chord row to the same columns as the words under it — the preview has to show the
+  // alignment, since alignment is the entire point of the change.
+  function alignedPair(text, marks){
+    let ch='';
+    marks.slice().sort((a,b)=>a.p-b.p).forEach(m=>{
+      const want=Math.max(0,m.p|0);
+      if(ch.length<want) ch+=' '.repeat(want-ch.length); else if(ch.length) ch+=' ';
+      ch+=m.c;
+    });
+    return ch+'\n'+text;
+  }
   function renderChordSuggestion(){
     const sug=window.__lyrChordSuggestion, wrap=$('ai-lyr-chords-wrap'); if(!wrap) return;
-    if(!sug || !sug.sections.length){ wrap.classList.add('hidden'); return; }
+    if(!sug || !sug.lines.length){ wrap.classList.add('hidden'); return; }
     wrap.classList.remove('hidden');
-    const k=$('ai-lyr-chords-key-out'); if(k) k.textContent=sug.key?`key of ${sug.key}`:'';
+    const k=$('ai-lyr-chords-key-out'); if(k) k.textContent=(sug.key?`key of ${sug.key}`:'')+(sug.drift?` · ${sug.drift} line${sug.drift===1?'':'s'} re-anchored`:'');
     const list=$('ai-lyr-chords-list'); if(!list) return;
-    list.innerHTML=sug.sections.map(x=>`
-      <div class="p-2 rounded border border-[#FFD60A20] bg-black/30">
-        <div class="flex items-baseline gap-2 flex-wrap">
-          <span class="text-[9px] font-bold tracking-widest text-[#FFD60A]/70 shrink-0">${window.escapeHtml(x.label||'')}</span>
-          <span class="text-[12px] font-mono font-bold text-[#FFD60A]">${window.escapeHtml(x.progression||'')}</span>
-        </div>
-        ${x.why?`<div class="text-[9px] text-white/40 mt-1 leading-relaxed">${window.escapeHtml(x.why)}</div>`:''}
-      </div>`).join('');
+    let html='';
+    if(sug.notes) html+=`<div class="text-[9px] text-white/45 leading-relaxed mb-2">${window.escapeHtml(sug.notes)}</div>`;
+    let lastLabel=null;
+    sug.lines.forEach(x=>{
+      if(x.label!==lastLabel){ html+=`<div class="text-[9px] font-bold tracking-widest text-[#FFD60A]/70 mt-2 mb-1">${window.escapeHtml(x.label||'')}</div>`; lastLabel=x.label; }
+      html+=`<pre class="text-[11px] font-mono text-[#FFD60A] bg-black/40 border border-[#FFD60A20] rounded px-2 py-1 overflow-x-auto whitespace-pre m-0">${window.escapeHtml(alignedPair(x.text, x.marks))}</pre>`;
+    });
+    list.innerHTML=html;
   }
   function chordSuggestionText(){
     const sug=window.__lyrChordSuggestion; if(!sug) return '';
-    return (sug.key?`Key: ${sug.key}\n\n`:'')+sug.sections.map(x=>`${x.label}\n${x.progression}${x.why?`\n  — ${x.why}`:''}`).join('\n\n');
+    let out=(sug.key?`Key: ${sug.key}\n`:'')+(sug.notes?sug.notes+'\n':'')+'\n';
+    let lastLabel=null;
+    sug.lines.forEach(x=>{ if(x.label!==lastLabel){ out+=`\n[${x.label}]\n`; lastLabel=x.label; } out+=alignedPair(x.text,x.marks)+'\n'; });
+    return out.trim();
   }
-  function applyChordSuggestion(){
-    const sug=window.__lyrChordSuggestion; if(!sug) return;
-    const targets=sug.sections.filter(x=>x.lineIndex!=null);
-    if(!targets.length){ note('ai-lyr-note','Nothing to apply — the sections no longer match this sheet.'); return; }
-    if(window.lyrHasAnyChords?.() && !confirm('Some lines on this sheet already have chords.\n\nApply anyway? This overwrites the first line of each section it covers; other lines keep what they have.')) return;
+  function applyChordSuggestion(asNewVersion){
+    const sug=window.__lyrChordSuggestion; if(!sug || !sug.lines.length) return;
+    // "As new version" copies the sheet first, so an old song keeps its original chords untouched and
+    // the chorded take lives beside it as its own sheet.
+    if(asNewVersion){
+      const name=prompt('Name for the new version:', (window.lyrTakes?.sheetTitle?.()||'Untitled')+' (chords)');
+      if(name===null) return;
+      window.lyrDuplicateSheet?.(name.trim()||undefined);
+    }
+    const had=!asNewVersion && window.lyrHasAnyChords?.();
+    if(had && !confirm('This sheet already has chords on it.\n\nReplace them with the suggestion?\n\nOK — apply (↶ UNDO or ↺ REVERT puts the old ones back)\nCancel — leave the sheet alone')) return;
+    // One undo checkpoint for the whole application, so ↶ UNDO restores an existing song's chords in
+    // a single press instead of unwinding it line by line.
+    window.lyrBeginChordEdit?.();
+    if(had) window.__lyrChordsBefore=window.lyrSnapshotChords?.();
     let n=0;
-    targets.forEach(x=>{ if(window.lyrSetChordsAt(x.lineIndex, x.progression)) n++; });
-    // Applying chords you can't see would be a strange outcome, so make sure the row is on.
+    sug.lines.forEach(x=>{ if(x.lineIndex!=null && window.lyrSetMarksAt(x.lineIndex, x.marks)) n++; });
+    window.lyrCommitChordEdit?.();
     const cb=$('lyr-show-chords');
     if(cb && !cb.checked){ cb.checked=true; cb.dispatchEvent(new Event('change')); }
-    note('ai-lyr-note',`Wrote ${n} progression${n===1?'':'s'} onto the first line of each section — edit them like any hand-typed chord.`);
+    const revert=$('btn-ai-lyr-chords-revert'); if(revert) revert.classList.toggle('hidden', !had);
+    note('ai-lyr-note',`Placed chords on ${n} line${n===1?'':'s'}${asNewVersion?' in a new copy — the original sheet is untouched':''}. Drag any chord to slide it, click one to rename, click empty lane space to add another.${had?' ↶ UNDO or ↺ REVERT restores what was there before.':''}`);
     $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
   }
 
@@ -728,20 +767,28 @@
     const progress=lyrProgress('Matching chords to the words'); note('ai-lyr-note','');
     try{
       const sys=[
-        'You are a songwriter and arranger choosing a chord progression for a song that is already written. You are given the actual lyrics, section by section, plus the genre and mood. Match the harmony to THAT material — never return a generic or random progression.',
-        'Reply with JSON only: {"key":"<key you chose or were given>","sections":[{"id":<the section id given>,"progression":"<chords separated by two spaces>","why":"<one short sentence>"}]}. One entry per section id, in the order given, no extra keys, no commentary outside the JSON.',
-        'progression must be plain chord symbols a player can read straight off the page — Am, F, C, G, Bb, C#m, E7, Dm7, Fmaj7, G/B, Asus2. Never roman numerals, never tab, never note-by-note spellings, never explanations inside that field. Two to eight chords.',
-        'Everything must sit in the stated key. A borrowed or secondary chord is allowed only where it earns its place, and if you use one, say so in "why".',
-        'Sections that repeat (Chorus 1 and Chorus 2, a returning Hook) should share the same progression the way a real song does, unless the words in the later one clearly turn somewhere different.',
-        'Give the sections different harmonic jobs: a verse that sits and cycles, a pre-chorus that builds tension, a chorus that lifts and resolves, a bridge that leaves the home chord. An intro or outro can be a shortened version of a section next to it.',
-        'Let the words and mood drive the colour — minor and modal for grim, bitter or paranoid material; major with suspensions for open or triumphant; a flattened or unresolved cadence where the lyric refuses to resolve. "why" must name what in the mood or the actual words led you there, in one sentence.'
+        'You are a songwriter and arranger putting chords to a song that is already written. You are given the real lyrics line by line, plus the genre and mood. Match the harmony to THAT material — never a generic or random progression.',
+        'Place each chord AT THE WORD THE CHANGE HAPPENS ON, by returning every lyric line with square-bracket chord markers inserted inline immediately before that word: "[Am]Walking out the [F]door again". A chord marker means "the chord changes here". Do not put a whole progression at the start of a line, and do not repeat the full progression on every line.',
+        'Reply with JSON only: {"key":"<key>","notes":"<one or two sentences on the harmonic plan>","lines":[{"id":<the id given>,"marked":"<that same lyric line with [Chord] markers inserted>"}]}. No commentary outside the JSON.',
+        'Reproduce each lyric line EXACTLY as given, word for word and character for character — the only thing you may add is the bracketed chord markers. Never reword, shorten, retitle or fix a line.',
+        'Typically one to three changes per line. Lines that hold one chord get a single marker at the start; a line that holds the previous chord all the way through can come back with no marker at all.',
+        'Use plain chord symbols a player reads straight off the page — Am, F, C, G, Bb, C#m, E7, Dm7, Fmaj7, G/B, Asus2. Never roman numerals, never tab, never note spellings.',
+        'Everything sits in the stated key; a borrowed or secondary chord only where it earns its place, and mention it in "notes" if you use one.',
+        'Sections that repeat (Chorus 1 and Chorus 2, a returning Hook) take the same progression in the same places, the way a real song does, unless the later words clearly turn somewhere different.',
+        'Give sections different harmonic jobs: a verse that sits and cycles, a pre-chorus that builds tension, a chorus that lifts and resolves, a bridge that leaves the home chord.',
+        'Let the words and mood drive the colour — minor and modal for grim, bitter or paranoid material; major with suspensions for open or triumphant; an unresolved cadence where the lyric refuses to resolve. "notes" should name what in the mood or the actual words led you there.'
       ].join(' ');
-      // Lyrics are trimmed per section: enough for the model to hear what the section is doing without
-      // paying for a whole sheet twice over on a long song.
-      const sectionBlock=runs.map((r,i)=>{
-        const words=r.lines.filter(t=>t.trim()).slice(0,6);
-        return `[id ${i}] ${r.label} — ${r.lines.filter(t=>t.trim()).length} lines\n` + words.map(w=>'    '+w).join('\n');
-      }).join('\n\n');
+      // Every line goes across with its real sheet index as the id, because chords are placed per line
+      // now, not per section. Capped so a very long sheet can't blow the reply budget mid-song.
+      const MAX_LINES=48;
+      const flat=[];
+      runs.forEach(r=>r.indices.forEach((gi,k)=>{ const t=r.lines[k]; if(t&&t.trim()) flat.push({ id:gi, label:r.label, text:t }); }));
+      const sent=flat.slice(0, MAX_LINES);
+      let lastL=null;
+      const sectionBlock=sent.map(x=>{
+        const head=(x.label!==lastL)?`\n[${x.label}]\n`:''; lastL=x.label;
+        return head+`  <${x.id}> ${x.text}`;
+      }).join('\n').trim();
       const user=[
         `GENRE: ${genre||'(none chosen — go by the mood and the words)'}`,
         meta&&meta.desc?`GENRE CHARACTER (private reference — do not quote any artist name from this): ${meta.desc}`:'',
@@ -750,27 +797,45 @@
         topic?`TOPIC: ${topic}`:'',
         key?`KEY: ${key} — use this key.`:'KEY: not specified — choose one that suits the mood and report it.',
         '',
-        'SECTIONS — the real lyrics. Match a progression to what each one actually says:',
+        'LYRICS — each line prefixed with its id. Return every one with chord markers inserted:',
         sectionBlock
       ].filter(Boolean).join('\n');
       window.__aiUsage?.begin('Lyrics: Chord Progression');
-      const txt=await window.ferrettAI(sys, user, { creative:true, json:true, maxTokens:1600, timeoutMs:60000 });
+      const txt=await window.ferrettAI(sys, user, { creative:true, json:true, maxTokens:2600, timeoutMs:90000 });
       window.__aiUsage?.end();
       const parsed=parseJsonLoose(txt);
-      if(!parsed || !Array.isArray(parsed.sections) || !parsed.sections.length) throw new Error('Could not read a progression out of the reply.');
-      // Match each returned entry back to a real run by the id we handed out, so a reordered or
-      // partial reply can never write a chorus progression onto a verse.
-      const sections=parsed.sections.map(x=>{
-        const run=runs[Number(x.id)];
-        if(!run || !x.progression) return null;
-        return { label:run.label, progression:String(x.progression).trim(), why:x.why?String(x.why).trim():'', lineIndex:run.firstIndex };
+      if(!parsed || !Array.isArray(parsed.lines) || !parsed.lines.length) throw new Error('Could not read chord placements out of the reply.');
+      const byId={}; sent.forEach(x=>{ byId[x.id]=x; });
+      let drift=0;
+      // Positions come from the model's own copy of the line, so if it reworded anything the anchors
+      // would land in the wrong place. Compare against the real line and, when they differ, re-anchor
+      // each chord to the nearest word start in OUR text rather than trusting a stale offset.
+      const lines=parsed.lines.map(x=>{
+        const src=byId[Number(x.id)]; if(!src || !x.marked) return null;
+        const { marks, plain }=parseMarkedLine(x.marked);
+        if(!marks.length) return null;
+        let final=marks;
+        if(plain!==src.text){
+          drift++;
+          const starts=[]; const re=/\S+/g; let m; while((m=re.exec(src.text))) starts.push(m.index);
+          const ratio=plain.length?src.text.length/plain.length:1;
+          final=marks.map(mk=>{
+            const guess=Math.round(mk.p*ratio);
+            const near=starts.reduce((a,b)=>Math.abs(b-guess)<Math.abs(a-guess)?b:a, starts.length?starts[0]:0);
+            return { c:mk.c, p:Math.max(0,Math.min(src.text.length, near)) };
+          });
+        }
+        return { lineIndex:src.id, label:src.label, text:src.text, marks:final };
       }).filter(Boolean);
-      if(!sections.length) throw new Error('The reply did not line up with this sheet\'s sections.');
-      window.__lyrChordSuggestion={ key:parsed.key?String(parsed.key).trim():key, sections };
+      if(!lines.length) throw new Error('The reply did not line up with this sheet\'s lines.');
+      window.__lyrChordSuggestion={ key:parsed.key?String(parsed.key).trim():key, notes:parsed.notes?String(parsed.notes).trim():'', lines, drift };
       renderChordSuggestion();
       $('ai-lyr-chords-wrap')?.scrollIntoView({block:'nearest'});
       progress.stop(true);
-      if(sections.length<runs.length) note('ai-lyr-note',`Got ${sections.length} of ${runs.length} sections — apply these, or run it again for the rest.`);
+      const msgs=[];
+      if(lines.length<sent.length) msgs.push(`${lines.length} of ${sent.length} lines came back`);
+      if(flat.length>MAX_LINES) msgs.push(`only the first ${MAX_LINES} lines were sent — run it again after applying for the rest`);
+      if(msgs.length) note('ai-lyr-note', msgs.join(' · ')+'.');
     }catch(e){ progress.stop(false); note('ai-lyr-note', e.message); }
   }
 
@@ -883,7 +948,16 @@
     $('btn-ai-lyr-title')?.addEventListener('click',lyrTitle);
     $('btn-ai-lyr-song')?.addEventListener('click',lyrSong);
     $('btn-ai-lyr-chords')?.addEventListener('click',lyrChords);
-    $('btn-ai-lyr-chords-apply')?.addEventListener('click',applyChordSuggestion);
+    $('btn-ai-lyr-chords-apply')?.addEventListener('click',()=>applyChordSuggestion(false));
+    $('btn-ai-lyr-chords-newver')?.addEventListener('click',()=>applyChordSuggestion(true));
+    $('btn-ai-lyr-chords-revert')?.addEventListener('click',()=>{
+      if(!window.__lyrChordsBefore){ note('ai-lyr-note','Nothing to revert to.'); return; }
+      window.lyrRestoreChords?.(window.__lyrChordsBefore);
+      window.__lyrChordsBefore=null;
+      $('btn-ai-lyr-chords-revert')?.classList.add('hidden');
+      note('ai-lyr-note','Put back the chords this sheet had before.');
+      $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
+    });
     $('btn-ai-lyr-chords-copy')?.addEventListener('click',(e)=>{
       const t=chordSuggestionText(); if(!t) return;
       navigator.clipboard?.writeText(t).catch(()=>{});

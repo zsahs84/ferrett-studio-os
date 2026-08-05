@@ -5,6 +5,34 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v150 — 2026-08-03
+- Chords are now **positioned over the word the change lands on**, not listed above the line. Each
+  chord is a draggable chip anchored to a character in the lyric, stored as `line.marks` = `[{c,p}]`.
+  - **Manual workflow:** click anywhere in a line's chord lane to drop a chord on that word, drag a
+    chip to slide it along the line, click a chip to rename it, rename it to blank to delete it.
+    Every one of those is a single ↶ UNDO step.
+  - v148's plain chord strings migrate automatically the first time a line renders — the old chords
+    spread across that line's word starts, ready to be dragged into exact position. The original
+    string is kept untouched so REVERT can restore it.
+  - `.TXT` export and PRINT space-pad the chord row to the same columns as the words underneath, so
+    the alignment you dragged into place is what a printed chord sheet shows.
+- **🎹 CHORDS** now returns per-line placements instead of one progression per section. The model
+  returns each lyric line with inline `[Chord]` markers before the word the change happens on, which
+  are parsed into positions. If it reworded a line, the offsets would be stale — so its copy is
+  compared against the real line and, when they differ, each chord is re-anchored to the nearest word
+  start in *your* text (the panel reports how many lines were re-anchored). The real lyric is always
+  kept; the model's version is only ever used to work out where the chords go.
+- Applying is reversible three ways: one ↶ UNDO covers the whole application, **↺ REVERT** restores the
+  exact chords the sheet had before, and **＋ AS NEW VERSION** copies the sheet first and chords the
+  copy, leaving a finished song untouched.
+- Fixed two bugs found while building this. Canvas text measurement was silently falling back to
+  `10px sans-serif`, because `getComputedStyle().font` is empty in Chrome and rebuilding the shorthand
+  from longhands includes `font-variant: none`, which is invalid there — every chord offset was
+  measured in the wrong font. And chip layout ran inside `requestAnimationFrame`, which never fires
+  while a tab is backgrounded, leaving chords stacked at x=0 until something forced a re-render;
+  layout is canvas-based and needs no paint, so it now runs synchronously with follow-ups for late
+  web-font swaps.
+
 ## v149 — 2026-08-03
 - **🎹 CHORDS** in the AI Co-Pilot suggests a progression matched to the song rather than pulled out of
   the air. It reads the lyrics already on the sheet **section by section** — the actual words — plus the

@@ -1469,7 +1469,9 @@
                 </div>
                 <div id="ai-lyr-chords-list" class="space-y-1.5 mb-2"></div>
                 <div class="flex flex-wrap gap-2">
-                    <button id="btn-ai-lyr-chords-apply" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]" title="Writes each progression onto the first line of its section and turns the CHORDS row on" aria-label="Apply chords to sheet">↓ APPLY TO SHEET</button>
+                    <button id="btn-ai-lyr-chords-apply" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]" title="Places the chords on this sheet, in position over each word. One ↶ UNDO puts the old chords back." aria-label="Apply chords to this sheet">↓ APPLY TO SHEET</button>
+                    <button id="btn-ai-lyr-chords-newver" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF88FF80;color:#FF88FF" title="Copies this sheet first and applies the chords to the copy, leaving the original song exactly as it is" aria-label="Apply as a new version">＋ AS NEW VERSION</button>
+                    <button id="btn-ai-lyr-chords-revert" type="button" class="btn-euterpe px-3 py-1.5 text-[10px] hidden" style="border-color:#B18CFF80;color:#B18CFF" title="Put back the chords this sheet had before the suggestion was applied" aria-label="Revert to previous chords">↺ REVERT</button>
                     <button id="btn-ai-lyr-chords-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" aria-label="Copy progression">📋 COPY</button>
                     <button id="btn-ai-lyr-chords-discard" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FF5A5A80;color:#FF5A5A" aria-label="Discard progression">✕ DISCARD</button>
                 </div>

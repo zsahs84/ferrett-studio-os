@@ -22,7 +22,7 @@ const defaultDb = {
     lyriaPrompts: {},
     // Bumped whenever defaultDb gains plugins that an existing saved palette should also receive.
     // The load path unions them in once when the saved rev is behind this one.
-    paletteRev: 1,
+    paletteRev: 2,
     ownedPlugins: [
         'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
         'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
@@ -62,7 +62,12 @@ const defaultDb = {
         'Galaxy Tape Echo', 'LA-2A Tube', 'Little Labs VOG', 'PolyMAX', 'Pure Plate Reverb',
         'Showtime 64 Amp', 'Sound City Studios', 'Topline Vocal Tune', 'Vibe Analog Machines Essentials',
         'Ample Bass P Lite II (ABPL2)', 'Ample Guitar M Lite II (AGML2)',
-        'Ample Percussion Cloudrum (APC)', 'VB-DANDY'
+        'Ample Percussion Cloudrum (APC)', 'VB-DANDY',
+        // Added 2026-08-11 from a fresh scan of VST3/VST/Components against this list. Two UA
+        // reverbs and five synths that were installed but had never been in the palette. Names
+        // are the plugins' own; snapToOwned matches by containment, so the DAW spelling resolves.
+        'EMT 140 Plate Reverb', 'EMT 250 Electronic Reverb',
+        'Zebra2', 'ZebraHZ', 'Zebralette3', 'Odin2', 'Pendulate'
     ],
     multiNotes: [{ id: Date.now(), title: 'Main Scratchpad', content: '// --------------------------------\n// EUTERPE: SESSION NOTES\n// --------------------------------\n\n[TODO] Check phase on drum bus\n[TODO] Re-track vocal bridge' }],
     tracks: [],
@@ -150,10 +155,10 @@ try {
         // gated on a revision counter rather than run every load — otherwise a plugin deliberately
         // removed from the palette would silently come back on the next refresh.
         window.db.paletteRev = parsed.paletteRev || 0;
-        if (window.db.paletteRev < 1) {
+        if (window.db.paletteRev < 2) {
             const have = new Set((window.db.ownedPlugins || []).map(p => String(p).trim().toLowerCase()));
             defaultDb.ownedPlugins.forEach(p => { if (!have.has(String(p).trim().toLowerCase())) window.db.ownedPlugins.push(p); });
-            window.db.paletteRev = 1;
+            window.db.paletteRev = 2;
         }
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.producerNotes) window.db.producerNotes = parsed.producerNotes;
@@ -1333,6 +1338,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ['Hitsville Chambers', 'Motown-style echo chamber reverb.'],
         ['Capitol Chambers', 'Classic Capitol Studios chamber reverb.'],
         ['Lexicon 224', 'Iconic 80s digital reverb — lush plates and halls.'],
+        ['EMT 140', 'Classic steel plate reverb emulation — dense, bright, the studio plate sound.'],
+        ['EMT 250', 'First digital reverb emulation — reverb plus delay, chorus, phase and echo programs.'],
         ['ValhallaSupermassive', 'Huge ambient delay/reverb hybrid — free.'],
         ['NeuralAmpModeler', 'Free neural-network guitar amp/pedal profiler.'],
         ['NadIR', 'Cabinet impulse response (IR) loader.'],
@@ -1346,6 +1353,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ['HALion Sonic', 'Steinberg sample-based workstation/instrument.'],
         ['Vital', 'Free wavetable synthesizer.'],
         ['Surge XT', 'Free, powerful hybrid synthesizer.'],
+        ['Zebra2', 'u-he modular synth — modules patched onto a voice grid. Poly aftertouch, but no MPE.'],
+        ['ZebraHZ', 'Zebra2 with the Hans Zimmer extension — extra modules, cinematic territory. No MPE.'],
+        ['Zebralette3', 'Free single-oscillator Zebra offshoot — draw a waveform or a 1024-harmonic spectrum. No MPE.'],
+        ['Odin2', 'Free open-source 24-voice hybrid synth — 11 oscillator types, 13 filters. Mono aftertouch only, no MPE.'],
+        ['Pendulate', 'Free chaotic double-pendulum monosynth, Buchla-style. The one new synth with real MPE — but one voice.'],
         ['Minimoog', 'Classic analog synth emulation — thick monophonic bass/leads.'],
         ['kHs Ladder Filter', 'Resonant analog-style filter — Moog-esque sweeps.'],
         ['kHs Delay', 'Simple, clean delay module.'],
@@ -1931,11 +1943,38 @@ document.addEventListener('DOMContentLoaded', () => {
         { match: /surge.?xt/i, name: 'Surge XT Synthesizer',
           text: 'Two scenes (A/B), each with three oscillators. Oscillator types include Classic, Sine, Wavetable, Window, FM2/FM3, SH Noise, String, Alias — quote the type by name. Filter: two filters each with Cutoff (continuous Hz or note name), Resonance, Type (named: LP12/LP24/LP Moog/BP/HP/Notch/Comb/etc.), Routing selector. Envelopes (Amp/Filter/three free): DAHDSR with values in seconds. LFOs: six per scene, rate in Hz or tempo-sync. FX chain: eight slots with a large named list (Chorus, Flanger, Phaser, Reverb1/2, Airwindows, Nimbus, Delay, Ring Modulator, Vocoder, etc.). Quote oscillator type, filter type and name, cutoff in Hz.' },
 
+        // The five synths added 2026-08-11. These are VST3-only with no AU, so auval could not read
+        // them — control sets below come from the vendors' own user guides (u-he Zebra2 / Zebralette 3,
+        // TheWaveWarden Odin 2 manual v2.3.0, Newfangled Audio Pendulate user guide v4), not from
+        // general knowledge. MPE status is called out on each because it is the thing most likely to
+        // be assumed wrong: only Pendulate actually implements MPE.
+        { match: /\bzebra(2| legacy)?\b/i, name: 'u-he Zebra2 (Zebra Legacy) Modular Synth',
+          text: 'A patching synth, not a fixed-architecture one: modules are placed on a 4x12 voice grid and a 3x6 effects grid, so the FIRST thing to specify is which modules are in the chain. Generators: OSC (4 wavetable oscillators, 16 waves each), FMO (FM oscillator), Noise (White/Pink/Digital/Crackles), VCF (23 filter modes), XMF (cross-modulation filter, 15 modes), Comb (8 modes, physical modeling), Sideband (stereo frequency shifter), plus Shape, Distortion, Fold, Ring and Mix. Modulators: ENV envelopes, 4 per-voice LFOs plus 2 global LFOs (LFOG), 4 MSEGs of up to 32 segments, MMAP (modulation mapper) and MMIX (modulation mixer). A 12-slot modulation matrix, 4 X/Y performance pads, an arpeggiator/sequencer up to 16 steps, and 21 stereo effects. Voice modes: poly (16 voices), duophonic, mono, legato. Name the modules and the filter mode — a bare "cutoff" is meaningless until you say which of VCF/XMF/Comb is in the patch. NOT an MPE synth: its voice handling predates MPE. It does respond to channel AND polyphonic aftertouch, pitchbend and mod wheel.' },
+
+        { match: /zebrahz|dark ?zebra/i, name: 'u-he ZebraHZ (Hans Zimmer Edition)',
+          text: 'Zebra2 with the Hans Zimmer extension — same 4x12 voice grid, same module set and same modulation system as Zebra2, plus extra modules (additional filter and modulation options) and the HZ soundset. Everything true of Zebra2 applies here, including the module-first way of specifying a patch. Same MPE limitation as Zebra2: no MPE, but channel and polyphonic aftertouch both work.' },
+
+        { match: /zebralette/i, name: 'u-he Zebralette 3 Spectral Oscillator Synth',
+          text: 'ONE oscillator, but a deep one — the whole synth is built around it. The oscillator draws either a waveform (Curve Geometry: x is time, y is amplitude) or a harmonic spectrum (Curve Spectrum: up to 1024 harmonics over about 10 octaves) — say which domain you mean. Oscillator controls include Tune, Detune, Spectral Distortion, Pan, Volume, Width, Noise, Phase, Modifier and DC Block. Two Oscillator FX slots chosen from named effects, grouped as Spectral (Curve Filter, Filter, Formant, Sparse, Spectral Focus, Tone Works), Warping (Delta X, Map-o-Matic, Phase Distortion, Scrambler, Symmetry, Sync, Wrap & Zap), Windowing (Dual Wave, Window, Zoom) and Animation (Dissociate, Posterize, Spectral Decay, Spectral Noise, Twinkles) — quote the effect by name. Centre panel: Voice Mode (POLY / MONO / LEGATO), VCA source (Gate, ADSR or MSEG), Soft Attack, a single ADSR with Velocity amount, an MSEG, and two LFOs (waveform from sine/triangle/saw up/saw down/sqr lo-hi/sqr hi-lo/rand hold/rand glide, with Rate, Restart mode sync/gate/single/random, Time Base, Phase, Polarity, Delay, Depth Mod). Global FX are Delay (Mode, LP/HP, L/R, Width, Feedback, Diffuse, Mix) and Reverb (Pre, Size, Decay, Damp, Tone, Width, Mix). Mod matrix sources: Envelope, MSEG, LFO 1/2, ModNoise, Control A/B, Gate, KeyFollow, ModWheel, PitchWheel, Pressure, Velocity, Alternate, Constant, Random. Not an MPE synth — but Pressure accepts channel AND polyphonic aftertouch.' },
+
+        { match: /odin ?2/i, name: 'TheWaveWarden Odin 2 Hybrid Synth',
+          text: 'Three oscillators, three filters, 24-voice poly. Oscillator types (pick one per slot by name): Analog, Wavetable, Multi, Vector, Chiptune, FM, PM, Noise, WaveDraw, ChipDraw, SpecDraw. Filter types by name: Lowpass / Bandpass / Highpass (ladder), SEM-12, Diode Ladder, KRG-35 LP, KRG-35 HP, Comb, Formant, Ring Modulator. Also a dedicated Distortion, an Amplifier section, and four FX — Delay, Chorus, Phaser, Flanger, Reverb. Modulators: four ADSR envelopes, four LFOs, an XY-Pad, plus Modwheel and Pitch Bend. Modulation matrix sources are marked Mono or Poly: X, Y, Modwheel, PitchBend, MIDI Breath (CC-2), Channel Pressure, Sustain Pedal, Soft Pedal and Constant are MONO; MIDI Note, MIDI Velocity, Unison Index, Arp Mod 1, Arp Mod 2 and Random are POLY. There is also an Arpeggiator and Step Sequencer. NOT an MPE synth — its only pressure source is Channel Pressure (mono aftertouch); there is no per-note pressure or per-note pitch bend.' },
+
+        { match: /pendulate/i, name: 'Newfangled Audio Pendulate Chaotic Monosynth',
+          text: 'MONOPHONIC — one voice, "West Coast" Buchla-style architecture, three voice sections. (1) DOUBLE PENDULUM: Chaos Amount (blends the keyed sine oscillator against the chaotic generator), Chaos Shape (shape of the chaotic generator — small moves can be large changes), Animate (detunes the generator from the keyed oscillator for motion), Interval (dropdown, only really audible when Chaos Shape is near 0), Osc Sync (button, syncs generator to keyed oscillator), Sub 1 and Sub 2 (levels of the 1- and 2-octave-down subs). (2) WAVEFOLDER (Buchla 259 style): Drive, Folds, Mix, Symmetry (DC offset — adds even harmonics), Cutoff (6dB/oct low pass, defaults at 1.3kHz). (3) LOW PASS GATE (Buchla 292 style): Key Track (0-100%), Frequency (loose maximum cutoff — deliberately not calibrated in Hz, so do NOT quote it in Hz), Resonance (inactive when Poles is at 1), Poles (morphs from a one-pole VCA-style LPG to a three-pole resonant filter), plus its own Attack/Decay/Sustain/Release sliders. Global: Pitch Bend amount, Legato, Portamento (ms) and Always. Modulators: an ADSR with ADSR / ADR / ASR outputs and a Loop button that turns it into a second LFO, and an LFO with Sine/Triangle/Pulse/Saw/Ramp outputs, Beats or Frequency (Hz) set by the Tempo button, Out Level and Bipolar. THIS ONE IS MPE: an MPE button enables polyphonic pitch bend, pressure and timbre. PRS becomes per-note when MPE is on, and TMB (MPE Timbre, CC74) is only available with MPE enabled. The Pitch Bend knob must be set to match the controller\'s bend range. Being monophonic, MPE buys per-note pressure and timbre expression, not polyphony.' },
+
         { match: /drawmer.?s73/i, name: 'Drawmer S73 Intelligent Master Processor',
           text: 'Three single-knob stages in series: Warmth (0-10, harmonic saturation), Focus (0-10, dynamic clarity), Punch (0-10, low-end transient lift). Each stage has an individual bypass. Output Gain and a global bypass complete the plugin. There is NO threshold, ratio, attack or release anywhere in this plugin.' },
 
         { match: /tsar-?1r/i, name: 'Softube TSAR-1R Reverb',
           text: 'Six controls: Reverb Time (0.1-30 seconds), Pre-Delay (0-200ms), Treble (rolls off reverb tail highs), Bass (rolls off reverb tail lows), Diffusion (0-100%, attack density), Mix (Dry/Wet 0-100%). No room size selector or room type — those six knobs are everything.' },
+
+        // Control sets below read off the installed AUs with auval on 2026-08-11, not from the web.
+        { match: /emt.?140/i, name: 'UA EMT 140 Plate Reverb',
+          text: 'Plate selector (A, B or C — three different physical plates, not room sizes). Each plate has its OWN damping control (DampA / DampB / DampC), 0.5-5.5 seconds, and only the selected plate\'s knob is live. Pre-Delay (0-250ms). EQ section with an In/Out switch: Low Freq (20Hz-2kHz) with Low Gain (±12 dB), High Freq (200Hz-20kHz) with High Gain (±12 dB). Modulation: Mod Rate (0.01-1.00 Hz) and Mod Depth (0-10 cents). Width (0-100%), Balance (100L-100R), Mix (0-100%), Wet Solo, and a stepped Low Cut (Off, then named mic-position settings up to E -16dB). Quote the plate letter, the damping time in seconds, and pre-delay in ms.' },
+
+        { match: /emt.?250/i, name: 'UA EMT 250 Electronic Reverb',
+          text: 'Program selector — Reverb, Delay, Phase, Chorus, Echo or Space — quote the program by name, it changes what the machine is. Time is STEPPED in 16 positions from 0.4s to 4.5s (0.4/0.6/0.8/1.0/1.2/1.5/1.8/2.0/2.2/2.5/2.8/3.0/3.3/3.6/4.0/4.5) — name one of those. LF Decay and HF Decay are MULTIPLIERS, not times: LF x0.5/x1.0/x1.5/x2.0, HF x0.25/x0.33/x0.50/max. Left and Right Delay Time each 0-315ms. Phase (0-15ms), Chorus Mode (I-IV), Echo (0-315ms). Pre-delay is stepped and caps at 60ms. Outputs (Front/Rear), Mix (0-100%), Wet Solo, and a Noise switch that models the original converters.' },
 
         { match: /tube.?delay/i, name: 'Softube Tube Delay',
           text: 'Tape/tube echo: Time (0-1600ms or tempo-sync note division), Feedback (0-100%), Drive (0-10, tube harmonic saturation), Tone (LP filter on repeats — lower = darker), Echo Volume, Mix. Quote delay time in ms or note division; Drive as a 0-10 position.' },
@@ -2155,6 +2194,20 @@ document.addEventListener('DOMContentLoaded', () => {
             [/\b(hall|plate|room)\b/i, "Supermassive's modes are named (Gemini, Hydra, Cirrus…) — there is no Hall, Plate or Room"],
             [/decay[^.;,]*?\d/i, 'Supermassive has Delay plus Feedback, not a decay time'] ] },
         'Softube Saturation Knob': { noControls: [[/\bdrive\b/i, 'the control is called Saturation, not Drive']] },
+        // Both EMTs invite reverb vocabulary they do not have — verified against auval on 2026-08-11.
+        'UA EMT 140 Plate Reverb': { noControls: [
+            [/\b(hall|room|chamber|size)\b/i, "the EMT 140's only 'space' control is the Plate selector (A/B/C) — there is no hall, room or size"],
+            [/\bdecay\b/i, 'the EMT 140 calls it Damping (DampA/B/C, 0.5-5.5s), not decay'] ] },
+        'UA EMT 250 Electronic Reverb': { noControls: [
+            [/\b(hall|room|plate|size)\b/i, "the EMT 250 selects a Program (Reverb, Delay, Phase, Chorus, Echo, Space) — there is no hall, room, plate or size"] ] },
+        // Synth traps, 2026-08-11. Each fires only on something the vendor's manual rules out.
+        'Newfangled Audio Pendulate Chaotic Monosynth': { noControls: [
+            [/\b(poly|polyphon\w*|voices|unison|chord|stack)\b/i, 'Pendulate is monophonic — one voice, no polyphony, unison or chords'],
+            [/frequency[^.;,]*?\d+\s*(hz|khz)/i, "the LPG's Frequency knob is not calibrated in Hz — the modeled circuit does not map to frequency, so give a knob position"] ] },
+        'TheWaveWarden Odin 2 Hybrid Synth': { noControls: [
+            [/\b(mpe|per.?note (pressure|bend)|poly (aftertouch|pressure))\b/i, "Odin 2 has no MPE and no per-note pressure — its only pressure source is Channel Pressure (mono aftertouch)"] ] },
+        'u-he Zebra2 (Zebra Legacy) Modular Synth': { noControls: [
+            [/\bmpe\b/i, 'Zebra2 does not support MPE — its voice handling predates it. Polyphonic aftertouch does work'] ] },
         // Ratio is the only hard bound on this one worth checking. Its two releases are a real trap
         // ("Release 200ms" names neither), but "release" alone is ordinary shorthand a producer would
         // write themselves, so flagging it would be the false alarm the rest of this file avoids.

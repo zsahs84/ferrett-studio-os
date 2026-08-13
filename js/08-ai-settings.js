@@ -4,7 +4,26 @@
   const DEFAULT_HA_URL='https://donita.ddns.net:8123'; // pre-filled; edit in ⚙ setup anytime. Must be https (mixed-content).
   const loadCfg=()=>{ try{ return JSON.parse(localStorage.getItem(AI_KEY)||'{}'); }catch(e){ return {}; } };
   const saveCfg=(c)=>{ try{ localStorage.setItem(AI_KEY, JSON.stringify(c)); }catch(e){ alert('Failed to save AI config: ' + e.message + ' (You may be out of local storage space. Try clearing your browser cache or deleting large files in Ferrett Studio.)'); } };
-  const isConfigured=()=>{ const c=loadCfg(); return c.mode==='groq' ? !!c.groqKey : c.mode==='gemini' ? !!c.geminiKey : !!(c.url && c.token); };
+  // Services that speak the OpenAI /chat/completions shape. Same request body, different
+  // host and key, so one branch in ferrettAI covers all of them instead of four near-copies.
+  // `custom` is the escape hatch: any OpenAI-compatible server — Ollama, LM Studio, vLLM,
+  // Together, Mistral — which is also why it's the one entry allowed to run without a key.
+  const OPENAI_COMPAT={
+    openai:     { label:'OpenAI',     base:'https://api.openai.com/v1',     model:'gpt-4o-mini' },
+    deepseek:   { label:'DeepSeek',   base:'https://api.deepseek.com/v1',   model:'deepseek-chat' },
+    openrouter: { label:'OpenRouter', base:'https://openrouter.ai/api/v1',  model:'anthropic/claude-opus-5' },
+    custom:     { label:'Custom',     base:'http://localhost:11434/v1',     model:'llama3.1' }
+  };
+  const compatBase=(c,k)=>((k==='custom'?c.customBase:'')||'').trim()||OPENAI_COMPAT[k].base;
+
+  const isConfigured=()=>{ const c=loadCfg();
+    if(c.mode==='groq') return !!c.groqKey;
+    if(c.mode==='gemini') return !!c.geminiKey;
+    if(c.mode==='anthropic') return !!c.anthropicKey;
+    // A local endpoint legitimately needs no key, so a reachable base URL is enough there.
+    if(OPENAI_COMPAT[c.mode]) return c.mode==='custom' ? !!compatBase(c,'custom') : !!c[c.mode+'Key'];
+    return !!(c.url && c.token);
+  };
   window.__aiIsConfigured = isConfigured; // shared so other script blocks gate exactly like the lyrics tools do
 
   // A per-DAY quota is a different animal to a per-minute one and has to be told apart from it. The
@@ -234,6 +253,56 @@
           const fr=cand?.finishReason||data?.promptFeedback?.blockReason;
           throw new Error('Empty response from Gemini.'+(fr?` (finishReason: ${fr})`:''));
         }
+      } else if(c.mode==='anthropic'){
+        if(!c.anthropicKey) throw new Error('No Anthropic key set — open ⚙ setup.');
+        const model=c.anthropicModel||'claude-opus-5';
+        // No temperature/top_p: current Claude models reject non-default sampling params
+        // outright (400), so steering goes in the prompt. max_tokens covers thinking AND the
+        // reply on models that think by default, so give it real headroom the way the Gemini
+        // branch does rather than sizing it for the answer alone.
+        const body={ model, max_tokens: Math.max((opts.maxTokens||0)*2, 4096), system, messages:[{role:'user',content:user}] };
+        res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST', signal:ctrl.signal,
+          headers:{ 'Content-Type':'application/json', 'x-api-key':c.anthropicKey, 'anthropic-version':'2023-06-01',
+                    // Anthropic refuses browser requests unless this opt-in header is present.
+                    'anthropic-dangerous-direct-browser-access':'true' },
+          body:JSON.stringify(body) });
+        if(!res.ok){
+          let detail=''; try{ detail=(await res.json())?.error?.message||''; }catch(e){}
+          const err=new Error('Anthropic '+res.status+(res.status===401?' — bad key':res.status===404?' — check the model name':res.status===429?' — rate limited':'')+(detail?' — '+detail:''));
+          err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000;
+          if(window.__aiIsDailyLimit(detail)) err.exhausted=true;
+          throw err;
+        }
+        data=await res.json();
+        window.__aiUsage?.record(model, { in: data?.usage?.input_tokens, out: data?.usage?.output_tokens });
+        // A safety decline is a 200 with stop_reason:'refusal' and no text — say so plainly
+        // rather than letting it fall through as an anonymous empty response.
+        if(data?.stop_reason==='refusal') throw new Error('Claude declined this request'+(data?.stop_details?.category?' ('+data.stop_details.category+')':'')+'.');
+        text=(data?.content||[]).filter(b=>b&&b.type==='text').map(b=>b.text).join('\n');
+        if(!text && data?.stop_reason) emptyHint='stop_reason: '+data.stop_reason;
+      } else if(OPENAI_COMPAT[c.mode]){
+        const svc=OPENAI_COMPAT[c.mode], key=c[c.mode+'Key']||'', base=compatBase(c,c.mode);
+        const model=c[c.mode+'Model']||svc.model;
+        if(!key && c.mode!=='custom') throw new Error('No '+svc.label+' key set — open ⚙ setup.');
+        if(!base) throw new Error('No endpoint set for '+svc.label+' — open ⚙ setup.');
+        const body={ model, temperature: opts.creative?0.8:0.3, messages:[{role:'system',content:system},{role:'user',content:user}] };
+        if(opts.maxTokens) body.max_tokens=opts.maxTokens;
+        if(opts.json) body.response_format={ type:'json_object' };
+        res=await fetch(base.replace(/\/+$/,'')+'/chat/completions',{
+          method:'POST', signal:ctrl.signal,
+          headers:Object.assign({'Content-Type':'application/json'}, key?{'Authorization':'Bearer '+key}:{}),
+          body:JSON.stringify(body) });
+        if(!res.ok){
+          let detail=''; try{ detail=(await res.json())?.error?.message||''; }catch(e){}
+          const err=new Error(svc.label+' '+res.status+(res.status===401?' — bad key':res.status===404?' — check the model name':res.status===429?' — rate limited':'')+(detail?' — '+detail:''));
+          err.status=res.status; const ra=res.headers.get('retry-after'); if(ra) err.retryAfterMs=(parseFloat(ra)||0)*1000;
+          if(window.__aiIsDailyLimit(detail)) err.exhausted=true;
+          throw err;
+        }
+        data=await res.json();
+        window.__aiUsage?.record(model, { in: data?.usage?.prompt_tokens, out: data?.usage?.completion_tokens });
+        text=data?.choices?.[0]?.message?.content;
       } else {
         if(!c.url||!c.token) throw new Error('Set your HA URL + token in ⚙ setup.');
         const base=c.url.replace(/\/+$/,'');
@@ -308,12 +377,12 @@
 
   // ---- helpers ----
   function toLines(txt){ return txt.split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').replace(/^["'“]|["'”]$/g,'').trim()).filter(l=>l && !/^\(.*\)$/.test(l)).slice(0,40); }
-  const MODE_LABEL={ ha:'HA', groq:'Groq', gemini:'Gemini' };
+  const MODE_LABEL={ ha:'HA', groq:'Groq', gemini:'Gemini', anthropic:'Claude', openai:'OpenAI', deepseek:'DeepSeek', openrouter:'OpenRouter', custom:'Local' };
   function updateStatus(){ const on=isConfigured(); const c=loadCfg(); const spend=window.__aiUsage?.summary(window.__aiUsage.session); const label= on?`● ${MODE_LABEL[c.mode]||'HA'} linked${spend?` · ${spend} this session`:''}`:'○ not set up'; ['ai-status-lyr','ai-status-tools'].forEach(id=>{ const el=$(id); if(el){ el.textContent=label; el.style.color=on?'#00FF88':'rgba(226,232,240,0.4)'; } }); }
   window.__updateAiStatus = updateStatus;
 
   // ---- settings modal ----
-  const AI_MODES=['ha','groq','gemini'];
+  const AI_MODES=['ha','groq','gemini','anthropic','openai','deepseek','openrouter','custom'];
   let modalMode='ha';
   function setModalMode(m){
     modalMode = AI_MODES.includes(m) ? m : 'ha';
@@ -347,9 +416,23 @@
         $('ai-gemini-key').value='';
         $('ai-gemini-key').placeholder=c.geminiKey ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : 'AIza…';
       }
-      if($('ai-gemini-model')) $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash'; 
-      if($('ai-gemini-think')) $('ai-gemini-think').value=c.geminiThink||'low'; 
-      
+      if($('ai-gemini-model')) $('ai-gemini-model').value=c.geminiModel||'gemini-3.6-flash';
+      if($('ai-gemini-think')) $('ai-gemini-think').value=c.geminiThink||'low';
+
+      // Claude + the OpenAI-compatible services all follow the same {mode}Key / {mode}Model
+      // convention, so one loop fills them and each keeps a saved key masked the way the
+      // Groq and Gemini fields above do.
+      ['anthropic','openai','deepseek','openrouter','custom'].forEach(k=>{
+        const kf=$('ai-'+k+'-key');
+        if(kf){ kf.value=''; kf.placeholder = c[k+'Key'] ? '[ API KEY SAVED - LEAVE BLANK TO KEEP ]' : (k==='custom' ? 'often blank for a local server' : 'API key'); }
+        const mf=$('ai-'+k+'-model');
+        if(mf) mf.value = c[k+'Model'] || (k==='anthropic' ? 'claude-opus-5' : OPENAI_COMPAT[k].model);
+      });
+      if($('ai-custom-base')) $('ai-custom-base').value=c.customBase||OPENAI_COMPAT.custom.base;
+      if($('drive-client-id')) $('drive-client-id').value=window.getDriveCfg?.().clientId||'';
+      if($('drive-origin')) $('drive-origin').textContent=window.location.origin;
+      if($('ai-portable-note')) $('ai-portable-note').textContent='';
+
       if($('ai-test-out')) $('ai-test-out').textContent=`Loaded config: mode=${c.mode}, think=${c.geminiThink}`; 
       window.renderAccountingLedger?.(); 
     } catch(e) {
@@ -405,9 +488,64 @@
     const current = loadCfg();
     if(modalMode==='groq') return { ...current, mode:'groq', groqKey:$('ai-groq-key').value.trim() || current.groqKey, groqModel:$('ai-groq-model').value.trim()||'openai/gpt-oss-120b' };
     if(modalMode==='gemini') return { ...current, mode:'gemini', geminiKey:$('ai-gemini-key').value.trim() || current.geminiKey, geminiModel:$('ai-gemini-model').value.trim()||'gemini-3.6-flash', geminiThink:$('ai-gemini-think').value };
+    if(modalMode==='anthropic'||OPENAI_COMPAT[modalMode]){
+      const k=modalMode, next={ ...current, mode:k };
+      // Blank means "keep what's stored", matching the masked-placeholder behaviour above —
+      // otherwise just opening the panel and saving would wipe every key.
+      next[k+'Key']=$('ai-'+k+'-key')?.value.trim() || current[k+'Key'];
+      next[k+'Model']=$('ai-'+k+'-model')?.value.trim() || (k==='anthropic'?'claude-opus-5':OPENAI_COMPAT[k].model);
+      if(k==='custom') next.customBase=$('ai-custom-base')?.value.trim()||OPENAI_COMPAT.custom.base;
+      return next;
+    }
     return { ...current, mode:'ha', url:$('ai-url').value.trim(), token:$('ai-token').value.trim() || current.token };
   }
-  async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); out.style.color='#00E5FF'; out.textContent='testing…'; try{ window.__aiUsage?.begin('Settings: Test Connection'); const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); window.__aiUsage?.end(); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
+  // ---- portable settings: carry this setup to another device --------------
+  // Keys live in localStorage, which is per-browser, so a new phone or a cleared cache
+  // meant re-entering everything by hand. Credentials only — the vault (songs, lyrics,
+  // notes) keeps its own backup, so a vault backup can be shared without the API keys.
+  const SETTINGS_FILE_TYPE='ferrett-os-settings', SETTINGS_FILE_VERSION=1;
+  function portableNote(msg,color){ const el=$('ai-portable-note'); if(el){ el.textContent=msg||''; el.style.color=color||'rgba(226,232,240,0.4)'; } }
+
+  function saveDriveFromModal(){
+    if(!$('drive-client-id')||!window.saveDriveCfg) return;
+    const clientId=$('drive-client-id').value.trim();
+    const changed = clientId !== (window.driveClientId?.()||'');
+    window.saveDriveCfg({ ...(window.getDriveCfg?.()||{}), clientId });
+    if(changed) window.initDriveClient?.();
+  }
+
+  function exportSettings(){
+    try{
+      // Persist whatever is on screen first, so an export never misses a field the user
+      // typed but hasn't saved yet.
+      saveCfg(readModalCfg()); saveDriveFromModal();
+      const payload={ _type:SETTINGS_FILE_TYPE, version:SETTINGS_FILE_VERSION,
+        _warning:'Contains API keys in plain text. Keep it private — treat it like a password.',
+        exportedAt:new Date().toISOString(), ai:loadCfg(), drive:window.getDriveCfg?.()||{} };
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download='ferrett_os_settings_'+new Date().toISOString().slice(0,10)+'.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      portableNote('✓ Downloaded — it holds real API keys, so keep it somewhere private.','#FFD60A');
+    }catch(e){ portableNote('✗ Export failed: '+e.message,'#FF5A5A'); }
+  }
+
+  async function importSettings(file){
+    try{
+      const data=JSON.parse(await file.text());
+      if(!data||data._type!==SETTINGS_FILE_TYPE) throw new Error('That is not a FERRETT settings file.');
+      if(!data.ai&&!data.drive) throw new Error('No settings found in that file.');
+      if(data.ai&&typeof data.ai==='object') saveCfg(data.ai);
+      if(data.drive&&typeof data.drive==='object'&&window.saveDriveCfg){ window.saveDriveCfg(data.drive); window.initDriveClient?.(); }
+      populateAiSettings(); updateStatus();
+      const newer=(data.version||0)>SETTINGS_FILE_VERSION;
+      portableNote(newer?'✓ Imported — file came from a newer build, so double-check the fields.':'✓ Imported — you are set up. Hit TEST CONNECTION to confirm.', newer?'#FFD60A':'#00FF88');
+    }catch(e){ portableNote('✗ '+e.message,'#FF5A5A'); }
+  }
+  window.__exportAiSettings = exportSettings;
+
+  async function testConn(){ const out=$('ai-test-out'); saveCfg(readModalCfg()); saveDriveFromModal(); out.style.color='#00E5FF'; out.textContent='testing…'; try{ window.__aiUsage?.begin('Settings: Test Connection'); const r=await window.ferrettAI('You are a test. Reply with exactly: OK','ping',{creative:false}); window.__aiUsage?.end(); out.style.color='#00FF88'; out.textContent='✓ connected — model said: '+r.slice(0,40); }catch(e){ out.style.color='#FF5A5A'; out.textContent='✗ '+e.message; } }
 
   // ---- lyrics AI ----
   // All four actions below share one progress bar (window.startAiProgress, defined in
@@ -921,9 +1059,13 @@
     // modal wiring
     AI_MODES.forEach(k=>$('ai-mode-'+k)?.addEventListener('click',()=>setModalMode(k)));
     $('ai-modal-close')?.addEventListener('click',closeAiModal);
+    $('ai-export-btn')?.addEventListener('click',exportSettings);
+    $('ai-import-btn')?.addEventListener('click',()=>$('ai-import-input')?.click());
+    $('ai-import-input')?.addEventListener('change',(e)=>{ const f=e.target.files[0]; if(f) importSettings(f); e.target.value=''; });
     $('ai-test-btn')?.addEventListener('click',testConn);
     $('ai-save-btn')?.addEventListener('click',(e)=>{
         saveCfg(readModalCfg());
+        saveDriveFromModal();
         updateStatus();
         const btn = e.target;
         const orig = btn.textContent;

@@ -4,7 +4,8 @@ A personal, single-file studio HUD for producers, engineers, guitarists,
 bassists, drummers and lyricists. Recipe cookbook, tone/pedalboard rig book,
 track log, hardware routing, a deep toolbox of theory/ear/utility tools, a
 full lyrics workspace, DAW-export, and an optional AI co-pilot that runs on
-**your own** Groq — all in one `index.html`.
+**your own** AI provider — Claude, GPT, Gemini, Groq, DeepSeek, a local model,
+whatever you already pay for.
 
 Installable as a PWA and **fully offline** after first load. Everything you
 create lives in your browser (localStorage / IndexedDB); nothing is committed
@@ -20,7 +21,8 @@ to this repo.
 - [Lyrics Lab — the cut-up engine](#lyrics-lab--the-cut-up-engine)
 - [Studio+ — theory · ear · utilities](#studio--theory--ear--utilities)
 - [Getting ideas into your DAW](#getting-ideas-into-your-daw)
-- [AI Co-Pilot (Groq via Home Assistant)](#ai-co-pilot-groq-via-home-assistant)
+- [AI Co-Pilot — bring your own key](#ai-co-pilot--bring-your-own-key)
+- [Google Drive sync — bring your own Drive](#google-drive-sync--bring-your-own-drive)
 - [Google Music Bridge](#google-music-bridge)
 - [Data, privacy & backups](#data-privacy--backups)
 
@@ -198,43 +200,80 @@ feedback** from a description of what you hear.
 
 ---
 
-## AI Co-Pilot (Groq via Home Assistant)
+## AI Co-Pilot — bring your own key
 
-The AI features are **optional** and route through **your own** Groq setup, so
-no API key is ever shipped in this public app. Everything else works without it.
+Every AI feature is **optional** and runs on **your own** account with whichever
+provider you already pay for. No API key ships with this app, and nothing is
+proxied through anyone else's server — your browser talks straight to the
+provider you pick. Everything that isn't AI works without any of this.
 
-Open **⚙ setup** on any AI card. Two connection modes:
+Open **⚙ setup** and pick a connection:
 
-### Home Assistant mode (recommended)
+| Provider | What you need | Get a key |
+|---|---|---|
+| **Home Assistant → Groq** | HA URL + long-lived token (key stays in HA secrets) | — |
+| **Groq** | API key (generous free tier) | [console.groq.com](https://console.groq.com/keys) |
+| **Google Gemini** | API key | [aistudio.google.com](https://aistudio.google.com/apikey) |
+| **Claude** | API key | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
+| **OpenAI** | API key | [platform.openai.com](https://platform.openai.com/api-keys) |
+| **DeepSeek** | API key | [platform.deepseek.com](https://platform.deepseek.com/api_keys) |
+| **OpenRouter** | One key, hundreds of models behind it | [openrouter.ai](https://openrouter.ai/keys) |
+| **Local / Custom** | Any OpenAI-compatible endpoint — Ollama, LM Studio, vLLM, Together, Mistral | — |
 
-Calls your HA `rest_command.groq_creative_request` / `groq_speed_request`
-services (the key stays in HA secrets). You need:
+Each provider keeps its own key and model, so you can store several and switch
+without re-entering anything. A saved key is masked — leave the field blank to
+keep it. Hit **TEST CONNECTION** to confirm it works.
 
-1. **CORS** — in your HA `configuration.yaml`, allow this app's origin:
-   ```yaml
-   http:
-     cors_allowed_origins:
-       - https://<your-username>.github.io
-   ```
-   Restart Home Assistant after adding it.
-2. **An HTTPS URL to HA** — this app is served over HTTPS, so it must reach HA
-   over **https** too (browsers block https→http "mixed content"). Use your
-   remote-access HTTPS URL (Nabu Casa, Homeway, or a reverse proxy) — **not** a
-   `http://<local-ip>:8123` address.
-3. **A long-lived token** — HA → Profile → Security → create token, and paste
-   it into ⚙ setup. It's stored only in your browser.
+**Two things that trip people up in a browser:**
 
-Hit **Test Connection** — it echoes what the model replies.
+- **CORS.** Some endpoints refuse browser requests. Claude is handled for you
+  (the app sends the opt-in header Anthropic requires for direct browser calls).
+  For a *local* server, allow this page's origin in that server's CORS settings.
+- **Mixed content.** A page served over `https://` can only reach `https://`
+  endpoints. Pointing at Home Assistant or a local model means using an HTTPS
+  URL, or running this app locally over `http://`.
 
-### Direct Groq mode
+For the Home Assistant route, allow this app's origin in `configuration.yaml`
+and restart HA:
 
-Paste a Groq API key at runtime (localStorage only). Simpler, but browser→Groq
-can be blocked by CORS; the HA route is more reliable.
+```yaml
+http:
+  cors_allowed_origins:
+    - https://<your-username>.github.io
+```
 
-The co-pilot uses the **creative** model for lyrics and the **fast** model for
-prompts/utility calls.
+### Moving your setup to another device
+
+Keys live in this browser, so a new phone or a cleared cache would normally mean
+typing everything again. **⚙ setup → 🔑 EXPORT** writes your provider keys and
+Drive Client ID to one small file; **IMPORT** restores them in a single step.
+It holds real API keys in plain text, so keep it somewhere private. Your songs
+and lyrics are *not* in it — the vault has its own backup in the header, so you
+can share a vault backup without handing over your keys.
 
 ---
+
+## Google Drive sync — bring your own Drive
+
+Drive sync is optional and points at **your** Drive, using **your** Google Cloud
+OAuth client. No client ID is bundled with the app — a Google OAuth client only
+works from the origins listed on it, so a fork could never reuse someone else's.
+Without it the app still works fully offline; you just don't get cross-device
+sync.
+
+Open **⚙ setup → ☁ GOOGLE DRIVE SYNC** and follow the steps there:
+
+1. Create a project in the
+   [Google Cloud Console](https://console.cloud.google.com/projectcreate).
+2. **APIs & Services → Library** → enable the **Google Drive API**.
+3. **OAuth consent screen** → *External* → add yourself under **Test users**.
+4. **Credentials → Create credentials → OAuth client ID** → *Web application* →
+   add your deployment's origin under **Authorized JavaScript origins**. The
+   setup panel prints the exact origin to paste.
+5. Paste the Client ID in and **SAVE**.
+
+The app requests only the **`drive.file`** scope — it sees only the files it
+created itself, never the rest of your Drive.
 
 ## Google Music Bridge
 
@@ -254,10 +293,23 @@ Test Kitchen, and Gemini.
 - All content (cookbook, tones, tracks, notes, lyrics, beats, logs, settings)
   lives in this browser's **localStorage**; audio (tone refs, voice memos)
   lives in **IndexedDB**. None of it is in this repo.
-- **Google Drive sync** (if connected) is a personal backup/sync channel
-  between your own devices, not tied to this repository.
+- **Google Drive sync** (if connected) uses your own OAuth client and your own
+  Drive — a personal backup/sync channel between your devices, not tied to this
+  repository or to whoever you forked it from.
 - **Backups** — download a JSON backup any time from the header, or make an
   **encrypted** `.fenc` backup from Studio Lab.
-- **AI credentials** — your HA URL/token or Groq key are stored only in your
-  browser's localStorage and are **never committed**. The only data that leaves
-  your device is the AI request text you send, to the endpoint you configure.
+- **AI + Drive credentials** — your API keys, HA token, and Google Client ID are
+  stored **only** in this browser's localStorage and are **never committed**.
+  They are held unencrypted, as browser-local app settings normally are, so
+  don't set them up on a shared or public computer. The only data that leaves
+  your device is the request text you send, to the provider you configured.
+
+### Forking this for yourself
+
+Everything above is per-user by design, so a fork needs no code edits:
+
+1. Fork the repo and enable GitHub Pages (Settings → Pages → `main` / root).
+2. Open your copy and fill in **⚙ setup** — an AI provider key, and optionally a
+   Google OAuth client ID for Drive sync.
+
+That's it. Your keys, your Drive, your vault.

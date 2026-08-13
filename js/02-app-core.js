@@ -910,7 +910,15 @@ window.openModalGallery = (type, id) => {
 document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('close-chain-modal')?.addEventListener('click', () => document.getElementById('chain-modal')?.classList.replace('flex', 'hidden'));
-    document.getElementById('drive-auth-btn')?.addEventListener('click', () => { if (!window.isDriveConnected && window.tokenClient) { window.tokenClient.requestAccessToken({prompt: 'consent'}); } else if (!window.tokenClient) { alert("Google Auth script is blocked or still loading. Check your AdBlocker."); } });
+    document.getElementById('drive-auth-btn')?.addEventListener('click', () => {
+        if (window.isDriveConnected) return;
+        // No client ID yet — send them to the setup panel rather than a dead end.
+        if (!window.isDriveConfigured?.()) { window.__openAiModal?.(); return; }
+        if (!window.tokenClient) window.initDriveClient?.();
+        if (window.tokenClient) { window.tokenClient.requestAccessToken({ prompt: 'consent' }); }
+        else if (!window.gisReady) { alert("Google's auth script hasn't loaded yet (or is blocked by an ad blocker / offline). Try again in a moment."); }
+        else { alert("Couldn't start Google sign-in — check that the Client ID in ⚙ setup → GOOGLE DRIVE is correct."); }
+    });
     document.getElementById('drive-sync-badge')?.addEventListener('click', () => {
         // Route through the full decision rather than straight to a push: tapping the badge after
         // an edit on another device should be able to PULL, which the old upload-only path could not.

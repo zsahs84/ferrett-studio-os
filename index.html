@@ -1568,10 +1568,15 @@
       <div class="p-5 space-y-4">
         <div>
           <label class="text-[9px] text-[#00E5FF]/70 font-bold tracking-widest block mb-1.5">CONNECTION</label>
-          <div class="flex rounded overflow-hidden border border-[#00E5FF40]">
-            <button id="ai-mode-ha" type="button" class="flex-1 px-2 py-2 text-[9px] font-bold tracking-widest bg-[#00E5FF]/20 text-[#00E5FF]">HOME ASSISTANT</button>
-            <button id="ai-mode-groq" type="button" class="flex-1 px-2 py-2 text-[9px] font-bold tracking-widest text-[#00E5FF]/50 border-l border-[#00E5FF40]">DIRECT GROQ</button>
-            <button id="ai-mode-gemini" type="button" class="flex-1 px-2 py-2 text-[9px] font-bold tracking-widest text-[#00E5FF]/50 border-l border-[#00E5FF40]">GOOGLE GEMINI</button>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1">
+            <button id="ai-mode-ha" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] bg-[#00E5FF]/20 text-[#00E5FF]">HOME ASSISTANT</button>
+            <button id="ai-mode-groq" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">DIRECT GROQ</button>
+            <button id="ai-mode-gemini" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">GOOGLE GEMINI</button>
+            <button id="ai-mode-anthropic" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">CLAUDE</button>
+            <button id="ai-mode-openai" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">OPENAI</button>
+            <button id="ai-mode-deepseek" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">DEEPSEEK</button>
+            <button id="ai-mode-openrouter" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">OPENROUTER</button>
+            <button id="ai-mode-custom" type="button" class="px-2 py-2 text-[9px] font-bold tracking-widest rounded border border-[#00E5FF40] text-[#00E5FF]/50">LOCAL / CUSTOM</button>
           </div>
         </div>
         <div id="ai-cfg-ha" class="space-y-3">
@@ -1618,8 +1623,117 @@
           </div>
           <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed. Get one free at <span class="font-mono text-[#00E5FF]/70">aistudio.google.com/apikey</span>. Gemini allows a far bigger answer per call than the Groq free tier, which is what the AI Kit keeps running out of.</p>
         </div>
+        <div id="ai-cfg-anthropic" class="space-y-3 hidden">
+          <div>
+            <div class="flex items-baseline justify-between mb-1">
+              <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest">ANTHROPIC API KEY</label>
+              <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" class="text-[9px] text-[#00E5FF]/70 hover:text-[#00E5FF]">get a key ↗</a>
+            </div>
+            <input type="password" id="ai-anthropic-key" placeholder="sk-ant-…" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
+            <input type="text" id="ai-anthropic-model" value="claude-opus-5" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+            <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed mt-1">e.g. <span class="font-mono">claude-opus-5</span> (strongest), <span class="font-mono">claude-sonnet-5</span> (faster/cheaper), <span class="font-mono">claude-haiku-4-5</span> (cheapest).</p>
+          </div>
+          <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed. Claude models think before answering, so the token budget is set generously to avoid truncated replies.</p>
+        </div>
+        <div id="ai-cfg-openai" class="space-y-3 hidden">
+          <div>
+            <div class="flex items-baseline justify-between mb-1">
+              <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest">OPENAI API KEY</label>
+              <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="text-[9px] text-[#00E5FF]/70 hover:text-[#00E5FF]">get a key ↗</a>
+            </div>
+            <input type="password" id="ai-openai-key" placeholder="sk-…" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
+            <input type="text" id="ai-openai-model" value="gpt-4o-mini" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed.</p>
+        </div>
+        <div id="ai-cfg-deepseek" class="space-y-3 hidden">
+          <div>
+            <div class="flex items-baseline justify-between mb-1">
+              <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest">DEEPSEEK API KEY</label>
+              <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" class="text-[9px] text-[#00E5FF]/70 hover:text-[#00E5FF]">get a key ↗</a>
+            </div>
+            <input type="password" id="ai-deepseek-key" placeholder="sk-…" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
+            <input type="text" id="ai-deepseek-model" value="deepseek-chat" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed.</p>
+        </div>
+        <div id="ai-cfg-openrouter" class="space-y-3 hidden">
+          <div>
+            <div class="flex items-baseline justify-between mb-1">
+              <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest">OPENROUTER API KEY</label>
+              <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="text-[9px] text-[#00E5FF]/70 hover:text-[#00E5FF]">get a key ↗</a>
+            </div>
+            <input type="password" id="ai-openrouter-key" placeholder="sk-or-…" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
+            <input type="text" id="ai-openrouter-model" value="anthropic/claude-opus-5" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+            <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed mt-1">One key, hundreds of models — any id from <span class="font-mono text-[#00E5FF]/70">openrouter.ai/models</span>.</p>
+          </div>
+          <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">⚠ The key lives in this browser only (localStorage) — never committed.</p>
+        </div>
+        <div id="ai-cfg-custom" class="space-y-3 hidden">
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">ENDPOINT (OpenAI-compatible)</label>
+            <input type="text" id="ai-custom-base" placeholder="http://localhost:11434/v1" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">API KEY <span class="text-[#E2E8F0]/35">(usually blank for local)</span></label>
+            <input type="password" id="ai-custom-key" placeholder="often blank for a local server" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">MODEL</label>
+            <input type="text" id="ai-custom-model" value="llama3.1" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+          </div>
+          <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Works with Ollama, LM Studio, vLLM, Together, Mistral — anything speaking the OpenAI chat format. Two catches in a browser: the server must allow this page's origin (CORS), and a page served over https can only reach an https endpoint.</p>
+        </div>
         <div id="ai-test-out" class="text-[11px] font-mono min-h-[18px]"></div>
       </div>
+
+      <!-- ============ GOOGLE DRIVE (bring your own) ============ -->
+      <div class="px-5 py-4 border-t border-[#00E5FF20] space-y-3">
+        <h4 class="text-[9px] text-[#00E5FF]/70 font-bold tracking-widest">☁ GOOGLE DRIVE SYNC</h4>
+        <p class="text-[10px] text-[#E2E8F0]/60 leading-relaxed">Syncs your vault to <span class="text-[#00FF88]">your own</span> Drive using your own OAuth client, so your songs and lyrics land in your Drive and nobody else's. Leave it blank and everything still works offline — Drive sync is optional.</p>
+        <ol class="text-[10px] text-[#E2E8F0]/60 leading-relaxed space-y-1.5 list-decimal pl-4">
+          <li>Create a project in the <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener" class="text-[#00E5FF] hover:underline">Google Cloud Console ↗</a>.</li>
+          <li><span class="font-mono text-[#00E5FF]/70">APIs &amp; Services → Library</span> → enable the <b>Google Drive API</b>.</li>
+          <li><span class="font-mono text-[#00E5FF]/70">OAuth consent screen</span> → <b>External</b> → add yourself under <b>Test users</b>.</li>
+          <li><span class="font-mono text-[#00E5FF]/70">Credentials → Create credentials → OAuth client ID</span> → <b>Web application</b>, and add this exact origin under <b>Authorized JavaScript origins</b>:
+            <div class="mt-1 px-2 py-1 rounded bg-black/50 border border-[#00E5FF25] font-mono text-[10px] text-[#00FF88] break-all" id="drive-origin"></div>
+          </li>
+        </ol>
+        <div>
+          <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">OAUTH CLIENT ID</label>
+          <input type="text" id="drive-client-id" placeholder="…apps.googleusercontent.com" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[12px] text-[#C9FFE6] px-3 py-2 focus:outline-none">
+        </div>
+        <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Only the <span class="font-mono text-[#00E5FF]/70">drive.file</span> scope is requested, so the app sees just the files it creates — never the rest of your Drive.</p>
+      </div>
+
+      <!-- ============ PORTABLE SETTINGS ============ -->
+      <div class="px-5 py-4 border-t border-[#00E5FF20]">
+        <div class="rounded border border-[#7AFFBF25] bg-[rgba(122,255,191,0.04)] p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="text-[9px] font-bold tracking-widest text-[#7AFFBF]">🔑 MOVE THIS SETUP TO ANOTHER DEVICE</span>
+            <div class="flex gap-2">
+              <button id="ai-export-btn" type="button" class="btn-ferrett px-2.5 py-1 text-[9px]" style="border-color:#7AFFBF50;color:#7AFFBF" title="Download every key on this screen as a file">↓ EXPORT</button>
+              <button id="ai-import-btn" type="button" class="btn-ferrett px-2.5 py-1 text-[9px]" style="border-color:#7AFFBF50;color:#7AFFBF" title="Load a settings file exported from another device">↑ IMPORT</button>
+              <input type="file" id="ai-import-input" accept="application/json,.json" class="hidden">
+            </div>
+          </div>
+          <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Saves your provider keys and Drive Client ID to one small file — not your songs or lyrics, which have their own backup. Import it on a phone, a second machine, or after clearing your browser to be set up again in one step.</p>
+          <p id="ai-portable-note" class="text-[9px] min-h-[12px]"></p>
+        </div>
+      </div>
+
       <div class="px-5 py-4 border-t border-[#00E5FF20]">
         <h4 class="text-[9px] text-[#00E5FF]/70 font-bold tracking-widest mb-3">ACCOUNTING LEDGER</h4>
         <div class="grid grid-cols-3 gap-3 text-center mb-3">

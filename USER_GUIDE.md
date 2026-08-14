@@ -299,9 +299,14 @@ plugin order, settings, notes, and reference links.
   with room to document *why* a chain works, not just what it is.
 - **🤖 AI Kit generator** — generates a full multi-instrument mixing kit for a genre.
 
-**The important part:** the AI only uses **plugins you actually own**. You define your
-owned-plugins palette in Settings, and the generator builds realistic chains with specific
-knob values drawn strictly from that list. It won't recommend a compressor you don't have.
+**The important part:** the generator only names plugins from your **owned-plugins list**,
+so it builds chains with specific knob values for gear you can actually load — not a
+wishlist. That only works if the list is *yours*, which is a one-time setup step:
+
+> ⚠️ **The app ships with a starter list of ~191 plugins that belong to the original
+> author, not to you.** Until you replace it, the AI will confidently recommend plugins you
+> don't own. Settings shows a warning banner until you do. See
+> [Setting your plugin list](#setting-your-plugin-list).
 
 - **Export** — share a genre as a JSON pack, or as a Markdown chapter for offline reading.
 - **📦 Import pack** — merge someone else's recipe pack into your cookbook.
@@ -378,9 +383,65 @@ export.
 - **Google Drive sync** — [section 4](#4-setting-up-google-drive-sync).
 - **Portable settings** — [section 5](#5-moving-your-setup-to-another-device).
 - **Accounting ledger** — real API spend, weekly / monthly / lifetime.
-- **Owned plugins palette** — the list the AI Kit generator is restricted to. Keeping this
-  accurate is what makes AI-generated chains usable instead of aspirational.
+- **Owned plugins** — see below.
 - **Data vault & theme** — full export, and UI accent cycling.
+
+### Setting your plugin list
+
+This is the single most valuable five minutes you can spend in Settings, because the AI Kit
+generator is only allowed to name plugins from this list.
+
+**The app ships with a starter list of ~191 plugins belonging to the original author.** It's
+there so the feature does something out of the box, not because it describes your rig. A
+warning banner sits above the list until you replace it.
+
+Go to **⚙️ Settings → Owned Plugins → ✎ EDIT LIST**. You can type names one per line, but the
+fast way is to let your computer list them for you. Open **🔍 SCAN MY PLUGIN FOLDERS**, copy
+the command for your OS, run it in a terminal, and paste the output straight in:
+
+**macOS** (VST3, AU, VST)
+```bash
+ls -1 /Library/Audio/Plug-Ins/VST3 ~/Library/Audio/Plug-Ins/VST3 \
+      /Library/Audio/Plug-Ins/Components ~/Library/Audio/Plug-Ins/Components \
+      /Library/Audio/Plug-Ins/VST ~/Library/Audio/Plug-Ins/VST 2>/dev/null \
+  | sed 's/\.[^.]*$//' | sort -u
+```
+
+**Windows** (PowerShell)
+```powershell
+Get-ChildItem "C:\Program Files\Common Files\VST3","C:\Program Files\VSTPlugins","C:\Program Files\Steinberg\VSTPlugins" -Recurse -Include *.vst3,*.dll -ErrorAction SilentlyContinue |
+  Select-Object -ExpandProperty BaseName | Sort-Object -Unique
+```
+
+**Linux**
+```bash
+ls -1 ~/.vst3 /usr/lib/vst3 /usr/local/lib/vst3 ~/.vst /usr/lib/vst /usr/local/lib/vst 2>/dev/null \
+  | sed 's/\.[^.]*$//' | sort -u
+```
+
+**You don't need to tidy the output first.** Paste it raw — full paths, `.vst3` /
+`.component` / `.dll` extensions, and the folder-header lines `ls` prints are all stripped
+automatically, and a plugin that appears as both a VST3 and an AU is merged into one entry.
+A live count under the box shows how many it detected.
+
+Then:
+
+| Button | What it does |
+|---|---|
+| **SAVE LIST** | Replaces your list with exactly what's in the box |
+| **+ MERGE** | Adds what's in the box to your existing list (for a second plugin folder, or a new purchase) |
+| **EMPTY BOX** | Clears the box so you can paste a fresh list from scratch |
+
+Once you save, your list is marked as your own and **no future update will ever add the
+bundled plugins back into it**. Adjust it by hand any time — the scan is a shortcut, not a
+requirement.
+
+> The scan commands only *list filenames*. Nothing is uploaded, and the app never runs them
+> for you — you run them yourself and paste the result.
+
+**🔍 CHECK** compares your list against everything you've written in recipes, tones and
+tracks, and shows which owned plugins you've never actually referenced — useful for
+spotting gear you forgot you had.
 
 ---
 

@@ -23,6 +23,10 @@ const defaultDb = {
     // Bumped whenever defaultDb gains plugins that an existing saved palette should also receive.
     // The load path unions them in once when the saved rev is behind this one.
     paletteRev: 2,
+    // False until the user edits the owned-plugins list themselves. The bundled palette below is
+    // one person's plugin folder shipped as a starting point, not a claim about what you own —
+    // once this latches true, no migration or default ever writes over the user's own list again.
+    pluginsCustomized: false,
     ownedPlugins: [
         'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
         'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
@@ -154,12 +158,18 @@ try {
         // default entirely, so they would only ever appear on a fresh install. Union them in ONCE,
         // gated on a revision counter rather than run every load — otherwise a plugin deliberately
         // removed from the palette would silently come back on the next refresh.
+        // ...but ONLY for someone still running the bundled starter palette. The default list is
+        // one specific person's plugin folder, so unioning it into a palette the user has curated
+        // re-adds up to 191 plugins they do not own — and the AI Kit generator would then happily
+        // build chains around gear they cannot load. Once they have edited the list themselves,
+        // pluginsCustomized latches on and this migration never touches it again.
+        window.db.pluginsCustomized = parsed.pluginsCustomized === true;
         window.db.paletteRev = parsed.paletteRev || 0;
-        if (window.db.paletteRev < 2) {
+        if (window.db.paletteRev < 2 && !window.db.pluginsCustomized) {
             const have = new Set((window.db.ownedPlugins || []).map(p => String(p).trim().toLowerCase()));
             defaultDb.ownedPlugins.forEach(p => { if (!have.has(String(p).trim().toLowerCase())) window.db.ownedPlugins.push(p); });
-            window.db.paletteRev = 2;
         }
+        window.db.paletteRev = 2;
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.producerNotes) window.db.producerNotes = parsed.producerNotes;
         if (parsed.lyriaPrompts) window.db.lyriaPrompts = parsed.lyriaPrompts;
@@ -503,7 +513,7 @@ window.findOrPullDriveFile = async function() {
                 // paletteRev has to travel with the list it describes. Taking a pre-migration palette
                 // from the cloud while keeping this device's rev would strand the additions here and
                 // never re-run the union; carrying the cloud's rev lets the next load redo it.
-                if (cloudDb.ownedPlugins) { window.db.ownedPlugins = cloudDb.ownedPlugins; window.db.paletteRev = cloudDb.paletteRev || 0; }
+                if (cloudDb.ownedPlugins) { window.db.ownedPlugins = cloudDb.ownedPlugins; window.db.paletteRev = cloudDb.paletteRev || 0; window.db.pluginsCustomized = cloudDb.pluginsCustomized === true; }
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.producerNotes) window.db.producerNotes = cloudDb.producerNotes;
                 if (cloudDb.lyriaPrompts) window.db.lyriaPrompts = cloudDb.lyriaPrompts;
@@ -692,7 +702,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.scripts) window.db.scripts = incoming.scripts;
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
-        if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; }
+        if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; window.db.pluginsCustomized = incoming.pluginsCustomized === true; }
         if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
         if (incoming.producerNotes) window.db.producerNotes = incoming.producerNotes;
         if (incoming.lyriaPrompts) window.db.lyriaPrompts = incoming.lyriaPrompts;
@@ -4393,7 +4403,15 @@ window.lyriaSongBlock = (songId) => {
     // === PLUGIN COVERAGE GAP-CHECK ===
     window.db.ownedPlugins = window.db.ownedPlugins || [];
 
+    // Surfaced wherever the coverage panel refreshes, so the warning appears on load rather than
+    // only after someone happens to open the editor.
+    window.refreshOwnedPluginsBanner = () => {
+        const b = document.getElementById('owned-plugins-banner');
+        if (b) b.classList.toggle('hidden', window.db.pluginsCustomized === true);
+    };
+
     window.checkPluginCoverage = () => {
+        window.refreshOwnedPluginsBanner();
         const el = document.getElementById('plugin-coverage-content'); if (!el) return;
         el.innerHTML = 'Scanning...';
         const haystack = [
@@ -4409,27 +4427,89 @@ window.lyriaSongBlock = (songId) => {
             unused.map((p) => `<span class="px-2 py-1 rounded border border-[#FFD60A30] text-[#FFD60A] bg-[#FFD60A]/5">${p}</span>`).join('') + `</div>`;
     };
     document.getElementById('btn-check-coverage')?.addEventListener('click', () => window.checkPluginCoverage());
-    document.getElementById('btn-edit-owned-plugins')?.addEventListener('click', () => {
+
+    // Turn whatever got pasted into a usable plugin list. The point is that you can run one of
+    // the scan commands in the editor and paste the raw output without hand-editing it first:
+    // `ls` prints a `dir:` header line per folder and full paths when several are given, and the
+    // filenames still carry their bundle extension. Strip all of that, drop the obvious shell
+    // noise, then de-duplicate case-insensitively (VST3 and AU builds of one plugin differ only
+    // by extension, so the same name arrives twice) while keeping the first spelling seen.
+    const PLUGIN_EXT = /\.(vst3|vst|component|dll|aaxplugin|clap|lv2|so|dylib|bundle)$/i;
+    window.cleanPluginList = (text) => {
+        const seen = new Map();
+        String(text || '').split(/\r?\n/).forEach((raw) => {
+            let s = raw.trim();
+            if (!s) return;
+            if (s.endsWith(':')) return;                 // `ls` folder header
+            if (/^total\s+\d+$/i.test(s)) return;        // `ls -l` size line
+            s = s.split(/[/\\]/).pop().trim();           // path -> basename (both separators)
+            s = s.replace(PLUGIN_EXT, '').trim();
+            if (!s || s === '.' || s === '..') return;
+            const k = s.toLowerCase();
+            if (!seen.has(k)) seen.set(k, s);
+        });
+        return [...seen.values()].sort((a, b) => a.localeCompare(b));
+    };
+
+    const pluginCount = (n, verb) => {
+        const el = document.getElementById('owned-plugins-count');
+        if (el) el.textContent = n ? `${n} plugin${n === 1 ? '' : 's'} ${verb}.` : 'Box is empty — saving now would clear your list.';
+    };
+    const openPluginEditor = () => {
         const editor = document.getElementById('owned-plugins-editor'); const ta = document.getElementById('owned-plugins-textarea');
-        if (!editor || !ta) return;
-        ta.value = (window.db.ownedPlugins || []).join('\n');
+        if (!editor || !ta) return null;
         editor.classList.remove('hidden');
         document.getElementById('plugin-coverage-content')?.classList.add('hidden');
-        ta.focus();
-    });
-    document.getElementById('btn-cancel-owned-plugins')?.addEventListener('click', () => {
-        document.getElementById('owned-plugins-editor')?.classList.add('hidden');
-        document.getElementById('plugin-coverage-content')?.classList.remove('hidden');
-    });
-    document.getElementById('btn-save-owned-plugins')?.addEventListener('click', () => {
-        const ta = document.getElementById('owned-plugins-textarea'); if (!ta) return;
-        const list = [...new Set(ta.value.split('\n').map((s) => s.trim()).filter(Boolean))];
-        window.db.ownedPlugins = list;
-        window.saveData();
+        return ta;
+    };
+    const closePluginEditor = () => {
         document.getElementById('owned-plugins-editor')?.classList.add('hidden');
         document.getElementById('plugin-coverage-content')?.classList.remove('hidden');
         window.checkPluginCoverage();
+    };
+    // Any deliberate edit marks the palette as the user's own, which permanently opts them out of
+    // the paletteRev union above. Without this, curating your own list only lasts until the next
+    // release bumps that counter and re-adds every default plugin you removed.
+    const commitPlugins = (list) => {
+        window.db.ownedPlugins = list;
+        window.db.pluginsCustomized = true;
+        window.saveData();
+        closePluginEditor();
+    };
+
+    document.getElementById('btn-edit-owned-plugins')?.addEventListener('click', () => {
+        const ta = openPluginEditor(); if (!ta) return;
+        ta.value = (window.db.ownedPlugins || []).join('\n');
+        pluginCount((window.db.ownedPlugins || []).length, 'in your list');
+        ta.focus();
     });
+    document.getElementById('owned-plugins-textarea')?.addEventListener('input', (e) => {
+        pluginCount(window.cleanPluginList(e.target.value).length, 'detected in the box');
+    });
+    document.getElementById('btn-clear-owned-plugins')?.addEventListener('click', () => {
+        const ta = document.getElementById('owned-plugins-textarea'); if (!ta) return;
+        ta.value = ''; pluginCount(0); ta.focus();
+    });
+    document.getElementById('btn-cancel-owned-plugins')?.addEventListener('click', closePluginEditor);
+    document.getElementById('btn-save-owned-plugins')?.addEventListener('click', () => {
+        const ta = document.getElementById('owned-plugins-textarea'); if (!ta) return;
+        const list = window.cleanPluginList(ta.value);
+        if (!list.length && !confirm('The box is empty. Clear your owned-plugins list entirely?\n\nThe AI Kit generator needs this list to know what gear it may name.')) return;
+        commitPlugins(list);
+    });
+    document.getElementById('btn-merge-owned-plugins')?.addEventListener('click', () => {
+        const ta = document.getElementById('owned-plugins-textarea'); if (!ta) return;
+        commitPlugins(window.cleanPluginList((window.db.ownedPlugins || []).join('\n') + '\n' + ta.value));
+    });
+    document.querySelectorAll('.btn-copy-scan').forEach((b) => b.addEventListener('click', () => {
+        const pre = document.getElementById('scan-cmd-' + b.dataset.scan); if (!pre) return;
+        navigator.clipboard?.writeText(pre.textContent.trim()).then(() => {
+            const o = b.textContent; b.textContent = 'copied ✓';
+            setTimeout(() => { b.textContent = o; }, 1400);
+        }).catch(() => {});
+    }));
+    // Show the starter-palette warning immediately, not only once someone clicks CHECK.
+    window.refreshOwnedPluginsBanner();
 
     window.blendGenres = () => {
 

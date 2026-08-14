@@ -26,7 +26,8 @@ A dedicated environment for writing, brainstorming, and structuring vocals.
 The Cookbook is an intelligent recipe manager for mixing and sound design. 
 
 - **Genre Kits:** Store and organize mix recipes by genre (e.g., Synthwave, 90s Grunge, Lo-Fi Hip Hop). 
-- **Palette-Aware AI Generation:** Euterpe generates full, 12-instrument mixing kits tailored to a genre using an AI Co-Pilot (Groq, Gemini, or Home Assistant). Crucially, **the AI only uses plugins you actually own**. You feed it your gear list, and it builds realistic signal chains with precise knob values tailored strictly to your VST library.
+- **Palette-Aware AI Generation:** Euterpe generates full, 12-instrument mixing kits tailored to a genre using an AI Co-Pilot (Claude, OpenAI, Gemini, Groq, DeepSeek, OpenRouter, a local model, or Home Assistant). Crucially, **the AI only names plugins from your owned-plugins list**, so it builds realistic signal chains with precise knob values drawn strictly from your own VST library.
+  > The app ships with a starter palette belonging to the original author. Replace it under **Settings → Owned Plugins → ✎ EDIT LIST** — there are one-line scan commands for macOS, Windows and Linux that list your plugin folders so you can paste the output straight in. Until you do, generated kits will reference gear you don't have.
 - **Recipe Editor:** A dense, professional editor for detailing plugin chains (Gate, EQ, Comp, Saturation, FX, Limit). It catches impossible settings and ensures you document *why* a chain works.
 - **Exporting:** Export genres as shareable JSON packs or Markdown chapters for sharing with collaborators or reading offline.
 

@@ -11,12 +11,29 @@ Installable as a PWA and **fully offline** after first load. Everything you
 create lives in your browser (localStorage / IndexedDB); nothing is committed
 to this repo.
 
+There's a lot of great music software out there, and plenty of it does one of
+these jobs very well. What there isn't is a single place that does *all* of it —
+where the lyric you're writing, the chain you built last week, the patch on the
+synth behind you, and the tempo of the idea you hummed this morning all live
+together.
+
 Euterpe sits at the intersection of two people who happen to be the same man: a
 mad-scientist web developer seeing how far a single-page PWA can be pushed, and
 someone who's been listening to music since the womb, can jam on a few things,
 and knows his way around a recording desk. It's every *"huh, that would be
 useful"* thought collected over years of making music, from first spark through
 tracking, mixing and producing — built into one page.
+
+**Made with love by a producer, writer, engineer, musician and programmer — for
+producers, writers, engineers, musicians and programmers.**
+
+I grew up a poor kid who wanted an instrument. I spent my twenties and thirties
+as a poor musician with gear held together by tape, learning to save money every
+way I could. I've been one of you for decades.
+
+I'm finally in a position to give something back to the thing I've loved most my
+whole life. If it's useful to even one person, or knocks something loose
+creatively for somebody staring at a blank page, that's the whole point.
 
 Treat what it gives you as **starting points, not gospel**. Your ears win.
 

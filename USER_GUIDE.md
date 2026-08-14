@@ -56,6 +56,11 @@ reference library, and assistant that sits *beside* your DAW.
 
 ### Why this exists
 
+There's a lot of great music software out there, and plenty of it does one of these jobs
+very well. What there isn't is a single place that does *all* of it — where the lyric you're
+writing, the chain you built last week, the patch on the synth behind you, and the tempo of
+the idea you hummed this morning all live together.
+
 Euterpe sits at the intersection of two people who happen to be the same man: a
 mad-scientist web developer seeing how far a single-page PWA can actually be pushed, and
 someone who's been listening to music since he was in the womb, can jam on a few things,
@@ -66,6 +71,17 @@ making music — from the first spark of an idea, through tracking, mixing, and 
 Each of those thoughts got approached from several directions at once: as a programmer, a
 songwriter, a musician, a studio engineer, and as someone who just wants a good Swiss Army
 knife of inspiration and tools sitting next to the desk.
+
+**Made with love by a producer, writer, engineer, musician and programmer — for producers,
+writers, engineers, musicians and programmers.**
+
+I grew up a poor kid who wanted an instrument. I spent my twenties and thirties as a poor
+musician with gear held together by tape, learning to save money every way I could. I've
+been one of you for decades.
+
+I'm finally in a position to give something back to the thing I've loved most my whole life.
+If it's useful to even one person, or knocks something loose creatively for somebody staring
+at a blank page, that's the whole point.
 
 **Treat everything it gives you as a starting point, not gospel.** The recipes, the
 suggestions, the AI output — they're ideas and jumping-off points. If something it says
@@ -333,11 +349,15 @@ A full writing environment built around the Bowie/Burroughs **cut-up** technique
 
 **Lookup**
 - **🔤 Rhyme & Word Finder** — double-click any word in a line to look it up without leaving
-  the page. Results are split into **strong** and **slant** rhymes, and there's a toggle for
-  **synonyms**.
-  The corpus is a built-in word bank **plus every word you've written across your own
-  sheets** — so it gets more useful the more you write, and it works completely offline
-  (no API, no lookup latency, nothing sent anywhere).
+  the page. Results are split into **strong** rhymes, **slant / near** rhymes, and a
+  separate **from your own lyrics** row; there's a toggle for **synonyms**.
+  Online it queries a full rhyming dictionary (the free [Datamuse](https://www.datamuse.com/api/)
+  API — no key, no account, nothing but the word itself is sent). Offline, or if the request
+  fails or is slow, it falls back automatically to a built-in word bank plus your own sheets
+  and marks the results `◇ OFFLINE`. Either way the panel answers — the Lyrics Lab still
+  works on a plane.
+  The **from your own lyrics** row is the part no dictionary can give you: words you've
+  actually used across your own writing, so it gets more useful the more you write.
 - **📈 Word Frequency & Hook Detector** — ranks repeated words and flags your likely hook.
 
 **AI** (needs [setup](#3-setting-up-the-ai-co-pilot))

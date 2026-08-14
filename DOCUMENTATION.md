@@ -19,7 +19,7 @@ A dedicated environment for writing, brainstorming, and structuring vocals.
 
 - **Semantic Tagging:** Write headers like `[Verse 1]` or `[Chorus]` on their own lines. Euterpe detects these and groups your lyrics logically.
 - **Cut-Up Engine:** Inspired by David Bowie and William S. Burroughs, this tool lets you drag, shuffle, and splice individual lines to break writer's block and discover happy accidents.
-- **Integrated Rhyming Dictionary:** Double-click any word (or type it in the search box) to pull up strong rhymes, slant rhymes, and synonyms without leaving the page. It runs against a built-in word bank plus every word across your own lyric sheets, so it needs no network and works offline.
+- **Integrated Rhyming Dictionary:** Double-click any word (or type it in the search box) to pull up strong rhymes, slant rhymes and synonyms without leaving the page. Online it queries the free Datamuse API (no key, no account); offline it falls back to a built-in word bank and marks the results as such, so the panel answers either way. A separate row surfaces rhymes drawn from your own lyric sheets — words you've actually used, which no dictionary can supply.
 - **AI Co-Pilot:** An integrated AI assistant that can brainstorm 8 lines based on a theme and style, or read your existing lyrics and suggest the next 4 lines to help you get unstuck.
 
 ## 3. The Cookbook (AI Kit Generator)

@@ -468,26 +468,103 @@
   // compact songwriter thesaurus
   const THESAURUS={ love:['adore','cherish','crave','worship','desire'], hate:['loathe','despise','resent','detest'], happy:['elated','bright','alive','golden','high'], sad:['hollow','broken','heavy','blue','low'], run:['bolt','sprint','flee','race','dash'], fast:['quick','swift','rapid','breakneck'], slow:['lazy','heavy','crawling','dragging'], night:['dark','midnight','shadow','dusk','black'], light:['glow','shine','flame','spark','beam'], fire:['flame','blaze','burn','ember','spark'], dream:['vision','fantasy','trance','mirage'], fall:['crash','tumble','plummet','sink','drop'], rise:['climb','soar','ascend','lift','swell'], fight:['battle','clash','struggle','war','brawl'], home:['haven','shelter','roots','refuge'], road:['path','highway','route','trail','way'], cold:['frozen','icy','bitter','numb'], strong:['fierce','mighty','solid','iron','tough'], lost:['gone','adrift','stranded','missing'], real:['true','honest','raw','genuine'], pain:['ache','hurt','sting','sorrow','wound'], free:['loose','unchained','wild','open'], time:['moment','hour','era','forever','season'], heart:['soul','chest','core','pulse'], king:['ruler','lord','boss','champion'], gold:['riches','treasure','shine','fortune'] };
   let lyrFindMode='rhyme';
-  function findRhymes(){
+
+  // ---- Datamuse: a real rhyming dictionary, when there's a connection ------
+  // Free, no key, no account. It turns the built-in word bank from "the whole dictionary"
+  // into "the offline fallback", which is what it was always better suited to being.
+  // Everything degrades cleanly: no network, a blocked request or a slow one and the local
+  // bank answers instead, so the Lyrics Lab keeps working on a plane exactly as before.
+  const DM_CACHE = new Map();
+  async function datamuse(rel, word){
+    const key = rel + ':' + word.toLowerCase();
+    if (DM_CACHE.has(key)) return DM_CACHE.get(key);
+    // Short leash — an unreachable API must not leave the user staring at a spinner when a
+    // perfectly good local answer is one function call away.
+    const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 3500);
+    try{
+      const res = await fetch(`https://api.datamuse.com/words?${rel}=${encodeURIComponent(word)}&max=40`, { signal: ctrl.signal });
+      if (!res.ok) throw new Error('datamuse ' + res.status);
+      const words = (await res.json()).map(x => x && x.word).filter(Boolean);
+      DM_CACHE.set(key, words);
+      return words;
+    } catch(e){
+      return null;                       // caller falls back to the local bank
+    } finally { clearTimeout(to); }
+  }
+
+  // Words the writer has actually used across their own sheets. No dictionary can supply
+  // this, so it stays a first-class result rather than being folded into the generic list.
+  function ownVocabRhymes(target){
+    const tk = rkey(target); const mine = new Set();
+    lyrState.sheets.forEach(s => s.lines.forEach(l => l.text.toLowerCase().split(/[^a-z']+/).forEach(w => {
+      w = w.replace(/[^a-z]/g, '');
+      if (w.length > 2 && w !== tk.w) {
+        const k = rkey(w);
+        if ((k.s3 === tk.s3 && tk.s3.length === 3) || k.s2 === tk.s2) mine.add(w);
+      }
+    })));
+    return [...mine];
+  }
+
+  function localRhymes(target){
+    const tk = rkey(target);
+    const corpus = new Set(RHYME_BANK);
+    lyrState.sheets.forEach(s => s.lines.forEach(l => l.text.toLowerCase().split(/[^a-z']+/).forEach(w => {
+      w = w.replace(/[^a-z]/g, ''); if (w.length > 2) corpus.add(w);
+    })));
+    const strong = [], slant = [];
+    corpus.forEach(w => {
+      if (w === tk.w) return;
+      const k = rkey(w);
+      if (k.s3 === tk.s3 && tk.s3.length === 3) strong.push(w);
+      else if (k.s2 === tk.s2) slant.push(w);
+    });
+    return { strong, slant };
+  }
+
+  async function findRhymes(){
     const inp=$('lyr-rhyme-in'), out=$('lyr-rhyme-out'); if(!out) return;
-    const target=(inp.value||'').trim(); if(!target){ out.innerHTML='<span class="text-[10px] text-white/25 italic">Type a word…</span>'; return; }
+    const target=(inp.value||'').trim();
+    if(!target){ out.innerHTML='<span class="text-[10px] text-white/25 italic">Type a word…</span>'; return; }
     const wire=()=>out.querySelectorAll('.lyr-rchip').forEach(c=>c.addEventListener('click',()=>{ inp.value=c.dataset.w; findRhymes(); }));
-    if(lyrFindMode==='syn'){
-      const syns=THESAURUS[target.toLowerCase().replace(/[^a-z]/g,'')];
-      if(!syns){ out.innerHTML='<span class="text-[10px] text-white/25 italic">Not in the songwriter thesaurus — try love, fire, night, run, sad, strong…</span>'; return; }
-      out.innerHTML=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mb-1">SYNONYMS</div>`+syns.map(w=>`<button class="lyr-rchip text-[10px] font-mono px-2 py-1 rounded border cursor-pointer" style="color:#00E5FF;border-color:#00E5FF40;background:#00E5FF0A" data-w="${w}">${w}</button>`).join(''); wire(); return;
-    }
-    const tk=rkey(target);
-    const corpus=new Set(RHYME_BANK);
-    lyrState.sheets.forEach(s=>s.lines.forEach(l=>l.text.toLowerCase().split(/[^a-z']+/).forEach(w=>{ w=w.replace(/[^a-z]/g,''); if(w.length>2) corpus.add(w); })));
-    const strong=[], slant=[];
-    corpus.forEach(w=>{ if(w===tk.w) return; const k=rkey(w); if(k.s3===tk.s3 && tk.s3.length===3) strong.push(w); else if(k.s2===tk.s2) slant.push(w); });
-    const uniq=(a)=>[...new Set(a)].sort((x,y)=>x.length-y.length).slice(0,24);
+    const uniq=(a)=>[...new Set(a)].filter(Boolean).slice(0,24);
     const chips=(arr,col)=>uniq(arr).map(w=>`<button class="lyr-rchip text-[10px] font-mono px-2 py-1 rounded border cursor-pointer" style="color:${col};border-color:${col}40;background:${col}0A" data-w="${w}">${w}</button>`).join('');
+    const head=(t,cls)=>`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest ${cls||''} mb-1">${t}</div>`;
+    const offlineTag = `<div class="w-full text-[8px] text-[#FFD60A]/50 tracking-widest mt-2">◇ OFFLINE — BUILT-IN BANK + YOUR OWN LYRICS</div>`;
+    out.innerHTML = '<span class="text-[10px] text-white/25 italic">Looking…</span>';
+
+    if(lyrFindMode==='syn'){
+      const syn = await datamuse('rel_syn', target);
+      let words = syn && syn.length ? syn : null;
+      if(!words){ const near = await datamuse('ml', target); words = near && near.length ? near : null; }
+      const offline = !words;
+      if(offline) words = THESAURUS[target.toLowerCase().replace(/[^a-z]/g,'')] || [];
+      if(!words.length){
+        out.innerHTML='<span class="text-[10px] text-white/25 italic">No synonyms found — offline, the built-in thesaurus covers common songwriting words (love, fire, night, run, sad, strong…).</span>';
+        return;
+      }
+      out.innerHTML = head('SYNONYMS') + chips(words,'#00E5FF') + (offline?offlineTag:'');
+      wire(); return;
+    }
+
+    // Perfect rhymes and near rhymes are separate relations in Datamuse, which lines up
+    // exactly with the strong/slant split this panel already showed.
+    const [perfect, near] = await Promise.all([ datamuse('rel_rhy', target), datamuse('rel_nry', target) ]);
+    const offline = perfect === null && near === null;
+    let strong, slant;
+    if(offline){ const l = localRhymes(target); strong = l.strong; slant = l.slant; }
+    else { strong = perfect || []; slant = near || []; }
+
+    const mine = ownVocabRhymes(target);
     let html='';
-    if(strong.length) html+=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mb-1">RHYMES</div>`+chips(strong,'#FF88FF');
-    if(slant.length) html+=`<div class="w-full text-[8px] text-[#B18CFF]/50 tracking-widest mt-2 mb-1">SLANT / NEAR</div>`+chips(slant,'#B18CFF');
-    out.innerHTML=html||'<span class="text-[10px] text-white/25 italic">No matches in the bank — try a shorter or more common word.</span>';
+    if(strong.length) html += head('RHYMES') + chips(strong,'#FF88FF');
+    if(slant.length)  html += head('SLANT / NEAR','mt-2') + chips(slant,'#B18CFF');
+    // Only worth its own row when it adds something the dictionary didn't already list.
+    const extra = mine.filter(w => !strong.includes(w) && !slant.includes(w));
+    if(extra.length) html += head('FROM YOUR OWN LYRICS','mt-2') + chips(extra,'#00FF88');
+    if(offline) html += offlineTag;
+
+    out.innerHTML = html || '<span class="text-[10px] text-white/25 italic">No matches — try a shorter or more common word.</span>';
     wire();
   }
 

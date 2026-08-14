@@ -27,6 +27,7 @@ and the header (`Euterpe Creativity Workbench (vNNN)`).
 14. [Your data — storage, backup, privacy](#14-your-data--storage-backup-privacy)
 15. [Troubleshooting](#15-troubleshooting)
 16. [Running your own copy](#16-running-your-own-copy)
+17. [The honest bit](#17-the-honest-bit)
 
 ---
 
@@ -52,6 +53,24 @@ create is stored in your own browser and, if you choose, synced to your own Goog
 
 **What it is not:** a DAW. It doesn't record or play back your music. It's the notebook,
 reference library, and assistant that sits *beside* your DAW.
+
+### Why this exists
+
+Euterpe sits at the intersection of two people who happen to be the same man: a
+mad-scientist web developer seeing how far a single-page PWA can actually be pushed, and
+someone who's been listening to music since he was in the womb, can jam on a few things,
+and knows his way around a recording desk.
+
+It's the accumulation of every *"huh, that would be useful"* thought collected over years of
+making music — from the first spark of an idea, through tracking, mixing, and producing.
+Each of those thoughts got approached from several directions at once: as a programmer, a
+songwriter, a musician, a studio engineer, and as someone who just wants a good Swiss Army
+knife of inspiration and tools sitting next to the desk.
+
+**Treat everything it gives you as a starting point, not gospel.** The recipes, the
+suggestions, the AI output — they're ideas and jumping-off points. If something it says
+doesn't match your ears, your ears are right. Click around, break things, take what's
+useful, ignore the rest.
 
 ---
 
@@ -106,11 +125,53 @@ between them freely without re-entering anything.
 **A saved key is masked.** Once saved, the field shows `[ API KEY SAVED — LEAVE BLANK TO
 KEEP ]`. Leaving it blank keeps the stored key; you only type in it to *change* the key.
 
-### Cost tracking
+### What it actually costs
 
-The **ACCOUNTING LEDGER** at the bottom of Settings records the real token usage every
-provider reports, and shows spend for the week, month, and lifetime. It's the actual
-provider figures, not an estimate.
+Less than you'd think, but you should understand what you're spending.
+
+Every AI feature bills to **your** account at **your** provider's rates. Nothing here is a
+subscription and nobody takes a cut — the app just hands your request to the provider you
+picked.
+
+In the author's own use, running Gemini Flash, individual calls have landed anywhere from a
+fraction of a cent up to around twenty-something cents for the big ones — and building out a
+substantial FX chain has never run up a bill bigger than about twenty-odd cents. **Your
+numbers will differ**, sometimes a lot: different model, different provider, different
+prices, different length of request.
+
+The thing that drives cost is simply how much text moves. A Producer Notes write-up runs to
+roughly a thousand characters; a full FX chain is in the same ballpark. Longer request in,
+longer answer out, more tokens, higher cost. Reasoning-heavy models charge their thinking as
+output, which is why Gemini's **THINKING LEVEL** setting is the single biggest cost lever
+available to you.
+
+**Don't guess — read the meter.** The **ACCOUNTING LEDGER** at the bottom of Settings shows
+real token usage as each provider reports it, with spend for the week, month, and lifetime.
+Those are actual figures, not estimates, and they're specific to you.
+
+**Save what you like.** Most AI cards have a save option, and it's there for a reason:
+regenerating the same idea five times because you didn't keep the good one is the easiest
+way to spend money for nothing. Keep the take you liked, then move on.
+
+Several providers have genuinely usable free tiers (Groq and Gemini especially), and the
+**Local / Custom** option runs a model on your own machine for nothing at all. If cost is a
+concern, start there.
+
+### Getting good results
+
+**Sometimes AI is just whacko.** You'll occasionally get something that makes no sense.
+That's normal — regenerate and you're usually fixed. It isn't broken and you didn't do
+anything wrong.
+
+**If you're using it to generate prompts for another AI, read the prompt properly before you
+use it.** Make sure it actually says what you meant. A prompt that's subtly off will
+confidently produce something subtly wrong, and you'll spend more fixing that than you would
+have spent reading it.
+
+**A trick for describing a sound you can hear but can't put into words:** find a song on
+YouTube that has the sound you're chasing, ask YouTube's AI to describe it, and paste that
+description in here. It's a surprisingly good way to get from *"I want it to sound like
+that"* to language a model can actually work with.
 
 ### Two things that trip people up in a browser
 
@@ -563,3 +624,39 @@ there's no https→http mixed-content restriction to work around.
 **If you're modifying the code:** bump `window.APP_VERSION` in `js/00-bootstrap.js` **and**
 `CACHE_VERSION` in `service-worker.js` together — keep the two numbers identical, or
 installed clients will keep serving a stale copy.
+
+---
+
+## 17. The honest bit
+
+This is a personal project shared because it might be useful to someone else, not a product
+with a support desk behind it. A few things worth being straight about:
+
+**It's provided as-is.** No warranty, no guarantees, express or implied. It's built and
+tested against one man's setup, on his machines, with his gear, his plugins, and his
+providers. Yours are different. Things that behave perfectly here may behave oddly there,
+and the app changes whenever there's a good reason to change it.
+
+**You're responsible for your own API usage.** Your keys, your account, your bill. The app
+shows you what it's spending in the Accounting Ledger, but nobody is standing between you
+and your provider — understand your provider's pricing before you turn something loose, keep
+an eye on the meter, and set spending limits at the provider if they offer them. If you
+manage to spend a fortune on tokens, that's between you and your credit card.
+
+**Don't follow it to a T.** Every recipe, chain, suggestion and generated idea is a starting
+point. This is a box of ideas and tools, not a rulebook. Your ears, your room, your song.
+
+**Your data is your problem too.** Everything lives in your browser. Clearing browser data
+deletes it. Export a backup, set up Drive sync, and read
+[section 14](#14-your-data--storage-backup-privacy) — that's the whole safety net and it
+only works if you actually use it.
+
+**It's open source.** Read it, fork it, change it, take the parts you like. That's the
+point.
+
+---
+
+*Made by some guy who thinks seven dollars a week is ridiculous for a simple lyric-writing
+app.*
+
+*Open source. Free. Yours.*

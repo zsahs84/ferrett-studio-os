@@ -1,15 +1,20 @@
-# FERRETT_STUDIO_OS
+# Euterpe Creativity Workbench
 
-A personal, single-file studio HUD for producers, engineers, guitarists,
-bassists, drummers and lyricists. Recipe cookbook, tone/pedalboard rig book,
-track log, hardware routing, a deep toolbox of theory/ear/utility tools, a
-full lyrics workspace, DAW-export, and an optional AI co-pilot that runs on
-**your own** AI provider — Claude, GPT, Gemini, Groq, DeepSeek, a local model,
-whatever you already pay for.
+A local-first studio workbench for producers, engineers, guitarists, bassists,
+drummers and lyricists. Song board, full lyrics workspace with a cut-up engine,
+mix-recipe cookbook, tone/pedalboard rig book, hardware routing, a deep toolbox
+of theory/ear/utility tools, DAW export, and an optional AI co-pilot that runs
+on **your own** provider — Claude, GPT, Gemini, Groq, DeepSeek, OpenRouter, or a
+local model, whichever you already pay for.
 
 Installable as a PWA and **fully offline** after first load. Everything you
 create lives in your browser (localStorage / IndexedDB); nothing is committed
 to this repo.
+
+### 📖 [**Read the User Guide →**](USER_GUIDE.md)
+
+End-to-end: what it does, how to set up AI and Drive sync, and a walkthrough of
+every tab. Start there if you're new — this README is the shorter reference.
 
 ---
 

@@ -1,9 +1,47 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v153';
+window.APP_VERSION = 'v154';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const DRIVE_FILE_NAME = 'EUTERPE_OS_VAULT.json';
+
+// ---- device identity -------------------------------------------------------
+// Deliberately NOT part of window.db. The vault syncs, so an id stored in it would arrive
+// on every other machine and each one would believe it was the same device — which is
+// exactly what per-device plugin lists must not do. This lives beside the vault, like the
+// AI and Drive config, so it stays unique to this browser on this machine.
+const DEVICE_KEY = 'euterpe_device_v1';
+function guessDeviceName() {
+    const ua = navigator.userAgent || '';
+    if (/iPhone/i.test(ua)) return 'iPhone';
+    if (/iPad/i.test(ua)) return 'iPad';
+    if (/Android/i.test(ua)) return 'Android device';
+    if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac';
+    if (/Windows/i.test(ua)) return 'Windows PC';
+    if (/Linux|X11/i.test(ua)) return 'Linux PC';
+    return 'This device';
+}
+window.getDevice = () => {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(DEVICE_KEY) || 'null'); } catch (e) {}
+    if (!d || !d.id) {
+        d = { id: 'dev_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4), name: guessDeviceName() };
+        try { localStorage.setItem(DEVICE_KEY, JSON.stringify(d)); } catch (e) {}
+    }
+    return d;
+};
+window.setDeviceName = (name) => {
+    const d = window.getDevice();
+    d.name = String(name || '').trim() || guessDeviceName();
+    try { localStorage.setItem(DEVICE_KEY, JSON.stringify(d)); } catch (e) {}
+    return d;
+};
+// Which profile THIS device reads its plugin list from. Also per-device: a phone with no
+// plugins of its own should be able to point at the studio machine's list without changing
+// what the studio machine uses.
+const ACTIVE_PROFILE_KEY = 'euterpe_active_plugin_profile_v1';
+window.getActiveProfileId = () => { try { return localStorage.getItem(ACTIVE_PROFILE_KEY) || ''; } catch (e) { return ''; } };
+window.setActiveProfileId = (id) => { try { id ? localStorage.setItem(ACTIVE_PROFILE_KEY, id) : localStorage.removeItem(ACTIVE_PROFILE_KEY); } catch (e) {} };
 
 // Google Drive sync is bring-your-own-credentials: whoever deploys this app supplies their
 // own OAuth client, so their vault syncs to their own Drive. Nothing is hardcoded here — a

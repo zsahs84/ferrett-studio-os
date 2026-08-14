@@ -27,6 +27,13 @@ const defaultDb = {
     // one person's plugin folder shipped as a starting point, not a claim about what you own —
     // once this latches true, no migration or default ever writes over the user's own list again.
     pluginsCustomized: false,
+    // One plugin list per machine, keyed by the device id from js/00-bootstrap.js. A studio Mac
+    // and a travel laptop hold different plugins, so a single shared list was always going to be
+    // wrong on one of them. This travels in the vault (every device can see every list); which
+    // one a given device *reads* is a local choice, so it lives in localStorage instead.
+    // Shape: { [deviceId]: { name, plugins: [], updatedAt } }
+    // db.ownedPlugins stays the resolved list for the current device so nothing downstream changes.
+    pluginProfiles: {},
     ownedPlugins: [
         'Anthem', 'Flow Mixing Suite', 'Splice INSTRUMENT', 'NadIR', 'Tube Delay', 'LA-6176', 'bx_rockrack',
         'SPL Free Ranger', 'Pultec MEQ-5', 'Gateway', 'Topline Key Finder', 'Brigade Chorus', 'OTT', 'bx_solo',
@@ -170,6 +177,7 @@ try {
             defaultDb.ownedPlugins.forEach(p => { if (!have.has(String(p).trim().toLowerCase())) window.db.ownedPlugins.push(p); });
         }
         window.db.paletteRev = 2;
+        if (parsed.pluginProfiles && typeof parsed.pluginProfiles === 'object') window.db.pluginProfiles = parsed.pluginProfiles;
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.producerNotes) window.db.producerNotes = parsed.producerNotes;
         if (parsed.lyriaPrompts) window.db.lyriaPrompts = parsed.lyriaPrompts;
@@ -514,6 +522,9 @@ window.findOrPullDriveFile = async function() {
                 // from the cloud while keeping this device's rev would strand the additions here and
                 // never re-run the union; carrying the cloud's rev lets the next load redo it.
                 if (cloudDb.ownedPlugins) { window.db.ownedPlugins = cloudDb.ownedPlugins; window.db.paletteRev = cloudDb.paletteRev || 0; window.db.pluginsCustomized = cloudDb.pluginsCustomized === true; }
+                // Profiles are the source of truth; re-resolve so this device keeps reading ITS own
+                // list rather than whichever machine happened to sync last.
+                if (cloudDb.pluginProfiles) { window.db.pluginProfiles = cloudDb.pluginProfiles; window.resolveOwnedPlugins?.(); window.renderPluginProfiles?.(); }
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.producerNotes) window.db.producerNotes = cloudDb.producerNotes;
                 if (cloudDb.lyriaPrompts) window.db.lyriaPrompts = cloudDb.lyriaPrompts;
@@ -703,6 +714,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
         if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; window.db.pluginsCustomized = incoming.pluginsCustomized === true; }
+        if (incoming.pluginProfiles) { window.db.pluginProfiles = incoming.pluginProfiles; window.resolveOwnedPlugins?.(); window.renderPluginProfiles?.(); }
         if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
         if (incoming.producerNotes) window.db.producerNotes = incoming.producerNotes;
         if (incoming.lyriaPrompts) window.db.lyriaPrompts = incoming.lyriaPrompts;
@@ -4400,8 +4412,83 @@ window.lyriaSongBlock = (songId) => {
         window.renderProducerNotesSaved();
     };
 
-    // === PLUGIN COVERAGE GAP-CHECK ===
+    // === PER-DEVICE PLUGIN PROFILES ===
+    // db.ownedPlugins remains "the plugins available on the machine I'm sitting at" — every
+    // consumer (AI Kit, gear context, coverage check) reads it and none of them had to change.
+    // db.pluginProfiles is the source of truth behind it; resolveOwnedPlugins() projects the
+    // active profile down onto it whenever the selection or the profiles change.
     window.db.ownedPlugins = window.db.ownedPlugins || [];
+    window.db.pluginProfiles = window.db.pluginProfiles || {};
+
+    // Everything that existed before profiles becomes this device's profile, so an upgrade keeps
+    // the list you already had and simply names the machine it belongs to.
+    window.migratePluginProfiles = () => {
+        const dev = window.getDevice();
+        if (Object.keys(window.db.pluginProfiles).length === 0) {
+            window.db.pluginProfiles[dev.id] = {
+                name: dev.name,
+                plugins: (window.db.ownedPlugins || []).slice(),
+                updatedAt: Date.now()
+            };
+            window.setActiveProfileId(dev.id);
+            return true;
+        }
+        return false;
+    };
+
+    // Which profile this device should read. Its own if it has one; otherwise whatever the user
+    // pointed it at; otherwise the biggest list on file — the sane default for a phone, where you
+    // want to see your main rig rather than an empty screen.
+    window.resolveActiveProfileId = () => {
+        const dev = window.getDevice();
+        const profiles = window.db.pluginProfiles || {};
+        if (profiles[dev.id]) return dev.id;
+        const chosen = window.getActiveProfileId();
+        if (chosen && profiles[chosen]) return chosen;
+        const ids = Object.keys(profiles);
+        if (!ids.length) return '';
+        return ids.sort((a, b) => (profiles[b].plugins || []).length - (profiles[a].plugins || []).length)[0];
+    };
+
+    window.resolveOwnedPlugins = () => {
+        const id = window.resolveActiveProfileId();
+        const prof = (window.db.pluginProfiles || {})[id];
+        window.db.ownedPlugins = prof ? (prof.plugins || []).slice() : [];
+        return id;
+    };
+
+    // Write a list to a profile. Defaults to THIS device — scanning always describes the machine
+    // you ran the scan on, never whichever profile happens to be selected for viewing.
+    window.savePluginProfile = (list, profileId) => {
+        const dev = window.getDevice();
+        const id = profileId || dev.id;
+        const existing = window.db.pluginProfiles[id];
+        window.db.pluginProfiles[id] = {
+            // For this device the local name is authoritative — otherwise renaming the machine
+            // leaves its profile stuck on whatever it was first auto-detected as. Other devices
+            // keep the name they set for themselves; we only ever guess for a brand-new one.
+            name: id === dev.id ? dev.name : ((existing && existing.name) || 'Unnamed device'),
+            plugins: list,
+            updatedAt: Date.now()
+        };
+        window.db.pluginsCustomized = true;
+        window.setActiveProfileId(id);
+        window.resolveOwnedPlugins();
+        window.saveData();
+    };
+
+    // A device renamed while offline (or before it had a profile) would otherwise keep showing
+    // its old auto-detected label in the picker on every other machine.
+    window.syncDeviceProfileName = () => {
+        const dev = window.getDevice();
+        const p = (window.db.pluginProfiles || {})[dev.id];
+        if (p && p.name !== dev.name) { p.name = dev.name; return true; }
+        return false;
+    };
+
+    window.migratePluginProfiles();
+    window.syncDeviceProfileName();
+    window.resolveOwnedPlugins();
 
     // Surfaced wherever the coverage panel refreshes, so the warning appears on load rather than
     // only after someone happens to open the editor.
@@ -4409,6 +4496,64 @@ window.lyriaSongBlock = (songId) => {
         const b = document.getElementById('owned-plugins-banner');
         if (b) b.classList.toggle('hidden', window.db.pluginsCustomized === true);
     };
+
+    window.renderPluginProfiles = () => {
+        const dev = window.getDevice();
+        const nameInput = document.getElementById('device-name-input');
+        if (nameInput && document.activeElement !== nameInput) nameInput.value = dev.name;
+
+        const profiles = window.db.pluginProfiles || {};
+        const activeId = window.resolveActiveProfileId();
+        const sel = document.getElementById('plugin-profile-select');
+        if (sel) {
+            const ids = Object.keys(profiles).sort((a, b) =>
+                (a === dev.id ? -1 : b === dev.id ? 1 : (profiles[a].name || '').localeCompare(profiles[b].name || '')));
+            sel.innerHTML = ids.length
+                ? ids.map(id => `<option value="${id}"${id === activeId ? ' selected' : ''}>${profiles[id].name || 'Unnamed'}${id === dev.id ? ' (this device)' : ''} — ${(profiles[id].plugins || []).length}</option>`).join('')
+                : '<option value="">No plugin lists yet — hit ✎ EDIT LIST</option>';
+        }
+
+        const box = document.getElementById('plugin-profile-list');
+        if (box) {
+            const ids = Object.keys(profiles);
+            box.innerHTML = ids.length ? ids.map(id => {
+                const p = profiles[id], mine = id === dev.id;
+                const when = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '—';
+                return `<div class="flex items-center gap-2 text-[9px] py-1 border-b border-[#00E5FF10] last:border-0">
+                    <span class="flex-1 truncate ${mine ? 'text-[#00FF88]' : 'text-[#E2E8F0]/70'}">${mine ? '● ' : ''}${p.name || 'Unnamed'}</span>
+                    <span class="font-mono text-[#00E5FF]/50 shrink-0">${(p.plugins || []).length}</span>
+                    <span class="text-[#E2E8F0]/30 shrink-0 w-16 text-right">${when}</span>
+                    ${mine ? '<span class="w-10 shrink-0"></span>'
+                           : `<button class="btn-del-plugin-profile text-[#FF8888] hover:text-white shrink-0 w-10 text-right" data-id="${id}" title="Forget this device's plugin list">DEL</button>`}
+                </div>`;
+            }).join('') : '<div class="text-[9px] text-[#E2E8F0]/30 italic">No device lists saved yet.</div>';
+
+            box.querySelectorAll('.btn-del-plugin-profile').forEach(b => b.addEventListener('click', () => {
+                const id = b.dataset.id, nm = (profiles[id] || {}).name || 'that device';
+                if (!confirm(`Forget the plugin list for "${nm}"?\n\nThis only removes that machine's list. Yours is untouched.`)) return;
+                delete window.db.pluginProfiles[id];
+                if (window.getActiveProfileId() === id) window.setActiveProfileId('');
+                window.resolveOwnedPlugins();
+                window.saveData();
+                window.renderPluginProfiles();
+                window.checkPluginCoverage?.();
+            }));
+        }
+    };
+
+    document.getElementById('btn-save-device-name')?.addEventListener('click', () => {
+        const input = document.getElementById('device-name-input'); if (!input) return;
+        const d = window.setDeviceName(input.value);
+        // Keep the profile's label in step with the device it describes.
+        if (window.db.pluginProfiles[d.id]) { window.db.pluginProfiles[d.id].name = d.name; window.saveData(); }
+        window.renderPluginProfiles();
+    });
+    document.getElementById('plugin-profile-select')?.addEventListener('change', (e) => {
+        window.setActiveProfileId(e.target.value);
+        window.resolveOwnedPlugins();
+        window.renderPluginProfiles();
+        window.checkPluginCoverage?.();
+    });
 
     window.checkPluginCoverage = () => {
         window.refreshOwnedPluginsBanner();
@@ -4470,10 +4615,11 @@ window.lyriaSongBlock = (songId) => {
     // Any deliberate edit marks the palette as the user's own, which permanently opts them out of
     // the paletteRev union above. Without this, curating your own list only lasts until the next
     // release bumps that counter and re-adds every default plugin you removed.
+    // Edits always land on the profile currently selected in the picker, so renaming/editing a
+    // travel laptop's list from the studio Mac works — but the default selection is this device.
     const commitPlugins = (list) => {
-        window.db.ownedPlugins = list;
-        window.db.pluginsCustomized = true;
-        window.saveData();
+        window.savePluginProfile(list, window.resolveActiveProfileId() || window.getDevice().id);
+        window.renderPluginProfiles?.();
         closePluginEditor();
     };
 
@@ -4508,8 +4654,10 @@ window.lyriaSongBlock = (songId) => {
             setTimeout(() => { b.textContent = o; }, 1400);
         }).catch(() => {});
     }));
-    // Show the starter-palette warning immediately, not only once someone clicks CHECK.
+    // Show the starter-palette warning and the device/profile panel immediately, not only once
+    // someone clicks CHECK.
     window.refreshOwnedPluginsBanner();
+    window.renderPluginProfiles();
 
     window.blendGenres = () => {
 

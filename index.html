@@ -1822,6 +1822,27 @@
                     </div>
                 </div>
                 <p id="owned-plugins-banner" class="hidden text-[9px] leading-relaxed mb-2 px-2 py-1.5 rounded border border-[#FFD60A40] bg-[#FFD60A]/8 text-[#FFD60A]">⚠ You're still on the bundled starter list — these are <b>someone else's</b> plugins, not yours. The AI Kit generator builds chains only from this list, so replace it with your own before trusting what it suggests. Hit <b>✎ EDIT LIST</b>; there's a one-line command in there that reads your plugin folders for you.</p>
+
+                <!-- Per-device plugin profiles. Each machine keeps its own list; all of them ride
+                     the vault, but which one THIS device reads is a local choice. -->
+                <div class="mb-3 rounded border border-[#00E5FF25] bg-[#00E5FF]/5 p-2.5 space-y-2">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <span class="text-[9px] font-bold tracking-widest text-[#00E5FF]">💻 THIS DEVICE</span>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="device-name-input" class="bg-black/50 border border-[#00E5FF]/25 rounded text-[10px] text-[#C9FFE6] px-2 py-1 w-40 focus:outline-none" placeholder="Studio Mac">
+                            <button id="btn-save-device-name" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">RENAME</button>
+                        </div>
+                    </div>
+                    <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Name this machine so you can tell its plugin list apart from your others. The name is stored on this device only — it never syncs.</p>
+
+                    <div>
+                        <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">USE THE PLUGIN LIST FROM</label>
+                        <select id="plugin-profile-select" class="w-full bg-black/50 border border-[#00E5FF]/25 rounded text-[11px] text-[#C9FFE6] px-2 py-1.5 focus:outline-none"></select>
+                        <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed mt-1">Normally your own. On a phone or a machine you haven't scanned, point it at your main rig so the AI still knows what you own.</p>
+                    </div>
+
+                    <div id="plugin-profile-list" class="space-y-1"></div>
+                </div>
                 <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                 </div>
                 <p class="text-[10px] text-[#E2E8F0]/40 mb-3">Owned plugins never referenced in a single recipe or tone. This same list is what the AI Studio Brain is allowed to suggest.</p>
@@ -1832,7 +1853,7 @@
                         <summary class="cursor-pointer px-2 py-1.5 text-[9px] font-bold tracking-widest text-[#B18CFF]">🔍 SCAN MY PLUGIN FOLDERS — COPY A COMMAND</summary>
                         <div class="px-2 pb-2 pt-1 space-y-2">
                             <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Run one of these in a terminal, copy the output, and paste it into the box below. It only lists filenames — nothing is uploaded or executed by this app.</p>
-                            <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">Run it on the machine your <b>DAW and plugins</b> are on — there's nothing to scan on a phone. Your list is shared across all your devices via Drive, so on a <b>second</b> machine use <b>+ MERGE</b> rather than SAVE, or you'll replace your main rig's list with the smaller one.</p>
+                            <p class="text-[9px] text-[#FFD60A]/70 leading-relaxed">Run it on the machine your <b>DAW and plugins</b> are on — there's nothing to scan on a phone. Saving writes to <b>this device's own list</b>, so scanning a travel laptop won't touch your studio machine's. Every device's list rides your vault, so you can switch between them above.</p>
                             <div>
                                 <div class="flex items-center justify-between mb-1"><span class="text-[9px] font-bold tracking-widest text-[#00FF88]"> macOS — Terminal</span><button type="button" class="btn-copy-scan text-[9px] text-[#00E5FF] hover:text-white" data-scan="mac">copy</button></div>
                                 <pre id="scan-cmd-mac" class="text-[9px] font-mono text-[#C9FFE6]/80 bg-black/50 rounded p-2 overflow-x-auto whitespace-pre">ls -1 /Library/Audio/Plug-Ins/VST3 ~/Library/Audio/Plug-Ins/VST3 /Library/Audio/Plug-Ins/Components ~/Library/Audio/Plug-Ins/Components /Library/Audio/Plug-Ins/VST ~/Library/Audio/Plug-Ins/VST 2>/dev/null | sed 's/\.[^.]*$//' | sort -u</pre>

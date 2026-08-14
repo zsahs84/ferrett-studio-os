@@ -439,6 +439,33 @@ requirement.
 > The scan commands only *list filenames*. Nothing is uploaded, and the app never runs them
 > for you — you run them yourself and paste the result.
 
+#### If you use more than one device
+
+**Scan on the machine that actually has the plugins** — the one your DAW runs on. There's
+nothing to scan on a phone or tablet, and no terminal to run it in.
+
+You don't need to do anything on your other devices. There is **one plugin list shared
+across everything**, synced through Drive along with the rest of your vault, so a list you
+save on your studio Mac shows up on your phone by itself.
+
+That sharing is also the thing to be careful about, because saving on any device rewrites
+the list *everywhere*:
+
+| Situation | Do this |
+|---|---|
+| Your main studio machine | Scan → **SAVE LIST** |
+| A second machine with a *different* plugin set (e.g. a travel laptop) | Scan → **+ MERGE**, so you end up with the union instead of replacing your main rig's list |
+| Phone / tablet | Nothing. It inherits the list via Drive. |
+
+> ⚠️ **Don't hit SAVE LIST on a machine with fewer plugins.** It replaces the shared list
+> with that machine's, and the AI will think you sold everything on your main rig. **+ MERGE**
+> is the safe button on any second machine.
+
+One consequence of a merged list: the generator may name a plugin that's installed on your
+desktop but not on the laptop you're currently sitting at. That's usually the right
+trade — but if you'd rather each machine be exact, keep separate lists and re-save when you
+switch, accepting that the last save wins.
+
 **🔍 CHECK** compares your list against everything you've written in recipes, tones and
 tracks, and shows which owned plugins you've never actually referenced — useful for
 spotting gear you forgot you had.

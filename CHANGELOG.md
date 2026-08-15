@@ -5,6 +5,23 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v160 — 2026-08-15
+- **Fixed: the patchbay diagram couldn't be scrolled on a phone.** The canvas carried
+  `touch-action: none` so that dragging a device worked — but that also switches off native
+  panning, so on mobile you were stuck looking at the top-left corner of a 1200×800 diagram with
+  no way to reach the rest of your gear. `touch-action` moved onto the device boxes themselves:
+  the canvas pans, and only a box swallows the gesture. Dragging boxes still works.
+- **Fixed: tapping 🧰 Tools on mobile closed the nav drawer.** The drawer closes on any `.nav-btn`
+  click, and Tools carries that class — but it only expands a submenu, so the submenu opened
+  behind the backdrop and you had to reopen the drawer to reach anything in it. It stays open now;
+  buttons that actually navigate somewhere still close it as before.
+- **The script arsenal moved out of Hardware and into Tools & Intel.** It was buried at the bottom
+  of the routing tab, behind the whole signal-flow diagram — nowhere near where you'd look for a
+  tool. The Intel tab is now split into **🔗 Web Links** and **📜 Scripts**, each with a live count,
+  segmented rather than stacked because both lists run to dozens of cards. Your last-used half is
+  remembered. The Scripts view links out to the `ferrett-audio-tools` repo the files actually
+  live in.
+
 ## v159 — 2026-08-14
 - **The Script DB heading counts itself.** It was hardcoded to "THE 28 FILE ARSENAL" and had
   drifted — there are 68 scripts. A number written into markup is a number that goes stale, so

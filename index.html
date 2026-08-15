@@ -280,7 +280,11 @@
                 <button id="btn-patchbay-delete-saved" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">DELETE</button>
             </div>
             <p class="text-[9px] text-[#E2E8F0]/30 mb-3">Drag boxes to arrange your actual signal chain. Tap/click one port dot, then another, to connect them. Tap ✎ on a box to say what it is and how it's set; tap a cable to label it or remove it. Everything below this diagram is built from what you draw here.</p>
-            <div id="patchbay-canvas" class="relative w-full h-[380px] rounded border border-[#00FF8820] bg-black/40 overflow-auto" style="touch-action:none;">
+            <!-- touch-action lives on the device boxes, NOT here. It used to be `none` on the canvas,
+                 which is what device dragging needs — but it also killed native panning, so on a phone
+                 you were stuck looking at the top-left corner of a 1200x800 diagram with no way to
+                 reach the rest. The canvas pans; only the boxes swallow the gesture. -->
+            <div id="patchbay-canvas" class="relative w-full h-[380px] rounded border border-[#00FF8820] bg-black/40 overflow-auto" style="touch-action:pan-x pan-y;">
                 <svg id="patchbay-svg" class="absolute top-0 left-0 pointer-events-none" style="width:1200px;height:800px;"></svg>
                 <div id="patchbay-devices" class="relative" style="width:1200px;height:800px;"></div>
             </div>
@@ -323,10 +327,44 @@
             <button id="btn-rig-add-mode" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer uppercase">+ Mode</button>
         </div>
         <div id="rig-monitor-modes" class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10"></div>
-        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6 mt-10">
+    </div>
+
+    <div id="tab-links" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-5 flex-wrap gap-2">
+            <h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">TOOLS &amp; INTEL</h2>
+        </div>
+        <!-- Two halves of the same idea: things you open in a browser, and things you run in the DAW.
+             The script arsenal used to live at the bottom of the Hardware tab, behind the whole
+             routing diagram, which is nowhere near where you go looking for a tool. -->
+        <div class="flex gap-2 mb-6 flex-wrap">
+            <button id="intel-tab-links" type="button" class="intel-seg text-[10px] font-bold tracking-widest px-3 py-2 rounded border cursor-pointer uppercase">🔗 Web Links <span id="intel-link-count" class="opacity-60"></span></button>
+            <button id="intel-tab-scripts" type="button" class="intel-seg text-[10px] font-bold tracking-widest px-3 py-2 rounded border cursor-pointer uppercase">📜 Scripts <span id="intel-script-count" class="opacity-60"></span></button>
+        </div>
+
+      <div id="intel-section-links">
+        <div class="flex justify-between items-center mb-4 flex-wrap gap-2"><h3 class="text-[12px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS &amp; INTEL DB</h3><div class="flex gap-2"><button id="btn-import-links" class="btn-euterpe" style="border-color:#FF88FF50;color:#FF88FF;">📦 IMPORT PACK</button><input type="file" id="links-pack-input" accept="application/json" class="hidden"><button id="btn-add-link" class="btn-euterpe">+ ADD INTEL</button></div></div>
+        <input type="text" id="search-link" class="input-euterpe w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search tools, URLs, or descriptions...">
+        <div id="form-link" class="card mb-6 hidden border-[#00E5FF40]">
+            <h3 id="link-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TOOL LINK</h3>
+            <input type="hidden" id="link-id">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">TOOL NAME</label><input type="text" id="link-title" class="input-euterpe"></div>
+                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="link-category" class="input-euterpe"><option value="AI & MIDI Extraction">AI & MIDI Extraction</option><option value="Tones, Amps & IRs">Tones, Amps & IRs</option><option value="Mixing & Mastering">Mixing & Mastering</option><option value="Samples & Instruments">Samples & Instruments</option><option value="Audio Utilities">Audio Utilities</option></select></div>
+                <div class="md:col-span-3"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FULL URL</label><input type="text" id="link-url" class="input-euterpe"></div>
+            </div>
+            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DESCRIPTION & WORKFLOW NOTES</label><textarea id="link-notes" class="input-euterpe h-16 resize-y"></textarea></div>
+            <div class="flex gap-3"><button id="btn-save-link" class="btn-euterpe">SAVE LINK</button><button id="btn-cancel-link" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
+        </div>
+        <div id="link-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
+        <div id="link-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div><!-- /intel-section-links -->
+
+      <div id="intel-section-scripts" class="hidden">
+        <p class="text-[10px] text-[#E2E8F0]/40 mb-4 leading-relaxed">REAPER scripts. The files live in the <a href="https://github.com/zsahs84/ferrett-audio-tools" target="_blank" rel="noopener" class="text-[#00E5FF] hover:underline">ferrett-audio-tools</a> repo — each entry links straight to its raw download.</p>
+        <div class="flex items-end justify-between mb-4 flex-wrap gap-2">
             <!-- Count is filled in by renderScripts(). It was hardcoded to "28" and had drifted to
                  68 scripts without anyone noticing — a number in markup is a number that goes stale. -->
-            <h2 class="text-[15px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase">THE <span id="script-count">—</span> FILE ARSENAL // SCRIPT DB</h2>
+            <h3 class="text-[12px] tracking-widest font-bold text-[#00E5FF] uppercase">THE <span id="script-count">—</span> FILE ARSENAL // LUA &amp; PYTHON</h3>
             <button id="btn-add-script" class="btn-euterpe shrink-0">+ ADD SCRIPT</button>
         </div>
 
@@ -363,24 +401,7 @@
 
         <div id="script-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
         <div id="script-list" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
-    </div>
-
-    <div id="tab-links" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex justify-between items-center mb-6 border-b border-[#00E5FF20] pb-2 flex-wrap gap-2"><h2 class="text-[14px] tracking-widest font-bold text-[#00E5FF]">WEB TOOLS & INTEL DB</h2><div class="flex gap-2"><button id="btn-import-links" class="btn-euterpe" style="border-color:#FF88FF50;color:#FF88FF;">📦 IMPORT PACK</button><input type="file" id="links-pack-input" accept="application/json" class="hidden"><button id="btn-add-link" class="btn-euterpe">+ ADD INTEL</button></div></div>
-        <input type="text" id="search-link" class="input-euterpe w-full md:w-96 mb-6 !border-[#00E5FF30]" placeholder="Search tools, URLs, or descriptions...">
-        <div id="form-link" class="card mb-6 hidden border-[#00E5FF40]">
-            <h3 id="link-form-title" class="text-[11px] font-bold text-[#00E5FF] tracking-widest mb-4 border-b border-[#00E5FF20] pb-2">NEW TOOL LINK</h3>
-            <input type="hidden" id="link-id">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">TOOL NAME</label><input type="text" id="link-title" class="input-euterpe"></div>
-                <div class="md:col-span-1"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">CATEGORY</label><select id="link-category" class="input-euterpe"><option value="AI & MIDI Extraction">AI & MIDI Extraction</option><option value="Tones, Amps & IRs">Tones, Amps & IRs</option><option value="Mixing & Mastering">Mixing & Mastering</option><option value="Samples & Instruments">Samples & Instruments</option><option value="Audio Utilities">Audio Utilities</option></select></div>
-                <div class="md:col-span-3"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">FULL URL</label><input type="text" id="link-url" class="input-euterpe"></div>
-            </div>
-            <div class="mb-5"><label class="text-[10px] tracking-widest text-[#00E5FF]/70 block mb-1">DESCRIPTION & WORKFLOW NOTES</label><textarea id="link-notes" class="input-euterpe h-16 resize-y"></textarea></div>
-            <div class="flex gap-3"><button id="btn-save-link" class="btn-euterpe">SAVE LINK</button><button id="btn-cancel-link" class="text-[11px] font-bold text-[#E2E8F0]/40">CANCEL</button></div>
-        </div>
-        <div id="link-tag-bar" class="flex flex-wrap gap-2 mb-5"></div>
-        <div id="link-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div><!-- /intel-section-scripts -->
     </div>
 
     <div id="tab-tracks" class="middle-tab p-4 md:p-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">

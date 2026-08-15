@@ -969,7 +969,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-toggle-nav')?.addEventListener('click', () => window.toggleNavDrawer());
     document.getElementById('btn-close-nav')?.addEventListener('click', () => window.closeNavDrawer());
     document.getElementById('nav-backdrop')?.addEventListener('click', () => window.closeNavDrawer());
-    document.getElementById('side-nav')?.addEventListener('click', (e) => { if (e.target.closest('.nav-btn')) window.closeNavDrawer(); });
+    document.getElementById('side-nav')?.addEventListener('click', (e) => {
+        // Only close for buttons that actually navigate somewhere. #toggle-tools-menu carries .nav-btn
+        // but only expands a submenu — closing the drawer on it left the submenu open behind the
+        // backdrop, so on mobile you had to reopen the drawer before you could reach anything in it.
+        const navBtn = e.target.closest('.nav-btn');
+        if (navBtn && navBtn.id !== 'toggle-tools-menu') window.closeNavDrawer();
+    });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.closeNavDrawer(); });
 
     const quietBtn = document.getElementById('btn-toggle-quiet'); const quietText = document.getElementById('quiet-text'); const quietDot = document.getElementById('quiet-dot');
@@ -1563,7 +1569,7 @@ document.addEventListener('DOMContentLoaded', () => {
         devicesEl.innerHTML = pb.devices.map((d) => {
             const col = window.rigKind(d.kind).color;
             return `
-            <div class="patchbay-device absolute select-none rounded border-2 bg-[rgba(5,8,7,0.95)] flex flex-col items-center justify-center text-center px-2 cursor-grab" data-device-id="${d.id}" style="left:${d.x}px; top:${d.y}px; width:${window.DEVICE_W}px; height:${window.DEVICE_H}px; border-color:${col}80;">
+            <div class="patchbay-device absolute select-none rounded border-2 bg-[rgba(5,8,7,0.95)] flex flex-col items-center justify-center text-center px-2 cursor-grab" data-device-id="${d.id}" style="left:${d.x}px; top:${d.y}px; width:${window.DEVICE_W}px; height:${window.DEVICE_H}px; border-color:${col}80; touch-action:none;">
                 <button data-device-id="${d.id}" class="patchbay-edit-device absolute -top-2 -left-2 w-5 h-5 rounded-full bg-[#0B0F0D] border text-[9px] font-bold flex items-center justify-center cursor-pointer z-10" style="border-color:${col}80;color:${col};" title="Edit this device">✎</button>
                 <button data-device-id="${d.id}" class="patchbay-del-device absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#FF2A2A] text-white text-[10px] font-bold flex items-center justify-center cursor-pointer z-10">×</button>
                 <span class="text-[10px] font-bold break-words pointer-events-none" style="color:${col}">${window.escapeHtml(d.name)}</span>
@@ -5195,6 +5201,31 @@ window.lyriaSongBlock = (songId) => {
         if(activeBtn) { activeBtn.classList.remove('text-[#7AFFBF]/60', 'border-transparent'); activeBtn.classList.add('active-nav-green'); }
     };
 
+    // === INTEL TAB: web links | scripts ===
+    // Both halves are "a tool I want to reach", so they share a tab; they're segmented rather than
+    // stacked because each list runs to dozens of cards and stacking buries the second one.
+    window.INTEL_SECTION_KEY = 'ferrett_intel_section_v1';
+    window.setIntelSection = (which) => {
+        const isScripts = which === 'scripts';
+        document.getElementById('intel-section-links')?.classList.toggle('hidden', isScripts);
+        document.getElementById('intel-section-scripts')?.classList.toggle('hidden', !isScripts);
+        [['intel-tab-links', !isScripts], ['intel-tab-scripts', isScripts]].forEach(([id, on]) => {
+            const b = document.getElementById(id); if (!b) return;
+            b.style.color = on ? '#00E5FF' : 'rgba(255,255,255,0.45)';
+            b.style.borderColor = on ? '#00E5FF60' : 'rgba(255,255,255,0.15)';
+            b.style.background = on ? 'rgba(0,229,255,0.10)' : 'transparent';
+        });
+        try { localStorage.setItem(window.INTEL_SECTION_KEY, which); } catch (e) {}
+        if (isScripts) window.renderScripts?.();
+    };
+    window.refreshIntelCounts = () => {
+        const l = document.getElementById('intel-link-count'); if (l) l.textContent = `(${(window.db.links || []).length})`;
+        const s = document.getElementById('intel-script-count'); if (s) s.textContent = `(${(window.db.scripts || []).length})`;
+    };
+    document.getElementById('intel-tab-links')?.addEventListener('click', () => window.setIntelSection('links'));
+    document.getElementById('intel-tab-scripts')?.addEventListener('click', () => window.setIntelSection('scripts'));
+    (() => { let saved = 'links'; try { saved = localStorage.getItem(window.INTEL_SECTION_KEY) || 'links'; } catch (e) {} window.setIntelSection(saved); })();
+
     window.toggleForm = (formId) => {
         const form = document.getElementById(formId); if(!form) return; form.classList.toggle('hidden');
         if(!form.classList.contains('hidden')) {
@@ -5783,7 +5814,7 @@ window.lyriaSongBlock = (songId) => {
         btn.innerText = origLabel;
     };
 
-    window.renderLinks = () => { const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = [...window.db.links]; const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.linkCategoryColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.linkCategoryColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${window.escapeHtml(l.title)}">${window.escapeHtml(l.title)}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${window.escapeHtml(l.notes)}</p><a href="${window.escapeHtml(l.url)}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
+    window.renderLinks = () => { window.refreshIntelCounts?.(); const list = document.getElementById('link-list'); const sInput = document.getElementById('search-link'); const search = sInput ? sInput.value.toLowerCase() : ''; if(!list) return; let filtered = [...window.db.links]; const allCats = [...new Set(filtered.map(l => l.category))].sort(); window.renderTagBarGeneric('link-tag-bar', allCats, window.currentLinkTag, window.linkCategoryColor, window.setLinkTag); if (window.currentLinkTag !== 'ALL') filtered = filtered.filter(l => l.category === window.currentLinkTag); if (search) filtered = filtered.filter(l => l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.notes.toLowerCase().includes(search) || l.category.toLowerCase().includes(search)); list.innerHTML = ''; if (filtered.length === 0) { list.innerHTML = `<div class="col-span-full text-center text-[#E2E8F0]/30 text-[11px] italic p-8 border border-dashed border-[#00E5FF20] rounded">No tools match this tag/search.</div>`; return; } filtered.forEach(l => { const pc = window.linkCategoryColor(l.category); list.innerHTML += `<div class="card relative group bg-[rgba(5,8,7,0.8)] border-[#00E5FF30] flex flex-col h-full"><div class="absolute top-3 right-3 flex opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 gap-3 z-20"><button data-id="${l.id}" class="btn-edit-link text-[10px] font-bold text-[#00E5FF] hover:text-white">EDIT</button><button data-id="${l.id}" class="btn-del-link text-[10px] font-bold text-[#FF8888] hover:text-white">DEL</button></div><div class="flex items-center gap-2 mb-2 pr-16"><button data-tag="${l.category}" class="btn-tag-link text-[8px] font-bold px-1.5 py-0.5 rounded uppercase border truncate cursor-pointer transition-all hover:brightness-125" style="color:${pc}; border-color:${pc}40; background:${pc}0A;" title="Filter by ${l.category}">${l.category}</button></div><h4 class="font-bold text-[14px] text-white mb-2 truncate" title="${window.escapeHtml(l.title)}">${window.escapeHtml(l.title)}</h4><p class="text-[11px] text-[#A7DCC3]/80 leading-relaxed font-mono flex-1 mb-4">${window.escapeHtml(l.notes)}</p><a href="${window.escapeHtml(l.url)}" target="_blank" rel="noopener" class="mt-auto text-center block w-full px-3 py-2 rounded bg-[rgba(0,229,255,0.08)] border border-[#00E5FF30] text-[#00E5FF] hover:bg-[#00E5FF20] transition-colors text-[10px] tracking-widest font-bold">LAUNCH TOOL ↗</a></div>`; }); };
     
     window.getImagesHtml = (imagesArray, colorClass, type, id) => { if (!imagesArray || imagesArray.length === 0) return ''; let html = `<div class="mt-4 p-3 bg-black/40 rounded border border-[${colorClass}20]"><div class="text-[9px] text-[${colorClass}]/70 tracking-widest mb-3 font-bold uppercase flex items-center gap-2">Signal Chain / Plugin Flow</div><div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide cursor-pointer group" onclick="window.openModalGallery('${type}', ${id})">`; imagesArray.forEach((imgB64, i) => { html += `<img src="${imgB64}" class="w-20 h-20 object-cover border border-[${colorClass}40] rounded shadow-[0_0_10px_rgba(0,0,0,0.5)] group-hover:border-[${colorClass}] transition-colors">`; if (i < imagesArray.length - 1) html += `<span class="text-[${colorClass}]/50 font-bold text-[18px] shrink-0">→</span>`; }); html += `</div></div>`; return html; };
 
@@ -6184,6 +6215,7 @@ window.renderScripts = () => {
     if(!list) return;
     const countEl = document.getElementById('script-count');
     if (countEl) countEl.textContent = (window.db.scripts || []).length;
+    window.refreshIntelCounts?.();
 
     // Sort alphabetically by Category
     const sortedScripts = [...window.db.scripts].sort((a, b) => a.category.localeCompare(b.category));

@@ -151,6 +151,7 @@ try {
         if (parsed.patchbayUserDefault) window.db.patchbayUserDefault = parsed.patchbayUserDefault;
         if (parsed.patchbaySaved) window.db.patchbaySaved = parsed.patchbaySaved;
         if (parsed.scripts) window.db.scripts = parsed.scripts;
+        if (parsed.scriptsRev) window.db.scriptsRev = parsed.scriptsRev;
         if (parsed.refShelf) window.db.refShelf = parsed.refShelf;
         if (parsed.songBoard) window.db.songBoard = parsed.songBoard;
         if (parsed.ownedPlugins) window.db.ownedPlugins = parsed.ownedPlugins;
@@ -515,7 +516,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.patchbay) window.db.patchbay = cloudDb.patchbay;
                 if (cloudDb.patchbayUserDefault) window.db.patchbayUserDefault = cloudDb.patchbayUserDefault;
                 if (cloudDb.patchbaySaved) window.db.patchbaySaved = cloudDb.patchbaySaved;
-                if (cloudDb.scripts) window.db.scripts = cloudDb.scripts;
+                if (cloudDb.scripts) { window.db.scripts = cloudDb.scripts; window.db.scriptsRev = cloudDb.scriptsRev || 0; }
                 if (cloudDb.refShelf) window.db.refShelf = cloudDb.refShelf;
                 if (cloudDb.songBoard) window.db.songBoard = cloudDb.songBoard;
                 // paletteRev has to travel with the list it describes. Taking a pre-migration palette
@@ -710,7 +711,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.patchbay) window.db.patchbay = incoming.patchbay;
         if (incoming.patchbayUserDefault) window.db.patchbayUserDefault = incoming.patchbayUserDefault;
         if (incoming.patchbaySaved) window.db.patchbaySaved = incoming.patchbaySaved;
-        if (incoming.scripts) window.db.scripts = incoming.scripts;
+        if (incoming.scripts) { window.db.scripts = incoming.scripts; window.db.scriptsRev = incoming.scriptsRev || 0; }
         if (incoming.refShelf) window.db.refShelf = incoming.refShelf;
         if (incoming.songBoard) window.db.songBoard = incoming.songBoard;
         if (incoming.ownedPlugins) { window.db.ownedPlugins = incoming.ownedPlugins; window.db.paletteRev = incoming.paletteRev || 0; window.db.pluginsCustomized = incoming.pluginsCustomized === true; }
@@ -6160,10 +6161,29 @@ const defaultScripts = [
 // 1. Initialize the Array if it doesn't exist
 if (!window.db.scripts) window.db.scripts = JSON.parse(JSON.stringify(defaultScripts));
 
+// Scripts are saved data, so a saved list shadows defaultScripts completely — exactly the problem
+// paletteRev solves for the plugin palette. Without this, every script added here after your first
+// run would only ever appear on a fresh install, and you'd be left sure you'd added something that
+// never showed up. Union in anything whose URL isn't already present, matched on url because that's
+// the stable identity (a title can be renamed, an id can collide with a hand-added entry).
+// Deletions stick: SCRIPTS_REV only re-runs when it is bumped, so a script you deliberately removed
+// stays removed until the next time this list actually grows.
+window.SCRIPTS_REV = 1;
+(() => {
+    if ((window.db.scriptsRev || 0) >= window.SCRIPTS_REV) return;
+    const have = new Set((window.db.scripts || []).map((s) => s.url).filter(Boolean));
+    let added = 0;
+    defaultScripts.forEach((s) => { if (s.url && !have.has(s.url)) { window.db.scripts.push(JSON.parse(JSON.stringify(s))); added++; } });
+    window.db.scriptsRev = window.SCRIPTS_REV;
+    if (added) { try { window.saveData?.(); } catch (e) {} }
+})();
+
 // 2. The Render Engine
 window.renderScripts = () => {
     const list = document.getElementById('script-list');
     if(!list) return;
+    const countEl = document.getElementById('script-count');
+    if (countEl) countEl.textContent = (window.db.scripts || []).length;
 
     // Sort alphabetically by Category
     const sortedScripts = [...window.db.scripts].sort((a, b) => a.category.localeCompare(b.category));

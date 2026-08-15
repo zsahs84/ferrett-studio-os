@@ -5,6 +5,20 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v159 — 2026-08-14
+- **The Script DB heading counts itself.** It was hardcoded to "THE 28 FILE ARSENAL" and had
+  drifted — there are 68 scripts. A number written into markup is a number that goes stale, so
+  `renderScripts()` fills it in now and it can never disagree with the list under it again.
+- **Scripts added to the defaults now actually reach an existing vault.** `db.scripts` is saved
+  data, and the seed only applied when the key was completely missing — so any script added to
+  `defaultScripts` after your first run would only ever show up on a fresh install. Same trap
+  `paletteRev` already solves for the plugin palette, so this uses the same pattern: `scriptsRev`
+  unions in anything whose URL isn't already present. Matched on URL rather than title or id,
+  because that's the stable identity. Deletions still stick — the union only re-runs when the rev
+  is bumped, so a script you deliberately removed stays removed.
+- `scriptsRev` rides along through local load, Drive sync, JSON import and vault restore, like
+  every other saved bucket.
+
 ## v158 — 2026-08-14
 - **Syllable counting rewritten.** It wasn't randomly off — it was wrong in whole predictable
   categories, and every category is now handled:

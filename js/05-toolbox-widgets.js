@@ -381,7 +381,7 @@
       const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64dec(parsed.iv)},key,b64dec(parsed.data));
       const restored=JSON.parse(new TextDecoder().decode(pt));
       if(!confirm('Decrypted OK. Replace your current vault with this backup?')) return;
-      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','refShelf','songBoard','ownedPlugins','pluginProfiles','genreKits','lyrics','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
+      ['cookbook','tones','tracks','links','patchbay','patchbayUserDefault','patchbaySaved','scripts','scriptsRev','refShelf','songBoard','ownedPlugins','pluginProfiles','genreKits','lyrics','multiNotes'].forEach(k=>{ if(restored[k]!==undefined) window.db[k]=restored[k]; });
       window.saveData?.(); alert('Vault restored. Reloading…'); location.reload();
     }catch(e){ alert('Wrong passphrase or corrupted file.'); }
   }

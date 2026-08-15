@@ -1,7 +1,7 @@
 // Single source of truth for the version shown in the tab title + header. Bump this AND
 // CACHE_VERSION in service-worker.js together any time a change ships — keep the two numbers
 // identical so there's only one version to remember, not two drifting counters.
-window.APP_VERSION = 'v158';
+window.APP_VERSION = 'v159';
 document.title = `Euterpe Creativity Workbench (${window.APP_VERSION})`;
 const DRIVE_FILE_NAME = 'EUTERPE_OS_VAULT.json';
 

@@ -324,7 +324,9 @@
         </div>
         <div id="rig-monitor-modes" class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10"></div>
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6 mt-10">
-            <h2 class="text-[15px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase">THE 28 FILE ARSENAL // SCRIPT DB</h2>
+            <!-- Count is filled in by renderScripts(). It was hardcoded to "28" and had drifted to
+                 68 scripts without anyone noticing — a number in markup is a number that goes stale. -->
+            <h2 class="text-[15px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase">THE <span id="script-count">—</span> FILE ARSENAL // SCRIPT DB</h2>
             <button id="btn-add-script" class="btn-euterpe shrink-0">+ ADD SCRIPT</button>
         </div>
 

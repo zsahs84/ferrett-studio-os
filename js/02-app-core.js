@@ -1544,17 +1544,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.PORT_OFFSET_Y = 30; window.DEVICE_W = 140; window.DEVICE_H = 60;
 
+    // A rig is more than devices + connections now (inputs, safety rules, monitor modes ride along).
+    // Everything that copies a patchbay goes through here, so saving/loading a rig can't silently
+    // drop the parts that aren't on the canvas.
+    window.RIG_PARTS = ['inputs', 'safety', 'monitorModes'];
+    window.clonePatchbay = (src) => {
+        const s = src || {};
+        const out = { devices: JSON.parse(JSON.stringify(s.devices || [])), connections: JSON.parse(JSON.stringify(s.connections || [])) };
+        window.RIG_PARTS.forEach((k) => { if (s[k]) out[k] = JSON.parse(JSON.stringify(s[k])); });
+        return out;
+    };
+
     window.renderPatchbay = () => {
         const devicesEl = document.getElementById('patchbay-devices'); const svg = document.getElementById('patchbay-svg');
         if (!devicesEl || !svg) return;
         const pb = window.db.patchbay;
-        devicesEl.innerHTML = pb.devices.map((d) => `
-            <div class="patchbay-device absolute select-none rounded border-2 border-[#00FF8850] bg-[rgba(5,8,7,0.95)] flex items-center justify-center text-center px-2 cursor-grab" data-device-id="${d.id}" style="left:${d.x}px; top:${d.y}px; width:${window.DEVICE_W}px; height:${window.DEVICE_H}px;">
+        devicesEl.innerHTML = pb.devices.map((d) => {
+            const col = window.rigKind(d.kind).color;
+            return `
+            <div class="patchbay-device absolute select-none rounded border-2 bg-[rgba(5,8,7,0.95)] flex flex-col items-center justify-center text-center px-2 cursor-grab" data-device-id="${d.id}" style="left:${d.x}px; top:${d.y}px; width:${window.DEVICE_W}px; height:${window.DEVICE_H}px; border-color:${col}80;">
+                <button data-device-id="${d.id}" class="patchbay-edit-device absolute -top-2 -left-2 w-5 h-5 rounded-full bg-[#0B0F0D] border text-[9px] font-bold flex items-center justify-center cursor-pointer z-10" style="border-color:${col}80;color:${col};" title="Edit this device">✎</button>
                 <button data-device-id="${d.id}" class="patchbay-del-device absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#FF2A2A] text-white text-[10px] font-bold flex items-center justify-center cursor-pointer z-10">×</button>
-                <span class="text-[10px] font-bold text-[#00FF88] break-words pointer-events-none">${d.name}</span>
+                <span class="text-[10px] font-bold break-words pointer-events-none" style="color:${col}">${window.escapeHtml(d.name)}</span>
+                ${d.warn ? '<span class="text-[9px] text-[#FF8888] pointer-events-none leading-none mt-0.5" title="Has a warning">⚠</span>' : ''}
                 <div class="patchbay-port absolute w-3.5 h-3.5 rounded-full bg-[#00E5FF] border-2 border-black cursor-pointer" data-device-id="${d.id}" data-side="left" style="left:-7px; top:${window.PORT_OFFSET_Y - 7}px;"></div>
                 <div class="patchbay-port absolute w-3.5 h-3.5 rounded-full bg-[#00E5FF] border-2 border-black cursor-pointer" data-device-id="${d.id}" data-side="right" style="right:-7px; top:${window.PORT_OFFSET_Y - 7}px;"></div>
-            </div>`).join('');
+            </div>`; }).join('');
 
         const portPos = (deviceId, side) => {
             const d = pb.devices.find((x) => x.id === deviceId); if (!d) return { x: 0, y: 0 };
@@ -1562,73 +1577,109 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         svg.innerHTML = pb.connections.map((c, i) => {
             const p1 = portPos(c.from.deviceId, c.from.side); const p2 = portPos(c.to.deviceId, c.to.side);
-            return `<line data-conn-idx="${i}" class="patchbay-line" x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#00E5FF" stroke-width="2" style="pointer-events:auto;cursor:pointer;" /><line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="transparent" stroke-width="14" style="pointer-events:auto;cursor:pointer;" data-conn-idx="${i}" class="patchbay-line-hit" />`;
+            const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+            const tag = c.label || c.cable;
+            const stroke = c.warn ? '#FF8888' : '#00E5FF';
+            return `<line data-conn-idx="${i}" class="patchbay-line" x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${stroke}" stroke-width="2" style="pointer-events:auto;cursor:pointer;" /><line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="transparent" stroke-width="14" style="pointer-events:auto;cursor:pointer;" data-conn-idx="${i}" class="patchbay-line-hit" />`
+                + (tag ? `<text x="${mx}" y="${my - 4}" fill="${stroke}" font-size="9" font-family="monospace" text-anchor="middle" style="pointer-events:none;">${window.escapeHtml(tag)}</text>` : '');
         }).join('');
     };
 
     window.savePatchbay = () => { window.saveData(); };
 
     window.addPatchbayDevice = () => {
-        const name = prompt('Device name (e.g. "Volt 176", "Sansui Amp", "Pedal 1"):'); if (!name) return;
+        const name = prompt('Device name (e.g. "Scarlett 2i2", "Yamaha HS5", "Pedal 1"):'); if (!name) return;
         const id = Date.now();
-        const canvas = document.getElementById('patchbay-canvas');
         const x = 20 + ((window.db.patchbay.devices.length * 60) % 900); const y = 20 + ((window.db.patchbay.devices.length * 45) % 600);
-        window.db.patchbay.devices.push({ id, name, x, y });
-        window.savePatchbay(); window.renderPatchbay();
+        window.db.patchbay.devices.push({ id, name, x, y, kind: 'other' });
+        window.savePatchbay(); window.renderPatchbay(); window.renderRig();
+        window.editPatchbayDevice(id); // straight into the editor — what it is matters as much as its name
     };
 
     window.deletePatchbayDevice = (id) => {
         window.db.patchbay.devices = window.db.patchbay.devices.filter((d) => d.id !== id);
         window.db.patchbay.connections = window.db.patchbay.connections.filter((c) => c.from.deviceId !== id && c.to.deviceId !== id);
-        window.savePatchbay(); window.renderPatchbay();
+        window.savePatchbay(); window.renderPatchbay(); window.renderRig(); window.refreshRigExampleBanner?.();
+        window.closeRigEditor();
     };
 
     window.deletePatchbayConnection = (idx) => {
         window.db.patchbay.connections.splice(idx, 1);
-        window.savePatchbay(); window.renderPatchbay();
+        window.savePatchbay(); window.renderPatchbay(); window.renderRig();
+        window.closeRigEditor();
     };
 
-    // Default studio rig — DAW -> Volt 176 -> Sansui (Tape 1) -> Bose 301, plus the
-    // Volt headphone fan-out (Gamma / Xiberia / Samsung) and the wireless DAW -> JIB path.
-    // Fresh objects each call so dragging never mutates the template.
+    // Everything the Hardware tab shows below the diagram — the signal-flow paths, the rig-recall
+    // presets, the A/B monitor rotation and the pre-export checklist — is DERIVED from these
+    // devices and connections. Nothing about the rig is hardcoded in markup, so the tab describes
+    // whatever gear its owner actually has. Fields beyond {id,name,x,y} are all optional: a
+    // patchbay drawn before this existed still renders, just with less detail.
+    window.RIG_KINDS = [
+        { id: 'source',    label: 'Source / DAW',        color: '#00E5FF' },
+        { id: 'interface', label: 'Interface / Mixer',   color: '#FFD60A' },
+        { id: 'outboard',  label: 'Outboard / Pedal',    color: '#FFA05C' },
+        { id: 'amp',       label: 'Amp / Receiver',      color: '#B18CFF' },
+        { id: 'monitor',   label: 'Monitors / Phones',   color: '#00FF88' },
+        { id: 'speaker',   label: 'Speakers',            color: '#00FF88' },
+        { id: 'other',     label: 'Other',               color: '#7FA8D9' },
+    ];
+    window.rigKind = (id) => window.RIG_KINDS.find((k) => k.id === id) || window.RIG_KINDS[6];
+
+    // Seeded with the rig this app was built on, kept as a worked example rather than a blank slate
+    // — a filled-in rig shows what good input looks like. The banner on the tab says plainly that
+    // it's an example to replace. Fresh objects each call so dragging never mutates the template.
     window.getDefaultPatchbay = () => ({
         devices: [
-            { id: 90001, name: 'DAW (Reaper)', x: 30,  y: 60 },
-            { id: 90002, name: 'Volt 176',          x: 250, y: 240 },
-            { id: 90003, name: 'Sansui — Tape 1',   x: 500, y: 60 },
-            { id: 90004, name: 'Bose 301 Speakers', x: 740, y: 60 },
-            { id: 90005, name: 'The Gammas',         x: 500, y: 190 },
-            { id: 90006, name: 'The Xiberias',       x: 500, y: 300 },
-            { id: 90007, name: 'Samsung Sound Bar',  x: 500, y: 410 },
-            { id: 90008, name: 'Skullcandy JIB (BT)',x: 500, y: 540 },
+            { id: 90001, name: 'DAW (Reaper)',        x: 30,  y: 60,  kind: 'source' },
+            { id: 90002, name: 'Volt 176',            x: 250, y: 240, kind: 'interface', notes: 'Back TS out rides the device MAIN knob — the real master. The front headphone jack has its own separate knob.' },
+            { id: 90003, name: 'Sansui — Tape 1',     x: 500, y: 60,  kind: 'amp',     settings: 'Loudness OFF · Tone Defeat ON · Volume @ 7' },
+            { id: 90004, name: 'Bose 301 Speakers',   x: 740, y: 60,  kind: 'speaker' },
+            { id: 90005, name: 'The Gammas',          x: 500, y: 190, kind: 'monitor', notes: 'Best for tracking & mixing' },
+            { id: 90006, name: 'The Xiberias',        x: 500, y: 300, kind: 'monitor', notes: 'Best for tracking — better padding, less bleed' },
+            { id: 90007, name: 'Samsung Sound Bar',   x: 500, y: 410, kind: 'monitor', notes: 'Alternative "commercial" reference point' },
+            { id: 90008, name: 'Skullcandy JIB (BT)', x: 500, y: 540, kind: 'monitor', notes: 'Monitor via REAPER Monitor-Out EQ with AutoEQ values applied — true flat', warn: 'Do NOT use for tracking — ~150 ms Bluetooth latency.' },
         ],
         connections: [
-            { from: { deviceId: 90001, side: 'right' }, to: { deviceId: 90002, side: 'left' } }, // DAW out -> Volt in
-            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90003, side: 'left' } }, // Volt TS out -> Sansui Tape 1
-            { from: { deviceId: 90003, side: 'right' }, to: { deviceId: 90004, side: 'left' } }, // Sansui -> Bose 301
-            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90005, side: 'left' } }, // Volt HP -> Gammas
-            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90006, side: 'left' } }, // Volt HP -> Xiberias
-            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90007, side: 'left' } }, // Volt HP -> Samsung
-            { from: { deviceId: 90001, side: 'right' }, to: { deviceId: 90008, side: 'left' } }, // DAW monitor out -> wireless -> JIB
-        ]
+            { from: { deviceId: 90001, side: 'right' }, to: { deviceId: 90002, side: 'left' }, cable: 'USB' },
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90003, side: 'left' }, cable: '2× TS (L + R) → RCA', label: 'TAPE 1', notes: 'Back output — device MAIN knob is the master' },
+            { from: { deviceId: 90003, side: 'right' }, to: { deviceId: 90004, side: 'left' }, cable: 'speaker wire' },
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90005, side: 'left' }, cable: 'front headphone jack' },
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90006, side: 'left' }, cable: 'front headphone jack' },
+            { from: { deviceId: 90002, side: 'right' }, to: { deviceId: 90007, side: 'left' }, cable: 'front headphone jack' },
+            { from: { deviceId: 90001, side: 'right' }, to: { deviceId: 90008, side: 'left' }, cable: 'Bluetooth', warn: '~150 ms latency — bypasses the interface' },
+        ],
+        inputs: [
+            { label: 'Mic → XLR', detail: '+48 V phantom available if needed · INST switch OFF' },
+            { label: 'Instrument → 1/4" TS', detail: 'INST switch ON' },
+        ],
+        safety: [
+            'HOT-SWAPPING: Never swap the back TS → Sansui cable while Sansui volume is up.',
+            'MASTER: Sansui monitoring rides on the Volt back-output main knob — leave Sansui parked at 7. The front headphone jack has its own separate knob.',
+            'TRACKING: Skullcandy JIB is mixing-only (BT delay) — track on the Gammas / Xiberias off the front jack.',
+        ],
+        monitorModes: [
+            { name: 'FLAT // 60s REF',      desc: 'Loudness OFF. Tone Defeat ON. Vol @ 7 — interface out is master.', curveLabel: 'CALIBRATION',      curve: 'Pink Noise @ -14dBFS = 75dB SPL C-Weighted Slow at mix position.', color: '#00FF88' },
+            { name: 'FOCUS ROBOT // 20s',   desc: 'Simulates phone/laptop midrange.',                                 curveLabel: 'JS REA-EQ CURVE', curve: 'Mono ON. HPF@120Hz | LPF@8kHz\n+2dB@1.2kHz | +1.5dB@2.5kHz',      color: '#00E5FF' },
+            { name: 'HYPE // 15s CONSUMER', desc: 'Loudness ON. Bass +3, Treb +2.',                                   curveLabel: 'JS REA-EQ CURVE', curve: 'LowShelf+3.5dB@80Hz\nHighShelf+2.0dB@10kHz',                     color: '#FF8888' },
+        ],
     });
 
     // If the user has saved their own default rig, that takes precedence over the built-in Volt 176 template.
-    window.getEffectiveDefaultPatchbay = () => window.db.patchbayUserDefault ? JSON.parse(JSON.stringify(window.db.patchbayUserDefault)) : window.getDefaultPatchbay();
+    window.getEffectiveDefaultPatchbay = () => window.db.patchbayUserDefault ? window.clonePatchbay(window.db.patchbayUserDefault) : window.getDefaultPatchbay();
 
     window.loadDefaultPatchbay = (force) => {
         const hasData = (window.db.patchbay.devices || []).length > 0;
         if (hasData && !force) return false;
         if (hasData && force && !confirm('Replace the current patchbay with your default rig?')) return false;
         window.db.patchbay = window.getEffectiveDefaultPatchbay();
-        window.savePatchbay(); window.renderPatchbay();
+        window.savePatchbay(); window.renderPatchbay(); window.renderRig();
         return true;
     };
 
     window.setPatchbayAsDefault = () => {
         if ((window.db.patchbay.devices || []).length === 0) { alert('Nothing to save — add some devices first.'); return; }
         if (!confirm('Save the current patchbay as your default rig? "⟳ LOAD DEFAULT" will load this from now on.')) return;
-        window.db.patchbayUserDefault = { devices: JSON.parse(JSON.stringify(window.db.patchbay.devices)), connections: JSON.parse(JSON.stringify(window.db.patchbay.connections)) };
+        window.db.patchbayUserDefault = window.clonePatchbay(window.db.patchbay);
         window.savePatchbay(); window.renderPatchbay();
         alert('Saved as your default rig.');
     };
@@ -1645,7 +1696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = prompt('Name this patchbay setup (e.g. "Live Room Rig", "Mobile Rig"):'); if (!name) return;
         const id = Date.now();
         window.db.patchbaySaved = window.db.patchbaySaved || [];
-        window.db.patchbaySaved.push({ id, name, devices: JSON.parse(JSON.stringify(window.db.patchbay.devices)), connections: JSON.parse(JSON.stringify(window.db.patchbay.connections)) });
+        window.db.patchbaySaved.push({ id, name, ...window.clonePatchbay(window.db.patchbay) });
         window.savePatchbay(); window.renderPatchbaySavedList();
         const sel = document.getElementById('patchbay-saved-select'); if (sel) sel.value = id;
     };
@@ -1653,8 +1704,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.loadPatchbaySaved = (id) => {
         const item = (window.db.patchbaySaved || []).find((p) => p.id === id); if (!item) return;
         if (!confirm(`Replace the current patchbay with "${item.name}"?`)) return;
-        window.db.patchbay = { devices: JSON.parse(JSON.stringify(item.devices)), connections: JSON.parse(JSON.stringify(item.connections)) };
-        window.savePatchbay(); window.renderPatchbay();
+        window.db.patchbay = window.clonePatchbay(item);
+        window.savePatchbay(); window.renderPatchbay(); window.renderRig();
     };
 
     window.deletePatchbaySaved = (id) => {
@@ -1664,12 +1715,326 @@ document.addEventListener('DOMContentLoaded', () => {
         window.savePatchbay(); window.renderPatchbaySavedList();
     };
 
+    // =====================================================================
+    // RIG DERIVATION — read the Hardware tab out of the patchbay graph
+    // =====================================================================
+    // Dense graphs enumerate combinatorially; cap it so one over-connected rig can't hang the tab.
+    window.RIG_MAX_PATHS = 24;
+
+    window.rigGraph = () => {
+        const pb = window.db.patchbay || { devices: [], connections: [] };
+        const byId = new Map((pb.devices || []).map((d) => [d.id, d]));
+        const out = new Map(); const incoming = new Set();
+        (pb.connections || []).forEach((c) => {
+            if (!c || !c.from || !c.to) return;
+            if (!byId.has(c.from.deviceId) || !byId.has(c.to.deviceId)) return; // left over from a delete
+            if (!out.has(c.from.deviceId)) out.set(c.from.deviceId, []);
+            out.get(c.from.deviceId).push(c);
+            incoming.add(c.to.deviceId);
+        });
+        return { pb, byId, out, incoming };
+    };
+
+    // A path is one route from a device nothing feeds into, down to a device that feeds nothing —
+    // the chain you'd trace with a finger. That's exactly what the old hardcoded panel listed by hand.
+    window.rigPaths = () => {
+        const { pb, byId, out, incoming } = window.rigGraph();
+        const paths = [];
+        const walk = (dev, devices, conns, seen) => {
+            if (paths.length >= window.RIG_MAX_PATHS) return;
+            const usable = (out.get(dev.id) || []).filter((c) => !seen.has(c.to.deviceId)); // cycle guard
+            if (!usable.length) { if (devices.length > 1) paths.push({ devices, conns, key: devices.map((d) => d.id).join('-') }); return; }
+            usable.forEach((c) => {
+                const nd = byId.get(c.to.deviceId);
+                walk(nd, [...devices, nd], [...conns, c], new Set([...seen, nd.id]));
+            });
+        };
+        (pb.devices || []).filter((d) => !incoming.has(d.id)).forEach((s) => walk(s, [s], [], new Set([s.id])));
+        return paths;
+    };
+
+    // Monitors = wherever sound actually leaves the rig. Prefer explicitly tagged gear; fall back to
+    // terminal devices so a patchbay drawn before `kind` existed still produces a sensible list.
+    window.rigMonitors = () => {
+        const { pb, out } = window.rigGraph();
+        const tagged = (pb.devices || []).filter((d) => d.kind === 'monitor' || d.kind === 'speaker');
+        if (tagged.length) return tagged;
+        return (pb.devices || []).filter((d) => (out.get(d.id) || []).length === 0 && d.name);
+    };
+
+    // The interface is what the header badge and panel title name. Tagged first, else the busiest
+    // hub in the graph, else nothing (the badge just hides).
+    window.rigInterface = () => {
+        const { pb, out, incoming } = window.rigGraph();
+        const tagged = (pb.devices || []).find((d) => d.kind === 'interface');
+        if (tagged) return tagged;
+        let best = null, bestFan = 1;
+        (pb.devices || []).forEach((d) => {
+            const fan = (out.get(d.id) || []).length;
+            if (fan > bestFan && incoming.has(d.id)) { best = d; bestFan = fan; }
+        });
+        return best;
+    };
+
+    window.RIG_ACTIVE_KEY = 'ferrett_active_rig_v2';
+
+    window.renderRigPaths = () => {
+        const wrap = document.getElementById('rig-paths'); const bar = document.getElementById('rig-preset-bar');
+        if (!wrap || !bar) return;
+        const paths = window.rigPaths();
+        if (!paths.length) {
+            wrap.innerHTML = `<div class="text-[10px] text-white/35 italic leading-relaxed">No routing drawn yet. Add devices in the patchbay above and connect them — every path you wire shows up here as a signal chain, and feeds the A/B monitor rotation and the pre-export checklist.</div>`;
+            bar.innerHTML = ''; const n = document.getElementById('rig-preset-note'); if (n) n.textContent = '';
+            return;
+        }
+        let active = null;
+        try { active = localStorage.getItem(window.RIG_ACTIVE_KEY); } catch (e) {}
+        if (!paths.some((p) => p.key === active)) active = null;
+
+        bar.innerHTML = paths.map((p) => {
+            const last = p.devices[p.devices.length - 1];
+            const col = window.rigKind(last.kind).color;
+            const on = p.key === active;
+            return `<button type="button" class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig-key="${p.key}" style="color:${on ? col : 'rgba(255,255,255,0.45)'};border-color:${on ? col : 'rgba(255,255,255,0.15)'};background:${on ? col + '18' : 'transparent'};">${window.escapeHtml(last.name)}</button>`;
+        }).join('');
+
+        // A hub device's note is identical on every path through it — printing it four times under
+        // four headphone paths is just noise. Show each distinct note once, on the first path that
+        // carries it. Warnings are exempt: those are worth repeating everywhere they apply.
+        const notesSeen = new Set();
+        wrap.innerHTML = paths.map((p) => {
+            const last = p.devices[p.devices.length - 1];
+            const col = window.rigKind(last.kind).color;
+            const dim = active && p.key !== active;
+            const chain = p.devices.map((d, i) => {
+                const conn = i > 0 ? p.conns[i - 1] : null;
+                // Reads as "— cable → PORT ► Device": how it's wired, then which input it lands on.
+                const via = conn && (conn.cable || conn.label)
+                    ? `<span class="text-white/35 mx-1">─${conn.cable ? ` ${window.escapeHtml(conn.cable)}` : ''}${conn.label ? ` <b class="text-[#FFD60A]">${window.escapeHtml(conn.label)}</b>` : ''} ►</span>`
+                    : (i > 0 ? '<span class="text-white/35 mx-1">─►</span>' : '');
+                return `${via}<b class="text-white">${window.escapeHtml(d.name)}</b>`;
+            }).join('');
+            const notes = [];
+            const once = (key, html) => { if (notesSeen.has(key)) return; notesSeen.add(key); notes.push(html); };
+            p.devices.forEach((d) => {
+                if (d.settings) once(`s:${d.id}`, `<span class="text-white/70">${window.escapeHtml(d.name)}:</span> ${window.escapeHtml(d.settings)}`);
+                if (d.notes) once(`n:${d.id}`, window.escapeHtml(d.notes));
+            });
+            p.conns.forEach((c) => { if (c.notes) once(`c:${c.notes}`, window.escapeHtml(c.notes)); });
+            const warns = [...p.devices.map((d) => d.warn), ...p.conns.map((c) => c.warn)].filter(Boolean);
+            return `<div class="rig-path rounded transition-all" data-rig-key="${p.key}" style="opacity:${dim ? '0.45' : '1'};${p.key === active ? `box-shadow:inset 0 0 0 1px ${col}55, 0 0 16px ${col}22;` : ''}">
+                <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
+                    <span class="text-[#00E5FF] font-bold">${window.escapeHtml(p.devices[0].name)} → ${window.escapeHtml(last.name)}</span>
+                    <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border" style="color:${col};border-color:${col}40;background:${col}10;">${window.escapeHtml(window.rigKind(last.kind).label)}</span>
+                </div>
+                <div class="flex gap-3 mb-2"><span style="color:${col}">└─►</span><div class="min-w-0 break-words">${chain}</div></div>
+                ${notes.map((n) => `<div class="ml-8 mt-1 text-[10px] text-white/55">${n}</div>`).join('')}
+                ${warns.map((w) => `<div class="ml-8 mt-1 text-[10px] text-[#FF8888]/90">⚠ ${window.escapeHtml(w)}</div>`).join('')}
+            </div>`;
+        }).join('');
+
+        const note = document.getElementById('rig-preset-note');
+        if (note) {
+            const p = paths.find((x) => x.key === active);
+            note.textContent = p ? `${p.devices.map((d) => d.name).join(' → ')}` : 'Pick a path to highlight it.';
+            note.style.color = p ? window.rigKind(p.devices[p.devices.length - 1].kind).color : 'rgba(255,255,255,0.4)';
+        }
+    };
+
+    window.renderRigInputs = () => {
+        const el = document.getElementById('rig-inputs'); if (!el) return;
+        const inputs = (window.db.patchbay || {}).inputs || [];
+        const iface = window.rigInterface();
+        const title = document.getElementById('rig-inputs-title');
+        if (title) title.textContent = iface ? `${iface.name} Inputs` : 'Inputs';
+        el.innerHTML = inputs.length
+            ? inputs.map((inp, i) => `<div class="flex gap-3 mb-2 group"><span class="text-[#FFD60A]">◄─┤</span><div class="min-w-0"><span class="font-bold text-white">${window.escapeHtml(inp.label || '')}</span>${inp.detail ? ` <span class="text-white/55">— ${window.escapeHtml(inp.detail)}</span>` : ''} <button type="button" class="rig-edit-input text-[9px] text-[#FFD60A]/50 hover:text-[#FFD60A] ml-1" data-i="${i}">✎</button></div></div>`).join('')
+            : `<div class="text-[10px] text-white/35 italic">No inputs listed — what do you plug into this rig?</div>`;
+    };
+
+    window.renderRigSafety = () => {
+        const el = document.getElementById('rig-safety'); if (!el) return;
+        const rules = (window.db.patchbay || {}).safety || [];
+        el.innerHTML = rules.length
+            ? rules.map((r, i) => `<li class="flex gap-2"><span class="text-[#FF8888] shrink-0">•</span><span class="min-w-0">${window.escapeHtml(r)} <button type="button" class="rig-edit-safety text-[9px] text-[#FF8888]/50 hover:text-[#FF8888] ml-1" data-i="${i}">✎</button></span></li>`).join('')
+            : `<li class="text-white/35 italic list-none">No safety rules yet — the things you'd tell someone before they touched your gear.</li>`;
+    };
+
+    window.renderRigMonitorModes = () => {
+        const el = document.getElementById('rig-monitor-modes'); if (!el) return;
+        const modes = (window.db.patchbay || {}).monitorModes || [];
+        el.innerHTML = modes.length
+            ? modes.map((m, i) => {
+                const c = m.color || '#00FF88';
+                return `<div class="card" style="border-color:${c}30;">
+                    <div class="flex items-start justify-between gap-2 mb-2 border-b pb-1" style="border-color:${c}14;">
+                        <h3 class="font-bold text-[12px] tracking-widest" style="color:${c}">${window.escapeHtml(m.name || '')}</h3>
+                        <button type="button" class="rig-edit-mode text-[10px] shrink-0" style="color:${c}80" data-i="${i}">✎</button>
+                    </div>
+                    <div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>${window.escapeHtml(m.desc || '')}</p>
+                    ${m.curve ? `<div class="mt-3 p-2 rounded border" style="background:${c}1A;border-color:${c}33;"><span class="font-bold block mb-1" style="color:${c}">${window.escapeHtml(m.curveLabel || 'CURVE')}</span>${window.escapeHtml(m.curve).replace(/\n/g, '<br>')}</div>` : ''}</div>
+                </div>`;
+            }).join('')
+            : `<div class="text-[10px] text-white/35 italic md:col-span-3">No monitor modes yet — the reference curves you A/B a mix against.</div>`;
+    };
+
+    window.renderRig = () => {
+        const badge = document.getElementById('rig-interface-badge');
+        const iface = window.rigInterface();
+        if (badge) { badge.textContent = iface ? iface.name.toUpperCase() : ''; badge.classList.toggle('hidden', !iface); }
+        const title = document.getElementById('rig-flow-title');
+        if (title) title.textContent = iface ? `SIGNAL FLOW — ${iface.name.toUpperCase()}` : 'SIGNAL FLOW';
+        window.renderRigPaths(); window.renderRigInputs(); window.renderRigSafety(); window.renderRigMonitorModes();
+    };
+
+    // =====================================================================
+    // GENERIC RIG EDITOR — one modal for devices, connections, inputs, rules and modes
+    // =====================================================================
+    window.rigEditorSave = null;
+
+    window.openRigEditor = ({ title, sub, fields, onSave, onDelete }) => {
+        const modal = document.getElementById('rig-edit-modal'); const box = document.getElementById('rig-edit-fields');
+        if (!modal || !box) return;
+        document.getElementById('rig-edit-title').textContent = title;
+        document.getElementById('rig-edit-sub').textContent = sub || '';
+        box.innerHTML = fields.map((f) => {
+            const id = `rig-f-${f.key}`;
+            const label = `<label class="text-[10px] tracking-widest text-[#00FF88]/70 block mb-1 uppercase" for="${id}">${window.escapeHtml(f.label)}</label>`;
+            const hint = f.hint ? `<p class="text-[9px] text-[#E2E8F0]/30 mt-1">${window.escapeHtml(f.hint)}</p>` : '';
+            let input;
+            if (f.type === 'select') {
+                input = `<select id="${id}" class="input-euterpe">${f.options.map((o) => `<option value="${window.escapeHtml(o.id)}"${o.id === (f.value || '') ? ' selected' : ''}>${window.escapeHtml(o.label)}</option>`).join('')}</select>`;
+            } else if (f.type === 'textarea') {
+                input = `<textarea id="${id}" class="input-euterpe h-20 resize-y" placeholder="${window.escapeHtml(f.placeholder || '')}">${window.escapeHtml(f.value || '')}</textarea>`;
+            } else {
+                input = `<input type="text" id="${id}" class="input-euterpe" value="${window.escapeHtml(f.value || '')}" placeholder="${window.escapeHtml(f.placeholder || '')}">`;
+            }
+            return `<div>${label}${input}${hint}</div>`;
+        }).join('');
+
+        const delBtn = document.getElementById('rig-edit-delete');
+        delBtn.classList.toggle('hidden', !onDelete);
+        delBtn.onclick = onDelete ? () => { onDelete(); window.closeRigEditor(); } : null;
+
+        window.rigEditorSave = () => {
+            const vals = {};
+            fields.forEach((f) => { vals[f.key] = (document.getElementById(`rig-f-${f.key}`)?.value || '').trim(); });
+            onSave(vals);
+        };
+        modal.classList.replace('hidden', 'flex');
+        setTimeout(() => document.getElementById(`rig-f-${fields[0].key}`)?.focus(), 30);
+    };
+
+    window.closeRigEditor = () => {
+        document.getElementById('rig-edit-modal')?.classList.replace('flex', 'hidden');
+        window.rigEditorSave = null;
+    };
+
+    window.editPatchbayDevice = (id) => {
+        const d = (window.db.patchbay.devices || []).find((x) => x.id === id); if (!d) return;
+        window.openRigEditor({
+            title: 'Edit device',
+            sub: 'Everything here shows up in the signal-flow panel below the diagram.',
+            fields: [
+                { key: 'name', label: 'Name', value: d.name, placeholder: 'e.g. Scarlett 2i2, Yamaha HS5' },
+                { key: 'kind', label: 'What is it', type: 'select', value: d.kind || 'other', options: window.RIG_KINDS, hint: 'Monitors and speakers are what the A/B rotation and pre-export checklist run through.' },
+                { key: 'settings', label: 'Settings to keep', value: d.settings || '', placeholder: 'e.g. Loudness OFF · Volume @ 7' },
+                { key: 'notes', label: 'Notes', type: 'textarea', value: d.notes || '', placeholder: 'What this is good for, how it behaves…' },
+                { key: 'warn', label: 'Warning', value: d.warn || '', placeholder: 'e.g. latency — mixing only', hint: 'Shown in red on every path this device is on. Leave blank if there is nothing to watch out for.' },
+            ],
+            onSave: (v) => {
+                if (!v.name) { alert('A device needs a name.'); return; }
+                Object.assign(d, { name: v.name, kind: v.kind, settings: v.settings, notes: v.notes, warn: v.warn });
+                window.savePatchbay(); window.renderPatchbay(); window.renderRig(); window.closeRigEditor();
+            },
+            onDelete: () => { if (confirm(`Delete "${d.name}" and every connection to it?`)) window.deletePatchbayDevice(id); },
+        });
+    };
+
+    window.editPatchbayConnection = (idx) => {
+        const c = (window.db.patchbay.connections || [])[idx]; if (!c) return;
+        const byId = new Map((window.db.patchbay.devices || []).map((d) => [d.id, d]));
+        const a = byId.get(c.from.deviceId); const b = byId.get(c.to.deviceId);
+        window.openRigEditor({
+            title: 'Edit connection',
+            sub: `${a ? a.name : '?'} → ${b ? b.name : '?'}`,
+            fields: [
+                { key: 'cable', label: 'Cable / how', value: c.cable || '', placeholder: 'e.g. 2× TS (L + R) → RCA, USB, Bluetooth' },
+                { key: 'label', label: 'Port / input label', value: c.label || '', placeholder: 'e.g. TAPE 1, CH 3' },
+                { key: 'notes', label: 'Notes', type: 'textarea', value: c.notes || '', placeholder: 'Anything about this specific run of cable' },
+                { key: 'warn', label: 'Warning', value: c.warn || '', placeholder: 'e.g. ~150 ms latency' },
+            ],
+            onSave: (v) => {
+                Object.assign(c, { cable: v.cable, label: v.label, notes: v.notes, warn: v.warn });
+                window.savePatchbay(); window.renderPatchbay(); window.renderRig(); window.closeRigEditor();
+            },
+            onDelete: () => window.deletePatchbayConnection(idx),
+        });
+    };
+
+    // Inputs / safety rules / monitor modes: same modal, list-backed. `i` of -1 means "add new".
+    window.editRigInput = (i) => {
+        const pb = window.db.patchbay; pb.inputs = pb.inputs || [];
+        const cur = i >= 0 ? pb.inputs[i] : { label: '', detail: '' };
+        window.openRigEditor({
+            title: i >= 0 ? 'Edit input' : 'Add input',
+            fields: [
+                { key: 'label', label: 'Input', value: cur.label, placeholder: 'e.g. Mic → XLR' },
+                { key: 'detail', label: 'Detail', value: cur.detail, placeholder: 'e.g. +48 V phantom · INST switch OFF' },
+            ],
+            onSave: (v) => {
+                if (!v.label) { alert('An input needs a label.'); return; }
+                if (i >= 0) pb.inputs[i] = { label: v.label, detail: v.detail }; else pb.inputs.push({ label: v.label, detail: v.detail });
+                window.savePatchbay(); window.renderRigInputs(); window.closeRigEditor();
+            },
+            onDelete: i >= 0 ? () => { pb.inputs.splice(i, 1); window.savePatchbay(); window.renderRigInputs(); } : null,
+        });
+    };
+
+    window.editRigSafety = (i) => {
+        const pb = window.db.patchbay; pb.safety = pb.safety || [];
+        window.openRigEditor({
+            title: i >= 0 ? 'Edit safety rule' : 'Add safety rule',
+            sub: 'The things you would tell someone before they touched your gear.',
+            fields: [{ key: 'text', label: 'Rule', type: 'textarea', value: i >= 0 ? pb.safety[i] : '', placeholder: 'e.g. Never swap the amp cable while the volume is up.' }],
+            onSave: (v) => {
+                if (!v.text) { alert('Type the rule first.'); return; }
+                if (i >= 0) pb.safety[i] = v.text; else pb.safety.push(v.text);
+                window.savePatchbay(); window.renderRigSafety(); window.closeRigEditor();
+            },
+            onDelete: i >= 0 ? () => { pb.safety.splice(i, 1); window.savePatchbay(); window.renderRigSafety(); } : null,
+        });
+    };
+
+    window.editRigMode = (i) => {
+        const pb = window.db.patchbay; pb.monitorModes = pb.monitorModes || [];
+        const cur = i >= 0 ? pb.monitorModes[i] : { name: '', desc: '', curveLabel: 'JS REA-EQ CURVE', curve: '', color: '#00FF88' };
+        window.openRigEditor({
+            title: i >= 0 ? 'Edit monitor mode' : 'Add monitor mode',
+            sub: 'A reference curve you A/B a mix against.',
+            fields: [
+                { key: 'name', label: 'Name', value: cur.name, placeholder: 'e.g. FLAT // 60s REF' },
+                { key: 'desc', label: 'What it does', type: 'textarea', value: cur.desc, placeholder: 'e.g. Simulates phone/laptop midrange.' },
+                { key: 'curveLabel', label: 'Curve heading', value: cur.curveLabel || '', placeholder: 'e.g. JS REA-EQ CURVE' },
+                { key: 'curve', label: 'Curve / settings', type: 'textarea', value: cur.curve || '', placeholder: 'HPF@120Hz | LPF@8kHz' },
+                { key: 'color', label: 'Accent colour', value: cur.color || '#00FF88', placeholder: '#00FF88' },
+            ],
+            onSave: (v) => {
+                if (!v.name) { alert('A mode needs a name.'); return; }
+                const mode = { name: v.name, desc: v.desc, curveLabel: v.curveLabel, curve: v.curve, color: /^#[0-9a-f]{6}$/i.test(v.color) ? v.color : '#00FF88' };
+                if (i >= 0) pb.monitorModes[i] = mode; else pb.monitorModes.push(mode);
+                window.savePatchbay(); window.renderRigMonitorModes(); window.closeRigEditor();
+            },
+            onDelete: i >= 0 ? () => { pb.monitorModes.splice(i, 1); window.savePatchbay(); window.renderRigMonitorModes(); } : null,
+        });
+    };
+
     (() => {
         const canvas = document.getElementById('patchbay-canvas');
         document.getElementById('btn-patchbay-add-device')?.addEventListener('click', () => window.addPatchbayDevice());
         document.getElementById('btn-patchbay-default')?.addEventListener('click', () => window.loadDefaultPatchbay(true));
         document.getElementById('btn-patchbay-set-default')?.addEventListener('click', () => window.setPatchbayAsDefault());
-        document.getElementById('btn-patchbay-clear')?.addEventListener('click', () => { if (confirm('Clear the entire patchbay diagram?')) { window.db.patchbay = { devices: [], connections: [] }; window.savePatchbay(); window.renderPatchbay(); } });
+        document.getElementById('btn-patchbay-clear')?.addEventListener('click', () => { if (confirm('Clear the entire patchbay diagram?\n\nInputs, safety rules and monitor modes are kept — this only clears the boxes and cables.')) { window.db.patchbay = { ...window.db.patchbay, devices: [], connections: [] }; window.savePatchbay(); window.renderPatchbay(); window.renderRig(); window.refreshRigExampleBanner?.(); } });
         document.getElementById('btn-patchbay-save-as')?.addEventListener('click', () => window.savePatchbayAs());
         document.getElementById('btn-patchbay-load-saved')?.addEventListener('click', () => { const sel = document.getElementById('patchbay-saved-select'); const id = parseInt(sel?.value, 10); if (id) window.loadPatchbaySaved(id); });
         document.getElementById('btn-patchbay-delete-saved')?.addEventListener('click', () => { const sel = document.getElementById('patchbay-saved-select'); const id = parseInt(sel?.value, 10); if (id) window.deletePatchbaySaved(id); });
@@ -1678,15 +2043,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try { if ((window.db.patchbay.devices || []).length === 0 && !localStorage.getItem('ferrett_patchbay_seeded_v1')) { window.loadDefaultPatchbay(false); localStorage.setItem('ferrett_patchbay_seeded_v1', '1'); } } catch (e) {}
 
         canvas?.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.patchbay-edit-device'); if (editBtn) { window.editPatchbayDevice(parseInt(editBtn.dataset.deviceId, 10)); return; }
             const delBtn = e.target.closest('.patchbay-del-device'); if (delBtn) { window.deletePatchbayDevice(parseInt(delBtn.dataset.deviceId, 10)); return; }
-            const line = e.target.closest('.patchbay-line, .patchbay-line-hit'); if (line) { window.deletePatchbayConnection(parseInt(line.dataset.connIdx, 10)); return; }
+            // Clicking a line used to delete it outright with no confirm — one stray tap and the
+            // connection was gone. It opens the editor now; DELETE is still one click inside it.
+            const line = e.target.closest('.patchbay-line, .patchbay-line-hit'); if (line) { window.editPatchbayConnection(parseInt(line.dataset.connIdx, 10)); return; }
             const port = e.target.closest('.patchbay-port');
             if (port) {
                 const deviceId = parseInt(port.dataset.deviceId, 10); const side = port.dataset.side;
                 if (window.patchbayPending && (window.patchbayPending.deviceId !== deviceId || window.patchbayPending.side !== side)) {
                     if (window.patchbayPending.deviceId !== deviceId) {
                         window.db.patchbay.connections.push({ from: window.patchbayPending, to: { deviceId, side } });
-                        window.savePatchbay();
+                        window.savePatchbay(); window.renderRig();
                     }
                     window.patchbayPending = null;
                 } else {
@@ -1716,7 +2084,85 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas?.addEventListener('pointerup', endDrag);
         canvas?.addEventListener('pointerleave', endDrag);
 
+        // --- Rig editor modal ---
+        document.getElementById('rig-edit-save')?.addEventListener('click', () => window.rigEditorSave?.());
+        document.getElementById('rig-edit-cancel')?.addEventListener('click', () => window.closeRigEditor());
+        document.getElementById('rig-edit-close')?.addEventListener('click', () => window.closeRigEditor());
+        document.getElementById('rig-edit-modal')?.addEventListener('click', (e) => { if (e.target.id === 'rig-edit-modal') window.closeRigEditor(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('rig-edit-modal')?.classList.contains('hidden')) window.closeRigEditor(); });
+
+        // --- Signal-flow panel: path highlight + the editable lists ---
+        document.getElementById('rig-preset-bar')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.rig-preset'); if (!btn) return;
+            let cur = null; try { cur = localStorage.getItem(window.RIG_ACTIVE_KEY); } catch (err) {}
+            const next = cur === btn.dataset.rigKey ? '' : btn.dataset.rigKey; // clicking the active one clears it
+            try { localStorage.setItem(window.RIG_ACTIVE_KEY, next); } catch (err) {}
+            window.renderRigPaths();
+        });
+        document.getElementById('btn-rig-add-input')?.addEventListener('click', () => window.editRigInput(-1));
+        document.getElementById('btn-rig-add-safety')?.addEventListener('click', () => window.editRigSafety(-1));
+        document.getElementById('btn-rig-add-mode')?.addEventListener('click', () => window.editRigMode(-1));
+        document.getElementById('rig-inputs')?.addEventListener('click', (e) => { const b = e.target.closest('.rig-edit-input'); if (b) window.editRigInput(parseInt(b.dataset.i, 10)); });
+        document.getElementById('rig-safety')?.addEventListener('click', (e) => { const b = e.target.closest('.rig-edit-safety'); if (b) window.editRigSafety(parseInt(b.dataset.i, 10)); });
+        document.getElementById('rig-monitor-modes')?.addEventListener('click', (e) => { const b = e.target.closest('.rig-edit-mode'); if (b) window.editRigMode(parseInt(b.dataset.i, 10)); });
+
+        // The example-rig banner shows until the patchbay stops matching the shipped seed, or until
+        // it's dismissed — so it never nags someone who has already made the rig their own.
+        const EXAMPLE_KEY = 'ferrett_rig_example_dismissed_v1';
+        window.refreshRigExampleBanner = () => {
+            const el = document.getElementById('rig-example-banner'); if (!el) return;
+            let dismissed = false; try { dismissed = !!localStorage.getItem(EXAMPLE_KEY); } catch (e) {}
+            const seed = window.getDefaultPatchbay();
+            const names = (arr) => (arr || []).map((d) => d.name).join('|');
+            const stillSeed = names(window.db.patchbay?.devices) === names(seed.devices);
+            el.classList.toggle('hidden', dismissed || !stillSeed);
+        };
+        document.getElementById('btn-rig-dismiss-example')?.addEventListener('click', () => {
+            try { localStorage.setItem(EXAMPLE_KEY, '1'); } catch (e) {}
+            document.getElementById('rig-example-banner')?.classList.add('hidden');
+        });
+
+        // A patchbay drawn before the rig model existed has no `kind` on its devices, no cable
+        // labels, and none of the prose parts — so without this an existing user's Hardware tab
+        // would come back emptied of everything the old hardcoded markup used to show. Devices are
+        // matched to the shipped rig by name; the prose parts are only restored to someone who is
+        // still substantially on that rig, so a user who drew their own gear doesn't get handed
+        // safety rules about an amp they've never owned.
+        (() => {
+            const pb = window.db.patchbay; if (!pb || !(pb.devices || []).length) return;
+            const seed = window.getDefaultPatchbay();
+            const norm = (n) => (n || '').trim().toLowerCase();
+            const seedByName = new Map(seed.devices.map((d) => [norm(d.name), d]));
+            const matches = (pb.devices || []).filter((d) => seedByName.has(norm(d.name))).length;
+            const onShippedRig = matches >= Math.ceil(seed.devices.length * 0.6);
+            let changed = false;
+
+            (pb.devices || []).forEach((d) => {
+                if (d.kind) return;
+                const s = seedByName.get(norm(d.name));
+                if (!s) { d.kind = 'other'; changed = true; return; }
+                d.kind = s.kind;
+                ['notes', 'settings', 'warn'].forEach((k) => { if (s[k] && !d[k]) d[k] = s[k]; });
+                changed = true;
+            });
+
+            if (onShippedRig) {
+                const nameOf = new Map((pb.devices || []).map((d) => [d.id, norm(d.name)]));
+                const seedName = new Map(seed.devices.map((d) => [d.id, norm(d.name)]));
+                const seedConn = new Map(seed.connections.map((c) => [`${seedName.get(c.from.deviceId)}>${seedName.get(c.to.deviceId)}`, c]));
+                (pb.connections || []).forEach((c) => {
+                    if (c.cable || c.label) return;
+                    const s = seedConn.get(`${nameOf.get(c.from.deviceId)}>${nameOf.get(c.to.deviceId)}`);
+                    if (s) { ['cable', 'label', 'notes', 'warn'].forEach((k) => { if (s[k]) c[k] = s[k]; }); changed = true; }
+                });
+                window.RIG_PARTS.forEach((k) => { if (!pb[k] && seed[k]) { pb[k] = JSON.parse(JSON.stringify(seed[k])); changed = true; } });
+            }
+            if (changed) window.savePatchbay();
+        })();
+
         window.renderPatchbay();
+        window.renderRig();
+        window.refreshRigExampleBanner();
     })();
 
     window.importRecipePack = (file) => {

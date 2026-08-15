@@ -462,38 +462,27 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal('import-modal'); closeModal('recap-modal'); closeModal('cookmode-modal'); closeModal('abcompare-modal'); closeModal('frank-modal'); closeModal('preexport-modal'); } });
 
         // =====================================================================
-        // 13. RIG RECALL PRESETS — highlight the active monitor path (+ latency guard)
+        // 13. RIG RECALL PRESETS
         // =====================================================================
-        const RIG_KEY = 'ferrett_active_rig_v1';
-        const rigMeta = {
-            sansui: { el: 'sf-path-sansui', color: '#00FF88', note: 'Creating / mixing — Volt back TS → Sansui Tape 1 (master on the Volt knob).' },
-            phones: { el: 'sf-path-phones', color: '#7FA8D9', note: 'Tracking — front headphone jack (Gammas / Xiberias). ⚠ Bluetooth is latency-unsafe for tracking.' },
-            bt: { el: 'bt', color: '#B18CFF', note: 'Bluetooth mix — Skullcandy JIB via REAPER AutoEQ. Mixing only (~150 ms).' }
-        };
-        const applyRig = (rig) => {
-            ['sf-path-sansui', 'sf-path-phones', 'sf-path-bt'].forEach(id => { const el = document.getElementById(id); if (el) { el.style.boxShadow = ''; el.style.opacity = '0.45'; } });
-            const m = rigMeta[rig]; if (!m) return;
-            const activeEl = document.getElementById(rig === 'bt' ? 'sf-path-bt' : m.el);
-            if (activeEl) { activeEl.style.opacity = '1'; activeEl.style.boxShadow = `inset 0 0 0 1px ${m.color}55, 0 0 16px ${m.color}22`; }
-            document.querySelectorAll('.rig-preset').forEach(b => { const on = b.dataset.rig === rig; b.style.color = on ? m.color : 'rgba(255,255,255,0.45)'; b.style.borderColor = on ? m.color : 'rgba(255,255,255,0.15)'; b.style.background = on ? m.color + '18' : 'transparent'; });
-            const note = document.getElementById('rig-preset-note'); if (note) { note.textContent = m.note; note.style.color = m.color; }
-        };
-        document.querySelectorAll('.rig-preset').forEach(b => b.addEventListener('click', () => { const r = b.dataset.rig; try { localStorage.setItem(RIG_KEY, r); } catch (e) {} applyRig(r); }));
-        try { const saved = localStorage.getItem(RIG_KEY); if (saved && rigMeta[saved]) applyRig(saved); } catch (e) {}
+        // The preset buttons and the path highlighting are rendered by window.renderRigPaths()
+        // in 02-app-core.js, straight off the patchbay graph — there is nothing to hardcode here
+        // any more. This block used to name one specific interface, amp and set of headphones.
 
         // =====================================================================
         // 14. PRE-EXPORT MONITOR CHECKLIST (ephemeral)
         // =====================================================================
-        const PRECHECK_ITEMS = [
-            'Mono-summed check — no phase cancellation',
-            'The Gammas — balance & low end',
-            'The Xiberias — detail / harshness pass',
-            'Sansui + room (Tape 1, flat @7) — tonal reference',
-            'Samsung Sound Bar — "commercial" translation',
-            'Skullcandy JIB (AutoEQ, true flat) — final mixing pass',
-            'Loudness / true-peak within target'
-        ];
+        // Built from whatever the rig actually monitors through, bracketed by the two checks that
+        // hold for any rig. A monitor's own notes become the "what am I listening for" hint.
+        const precheckItems = () => {
+            const monitors = window.rigMonitors ? window.rigMonitors() : [];
+            return [
+                'Mono-summed check — no phase cancellation',
+                ...monitors.map((m) => `${m.name}${m.notes ? ` — ${m.notes}` : ''}`),
+                'Loudness / true-peak within target'
+            ];
+        };
         const buildPrecheck = () => {
+            const PRECHECK_ITEMS = precheckItems();
             const list = document.getElementById('preexport-list'); if (!list) return;
             list.innerHTML = PRECHECK_ITEMS.map((t, i) => `<label class="flex items-start gap-2 cursor-pointer text-[11px] text-white/80 hover:text-white"><input type="checkbox" class="pre-chk mt-0.5 accent-[#00E5FF]" data-i="${i}"><span>${t}</span></label>`).join('');
             updatePrecheck();
@@ -926,7 +915,11 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
         // =====================================================================
         // 32. MONITOR ROUND-ROBIN TIMER — interval prompts to A/B across monitors
         // =====================================================================
-        const MONITORS = ['Sansui / Bose 301', 'The Gammas', 'The Xiberias', 'Samsung Sound Bar', 'Skullcandy JIB (AutoEQ)'];
+        // Derived from the patchbay, so the rotation names your monitors rather than someone else's.
+        const monitorNames = () => {
+            const m = (window.rigMonitors ? window.rigMonitors() : []).map((d) => d.name).filter(Boolean);
+            return m.length ? m : ['your monitors'];
+        };
         const RR_INTERVAL = 120000; // 2 minutes
         let rrTimer = null, rrIdx = 0;
         const showRRToast = (text) => {
@@ -935,7 +928,7 @@ h1{color:#00FF88;font-size:18px;letter-spacing:.05em;}pre{white-space:pre-wrap;f
             t.textContent = text; t.style.opacity = '1';
             clearTimeout(t._hide); t._hide = setTimeout(() => { t.style.opacity = '0'; }, 6000);
         };
-        const rrTick = () => { showRRToast(`🔁 A/B — now check on ${MONITORS[rrIdx % MONITORS.length]}`); rrIdx++; };
+        const rrTick = () => { const m = monitorNames(); showRRToast(`🔁 A/B — now check on ${m[rrIdx % m.length]}`); rrIdx++; };
         const setRR = (on) => {
             const btn = document.getElementById('btn-monitor-rr');
             if (on) { rrIdx = 0; rrTick(); rrTimer = setInterval(rrTick, RR_INTERVAL); if (btn) { btn.style.background = 'rgba(0,229,255,0.22)'; btn.textContent = '🔁 A/B ON'; } }

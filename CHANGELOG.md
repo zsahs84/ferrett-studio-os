@@ -5,6 +5,35 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v157 — 2026-08-14
+- **The Hardware tab describes your rig now, not the one this app was built on.** The signal-flow
+  panel used to be hand-written markup naming one specific interface, receiver, speakers and four
+  sets of headphones — nobody else's gear could ever appear there. It is now **derived from the
+  patchbay graph**, which was already yours to edit. Draw your rig, and the paths, the path-recall
+  presets, the input list, the safety rules and the monitor modes all follow.
+  - One model, not two. The patchbay was already a devices-and-connections description of a rig;
+    the panel underneath was a second, hardcoded description of the same thing, with no way to keep
+    the two in step. That duplication is gone.
+  - Devices gained **what it is** (source / interface / outboard / amp / monitors / speakers),
+    **settings to keep**, **notes** and a **warning**; connections gained a **cable**, a **port
+    label**, notes and their own warning. All optional — a patchbay drawn before this still renders.
+  - Signal paths are traced automatically: every route from a device nothing feeds into, down to one
+    that feeds nothing. Cable labels are drawn on the diagram, warnings turn a cable red, and each
+    device box is tinted by what it is.
+- **The A/B monitor rotation and the pre-export checklist name your monitors.** Both were fixed
+  lists of the original owner's gear. They now read whichever devices the rig actually monitors
+  through, and a monitor's own notes become its "what am I listening for" line on the checklist.
+- Everything on the tab is editable in place — ✎ on a device or cable, and + INPUT / + RULE / + MODE
+  for the lists — through one shared editor rather than a modal per thing.
+- Tapping a cable used to delete it instantly with no confirmation; one stray tap and the connection
+  was gone. It opens the editor now, with DELETE one click inside.
+- Existing rigs are migrated, not reset: devices are matched to the shipped rig by name to recover
+  their kind and notes, and the inputs / safety rules / monitor modes are restored to anyone still
+  substantially on that rig — so nobody who drew their own gear gets handed safety rules about an
+  amp they have never owned.
+- The tab ships seeded with the original rig as a **clearly-labelled example** rather than a blank
+  slate, with a banner saying so that disappears once you make the rig your own.
+
 ## v156 — 2026-08-14
 - **Fixed: ✎ EDIT LIST in Vault Storage appeared to do nothing.** The button was firing the whole
   time. `#vault-modal` was the one modal in the app without `overflow-y-auto`, so opening the

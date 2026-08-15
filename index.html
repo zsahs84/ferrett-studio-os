@@ -252,7 +252,16 @@
     </section>
 
     <div id="tab-hardware" class="middle-tab p-4 md:p-8 space-y-8 border-b border-[#00FF8814] bg-[rgba(5,8,7,0.4)] min-h-[600px]">
-        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest">VOLT 176</span></div>
+        <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6"><h2 class="text-[17px] font-bold tracking-[0.22em] text-[#00E5FF]">HARDWARE & ROUTING MASTERPLAN</h2><span id="rig-interface-badge" class="px-2 py-0.5 rounded bg-[#00E5FF12] border border-[#00E5FF20] text-[#00E5FF] text-[8px] font-mono tracking-widest"></span></div>
+
+        <div id="rig-example-banner" class="hidden mb-6 p-3 rounded border border-[#FFD60A40] bg-[#FFD60A]/5 flex items-start gap-3 flex-wrap">
+            <span class="text-[#FFD60A] text-[14px] leading-none mt-0.5">⚠</span>
+            <div class="flex-1 min-w-[220px]">
+                <p class="text-[10px] text-[#FFD60A] font-bold tracking-widest uppercase mb-1">This is the example rig, not yours</p>
+                <p class="text-[10px] text-[#E2E8F0]/50 leading-relaxed">Everything on this tab — the signal paths, monitors, inputs and safety notes — is drawn from the patchbay below. It's seeded with the rig this app was built on so you can see the shape of a filled-in one. Drag boxes, rename them and rewire it to match your own gear; the whole tab follows.</p>
+            </div>
+            <button id="btn-rig-dismiss-example" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FFD60A50] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer shrink-0">GOT IT</button>
+        </div>
 
         <div class="card border-[#00FF8830] mb-8">
             <div class="flex items-center justify-between mb-3 border-b border-[#00FF8820] pb-2 flex-wrap gap-2">
@@ -270,7 +279,7 @@
                 <button id="btn-patchbay-save-as" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#B18CFF50] text-[#B18CFF] hover:bg-[#B18CFF]/10 cursor-pointer">💾 SAVE AS…</button>
                 <button id="btn-patchbay-delete-saved" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer">DELETE</button>
             </div>
-            <p class="text-[9px] text-[#E2E8F0]/30 mb-3">Drag boxes to arrange your actual signal chain. Tap/click one port dot, then another, to connect them. Tap a connection line to remove it.</p>
+            <p class="text-[9px] text-[#E2E8F0]/30 mb-3">Drag boxes to arrange your actual signal chain. Tap/click one port dot, then another, to connect them. Tap ✎ on a box to say what it is and how it's set; tap a cable to label it or remove it. Everything below this diagram is built from what you draw here.</p>
             <div id="patchbay-canvas" class="relative w-full h-[380px] rounded border border-[#00FF8820] bg-black/40 overflow-auto" style="touch-action:none;">
                 <svg id="patchbay-svg" class="absolute top-0 left-0 pointer-events-none" style="width:1200px;height:800px;"></svg>
                 <div id="patchbay-devices" class="relative" style="width:1200px;height:800px;"></div>
@@ -278,68 +287,42 @@
         </div>
 
         <div class="card border-[#00FF8830] p-0 overflow-hidden mb-8">
-            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW — VOLT 176</h3><div class="flex gap-2 flex-wrap"><button id="btn-monitor-rr" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Round-robin A/B timer — prompts you to check the mix on each monitor" aria-label="Round-robin A/B timer — prompts you to check the mix on each monitor">🔁 A/B Timer</button><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet" aria-label="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export" aria-label="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
+            <div class="px-4 py-3 bg-[rgba(0,255,136,0.08)] border-b border-[#00FF8840] flex flex-wrap justify-between items-center gap-2"><h3 id="rig-flow-title" class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">SIGNAL FLOW</h3><div class="flex gap-2 flex-wrap"><button id="btn-monitor-rr" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Round-robin A/B timer — prompts you to check the mix on each monitor" aria-label="Round-robin A/B timer — prompts you to check the mix on each monitor">🔁 A/B Timer</button><button id="btn-cable-sheet" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase" title="Cable / connector / impedance cheat-sheet" aria-label="Cable / connector / impedance cheat-sheet">🔌 Cheat-Sheet</button><button id="btn-preexport-check" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00E5FF40] text-[#00E5FF] hover:bg-[#00E5FF]/10 cursor-pointer uppercase" title="Reference-check your mix across every monitor before export" aria-label="Reference-check your mix across every monitor before export">✅ Pre-Export Check</button></div></div>
+            <!-- Everything in here is rendered by window.renderSignalFlow() from window.db.patchbay.
+                 Nothing about the rig is hardcoded in this markup — edit the patchbay above and the
+                 paths, presets, inputs and safety notes all follow. -->
             <div class="p-5 bg-black/60 font-mono text-[11px] leading-[1.7] text-white/80 space-y-6">
 
                 <div class="flex flex-wrap items-center gap-2 -mb-1">
-                    <span class="text-[9px] font-bold tracking-widest text-white/45 uppercase mr-1">Active rig:</span>
-                    <button class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig="sansui">Creating / Mixing</button>
-                    <button class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig="phones">Tracking</button>
-                    <button class="rig-preset text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border cursor-pointer uppercase" data-rig="bt">Bluetooth Mix</button>
+                    <span class="text-[9px] font-bold tracking-widest text-white/45 uppercase mr-1">Active path:</span>
+                    <div id="rig-preset-bar" class="flex flex-wrap items-center gap-2"></div>
                     <span id="rig-preset-note" class="text-[9px] text-white/40 w-full sm:w-auto"></span>
                 </div>
 
-                <!-- OUTPUT A: Volt 176 BACK (TS L/R, device knob) -> Sansui -->
-                <div id="sf-path-sansui" class="rounded transition-all">
-                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
-                        <span class="text-[#00E5FF] font-bold">BACK — TS Out L/R · device MAIN knob = volume</span>
-                        <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#00FF8840] text-[#00FF88] bg-[#00FF8810]">★ Best: creating &amp; mixing</span>
-                    </div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">2× TS (L + R) → RCA → Sansui <b class="text-[#FFD60A]">TAPE 1</b> → Bose 301 speakers</span></div></div>
-                    <div class="ml-8 mt-1 text-[10px] text-white/55">Sansui: <b class="text-white">flat</b> — Loudness OFF · Tone Defeat ON · Volume <b class="text-[#FFD60A]">@ 7</b>. Ride level from the Volt 176 <b class="text-white">main (back-output) knob</b> — the real master.</div>
-                </div>
+                <div id="rig-paths" class="space-y-6"></div>
 
-                <!-- OUTPUT B: Volt 176 FRONT headphone jack (own knob) -> monitors -->
-                <div id="sf-path-phones" class="rounded transition-all">
-                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#00E5FF30] pb-2">
-                        <span class="text-[#00E5FF] font-bold">FRONT — Headphone Jack · its own volume knob</span>
-                        <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#7FA8D940] text-[#7FA8D9] bg-[#7FA8D910]">Tracking / reference</span>
-                    </div>
-                    <div class="ml-8 mb-2 text-[10px] text-white/45">One jack, swap between:</div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">The Gammas</span> <span class="text-[#7AFFBF]/80">— best for tracking &amp; mixing</span></div></div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#00FF88]">├─►</span><div><span class="font-bold text-white">The Xiberias</span> <span class="text-[#7AFFBF]/80">— best for tracking (better padding, less bleed)</span></div></div>
-                    <div class="flex gap-3"><span class="text-[#00FF88]">└─►</span><div><span class="font-bold text-white">Samsung Sound Bar</span> <span class="text-[#7AFFBF]/80">— alternative "commercial" reference point</span></div></div>
-                </div>
-
-                <!-- OUTPUT C: Bluetooth Skullcandy JIB straight to the computer -->
-                <div id="sf-path-bt" class="rounded transition-all">
-                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#B18CFF30] pb-2">
-                        <span class="text-[#B18CFF] font-bold">Skullcandy JIB — Bluetooth (bypasses the Volt)</span>
-                        <span class="text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-[#B18CFF40] text-[#B18CFF] bg-[#B18CFF10]">★★ Absolute best: mixing</span>
-                    </div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#B18CFF]">└─►</span><div><span class="font-bold text-white">Bluetooth → computer</span> · monitor via <b class="text-white">REAPER Monitor-Out EQ</b> with AutoEQ values applied <span class="text-[#7AFFBF]/80">— true flat</span></div></div>
-                    <div class="ml-8 mt-1 text-[10px] text-[#FF8888]/90">⚠ Do NOT use for tracking — ~150 ms Bluetooth latency.</div>
-                </div>
-
-                <!-- INPUTS -->
                 <div>
-                    <div class="text-[#FFD60A] font-bold mb-3 border-b border-[#FFD60A30] pb-2">Volt 176 Inputs</div>
-                    <div class="flex gap-3 mb-2"><span class="text-[#FFD60A]">◄─┤</span><div><span class="font-bold text-white">Mic → XLR</span> — <b class="text-[#FFD60A]">+48 V</b> phantom available if needed · <span class="text-[#FF8888]">INST switch OFF</span></div></div>
-                    <div class="flex gap-3"><span class="text-[#FFD60A]">◄─┤</span><div><span class="font-bold text-white">Instrument → 1/4" TS</span> · <span class="text-[#00FF88]">INST switch ON</span></div></div>
+                    <div class="flex items-center justify-between gap-2 flex-wrap mb-3 border-b border-[#FFD60A30] pb-2">
+                        <span id="rig-inputs-title" class="text-[#FFD60A] font-bold">Inputs</span>
+                        <button id="btn-rig-add-input" type="button" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#FFD60A40] text-[#FFD60A] hover:bg-[#FFD60A]/10 cursor-pointer uppercase">+ Input</button>
+                    </div>
+                    <div id="rig-inputs"></div>
                 </div>
 
                 <div class="mt-2 p-4 rounded border border-[#FF444430] bg-[#FF444410]">
-                    <h4 class="text-[#FF8888] font-bold text-[10px] tracking-widest mb-2">⚠ HARDWARE SAFETY PROTOCOLS</h4>
-                    <ul class="text-[10px] text-white/70 list-disc list-inside space-y-1"><li><b class="text-white">HOT-SWAPPING:</b> Never swap the back TS → Sansui cable while Sansui volume is up.</li><li><b class="text-white">MASTER:</b> Sansui monitoring rides on the Volt back-output main knob — leave Sansui parked at 7. The front headphone jack has its own separate knob.</li><li><b class="text-white">TRACKING:</b> Skullcandy JIB is mixing-only (BT delay) — track on the Gammas / Xiberias off the front jack.</li></ul>
+                    <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+                        <h4 class="text-[#FF8888] font-bold text-[10px] tracking-widest">⚠ HARDWARE SAFETY PROTOCOLS</h4>
+                        <button id="btn-rig-add-safety" type="button" class="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded border border-[#FF888840] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer uppercase">+ Rule</button>
+                    </div>
+                    <ul id="rig-safety" class="text-[10px] text-white/70 space-y-1"></ul>
                 </div>
             </div>
         </div>
-        <h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88] mb-4 mt-10 border-b border-[#00FF8820] pb-2">SANSUI MONITOR LOGIC & EQ CURVES</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-            <div class="card border-[#00FF8830]"><h3 class="text-[#00FF88] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00FF8814] pb-1">FLAT // 60s REF</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Loudness OFF. Tone Defeat ON. Vol @ 7 — Volt 176 Out is master.</p><div class="mt-3 p-2 bg-[#00FF88]/10 rounded border border-[#00FF88]/20"><span class="text-[#00FF88] font-bold block mb-1">CALIBRATION</span>Pink Noise @ -14dBFS = 75dB SPL C-Weighted Slow at mix position.</div></div></div>
-            <div class="card border-[#00E5FF30]"><h3 class="text-[#00E5FF] font-bold text-[12px] tracking-widest mb-2 border-b border-[#00E5FF14] pb-1">FOCUS ROBOT // 20s</h3><div class="text-[11px] text-[#A7DCC3]/80 font-mono"><p>Simulates phone/laptop midrange.</p><div class="mt-3 p-2 bg-[#00E5FF]/10 rounded border border-[#00E5FF]/20"><span class="text-[#00E5FF] font-bold block mb-1">JS REA-EQ CURVE</span>Mono ON. HPF@120Hz | LPF@8kHz<br>+2dB@1.2kHz | +1.5dB@2.5kHz</div></div></div>
-            <div class="card border-[#FF444430]"><h3 class="text-[#FF8888] font-bold text-[12px] tracking-widest mb-2 border-b border-[#FF444414] pb-1">HYPE // 15s CONSUMER</h3><div class="text-[11px] text-[#FF8888]/80 font-mono"><p>Loudness ON. Bass +3, Treb +2.</p><div class="mt-3 p-2 bg-[#FF4444]/10 rounded border border-[#FF4444]/20"><span class="text-[#FF8888] font-bold block mb-1">JS REA-EQ CURVE</span>LowShelf+3.5dB@80Hz<br>HighShelf+2.0dB@10kHz</div></div></div>
+        <div class="flex items-end justify-between border-b border-[#00FF8820] pb-2 mb-4 mt-10 flex-wrap gap-2">
+            <h3 class="text-[12px] font-bold tracking-[0.2em] text-[#00FF88]">MONITOR MODES &amp; EQ CURVES</h3>
+            <button id="btn-rig-add-mode" type="button" class="text-[9px] font-bold tracking-widest px-2.5 py-1 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer uppercase">+ Mode</button>
         </div>
+        <div id="rig-monitor-modes" class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10"></div>
         <div class="flex items-end justify-between border-b border-[#00E5FF20] pb-2 mb-6 mt-10">
             <h2 class="text-[15px] font-bold tracking-[0.2em] text-[#00E5FF] uppercase">THE 28 FILE ARSENAL // SCRIPT DB</h2>
             <button id="btn-add-script" class="btn-euterpe shrink-0">+ ADD SCRIPT</button>
@@ -1798,6 +1781,25 @@
     <button id="close-chain-modal" class="absolute top-6 right-8 text-white/50 hover:text-[#00FF88] font-bold text-[32px] cursor-pointer transition-colors" aria-label="Close">×</button>
     <div class="text-[#00FF88] tracking-[0.2em] font-bold text-[14px] absolute top-8 left-8 uppercase" id="chain-modal-title">PLUGIN CHAIN</div>
     <div class="flex items-center gap-4 md:gap-8 overflow-x-auto w-full h-full pb-8 pt-16 scrollbar-hide" id="chain-modal-content"></div>
+</div>
+
+<!-- Generic rig editor. One modal serves devices, connections, inputs, safety rules and monitor
+     modes — window.openRigEditor() builds the fields from a spec, so adding a new editable part of
+     the rig doesn't mean adding another modal. -->
+<div id="rig-edit-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 8vh;">
+    <div class="w-full max-w-md pb-10">
+        <div class="card border-[#00FF8840] relative">
+            <button id="rig-edit-close" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
+            <h3 id="rig-edit-title" class="text-[13px] font-bold tracking-widest text-[#00FF88] uppercase mb-1 pr-8">Edit</h3>
+            <p id="rig-edit-sub" class="text-[10px] text-[#E2E8F0]/40 mb-5"></p>
+            <div id="rig-edit-fields" class="space-y-4"></div>
+            <div class="flex gap-3 mt-6 pt-4 border-t border-[#00FF8814] flex-wrap items-center">
+                <button id="rig-edit-save" type="button" class="btn-euterpe-green px-4 py-2 text-[11px]">SAVE</button>
+                <button id="rig-edit-cancel" type="button" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white">CANCEL</button>
+                <button id="rig-edit-delete" type="button" class="hidden ml-auto text-[10px] font-bold tracking-widest px-2.5 py-1.5 rounded border border-[#FF888850] text-[#FF8888] hover:bg-[#FF8888]/10 cursor-pointer uppercase">DELETE</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- overflow-y-auto matters here: opening the owned-plugins editor (textarea + scan commands +

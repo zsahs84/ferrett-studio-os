@@ -5,6 +5,38 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v158 — 2026-08-14
+- **Syllable counting rewritten.** It wasn't randomly off — it was wrong in whole predictable
+  categories, and every category is now handled:
+  - `-es` after a sibilant is its own beat. **boxes, wishes, faces, kisses, changes, judges,
+    places, voices** were all counted 1 instead of 2. This was the single biggest source of
+    undercounting in ordinary lyrics.
+  - `-ed` is only silent after most consonants — after **t** or **d** it's a beat of its own.
+    **wanted, needed, started, faded, painted, decided** were all short by one.
+  - Vowel runs were being chopped into arbitrary pairs by a `[aeiouy]{1,2}` match, so
+    **beautiful** and **everything** counted 4 instead of 3.
+  - Silent `e` is handled properly: **make** and **smile** lose it, **table**, **little** and
+    **purple** keep their beat, and **lonely / lovely / movement / careful** drop the one buried
+    before the suffix.
+  - Vowel pairs that genuinely split are counted — **radio, liar, obvious, material, video,
+    usual** — while the ones that don't are left alone: **nation, million, opinion, special,
+    delicious, gorgeous**.
+  - `qu` no longer counts its `u` as a vowel, and a leading `y` is treated as the consonant it is.
+  - A small exceptions list covers irregulars no rule reaches (**idea, science, quiet, people,
+    every, rhythm, choir, evening**). It's a patch list, not a dictionary.
+- Measured against 383 words: **74% → 100%**. On a held-out set written afterwards and never used
+  for tuning, **91% → 98%**. It will still miss occasionally — English syllable counting has no
+  exact rule-based answer without a pronunciation dictionary — but it is no longer wrong in
+  categories you can predict.
+- **The two counters now share one implementation.** The Lyrics Lab's per-line count and the
+  Toolbox bar counter each carried their own copy of the same heuristic and could disagree with
+  each other. Both call `window.countSyllables` in `js/01-core-utils.js` now.
+- **Fixed: typing in a line with a chord on it overwrote the chord.** The live syllable update
+  looked for `span.font-mono` inside the row — which also matches a chord chip, and chips come
+  first in the DOM. So editing a chorded line replaced the chord name with the syllable count.
+  The badge has its own `.lyr-syl` class now. This one predated the chord feature and had been
+  silently eating chords since v148.
+
 ## v157 — 2026-08-14
 - **The Hardware tab describes your rig now, not the one this app was built on.** The signal-flow
   panel used to be hand-written markup naming one specific interface, receiver, speakers and four

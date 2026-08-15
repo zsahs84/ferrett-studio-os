@@ -238,13 +238,8 @@
   }
 
   // ---------- 12. SYLLABLE / BAR COUNTER ----------
-  function syllables(word){
-    word=word.toLowerCase().replace(/[^a-z]/g,''); if(!word) return 0;
-    if(word.length<=3) return 1;
-    word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');
-    const m=word.match(/[aeiouy]{1,2}/g);
-    return m?m.length:1;
-  }
+  // Shared with the Lyrics Lab's per-line counter — see window.countSyllables in js/01-core-utils.js.
+  const syllables = (word) => window.countSyllables(word);
   function buildSyllables(){
     const ta=$('lab-syl-in'), out=$('lab-syl-out'); if(!out) return;
     const lines=(ta.value||'').split('\n');

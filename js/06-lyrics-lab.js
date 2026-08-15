@@ -2,11 +2,9 @@
   const $ = (id) => document.getElementById(id);
   const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 
-  function syllables(word){
-    word=word.toLowerCase().replace(/[^a-z]/g,''); if(!word) return 0; if(word.length<=3) return 1;
-    word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');
-    const m=word.match(/[aeiouy]{1,2}/g); return m?m.length:1;
-  }
+  // Shared with the Toolbox bar counter — see window.countSyllables in js/01-core-utils.js.
+  // Both used to carry their own copy of a naive heuristic and could disagree with each other.
+  const syllables = (word) => window.countSyllables(word);
 
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
@@ -319,7 +317,7 @@
           `</div>`:'')+
           `<input type="text" class="lyr-text w-full bg-transparent border-b ${ln.alt?'border-[#FFD60A40]':'border-white/10'} focus:border-[#FF88FF] text-[13px] text-[#E2E8F0]/90 px-1 py-1.5 focus:outline-none" value="${(ln.text||'').replace(/"/g,'&quot;')}" data-i="${i}" placeholder="…" draggable="false">`+
         `</div>`+
-        (showSyl?`<span class="text-[9px] font-mono text-[#FF88FF]/60 w-6 text-right shrink-0">${syl||''}</span>`:'')+
+        (showSyl?`<span class="lyr-syl text-[9px] font-mono text-[#FF88FF]/60 w-6 text-right shrink-0">${syl||''}</span>`:'')+
         // Chords hidden but present: say so, rather than letting a line look empty when it isn't.
         (!showChords && window.lyrLineHasChords(ln)?`<span class="text-[10px] text-[#FFD60A]/50 shrink-0" title="This line has chords — tick CHORDS to see or edit them">♪</span>`:'')+
         `<button class="lyr-del text-white/20 hover:text-[#FF5A5A] text-[13px] shrink-0 opacity-0 group-hover:opacity-100" data-i="${i}" title="Delete line">×</button>`+
@@ -327,7 +325,7 @@
     }).join('');
     // text edit
     box.querySelectorAll('.lyr-text').forEach(inp=>{
-      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.closest('.lyr-row')?.querySelector('span.font-mono'); if(b){ const c=inp.value.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0); b.textContent=c||''; } } });
+      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.closest('.lyr-row')?.querySelector('.lyr-syl'); if(b){ const c=window.countLineSyllables(inp.value); b.textContent=c||''; } } });
       inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const i=+inp.dataset.i; activeSheet().lines.splice(i+1,0,{text:'',tag:activeSheet().lines[i].tag}); saveLyr(); renderLines(); const nx=box.querySelector(`.lyr-text[data-i="${i+1}"]`); nx&&nx.focus(); } });
       inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
       // Editing the words moves every character after the caret, so the chords above have to follow.

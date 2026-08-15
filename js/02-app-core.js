@@ -4605,6 +4605,10 @@ window.lyriaSongBlock = (songId) => {
         if (!editor || !ta) return null;
         editor.classList.remove('hidden');
         document.getElementById('plugin-coverage-content')?.classList.add('hidden');
+        // The editor opens below the fold of an already-tall modal, so bring it into view rather
+        // than leaving the button looking dead. focus() alone won't do it — it only scrolls the
+        // nearest scrollable ancestor, and on a phone that scroll starts at the modal.
+        editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return ta;
     };
     const closePluginEditor = () => {
@@ -4627,7 +4631,7 @@ window.lyriaSongBlock = (songId) => {
         const ta = openPluginEditor(); if (!ta) return;
         ta.value = (window.db.ownedPlugins || []).join('\n');
         pluginCount((window.db.ownedPlugins || []).length, 'in your list');
-        ta.focus();
+        ta.focus({ preventScroll: true }); // don't fight the smooth scroll openPluginEditor just started
     });
     document.getElementById('owned-plugins-textarea')?.addEventListener('input', (e) => {
         pluginCount(window.cleanPluginList(e.target.value).length, 'detected in the box');

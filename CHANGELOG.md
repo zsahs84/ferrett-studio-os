@@ -5,6 +5,19 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v156 — 2026-08-14
+- **Fixed: ✎ EDIT LIST in Vault Storage appeared to do nothing.** The button was firing the whole
+  time. `#vault-modal` was the one modal in the app without `overflow-y-auto`, so opening the
+  owned-plugins editor grew the card well past the bottom of the viewport with no way to scroll to
+  it — the textarea, the scan-command panel and the SAVE / MERGE / EMPTY BOX / CANCEL row all lived
+  off-screen. The modal now scrolls like every other one, and the card has bottom padding so it
+  isn't flush against the edge.
+- Opening the editor now scrolls itself into view instead of relying on `.focus()`, which only
+  scrolls the nearest scrollable ancestor and therefore did nothing while the modal had none. The
+  focus call is `preventScroll` so it doesn't fight that animation.
+
+(v151–v155 shipped without changelog entries.)
+
 ## v150 — 2026-08-03
 - Chords are now **positioned over the word the change lands on**, not listed above the line. Each
   chord is a draggable chip anchored to a character in the lyric, stored as `line.marks` = `[{c,p}]`.

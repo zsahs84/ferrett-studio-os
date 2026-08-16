@@ -535,7 +535,7 @@ result is checked against your list too, and anything off it is flagged as **"no
 rather than quietly left in — a model does occasionally wander. All of which only helps if the
 list is *yours*, which is a one-time setup step:
 
-> ⚠️ **The app ships with a starter list of 190 plugins that belong to the original
+> ⚠️ **The app ships with a starter list of 188 plugins that belong to the original
 > author, not to you.** Until you replace it, the AI will confidently recommend plugins you
 > don't own. Settings shows a warning banner until you do. See
 > [Setting your plugin list](#setting-your-plugin-list).
@@ -662,7 +662,7 @@ offending names, so you can see it rather than discover it mid-session. It's a c
 a check, not a hard guarantee; language models occasionally wander. Skip this setup and it will
 keep confidently recommending my plugins to you, which helps neither of us.
 
-**The app ships with a starter list of 190 plugins belonging to the original author.** It's
+**The app ships with a starter list of 188 plugins belonging to the original author.** It's
 there so the feature does something out of the box, not because it describes your rig. A
 warning banner sits above the list until you replace it.
 

@@ -5,6 +5,13 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v168 — 2026-08-16
+- **Corrected the plugin starter-list count again — it's 188.** I'd "fixed" it to 190 in v166 by
+  counting quoted strings in the source, which also counted two plugin names quoted inside comments
+  in that same array. A fresh install of the live site reports 188, which is the authority. Checking
+  the running app rather than parsing the source would have got this right the first time.
+- `DOCUMENTATION.md` brought current — it still predated the AI provenance marks added in v166.
+
 ## v167 — 2026-08-16
 - **Swept the whole app for overclaims, not just the docs.** Same pattern as the AI-kit one: the
   code behaves honestly, the copy kept upgrading "checks and flags" into "guarantees".

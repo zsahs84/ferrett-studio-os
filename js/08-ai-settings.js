@@ -989,7 +989,7 @@
   function lyrInsertDraft(){
     const arr=draftToTagged(lyrDraftText());
     if(!arr.length){ note('ai-lyr-note','Nothing in the draft to insert.'); return; }
-    window.lyrAddLines(arr);
+    window.lyrAddLines(arr, { ai:true });   // came from the co-pilot; cleared as soon as you edit a line
     note('ai-lyr-note',`Added ${arr.length} line${arr.length===1?'':'s'} to “${window.lyrTakes?.sheetTitle?.()||'the sheet'}”. Section headers became line tags, so the arrangement rebuilt itself.`);
     $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
   }
@@ -998,7 +998,7 @@
     if(!arr.length){ note('ai-lyr-note','Nothing in the draft to save.'); return; }
     const name=prompt('Name the new sheet:', $('ai-lyr-theme')?.value.trim() || 'Untitled');
     if(name===null) return;
-    window.lyrNewSheetFromLines?.(name.trim()||'Untitled', arr);
+    window.lyrNewSheetFromLines?.(name.trim()||'Untitled', arr, { ai:true });
     note('ai-lyr-note',`Started a new sheet — “${name.trim()||'Untitled'}”.`);
     $('ai-lyr-note').className='text-[10px] text-[#7AFFBF]/80 mt-2';
   }

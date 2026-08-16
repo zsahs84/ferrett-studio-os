@@ -5,6 +5,26 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v166 — 2026-08-16
+- **✍ AI MARKS in the Lyrics Lab.** A toggle that marks lines which came from the co-pilot and
+  **haven't been edited since**. Editing a line clears its mark — a line you rewrote is your
+  writing, which is both how the app treats it and how authorship actually works. FINALIZE shows
+  the running count ("3 of 40 lines came from the AI co-pilot").
+- Deliberately small. It's a personal record so you can answer "how much of this did I write?"
+  months later, not a legal instrument — it's self-reported and proves nothing on its own. The
+  panel says so, notes that the US Copyright Office asks for AI material to be disclosed and
+  disclaimed *in general terms* rather than line-by-line, and states plainly that it isn't legal
+  advice. No timestamps, no per-word attribution, no exportable "report" implying a rigour it
+  doesn't have. Exports are untouched: no provenance markup reaches the `.LRC` or plain lyrics.
+- **Audited sections 4–17 of the guide.** Verified as accurate: `drive.file`-only Drive scope,
+  AES-GCM + PBKDF2 backups, ⌘/Ctrl+K search, 25 undo levels, seven Tools tabs, CSV marker export.
+- Fixed the plugin starter-list count — the guide said "~191" in two places, it's **190**.
+- **Corrected the biggest overclaim in the docs:** both the README and the guide said the AI Kit
+  generator "only names plugins from your owned-plugins list". It doesn't *enforce* that — it
+  constrains the prompt and then **checks the result**, flagging anything off-palette as "not your
+  gear" with the offending names. That's a constraint plus a check, not a guarantee, and models do
+  occasionally wander. Reworded in three places to describe what the code actually does.
+
 ## v165 — 2026-08-15
 - **Audited section 3 of the guide for overclaims and found seven.** Two were mine, added earlier
   the same day: an invented "roughly 85% of the app still works" statistic with no basis behind

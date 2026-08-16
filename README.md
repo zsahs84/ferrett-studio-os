@@ -117,8 +117,9 @@ Yes, that's a lot for one page. I'm aware. It got away from me.
   follows from it — signal paths, path recall, the A/B monitor rotation, the
   pre-export checklist. It ships seeded with my rig as a clearly-labelled
   *example to replace*, not as a suggestion that you should own a Volt 176.
-- **The plugin palette is per-device.** The AI only ever names plugins you've told
-  it you own, and your studio desktop and your travel laptop keep separate lists,
+- **The plugin palette is per-device.** The AI is restricted to plugins you've told
+  it you own — and anything that slips through is flagged as "not your gear" rather
+  than left in. Your studio desktop and travel laptop keep separate lists,
   because they are different computers, which the app has grudgingly accepted.
 
 Everything in detail: the [User Guide](USER_GUIDE.md). Every change, ever:
@@ -231,9 +232,11 @@ documents.
 
 ## Your plugin list
 
-The AI Kit generator only names plugins from your **owned-plugins list**, so the
-chains it builds are things you can actually load — rather than a beautiful
-signal chain built entirely from a $3,000 bundle you don't have.
+The AI Kit generator is restricted to your **owned-plugins list**, so the chains it
+builds are things you can actually load — rather than a beautiful signal chain built
+entirely from a $3,000 bundle you don't have. Every chain is then checked back
+against your list, and anything off it is flagged as "not your gear". A constraint
+plus a check, not a hard guarantee — models wander occasionally.
 
 **The app ships with a starter list belonging to me**, which is useless to you.
 Replace it: **⚙️ Settings → Owned Plugins → ✎ EDIT LIST**. There are copyable

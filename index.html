@@ -1286,6 +1286,7 @@
             <button id="btn-lyr-paste-tagged" type="button" class="btn-euterpe px-3 py-2 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement" aria-label="Paste a whole song with [Section] headers — splits into tagged lines and can rebuild the arrangement">📋 PASTE TAGGED</button>
             <label class="flex items-center gap-1.5 text-[9px] text-[#FF88FF]/70 tracking-widest cursor-pointer ml-1"><input type="checkbox" id="lyr-show-syl" class="accent-[#FF88FF]" checked> SYLLABLES</label>
             <label class="flex items-center gap-1.5 text-[9px] text-[#FFD60A]/70 tracking-widest cursor-pointer" title="Show a chord line above every lyric line — type them yourself, e.g. Bb C#m Am E7. Lines that already have chords still show them in exports and printouts when this is off." aria-label="Show or hide the chord line above each lyric"><input type="checkbox" id="lyr-show-chords" class="accent-[#FFD60A]"> CHORDS</label>
+            <label class="flex items-center gap-1.5 text-[9px] text-[#B18CFF]/70 tracking-widest cursor-pointer" title="Mark lines that came from the AI co-pilot and haven't been edited since. Editing a line clears its mark — rewriting generated text makes it your writing. A personal record, not a legal document." aria-label="Show or hide AI-origin marks on lines"><input type="checkbox" id="lyr-show-ai" class="accent-[#B18CFF]"> AI MARKS</label>
             <div class="flex-1"></div>
             <button id="btn-lyr-export" type="button" class="btn-euterpe px-3 py-2 text-[10px]">↓ .TXT</button>
             <button id="btn-lyr-print" type="button" class="btn-euterpe px-3 py-2 text-[10px]" title="Printable / PDF lyric sheet" aria-label="Printable / PDF lyric sheet">🖨 PRINT</button>
@@ -1822,7 +1823,14 @@
             <button id="finalize-close" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">Finalize Sheet</h3>
             <p class="text-[10px] text-[#E2E8F0]/40 mb-4 leading-relaxed">Makes what's on screen the single version of the song — so the arrangement, the Lyria prompt and the .LRC all describe the same thing. A lone <b class="text-white">-</b> on a line is a rest bar: it holds its place in the timing but contributes no lyric.</p>
-            <div id="finalize-checks" class="mb-4"></div>
+            <div id="finalize-checks" class="mb-3"></div>
+            <!-- Authorship is reported, never graded. There is no correct amount of AI in a song,
+                 so this is a summary rather than a check, and it never blocks finalizing. -->
+            <div class="mb-4 p-3 rounded border border-[#B18CFF30] bg-[#B18CFF]/5">
+                <p class="text-[9px] font-bold tracking-widest text-[#B18CFF] uppercase mb-1">✍ Authorship</p>
+                <p id="finalize-authorship" class="text-[10px] leading-relaxed text-white/70"></p>
+                <p class="text-[9px] text-[#E2E8F0]/30 mt-2 leading-relaxed">A personal record to help you answer the question later, not a legal document — it's self-reported and proves nothing on its own. If you register a song, the US Copyright Office asks you to <i>disclose and disclaim</i> AI-generated material in general terms; it doesn't want a line-by-line list. Rewriting a generated line makes it your writing. Not legal advice.</p>
+            </div>
             <p id="finalize-summary" class="text-[11px] font-bold mb-4"></p>
             <div class="flex gap-2 flex-wrap items-center pt-3 border-t border-[#FFD60A14]">
                 <button id="finalize-run" type="button" class="btn-euterpe-green px-4 py-2 text-[11px]">✅ TIDY &amp; RE-SYNC</button>

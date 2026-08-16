@@ -8,6 +8,7 @@
 
   // ==================== LYRICS LAB ====================
   const LYR_KEY='ferrett_os_lyrics_v1';
+  const LYR_AI_KEY='ferrett_os_lyr_show_ai_v1';
   // Chord-line visibility is a view preference, not sheet data, so it lives in localStorage next to
   // the other UI toggles rather than in the vault.
   const LYR_CHORDS_KEY='ferrett_os_lyr_show_chords_v1';
@@ -308,11 +309,13 @@
       const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
       // A rest bar reads as a rest on screen too, so the sheet matches what the LRC will do with it.
       const isRest=(window.lyrIsSilentLine?window.lyrIsSilentLine(ln):false) && !!String(ln.text||'').trim();
+      const showAi=$('lyr-show-ai')?.checked;
       return `<div class="lyr-row flex items-center gap-1.5 group${ln.alt?' lyr-row-alt':''}" data-i="${i}" title="${ln.alt?'Punch-up alternative — pick your favorite, delete the rest':''}">`+
         `<input type="checkbox" class="lyr-select accent-[#FFD60A] shrink-0 cursor-pointer" data-i="${i}"${lyrSelected.has(ln)?' checked':''} title="Select for Punch Up / Delete">`+
         `<span class="lyr-handle cursor-grab text-white/20 hover:text-[#FF88FF] text-[13px] select-none shrink-0" draggable="true" title="Drag to reorder">⠿</span>`+
         (ln.alt?`<span class="lyr-alt-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#FFD60A50] text-[#FFD60A] shrink-0">ALT</span>`:'')+
         (isRest?`<span class="text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#7FA8D950] text-[#7FA8D9] shrink-0" title="Rest bar — holds its bar in the timing, contributes no lyric">REST</span>`:'')+
+        (showAi&&ln.ai?`<span class="lyr-ai-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#B18CFF50] text-[#B18CFF] shrink-0" title="Came from the AI co-pilot and has not been edited since. Edit the line and this clears — rewriting generated text makes it yours.">AI</span>`:'')+
         `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
         `<div class="flex-1 min-w-0 flex flex-col">`+
           (showChords?`<div class="lyr-chordlane relative h-[17px] cursor-copy" data-i="${i}" title="Click anywhere here to drop a chord on that word · drag a chord to slide it · click a chord to rename it (empty deletes)">`+
@@ -328,7 +331,7 @@
     }).join('');
     // text edit
     box.querySelectorAll('.lyr-text').forEach(inp=>{
-      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.closest('.lyr-row')?.querySelector('.lyr-syl'); if(b){ const c=window.countLineSyllables(inp.value); b.textContent=c||''; } } });
+      inp.addEventListener('input',()=>{ const ln=activeSheet().lines[+inp.dataset.i]; ln.text=inp.value; if(ln.ai){ ln.ai=false; inp.closest('.lyr-row')?.querySelector('.lyr-ai-badge')?.remove(); } if(ln.alt){ ln.alt=false; const row=inp.closest('.lyr-row'); row?.classList.remove('lyr-row-alt'); row?.removeAttribute('title'); row?.querySelector('.lyr-alt-badge')?.remove(); inp.classList.remove('border-[#FFD60A40]'); inp.classList.add('border-white/10'); } saveLyr(); updateLyrMeta(); if($('lyr-show-syl')?.checked){ const b=inp.closest('.lyr-row')?.querySelector('.lyr-syl'); if(b){ const c=window.countLineSyllables(inp.value); b.textContent=c||''; } } });
       inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); const i=+inp.dataset.i; activeSheet().lines.splice(i+1,0,{text:'',tag:activeSheet().lines[i].tag}); saveLyr(); renderLines(); const nx=box.querySelector(`.lyr-text[data-i="${i+1}"]`); nx&&nx.focus(); } });
       inp.addEventListener('dblclick',()=>{ const w=(window.getSelection().toString()||'').trim(); if(w){ $('lyr-rhyme-in').value=w; findRhymes(); } });
       // Editing the words moves every character after the caret, so the chords above have to follow.
@@ -627,12 +630,15 @@
   // pasting lyrics somewhere that doesn't want the tags at all.
   window.lyrGetActiveTextPlain=()=>{ if(!lyrState) initLyrState(); return activeSheet().lines.map(l=>l.text).filter(x=>x.trim()).join('\n'); };
   window.lyrGetTitle=()=>{ if(!lyrState) initLyrState(); return activeSheet().title||''; };
-  window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[(.+?)\]\s*(.*)$/); const parsed=m?parseTagHeader(m[1]):null; if(parsed&&parsed.tag) s.lines.push({text:m[2],tag:parsed.tag,halfTime:parsed.halfTime,alt}); else s.lines.push({text:item,tag:'',alt}); } }); saveLyr(); renderLyr(); };
+  // `ai` marks a line as arriving from the co-pilot rather than from you. It is cleared the moment
+  // you edit the line (see the input handler in renderLines) — which is also how authorship works:
+  // meaningfully rewriting generated text makes it yours. See window.lyrAiStats below.
+  window.lyrAddLines=(arr,opts)=>{ if(!lyrState) initLyrState(); if(!Array.isArray(arr)||!arr.length) return; pushUndo(); const s=activeSheet(); if(s.lines.length===1 && !s.lines[0].text.trim()) s.lines=[]; const alt=!!(opts&&opts.alt); const ai=!!(opts&&opts.ai); arr.forEach(item=>{ if(typeof item==='string'){ const m=item.match(/^\[(.+?)\]\s*(.*)$/); const parsed=m?parseTagHeader(m[1]):null; if(parsed&&parsed.tag) s.lines.push({text:m[2],tag:parsed.tag,halfTime:parsed.halfTime,alt,ai}); else s.lines.push({text:item,tag:'',alt,ai}); } }); saveLyr(); renderLyr(); };
   // ---- bridge for the AI Co-Pilot script (separate closure) to reach the selection/line state above ----
   window.lyrGetSelectedLines=()=>{ if(!lyrState) initLyrState(); const s=activeSheet(); return Array.from(lyrSelected).filter(ln=>s.lines.includes(ln)); };
   window.lyrGetLastNonEmptyLine=()=>{ if(!lyrState) initLyrState(); const ne=activeSheet().lines.filter(l=>l.text.trim()); return ne.length?ne[ne.length-1]:null; };
   window.lyrBeginBatchEdit=()=>{ if(!lyrState) initLyrState(); pushUndo(); };
-  window.lyrInsertAltsAfterLine=(ln,alts)=>{ if(!lyrState||!alts||!alts.length) return false; const s=activeSheet(); const idx=s.lines.indexOf(ln); if(idx<0) return false; s.lines.splice(idx+1,0,...alts.map(a=>({text:a,tag:'',alt:true}))); return true; };
+  window.lyrInsertAltsAfterLine=(ln,alts)=>{ if(!lyrState||!alts||!alts.length) return false; const s=activeSheet(); const idx=s.lines.indexOf(ln); if(idx<0) return false; s.lines.splice(idx+1,0,...alts.map(a=>({text:a,tag:'',alt:true,ai:true}))); return true; };
   window.lyrFinishBatchEdit=()=>{ lyrSelected.clear(); saveLyr(); renderLyr(); };
 
   // The arrangement of the Song Board song this sheet is linked to, as [[name, bars], ...] — lets the
@@ -648,13 +654,13 @@
   };
   // Creates a brand-new sheet from a block of text and switches to it, leaving the current sheet
   // untouched — the "＋ AS NEW SHEET" path out of the AI draft box.
-  window.lyrNewSheetFromLines=(title, arr)=>{
+  window.lyrNewSheetFromLines=(title, arr, opts)=>{
     if(!lyrState) initLyrState();
     const sheet={ id:Date.now(), title:title||'Untitled', lines:[{text:'',tag:''}] };
     lyrState.sheets.push(sheet); lyrState.activeId=sheet.id;
     lyrUndo=[]; lyrSelected.clear();
     saveLyr(); renderLyr();
-    if(Array.isArray(arr) && arr.length) window.lyrAddLines(arr);
+    if(Array.isArray(arr) && arr.length) window.lyrAddLines(arr, opts);
     return sheet.id;
   };
 
@@ -1005,6 +1011,7 @@
       $('lyr-show-syl')?.addEventListener('change',renderLines);
       // Remembered across sessions — a chord chart isn't something you want to re-enable every visit.
       $('lyr-show-chords')?.addEventListener('change',(e)=>{ try{ localStorage.setItem(LYR_CHORDS_KEY, e.target.checked?'1':'0'); }catch(err){} renderLines(); });
+      $('lyr-show-ai')?.addEventListener('change',(e)=>{ try{ localStorage.setItem(LYR_AI_KEY, e.target.checked?'1':'0'); }catch(err){} renderLines(); });
       $('btn-lyr-export')?.addEventListener('click',lyrExport);
       $('btn-lyr-rhyme')?.addEventListener('click',findRhymes);
       $('lyr-rhyme-in')?.addEventListener('keydown',(e)=>{ if(e.key==='Enter') findRhymes(); });
@@ -1033,6 +1040,15 @@
       // A lone dash is the app's existing convention for an instrumental/rest bar (see
       // parseTaggedSongText) — it holds a bar of time but has no words. It must never reach an LRC
       // as the literal text "-", which is what would happen if it were treated as a lyric.
+      // How much of this sheet is still untouched machine output. Deliberately counts only lines
+      // you have NOT edited: once you rewrite a generated line it is your writing, which is both
+      // how the app treats it and how authorship actually works.
+      window.lyrAiStats=()=>{
+        const lines=(activeSheet().lines||[]).filter(l=>!l.alt && !window.lyrIsSilentLine(l));
+        const ai=lines.filter(l=>l.ai).length;
+        return { total:lines.length, ai, mine:lines.length-ai,
+                 pct: lines.length ? Math.round(ai/lines.length*100) : 0 };
+      };
       window.lyrIsSilentLine=(ln)=>{ const t=String((ln&&ln.text)||'').trim(); return !t || /^[-\u2013\u2014_.\u00b7\s]+$/.test(t); };
       const lrcTime=(sec)=>{ const s=Math.max(0,sec); const m=Math.floor(s/60); const r=s-m*60;
         return `[${String(m).padStart(2,'0')}:${r.toFixed(2).padStart(5,'0')}]`; };
@@ -1159,6 +1175,17 @@
             : (fixable? `${fixable} thing${fixable===1?'':'s'} to tidy — nothing needs a decision from you.` : 'This sheet is finalized.');
           s.style.color = blockers.length ? '#FF8888' : (fixable ? '#FFD60A' : '#00FF88');
         }
+        // Authorship summary. Not a check — there is no "correct" amount of AI in a song — so it
+        // sits apart from the pass/fail list and never blocks finalizing.
+        const au=$('finalize-authorship');
+        if(au){
+          const st=window.lyrAiStats();
+          au.innerHTML = !st.total ? ''
+            : (st.ai===0
+              ? `<span class="text-[#00FF88]">✓ All ${st.total} lines are your own writing.</span>`
+              : `<span class="text-[#B18CFF]">${st.ai} of ${st.total} lines (${st.pct}%)</span> came from the AI co-pilot and haven't been edited since. `
+                + `<span class="text-white/45">Edit a line and it counts as yours. Turn on <b>AI MARKS</b> above the sheet to see which.</span>`);
+        }
         const ib=$('finalize-accept-int');
         if(ib) ib.classList.toggle('hidden', !(rep.counts.noIntensity>0));
         const ic=$('finalize-int-count'); if(ic) ic.textContent=rep.counts.noIntensity||'';
@@ -1203,6 +1230,7 @@
       });
 
       try{ const cb=$('lyr-show-chords'); if(cb) cb.checked = localStorage.getItem(LYR_CHORDS_KEY)==='1'; }catch(e){}
+      try{ const cb=$('lyr-show-ai'); if(cb) cb.checked = localStorage.getItem(LYR_AI_KEY)==='1'; }catch(e){}
       // Chord offsets are measured against the rendered line, so a width change invalidates them.
       window.addEventListener('resize',()=>layoutChordChips());
       renderLyr();

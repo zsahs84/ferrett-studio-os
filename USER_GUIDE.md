@@ -448,6 +448,22 @@ did it on a kitchen table. You get an undo button.
 the timing and the bar count, but has no words. It shows a **REST** badge on the row, and it is
 left out of the lyric exports rather than appearing as a literal "-".
 
+**AI MARKS** — a toggle above the sheet that marks lines which came from the co-pilot and
+**haven't been edited since**. Edit a line and its mark clears, because a line you rewrote is
+your writing. **✅ Finalize** shows the running count: *"3 of 40 lines (8%) came from the AI
+co-pilot."*
+
+> **What this is, and isn't.** It's a personal record so you can answer "how much of this did
+> I actually write?" months later, when you certainly won't remember. It is **self-reported
+> and proves nothing on its own** — it is not evidence and not a legal document.
+>
+> For what it's worth: purely AI-generated material isn't copyrightable in the US (no human
+> author), your own writing is, and the Copyright Office asks registrants to **disclose and
+> disclaim** AI-generated material — in *general terms*, not as a line-by-line list. So the
+> practical use of this feature isn't paperwork; it's spotting which lines you'd want to
+> rewrite before you register anything. **Not legal advice** — talk to a copyright attorney
+> for anything real.
+
 **✅ Finalize** — the deliberate "this is the song now" step. The sheet is a working surface, but
 the arrangement, the Lyria prompt and the synced-lyrics export all read the same lines, so a
 half-tidied sheet produces a quietly *wrong* arrangement rather than an error. Finalize runs eight
@@ -513,11 +529,13 @@ one dish everyone likes.
   with room to document *why* a chain works, not just what it is.
 - **🤖 AI Kit generator** — generates a full multi-instrument mixing kit for a genre.
 
-**The important part:** the generator only names plugins from your **owned-plugins list**,
-so it builds chains with specific knob values for gear you can actually load — not a
-wishlist. That only works if the list is *yours*, which is a one-time setup step:
+**The important part:** the generator is restricted to your **owned-plugins list**, so chains
+come back with specific knob values for gear you can actually load rather than a wishlist. The
+result is checked against your list too, and anything off it is flagged as **"not your gear"**
+rather than quietly left in — a model does occasionally wander. All of which only helps if the
+list is *yours*, which is a one-time setup step:
 
-> ⚠️ **The app ships with a starter list of ~191 plugins that belong to the original
+> ⚠️ **The app ships with a starter list of 190 plugins that belong to the original
 > author, not to you.** Until you replace it, the AI will confidently recommend plugins you
 > don't own. Settings shows a warning banner until you do. See
 > [Setting your plugin list](#setting-your-plugin-list).
@@ -638,11 +656,13 @@ export.
 ### Setting your plugin list
 
 This is the single most valuable five minutes you will spend in this app, because the AI Kit
-generator is only ever allowed to name plugins from this list. Get it right and every chain it
-builds is one you can actually load. Skip it and it will keep confidently recommending my
-plugins to you, which helps neither of us.
+generator is told to name plugins only from this list, and the app checks every chain it gets
+back against it — anything that slipped through is flagged as **"not your gear"** with the
+offending names, so you can see it rather than discover it mid-session. It's a constraint plus
+a check, not a hard guarantee; language models occasionally wander. Skip this setup and it will
+keep confidently recommending my plugins to you, which helps neither of us.
 
-**The app ships with a starter list of ~191 plugins belonging to the original author.** It's
+**The app ships with a starter list of 190 plugins belonging to the original author.** It's
 there so the feature does something out of the box, not because it describes your rig. A
 warning banner sits above the list until you replace it.
 

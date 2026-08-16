@@ -6,6 +6,12 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 actually picks up the new files instead of serving a stale cache.
 
 ## v165 — 2026-08-15
+- **Corrected a 10× error in the cost guidance.** The guide said a Producer Notes write-up ran to
+  "roughly a thousand characters" and that a full FX chain was "in the same ballpark". Both wrong:
+  Producer Notes runs to around **ten thousand** characters and is the single most expensive call
+  in the app (budgeted at 5,000 output tokens with a 90-second timeout), while an FX chain is
+  roughly half that. Someone budgeting from the old figure would have been out by an order of
+  magnitude on the one feature that costs the most.
 - **The Accounting Ledger is now described honestly as an estimate.** The docs previously said
   its figures were *"actual figures, not estimates"* — that was an overclaim. The ledger derives
   spend from token counts rather than reading a provider's billing API, and the accounting code

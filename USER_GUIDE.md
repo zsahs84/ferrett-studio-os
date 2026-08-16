@@ -175,11 +175,17 @@ substantial FX chain has never run up a bill bigger than about twenty-odd cents.
 numbers will differ**, sometimes a lot: different model, different provider, different
 prices, different length of request.
 
-The thing that drives cost is simply how much text moves. A Producer Notes write-up runs to
-roughly a thousand characters; a full FX chain is in the same ballpark. Longer request in,
-longer answer out, more tokens, higher cost. Reasoning-heavy models charge their thinking as
-output, which is why Gemini's **THINKING LEVEL** setting is the single biggest cost lever
-available to you.
+The thing that drives cost is simply how much text moves. Longer request in, longer answer
+out, more tokens, higher cost.
+
+**Producer Notes is the heavyweight** — a full write-up runs to around **ten thousand
+characters**, and it's the single most expensive thing in the app. It's budgeted at 5,000
+output tokens with a 90-second timeout for exactly that reason. A full FX chain is smaller,
+around half that. Most other calls are far smaller again.
+
+Reasoning-heavy models also charge their *thinking* as output, which is why Gemini's
+**THINKING LEVEL** setting is the single biggest cost lever available to you — more so than
+which feature you use.
 
 **Read the meter — but treat it as a gauge, not a receipt.** The **ACCOUNTING LEDGER** at the
 bottom of Settings tracks token usage as each provider reports it and shows spend for the

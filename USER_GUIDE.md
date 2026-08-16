@@ -33,12 +33,17 @@ and the header (`Euterpe Creativity Workbench (vNNN)`).
 
 ## 1. What this is, and who it's for
 
-Euterpe is for the person who writes, records, and mixes their own music — and keeps losing
-track of the details. The plugin chain that made the drums hit right. The knob positions on
-a hardware synth. Which verse belonged to which demo. What key that idea was in.
+Euterpe is for the person who writes, records and mixes their own music, and who keeps
+losing the details. The plugin chain that made the drums finally hit. The knob positions on
+the synth three feet behind you. Which verse belonged to which demo. What key that 2am voice
+memo was in.
 
-It is **one HTML page**. There is no account, no server, no subscription. Everything you
-create is stored in your own browser and, if you choose, synced to your own Google Drive.
+You told yourself you'd remember. You did not remember. This is a notebook for the you who
+doesn't remember, written by a man with the same condition.
+
+It is **one HTML page**. No account, no server, no subscription, no seat licence, no
+"contact sales." Everything you create lives in your own browser and, if you want it to,
+syncs to your own Google Drive.
 
 **What it does:**
 
@@ -51,8 +56,10 @@ create is stored in your own browser and, if you choose, synced to your own Goog
 | **Toolbox** | ~50 calculators, theory helpers, ear trainers, players, and analyzers |
 | **AI co-pilot** | Optional. Lyrics, chord progressions, mix feedback, full genre kits |
 
-**What it is not:** a DAW. It doesn't record or play back your music. It's the notebook,
-reference library, and assistant that sits *beside* your DAW.
+**What it is not:** a DAW. It does not record or play back your music, and it never will —
+that job is taken and the incumbents are very good at it. This is the notebook, the reference
+library and the assistant that sits *beside* your DAW, remembering the things your DAW
+doesn't.
 
 ### Why this exists
 
@@ -668,8 +675,10 @@ spotting gear you forgot you had.
 ## 15. Troubleshooting
 
 **"I updated the app but don't see the changes."**
-It's a PWA with an aggressive cache. Hard-refresh (Ctrl/Cmd + Shift + R). The version
-number in the tab title tells you which build you're on.
+It's a PWA with an aggressive cache, which is the same feature that lets it work on a plane.
+Hard-refresh (Ctrl/Cmd + Shift + R). The build number in the tab title tells you what you're
+actually running — if it hasn't changed, your browser is lying to you, and the hard-refresh
+is how you call it out.
 
 **AI says "Network/CORS blocked."**
 The endpoint refused a browser request. If it's a local server, allow this page's origin in

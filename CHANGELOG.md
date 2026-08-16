@@ -5,6 +5,27 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v164 — 2026-08-15 · public beta `v0.1.0-beta.1`
+- **First tagged release.** Git tags now carry a SemVer release number
+  (`v0.1.0-beta.1`) alongside the existing `vNNN` build counter in the tab title. They answer
+  different questions — which release you're on, versus whether your browser has the newest files
+  — so both stay. The README explains the split.
+- **Companion repo cleaned for publication.** The Lua/Python scripts the app links as downloads
+  carried absolute `/Users/<name>/` paths in four files: that leaked a username and meant none of
+  them ran for anyone who downloaded one. They derive from `$HOME` now (or, for `auto_uvr.py`, from
+  the launcher's own directory), so they keep working unchanged where they were written while being
+  portable elsewhere.
+- **Scripts that need setup now say so before you download them.** The five UVR/Fadr entries carry
+  a `⚠ SETUP:` note in the Script DB — UVR5 via the `audio-separator` package in a virtualenv, or
+  a Fadr key in `~/.fadr_api_key` — plus the fact that paths must be pointed at your own machine.
+- The `scriptsRev` migration now also refreshes those descriptions on existing vaults, but **only
+  where the stored text is still exactly the old default** (a strict prefix of the new one). A
+  description you reworded is left alone — the note is worth delivering, not worth clobbering an
+  edit for.
+- Corrected a stale warning in the companion repo's catalog that claimed a live Fadr API key sat on
+  line 2 of a script. It was moved out to `~/.fadr_api_key` some time ago; left uncorrected, it was
+  a public file pointing readers at a key that isn't there.
+
 ## v163 — 2026-08-15
 - **Removed a personal hostname from the shipped code.** `DEFAULT_HA_URL` was hardcoded to the
   author's own Home Assistant address, so every install carried a stranger's home endpoint

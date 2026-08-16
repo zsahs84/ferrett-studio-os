@@ -11,6 +11,21 @@ Installable as a PWA and **fully offline** after first load. Everything you
 create lives in your browser (localStorage / IndexedDB); nothing is committed
 to this repo.
 
+> **Status: public beta.** It's in daily use by its author and stable enough to
+> trust with your work — but back up (header → **VAULT**) like you would with
+> anything at `0.x`.
+
+### Two version numbers, on purpose
+
+| Where | Looks like | What it means |
+|---|---|---|
+| Git tags / releases | `v0.1.0-beta.1` | The **release**. Standard SemVer — the leading `0` says the shape of things can still change. |
+| Tab title & header | `v164` | The **build**. A monotonic counter shared with the service-worker cache name, bumped on every shipped change so returning browsers pick up new files instead of a stale cache. |
+
+They answer different questions — *which release am I on* versus *is my browser
+running the newest files* — so both are kept. Quote the release number when
+reporting a bug, and the build number if something looks stale.
+
 There's a lot of great music software out there, and plenty of it does one of
 these jobs very well. What there isn't is a single place that does *all* of it —
 where the lyric you're writing, the chain you built last week, the patch on the

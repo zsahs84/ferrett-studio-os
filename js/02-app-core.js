@@ -6108,11 +6108,11 @@ window.cloneTone = (id) => {
 
 const RAW_BASE = "https://raw.githubusercontent.com/zsahs84/ferrett-audio-tools/main/";
 const defaultScripts = [
-    { id: 401, title: "Split-Audio.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+U", func: "Triggers the UVR extraction pipeline from REAPER: writes a temp .command file next to auto_uvr.py and opens it in Terminal for a visible progress log.", url: RAW_BASE + "Split-Audio.lua" },
-    { id: 402, title: "auto_uvr.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "The separation engine. GUI picker for Vocals-only / Instrumental+Drums / Full pipeline. BS-Roformer vocals, MDX-Net instrumental, Demucs 6-stem split, MDX23C drum-piece separation, DeEcho-DeReverb cleanup - chained automatically, writes to Stems/UVR/.", url: RAW_BASE + "auto_uvr.py" },
-    { id: 403, title: "Fadr_MIDI_Extract_v6_LastUsed.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+F", func: "Auto-glues the selection, uploads to Fadr's cloud API, polls for MIDI extraction, and loads the result into a VSTi you pick from a custom GUI menu (Kontakt, Vital, Surge XT, NAM, etc).", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Fadr_MIDI_Extract_v6_LastUsed.lua" },
+    { id: 401, title: "Split-Audio.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+U", func: "Triggers the UVR extraction pipeline from REAPER: writes a temp .command file next to auto_uvr.py and opens it in Terminal for a visible progress log. ⚠ SETUP: needs UVR5 (the `audio-separator` Python package) in a virtualenv, and you must edit the paths at the top of the file to point at your own setup before it will run.", url: RAW_BASE + "Split-Audio.lua" },
+    { id: 402, title: "auto_uvr.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "The separation engine. GUI picker for Vocals-only / Instrumental+Drums / Full pipeline. BS-Roformer vocals, MDX-Net instrumental, Demucs 6-stem split, MDX23C drum-piece separation, DeEcho-DeReverb cleanup - chained automatically, writes to Stems/UVR/. ⚠ SETUP: needs UVR5 (the `audio-separator` Python package) in a virtualenv, and you must edit the paths at the top of the file to point at your own setup before it will run.", url: RAW_BASE + "auto_uvr.py" },
+    { id: 403, title: "Fadr_MIDI_Extract_v6_LastUsed.lua", category: "AI STEM & MIDI", shortcut: "Ctrl+Shift+F", func: "Auto-glues the selection, uploads to Fadr's cloud API, polls for MIDI extraction, and loads the result into a VSTi you pick from a custom GUI menu (Kontakt, Vital, Surge XT, NAM, etc). ⚠ SETUP: needs a Fadr account — put your API key in ~/.fadr_api_key (chmod 600) — plus a python3 with `requests`. Edit the paths at the top of the file to match your machine.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Fadr_MIDI_Extract_v6_LastUsed.lua" },
     { id: 404, title: "Fadr_Chord_Mapper.lua", category: "AI STEM & MIDI", shortcut: "Alt+C", func: "Finds a Fadr chord-detection CSV near the selected audio, parses ~25 chord qualities, and writes exact time-anchored MIDI chords + markers to a dedicated muted 'Chords/Textures' track.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Fadr_Chord_Mapper.lua" },
-    { id: 405, title: "fadr_cloud.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "Backend for Fadr MIDI extraction: S3 upload, task polling, downloading the resulting MIDI. Called by Fadr_MIDI_Extract_v6_LastUsed.lua, not run directly.", url: RAW_BASE + "fadr_cloud.py" },
+    { id: 405, title: "fadr_cloud.py", category: "AI STEM & MIDI", shortcut: "Auto", func: "Backend for Fadr MIDI extraction: S3 upload, task polling, downloading the resulting MIDI. Called by Fadr_MIDI_Extract_v6_LastUsed.lua, not run directly. ⚠ SETUP: needs a Fadr account — put your API key in ~/.fadr_api_key (chmod 600) — plus a python3 with `requests`. Edit the paths at the top of the file to match your machine.", url: RAW_BASE + "fadr_cloud.py" },
     { id: 406, title: "Ferrett_FadrPlus_Organizer.lua", category: "AI STEM & MIDI", shortcut: "Action List", func: "Creates 5 empty tracks (fadr_drums/bass/keys/vocals/other) for manually dragging in a Fadr+ stem export.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Ferrett_FadrPlus_Organizer.lua" },
     { id: 407, title: "Ferrett_GoogleFlow_Importer.lua", category: "AI STEM & MIDI", shortcut: "Action List", func: "Imports a Google Flow AI-generated song and builds a 4-track triage folder (Flow Stems / Rerecord / MIDI Replace / Keep Audio) to sort the AI output into.", url: RAW_BASE + "Lua/Pipeline_UVR_Fadr/Ferrett_GoogleFlow_Importer.lua" },
 
@@ -6176,7 +6176,7 @@ const defaultScripts = [
     { id: 500, title: "lyrics.lua", category: "REFERENCE & UTILITY", shortcut: "Action List", func: "Floating lyrics-prompter window driven by project markers, with a dimmed next-line preview synced to the playhead.", url: RAW_BASE + "Lua/Reference_Tools/lyrics.lua" },
     { id: 501, title: "Ferrett_Cookbook_Recipe_Finder.lua", category: "REFERENCE & UTILITY", shortcut: "Action List", func: "Asks what elements you have on hand (bass, guitar, vox type, drums, etc.) and suggests genre-appropriate arrangement combos.", url: RAW_BASE + "Lua/Reference_Tools/Ferrett_Cookbook_Recipe_Finder.lua" },
 
-    { id: 502, title: "run_uvr_pipeline.command", category: "AI STEM & MIDI", shortcut: "Double-click", func: "Double-clickable Terminal launcher for auto_uvr.py - drop a WAV on it or pick one via a native file picker rooted at Music Projects/, then runs the full separation pipeline with a visible progress log.", url: RAW_BASE + "run_uvr_pipeline.command" },
+    { id: 502, title: "run_uvr_pipeline.command", category: "AI STEM & MIDI", shortcut: "Double-click", func: "Double-clickable Terminal launcher for auto_uvr.py - drop a WAV on it or pick one via a native file picker rooted at Music Projects/, then runs the full separation pipeline with a visible progress log. ⚠ SETUP: needs UVR5 (the `audio-separator` Python package) in a virtualenv, and you must edit the paths at the top of the file to point at your own setup before it will run.", url: RAW_BASE + "run_uvr_pipeline.command" },
     { id: 503, title: "unpack.sh", category: "REFERENCE & UTILITY", shortcut: "Terminal", func: "Batch-unzips NAM amp packs sitting in the current folder into ~/Music/NAM_Rig/Amps/<name>/, one folder per zip.", url: RAW_BASE + "Shell_Scripts/unpack.sh" },
     { id: 504, title: "unzip_nam_ir_library.zsh", category: "REFERENCE & UTILITY", shortcut: "Terminal", func: "Watches ~/Downloads for NAM zips and auto-sorts them into NAM_Rig/Amps vs /IRs by filename, stripping __MACOSX junk.", url: RAW_BASE + "Shell_Scripts/unzip_nam_ir_library.zsh" },
     { id: 505, title: "NAM_Re-Amp.RTrackTemplate", category: "PROJECT BUILDER", shortcut: "Template", func: "REAPER track template for re-amping a DI through NAM captures.", url: RAW_BASE + "Track_Templates/NAM_Re-Amp.RTrackTemplate" },
@@ -6199,14 +6199,26 @@ if (!window.db.scripts) window.db.scripts = JSON.parse(JSON.stringify(defaultScr
 // the stable identity (a title can be renamed, an id can collide with a hand-added entry).
 // Deletions stick: SCRIPTS_REV only re-runs when it is bumped, so a script you deliberately removed
 // stays removed until the next time this list actually grows.
-window.SCRIPTS_REV = 1;
+window.SCRIPTS_REV = 2;
 (() => {
     if ((window.db.scriptsRev || 0) >= window.SCRIPTS_REV) return;
+    const byUrl = new Map(defaultScripts.filter((s) => s.url).map((s) => [s.url, s]));
     const have = new Set((window.db.scripts || []).map((s) => s.url).filter(Boolean));
-    let added = 0;
+    let added = 0, refreshed = 0;
     defaultScripts.forEach((s) => { if (s.url && !have.has(s.url)) { window.db.scripts.push(JSON.parse(JSON.stringify(s))); added++; } });
+    // rev 2 appended "⚠ SETUP:" notes to a few descriptions — scripts that need a virtualenv or an
+    // API key before they will run at all, which is worth knowing BEFORE you download one. Those
+    // notes are useless if they only reach fresh installs, but a blanket overwrite would wipe a
+    // description someone had rewritten. So update only where the stored text is still exactly the
+    // old default, i.e. a strict prefix of the new one — which is precisely "unedited, and all we
+    // did was append". Anything reworded is left alone.
+    (window.db.scripts || []).forEach((cur) => {
+        const def = cur.url && byUrl.get(cur.url);
+        if (!def || !def.func || !cur.func) return;
+        if (def.func !== cur.func && def.func.startsWith(cur.func)) { cur.func = def.func; refreshed++; }
+    });
     window.db.scriptsRev = window.SCRIPTS_REV;
-    if (added) { try { window.saveData?.(); } catch (e) {} }
+    if (added || refreshed) { try { window.saveData?.(); } catch (e) {} }
 })();
 
 // 2. The Render Engine

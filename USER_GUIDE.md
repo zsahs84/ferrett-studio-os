@@ -132,18 +132,19 @@ already pay for. No API key ships with this app — there's nothing to leak, bec
 nothing there. Your browser talks straight to the provider. Nothing is proxied through
 anyone else's server, mine very much included, on account of me not having one.
 
-Skip this entire section and roughly 85% of the app still works.
+Skip this entire section entirely and everything that isn't explicitly an AI feature still
+works — the song board, the lyrics workspace, the cookbook, the whole toolbox, all of it.
 
 Go to **⚙️ Settings** in the sidebar. Under **CONNECTION**, pick one:
 
 | Provider | Good for | Where to get a key |
 |---|---|---|
 | **Home Assistant → Groq** | Only if you already run HA — key stays in HA secrets. [Da fuq is this?](#da-fuq-is-home-assistant--groq) | — |
-| **Direct Groq** | Free tier, very fast | [console.groq.com/keys](https://console.groq.com/keys) |
+| **Direct Groq** | Free tier, fast | [console.groq.com/keys](https://console.groq.com/keys) |
 | **Google Gemini** | Free tier, big responses, thinking control | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
-| **Claude** | Strongest writing and reasoning | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
+| **Claude** | Paid only; the author's pick for long-form writing | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
 | **OpenAI** | Familiar, widely compatible | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
-| **DeepSeek** | Very cheap | [platform.deepseek.com](https://platform.deepseek.com/api_keys) |
+| **DeepSeek** | Paid, priced low | [platform.deepseek.com](https://platform.deepseek.com/api_keys) |
 | **OpenRouter** | One key, hundreds of models | [openrouter.ai/keys](https://openrouter.ai/keys) |
 | **Local / Custom** | Ollama, LM Studio, vLLM — free, private, offline | — |
 
@@ -157,23 +158,20 @@ Then:
 **Each provider keeps its own key and model.** You can store keys for several and switch
 between them freely without re-entering anything.
 
-**A saved key is masked.** Once saved, the field shows `[ API KEY SAVED — LEAVE BLANK TO
+**A saved key is masked.** Once saved, the field shows `[ API KEY SAVED - LEAVE BLANK TO
 KEEP ]`. Leaving it blank keeps the stored key; you only type in it to *change* the key.
 
 ### What it actually costs
 
-Less than you fear, more than nothing, and entirely knowable — which is the important part.
+Less than you fear, more than nothing, and worth understanding before you turn it loose.
 This section is not a joke section. It's your money.
 
 Every AI feature bills to **your** account at **your** provider's rates. Nothing here is a
 subscription and nobody takes a cut — the app just hands your request to the provider you
 picked.
 
-In the author's own use, running Gemini Flash, individual calls have landed anywhere from a
-fraction of a cent up to around twenty-something cents for the big ones — and building out a
-substantial FX chain has never run up a bill bigger than about twenty-odd cents. **Your
-numbers will differ**, sometimes a lot: different model, different provider, different
-prices, different length of request.
+**Your numbers will differ** from anyone else's, sometimes a lot — different model, different
+provider, different prices, different length of request.
 
 The thing that drives cost is simply how much text moves. Longer request in, longer answer
 out, more tokens, higher cost.

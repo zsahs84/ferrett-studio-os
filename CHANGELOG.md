@@ -6,6 +6,18 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 actually picks up the new files instead of serving a stale cache.
 
 ## v165 — 2026-08-15
+- **Audited section 3 of the guide for overclaims and found seven.** Two were mine, added earlier
+  the same day: an invented "roughly 85% of the app still works" statistic with no basis behind
+  it, and "entirely knowable" describing costs — two paragraphs above a warning that the cost
+  figures are an unverified estimate. Both gone.
+- Removed a stale cost paragraph that survived the earlier rewrite and contradicted its
+  replacement: it named the wrong model ("Gemini Flash") and put a full FX chain at "twenty-odd
+  cents", which no longer squared with the corrected ranking directly beneath it.
+- Softened unsupported superlatives in the provider table. "Claude — strongest writing and
+  reasoning" was an opinion presented as fact in a comparison table, and is now attributed as the
+  author's preference. "Very fast" and "very cheap" became plain descriptions.
+- Fixed a quoted UI string that didn't match the app: the masked-key placeholder uses a hyphen,
+  not an em dash.
 - **Corrected a 10× error in the cost guidance.** The guide said a Producer Notes write-up ran to
   "roughly a thousand characters" and that a full FX chain was "in the same ballpark". Both wrong:
   Producer Notes runs to around **ten thousand** characters and is the single most expensive call

@@ -5,6 +5,31 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v162 — 2026-08-15
+- **✅ FINALIZE in the Lyrics Lab** — the deliberate "this is the song now" step. The sheet is a
+  working surface, and the arrangement, the Lyria prompt and the .LRC all read the same lines, so a
+  half-tidied sheet produced a quietly *wrong* arrangement rather than an error. Finalize runs eight
+  checks and shows what it can tidy versus what needs a decision from you.
+- **Fixed a real corruption this exposed: a leftover punch-up alternative splits the section it sits
+  in.** `lyrInsertAltsAfterLine` adds alts with no tag, and `sectionsFromLines` treats an untagged
+  line as breaking a run — so one ALT inside a verse turned it into "Verse 1: 1 bar" + "Verse 2:
+  4 bars" and added a phantom bar to the timeline. After finalize the same sheet reads "Verse:
+  4 bars". Every downstream timing was off by that bar.
+- The checks: lyrics present · no punch-up alternatives left · no stray blank lines · rest bars
+  written as `-` · every line belongs to a part · linked to a song · tempo set · intensities set on
+  every part.
+- **It never invents anything.** Tidy only removes what is unambiguously not part of the song
+  (alternatives, blank lines) and normalises rest markers (`–`, `—` → `-`), then re-derives the
+  arrangement. It will not write a lyric or pick a section tag — those stay as warnings. Accepting
+  the default intensities is a separate opt-in button, because silently writing them in would turn
+  "I haven't chosen yet" into "I chose this", which is exactly what the dimmed default in the
+  arrangement row exists to show. One ↶ UNDO reverses the whole thing.
+- **A lone `-` is now honoured everywhere as a rest bar.** It was already the documented convention
+  for pasted songs and already counted toward bar totals, but v161's LRC would have emitted it as
+  the literal lyric "-". Now it holds its bar in the timing, contributes no lyric to the .LRC or the
+  plain export, and shows a **REST** badge on the row — so what you see on screen is what gets
+  exported.
+
 ## v161 — 2026-08-15
 - **⏱ SYNCED / LRC export in the Lyrics Lab.** Copies your sheet as a `.LRC` — `[mm:ss.xx]` per
   line, the format Musixmatch and every karaoke player read, and the route Spotify's lyrics

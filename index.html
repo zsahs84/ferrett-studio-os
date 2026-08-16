@@ -1314,6 +1314,7 @@
                 <button id="btn-lyr-spark" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line" aria-label="Random word to spark a line">✨ SPARK</button>
                 <span id="lyr-spark-out" class="text-[11px] text-[#FFD60A] font-bold italic"></span>
                 <button id="btn-lyr-copy" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Copy the whole lyric sheet as plain text" aria-label="Copy the whole lyric sheet as plain text">📋 COPY</button>
+                <button id="btn-lyr-finalize" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Check the sheet is complete and clear out punch-up alternatives" aria-label="Finalize this lyric sheet">✅ FINALIZE</button>
                 <button id="btn-lyr-lrc" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#B18CFF80;color:#B18CFF" title="Export synced .lrc or plain lyrics for Musixmatch / Spotify" aria-label="Export synced .lrc or plain lyrics">⏱ SYNCED / LRC</button>
             </div>
         </div>
@@ -1805,6 +1806,29 @@
     <button id="close-chain-modal" class="absolute top-6 right-8 text-white/50 hover:text-[#00FF88] font-bold text-[32px] cursor-pointer transition-colors" aria-label="Close">×</button>
     <div class="text-[#00FF88] tracking-[0.2em] font-bold text-[14px] absolute top-8 left-8 uppercase" id="chain-modal-title">PLUGIN CHAIN</div>
     <div class="flex items-center gap-4 md:gap-8 overflow-x-auto w-full h-full pb-8 pt-16 scrollbar-hide" id="chain-modal-content"></div>
+</div>
+
+<!-- Finalize. The sheet is a working surface and everything downstream (arrangement, Lyria prompt,
+     LRC) reads the same lines, so a half-tidied sheet produces a quietly wrong arrangement rather
+     than an error. This is the deliberate "this is the song now" step. It only ever removes things
+     that are unambiguously not part of the song; anything needing a decision stays a warning. -->
+<div id="finalize-modal" class="fixed inset-0 bg-[#050807]/90 backdrop-blur-md z-[99999] hidden flex-col items-center p-4 md:p-8 overflow-y-auto" style="padding-top: 8vh;">
+    <div class="w-full max-w-xl pb-10">
+        <div class="card border-[#FFD60A40] relative">
+            <button id="finalize-close" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
+            <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">Finalize Sheet</h3>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-4 leading-relaxed">Makes what's on screen the single version of the song — so the arrangement, the Lyria prompt and the .LRC all describe the same thing. A lone <b class="text-white">-</b> on a line is a rest bar: it holds its place in the timing but contributes no lyric.</p>
+            <div id="finalize-checks" class="mb-4"></div>
+            <p id="finalize-summary" class="text-[11px] font-bold mb-4"></p>
+            <div class="flex gap-2 flex-wrap items-center pt-3 border-t border-[#FFD60A14]">
+                <button id="finalize-run" type="button" class="btn-euterpe-green px-4 py-2 text-[11px]">✅ TIDY &amp; RE-SYNC</button>
+                <button id="finalize-accept-int" type="button" class="hidden btn-euterpe px-3 py-2 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Write the section-type defaults in as explicit values">USE DEFAULT INTENSITIES (<span id="finalize-int-count"></span>)</button>
+                <button id="finalize-cancel" type="button" class="text-[11px] font-bold text-[#E2E8F0]/40 hover:text-white">CLOSE</button>
+                <span id="finalize-status" class="text-[10px] text-[#00FF88] ml-auto"></span>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/30 mt-3">Tidy removes punch-up alternatives and stray blank lines, normalises rest bars to "-", then re-derives the arrangement. One ↶ UNDO reverses it. It will never write a lyric or pick a section tag for you.</p>
+        </div>
+    </div>
 </div>
 
 <!-- Synced-lyrics export. The sheet has no recorded timestamps — nothing in the app knows where a

@@ -306,10 +306,13 @@
     box.innerHTML=sheet.lines.map((ln,i)=>{
       const tc=tagStyle(ln.tag)[1];
       const syl=showSyl? ln.text.trim().split(/\s+/).filter(Boolean).reduce((s,w)=>s+syllables(w),0):0;
+      // A rest bar reads as a rest on screen too, so the sheet matches what the LRC will do with it.
+      const isRest=(window.lyrIsSilentLine?window.lyrIsSilentLine(ln):false) && !!String(ln.text||'').trim();
       return `<div class="lyr-row flex items-center gap-1.5 group${ln.alt?' lyr-row-alt':''}" data-i="${i}" title="${ln.alt?'Punch-up alternative — pick your favorite, delete the rest':''}">`+
         `<input type="checkbox" class="lyr-select accent-[#FFD60A] shrink-0 cursor-pointer" data-i="${i}"${lyrSelected.has(ln)?' checked':''} title="Select for Punch Up / Delete">`+
         `<span class="lyr-handle cursor-grab text-white/20 hover:text-[#FF88FF] text-[13px] select-none shrink-0" draggable="true" title="Drag to reorder">⠿</span>`+
         (ln.alt?`<span class="lyr-alt-badge text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#FFD60A50] text-[#FFD60A] shrink-0">ALT</span>`:'')+
+        (isRest?`<span class="text-[8px] font-bold tracking-widest px-1 py-0.5 rounded border border-[#7FA8D950] text-[#7FA8D9] shrink-0" title="Rest bar — holds its bar in the timing, contributes no lyric">REST</span>`:'')+
         `<select class="lyr-tag bg-black/40 border rounded text-[9px] font-bold px-1 py-1.5 focus:outline-none shrink-0" style="color:${tc};border-color:${tc}40" data-i="${i}">${Object.keys(TAGS).map(t=>`<option value="${t}"${t===ln.tag?' selected':''}>${t||'—'}</option>`).join('')}</select>`+
         `<div class="flex-1 min-w-0 flex flex-col">`+
           (showChords?`<div class="lyr-chordlane relative h-[17px] cursor-copy" data-i="${i}" title="Click anywhere here to drop a chord on that word · drag a chord to slide it · click a chord to rename it (empty deletes)">`+
@@ -1027,6 +1030,10 @@
       // convention sectionsFromLines() already uses. An empty line is an instrumental bar: it eats a
       // bar of time but emits no lyric. `.alt` lines are punch-up alternatives, not part of the song —
       // the older .TXT/COPY paths include them, but in an LRC they'd read as duplicated lines.
+      // A lone dash is the app's existing convention for an instrumental/rest bar (see
+      // parseTaggedSongText) — it holds a bar of time but has no words. It must never reach an LRC
+      // as the literal text "-", which is what would happen if it were treated as a lyric.
+      window.lyrIsSilentLine=(ln)=>{ const t=String((ln&&ln.text)||'').trim(); return !t || /^[-\u2013\u2014_.\u00b7\s]+$/.test(t); };
       const lrcTime=(sec)=>{ const s=Math.max(0,sec); const m=Math.floor(s/60); const r=s-m*60;
         return `[${String(m).padStart(2,'0')}:${r.toFixed(2).padStart(5,'0')}]`; };
       const parseOffset=(v)=>{ const t=String(v||'').trim(); if(!t) return 0;
@@ -1047,14 +1054,16 @@
         sheet.lines.forEach((ln)=>{
           if(ln.alt) return;                       // an alternative take, not a line of the song
           const text=String(ln.text||'').trim();
-          if(text) body.push(lrcTime(t)+text);     // silent bars still advance the clock below
+          // A blank line or a lone dash is a rest: it holds its bar but contributes no lyric.
+          if(text && !window.lyrIsSilentLine(ln)) body.push(lrcTime(t)+text);
           t += (ln.halfTime?2:1)*secPerBar;
         });
         return head.concat(body).join('\n');
       };
       // What a lyric service wants for an unsynced submission: words only.
-      window.lyrPlainForServices=()=> activeSheet().lines.filter(l=>!l.alt)
-        .map(l=>String(l.text||'').trim()).filter(Boolean).join('\n');
+      window.lyrPlainForServices=()=> activeSheet().lines
+        .filter(l=>!l.alt && !window.lyrIsSilentLine(l))
+        .map(l=>String(l.text||'').trim()).join('\n');
 
       const lrcRefresh=()=>{
         const pre=$('lrc-preview'); if(!pre) return;
@@ -1066,6 +1075,111 @@
         const ok=()=>lrcFlash(msg);
         const fb=()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); ok(); };
         if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok).catch(fb); else fb(); };
+
+      // === FINALIZE ===
+      // The sheet is a working surface — punch-up alternatives sitting in it, lines still untagged,
+      // ragged blanks. Everything downstream (arrangement, Lyria prompt, LRC) reads the same lines,
+      // so a half-tidied sheet quietly produces a wrong arrangement rather than an error. Worst of
+      // them: lyrInsertAltsAfterLine adds alts with NO tag, and sectionsFromLines treats an untagged
+      // line as breaking a run — so one alt left inside a verse splits it into "Verse 1"/"Verse 2"
+      // and adds a phantom bar to the timeline. Finalize is the deliberate "this is the song now"
+      // step that clears that up and then re-syncs the arrangement.
+      const DASH_RE=/^[-–—_.·\s]+$/;
+      window.lyrFinalizeReport=()=>{
+        const sheet=activeSheet(); const lines=sheet.lines||[];
+        const song=lrcSheetSong();
+        const alts=lines.filter(l=>l.alt);
+        const words=lines.filter(l=>!l.alt && !window.lyrIsSilentLine(l));
+        const untagged=lines.filter(l=>!l.alt && !l.tag);
+        const blanks=lines.filter(l=>!l.alt && !String(l.text||'').trim());
+        const scruffyDash=lines.filter(l=>{ const t=String(l.text||'').trim(); return t && DASH_RE.test(t) && t!=='-'; });
+        const sections=(song&&song.arrangement&&song.arrangement.sections)||[];
+        const noIntensity=sections.filter(s=>s.intensity==null);
+        const checks=[
+          { id:'lyrics',   ok:words.length>0, fixable:false,
+            label:'Lyrics present', detail: words.length? `${words.length} sung line${words.length===1?'':'s'}` : 'This sheet has no words in it yet.' },
+          { id:'alts',     ok:alts.length===0, fixable:true,
+            label:'No punch-up alternatives left', detail: alts.length? `${alts.length} ALT line${alts.length===1?'':'s'} still in the sheet — these are untagged, which splits the section they sit in and adds phantom bars.` : 'Clean.' },
+          { id:'blanks',   ok:blanks.length===0, fixable:true,
+            label:'No stray blank lines', detail: blanks.length? `${blanks.length} empty line${blanks.length===1?'':'s'} — each still eats a bar. Use "-" if you meant a rest.` : 'Clean.' },
+          { id:'dashes',   ok:scruffyDash.length===0, fixable:true,
+            label:'Rest bars written as "-"', detail: scruffyDash.length? `${scruffyDash.length} rest bar${scruffyDash.length===1?'':'s'} written some other way (–, —, ...).` : 'Clean.' },
+          { id:'tags',     ok:untagged.length===0, fixable:false,
+            label:'Every line belongs to a part', detail: untagged.length? `${untagged.length} line${untagged.length===1?'':'s'} with no section tag — set them with the dropdown on each row.` : 'All tagged.' },
+          { id:'song',     ok:!!song, fixable:false,
+            label:'Linked to a song', detail: song? `Linked to "${song.title||'Untitled'}".` : 'Not linked to a Song Board entry, so there is no arrangement or BPM to sync to.' },
+          { id:'bpm',      ok:!!(song&&song.bpm), fixable:false,
+            label:'Tempo set', detail: (song&&song.bpm)? `${song.bpm} BPM` : 'No BPM on the linked song — LRC timings would fall back to a guess.' },
+          { id:'intensity',ok:sections.length>0 && noIntensity.length===0, fixable: sections.length>0,
+            label:'Intensities set on every part',
+            detail: !sections.length ? 'No arrangement sections yet.' : noIntensity.length? `${noIntensity.length} of ${sections.length} section${sections.length===1?'':'s'} still on the type default rather than a value you chose.` : 'All set explicitly.' },
+        ];
+        return { checks, counts:{ alts:alts.length, blanks:blanks.length, scruffyDash:scruffyDash.length, untagged:untagged.length, words:words.length, noIntensity:noIntensity.length, sections:sections.length } };
+      };
+
+      // Only ever removes things that are unambiguously not part of the song, and normalises rest
+      // markers. It never invents a lyric or a tag — those need a decision, so they stay as warnings.
+      // Accepting default intensities is opt-in and separate: silently writing them in would turn
+      // "I haven't chosen yet" into "I chose this", which is exactly the distinction the dimmed
+      // default in the arrangement row exists to show.
+      window.lyrFinalizeApply=(opts)=>{
+        const o=opts||{}; const sheet=activeSheet(); pushUndo();
+        const before=sheet.lines.length;
+        let lines=sheet.lines.filter(l=>!l.alt);
+        if(o.dropBlanks!==false) lines=lines.filter(l=>String(l.text||'').trim());
+        lines.forEach(l=>{ const t=String(l.text||'').trim(); if(t && DASH_RE.test(t)) l.text='-'; });
+        if(!lines.length) lines=[{text:'',tag:''}];
+        sheet.lines=lines;
+        let intensitiesWritten=0;
+        if(o.acceptDefaultIntensities){
+          const song=lrcSheetSong(); const secs=(song&&song.arrangement&&song.arrangement.sections)||[];
+          secs.forEach(s=>{ if(s.intensity==null){ s.intensity=window.arrIntensityOf?window.arrIntensityOf(s):5; intensitiesWritten++; } });
+          if(intensitiesWritten) window.saveData?.();
+        }
+        saveLyr(); renderLyr();                       // saveLyr re-derives the arrangement from the cleaned lines
+        return { removed: before-sheet.lines.length, intensitiesWritten };
+      };
+
+      const finalizeRender=()=>{
+        const box=$('finalize-checks'); if(!box) return;
+        const rep=window.lyrFinalizeReport();
+        const fixable=rep.checks.filter(c=>!c.ok && c.fixable).length;
+        box.innerHTML=rep.checks.map(c=>{
+          const col=c.ok?'#00FF88':(c.fixable?'#FFD60A':'#FF8888');
+          const icon=c.ok?'✓':(c.fixable?'⚙':'!');
+          return `<div class="flex gap-2 items-start py-1.5 border-b border-white/5"><span class="font-bold shrink-0 w-4" style="color:${col}">${icon}</span>`
+            +`<div class="min-w-0"><div class="text-[11px] font-bold" style="color:${col}">${window.escapeHtml(c.label)}</div>`
+            +`<div class="text-[10px] text-white/45 leading-relaxed">${window.escapeHtml(c.detail)}</div></div></div>`;
+        }).join('');
+        const s=$('finalize-summary');
+        if(s){
+          const blockers=rep.checks.filter(c=>!c.ok && !c.fixable);
+          s.textContent = blockers.length
+            ? `${blockers.length} thing${blockers.length===1?'':'s'} need${blockers.length===1?'s':''} a decision from you${fixable?`, ${fixable} I can tidy`:''}.`
+            : (fixable? `${fixable} thing${fixable===1?'':'s'} to tidy — nothing needs a decision from you.` : 'This sheet is finalized.');
+          s.style.color = blockers.length ? '#FF8888' : (fixable ? '#FFD60A' : '#00FF88');
+        }
+        const ib=$('finalize-accept-int');
+        if(ib) ib.classList.toggle('hidden', !(rep.counts.noIntensity>0));
+        const ic=$('finalize-int-count'); if(ic) ic.textContent=rep.counts.noIntensity||'';
+      };
+
+      $('btn-lyr-finalize')?.addEventListener('click',()=>{ finalizeRender(); $('finalize-modal')?.classList.replace('hidden','flex'); });
+      const closeFinalize=()=>$('finalize-modal')?.classList.replace('flex','hidden');
+      $('finalize-close')?.addEventListener('click',closeFinalize);
+      $('finalize-cancel')?.addEventListener('click',closeFinalize);
+      $('finalize-modal')?.addEventListener('click',(e)=>{ if(e.target.id==='finalize-modal') closeFinalize(); });
+      document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'&&!$('finalize-modal')?.classList.contains('hidden')) closeFinalize(); });
+      $('finalize-run')?.addEventListener('click',()=>{
+        const r=window.lyrFinalizeApply({ dropBlanks:true, acceptDefaultIntensities:false });
+        finalizeRender();
+        const s=$('finalize-status'); if(s){ s.textContent=`✓ removed ${r.removed} line${r.removed===1?'':'s'}, arrangement re-synced`; setTimeout(()=>{ s.textContent=''; },2600); }
+      });
+      $('finalize-accept-int')?.addEventListener('click',()=>{
+        const r=window.lyrFinalizeApply({ dropBlanks:false, acceptDefaultIntensities:true });
+        finalizeRender();
+        const s=$('finalize-status'); if(s){ s.textContent=`✓ wrote ${r.intensitiesWritten} default intensit${r.intensitiesWritten===1?'y':'ies'} in`; setTimeout(()=>{ s.textContent=''; },2600); }
+      });
 
       $('btn-lyr-lrc')?.addEventListener('click',()=>{
         const song=lrcSheetSong();

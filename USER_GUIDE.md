@@ -1,11 +1,18 @@
 # Euterpe Creativity Workbench — User Guide
 
-A local-first songwriting and production workbench that runs entirely in your browser.
-Song management, lyric writing, mix recipes, gear documentation, and an AI co-pilot that
-runs on **your** API key — one page, no backend, no build step, works offline.
+The full manual. Everything the [README](README.md) waved at, explained properly.
 
-Named after the Greek muse of lyric poetry. The version number is in the browser tab title
-and the header (`Euterpe Creativity Workbench (vNNN)`).
+A local-first songwriting and production workbench that runs entirely in your browser: song
+management, lyric writing, mix recipes, gear documentation, and an AI co-pilot on **your**
+API key. One page, no backend, no build step, works offline.
+
+Named after the Greek muse of lyric poetry, because "Untitled Music Thing v3 FINAL (real)"
+was taken. The build number is in the tab title (`Euterpe Creativity Workbench (vNNN)`) —
+quote it if you report something weird.
+
+**How to read this:** it's a reference, not a novel. Use the contents below, take what you
+need, close the tab. Nothing here is required reading to start — the app works out of the
+box and section 2 gets you moving in five minutes.
 
 ---
 
@@ -99,7 +106,9 @@ useful, ignore the rest.
 
 ## 2. Quick start — 5 minutes
 
-1. **Open the page.** That's the install. It works immediately.
+Genuinely five. I timed it.
+
+1. **Open the page.** That's the install. That's the whole install.
 2. **Install it as an app (optional but recommended).** Use your browser's install prompt,
    or *Add to Home Screen* on phone. You get an icon and full offline use.
 3. **Write something.** Go to **🎤 Lyrics Lab**, type a few lines. It saves as you type.
@@ -107,9 +116,9 @@ useful, ignore the rest.
 5. **Back it up.** Header → **VAULT** downloads a complete JSON of everything.
 
 Everything above works with **no setup at all** — no keys, no account, no internet after
-the first load.
+the first load. You can stop here and it's still a useful app.
 
-Two things are worth setting up once, and both are optional:
+Two things are worth setting up once. Both are optional, and both stay optional forever:
 
 - **AI co-pilot** — needs an API key from a provider you choose ([section 3](#3-setting-up-the-ai-co-pilot))
 - **Drive sync** — needs a free Google Cloud OAuth client ([section 4](#4-setting-up-google-drive-sync))
@@ -119,8 +128,11 @@ Two things are worth setting up once, and both are optional:
 ## 3. Setting up the AI co-pilot
 
 Every AI feature is optional and runs on **your own** account with whichever provider you
-already pay for. No API key ships with this app. Your browser talks straight to the
-provider — nothing is proxied through anyone else's server.
+already pay for. No API key ships with this app — there's nothing to leak, because there's
+nothing there. Your browser talks straight to the provider. Nothing is proxied through
+anyone else's server, mine very much included, on account of me not having one.
+
+Skip this entire section and roughly 85% of the app still works.
 
 Go to **⚙️ Settings** in the sidebar. Under **CONNECTION**, pick one:
 
@@ -150,7 +162,8 @@ KEEP ]`. Leaving it blank keeps the stored key; you only type in it to *change* 
 
 ### What it actually costs
 
-Less than you'd think, but you should understand what you're spending.
+Less than you fear, more than nothing, and entirely knowable — which is the important part.
+This section is not a joke section. It's your money.
 
 Every AI feature bills to **your** account at **your** provider's rates. Nothing here is a
 subscription and nobody takes a cut — the app just hands your request to the provider you
@@ -182,9 +195,10 @@ concern, start there.
 
 ### Getting good results
 
-**Sometimes AI is just whacko.** You'll occasionally get something that makes no sense.
-That's normal — regenerate and you're usually fixed. It isn't broken and you didn't do
-anything wrong.
+**Sometimes AI is just whacko.** You will occasionally get something that makes no sense at
+all — a compressor with a release time measured in hours, a chord progression that appears to
+hate you personally. That's normal. Regenerate and it usually sorts itself out. Nothing is
+broken and you didn't do anything wrong.
 
 **If you're using it to generate prompts for another AI, read the prompt properly before you
 use it.** Make sure it actually says what you meant. A prompt that's subtly off will
@@ -197,6 +211,9 @@ description in here. It's a surprisingly good way to get from *"I want it to sou
 that"* to language a model can actually work with.
 
 ### Two things that trip people up in a browser
+
+Both of these are the browser's rules, not mine, and no amount of refreshing will change
+their minds. Knowing the two names below turns an hour of confusion into a two-minute fix.
 
 - **CORS.** Some endpoints refuse browser requests outright. Claude is handled for you (the
   app sends the opt-in header Anthropic requires). For a **local** server, you must allow
@@ -215,7 +232,8 @@ http:
 
 ### Local models, free and offline
 
-Pick **LOCAL / CUSTOM** and point it at any OpenAI-compatible server:
+Free forever, private by construction, and works at 35,000 feet. Pick **LOCAL / CUSTOM** and
+point it at any OpenAI-compatible server:
 
 | Server | Endpoint |
 |---|---|
@@ -230,8 +248,11 @@ you have pulled (e.g. `llama3.1`). This costs nothing and never leaves your mach
 
 ## 4. Setting up Google Drive sync
 
-Drive sync is optional. Without it the app is fully functional — this only adds
-cross-device sync and off-machine backup.
+Drive sync is optional. Without it the app is completely functional — this adds
+cross-device sync and a copy of your work that survives your laptop meeting a drink.
+
+It's about ten minutes of Google Cloud Console, which is nobody's favourite ten minutes.
+Worth it the first time your browser cache evaporates.
 
 It syncs to **your own** Drive using **your own** OAuth client. Nothing is shared with the
 app's author or anyone else. A Google OAuth client only works from the origins listed on
@@ -262,8 +283,8 @@ created itself** — never the rest of your Drive. This is enforced by Google, n
 
 ## 5. Moving your setup to another device
 
-Your keys live in *this browser*. A new phone, a second machine, or a cleared cache would
-normally mean typing everything again.
+Your keys live in *this browser*, and only this browser. A new phone, a second machine or a
+cleared cache would otherwise mean typing every one of them again, from memory, correctly.
 
 In **⚙️ Settings**, under **🔑 MOVE THIS SETUP TO ANOTHER DEVICE**:
 
@@ -282,7 +303,8 @@ also handing them your API keys.
 
 ## 6. The workspace
 
-The sidebar is the main navigation:
+The sidebar is the main navigation. On a phone it slides in from the left; tapping **🧰
+Tools** opens its submenu in place rather than closing the drawer on you.
 
 | Nav item | What lives there |
 |---|---|
@@ -302,7 +324,7 @@ export, backup/restore, and a session timer.
 
 ## 7. Home
 
-Your landing pad and dashboard.
+Your landing pad. The bit that tells you whether you actually did anything this week.
 
 - **🚀 Session Starter** — one tap to begin a logged studio session.
 - **Session stats** — what you've done recently.
@@ -316,7 +338,8 @@ Your landing pad and dashboard.
 
 ## 8. Song Board
 
-The project manager, and the hub that ties everything else together.
+The project manager, and the hub everything else plugs into. If a song exists anywhere in
+this app, it should exist here first.
 
 - **Kanban tracking** — move songs across columns (Ideas → Demo → Tracking → Mixing →
   Mastered, customizable).
@@ -334,7 +357,9 @@ The project manager, and the hub that ties everything else together.
 
 ## 9. Lyrics Lab
 
-A full writing environment built around the Bowie/Burroughs **cut-up** technique.
+A full writing environment built around the Bowie/Burroughs **cut-up** technique — the one
+where you chop a page into strips and reassemble it until something better falls out. Bowie
+did it on a kitchen table. You get an undo button.
 
 **Writing**
 - **Sheets** — keep multiple songs; each auto-saves.
@@ -432,8 +457,11 @@ the lyric to a song.
 
 ## 10. Cook Book
 
-A structured recipe book for mixing: **Genre → Instrument → full signal chain**, with
-plugin order, settings, notes, and reference links.
+A structured recipe book for mixing: **Genre → Instrument → full signal chain**, with plugin
+order, settings, notes and reference links.
+
+Think of it as the cookbook you'd keep if you were a chef who kept forgetting how to make the
+one dish everyone likes.
 
 - **Recipe editor** — a dense editor covering Gate, EQ, Comp, Saturation, FX, and Limit,
   with room to document *why* a chain works, not just what it is.
@@ -455,7 +483,8 @@ wishlist. That only works if the list is *yours*, which is a one-time setup step
 
 ## 11. Tools menu
 
-Seven reference tabs live behind **🧰 Tools ▾**:
+Seven reference tabs live behind **🧰 Tools ▾**. This is the filing cabinet — the stuff you
+consult rather than create in.
 
 | Tab | What it holds |
 |---|---|
@@ -475,6 +504,9 @@ Seven reference tabs live behind **🧰 Tools ▾**:
 a photo of the knob positions and attach it, so a sound is never lost to "I'll remember."
 
 ### Hardware, Routing & Logic — it describes *your* rig
+
+This tab used to be a hardcoded description of exactly one man's studio, which was useful to
+exactly one man. Now it describes whatever you draw.
 
 Everything on this tab is derived from the **patchbay diagram** at the top. Drag boxes, rename
 them, wire them together, and the rest of the tab follows: the signal paths, the path-recall
@@ -506,7 +538,9 @@ It remembers which half you were last in.
 
 ## 12. Toolbox
 
-Grouped into categories. Pick a category to expand it.
+Roughly fifty tools, grouped into categories. Pick one to expand it.
+
+This is where the scope creep lives. I regret nothing.
 
 **🎵 Theory & Ear** — Circle of Fifths, scale & mode helper, key detector (from chords),
 Nashville number chart, harmonic mixing (Camelot wheel), interval ear trainer, progression
@@ -556,8 +590,10 @@ export.
 
 ### Setting your plugin list
 
-This is the single most valuable five minutes you can spend in Settings, because the AI Kit
-generator is only allowed to name plugins from this list.
+This is the single most valuable five minutes you will spend in this app, because the AI Kit
+generator is only ever allowed to name plugins from this list. Get it right and every chain it
+builds is one you can actually load. Skip it and it will keep confidently recommending my
+plugins to you, which helps neither of us.
 
 **The app ships with a starter list of ~191 plugins belonging to the original author.** It's
 there so the feature does something out of the box, not because it describes your rig. A
@@ -647,6 +683,9 @@ spotting gear you forgot you had.
 
 ## 14. Your data — storage, backup, privacy
 
+The section that matters most and is the least fun. Read it once, act on it once, and then
+never think about it again.
+
 **Where it lives**
 - Everything you create — songs, lyrics, recipes, tones, notes, logs, settings — is in your
   browser's **localStorage**.
@@ -674,6 +713,8 @@ spotting gear you forgot you had.
 
 ## 15. Troubleshooting
 
+In rough order of how often it actually happens.
+
 **"I updated the app but don't see the changes."**
 It's a PWA with an aggressive cache, which is the same feature that lets it work on a plane.
 Hard-refresh (Ctrl/Cmd + Shift + R). The build number in the tab title tells you what you're
@@ -687,12 +728,14 @@ that server's CORS settings. If it's Home Assistant, add your origin to
 `http://`, the browser blocks it — that's mixed content, not a bug.
 
 **AI says "bad key" (401).**
-The key is wrong, expired, or from the wrong provider. Remember: blank means *keep the
-stored key*, so if you meant to replace it, make sure you actually typed the new one.
+The key is wrong, expired, or belongs to a different provider. One specific trap: a blank
+field means *keep the stored key*, so if you meant to replace it, check you actually typed
+the new one in rather than pasting it somewhere else and closing the panel.
 
 **AI says "rate limited" (429).**
-Free tiers run out. The message includes the provider's own detail, including whether it's
-a per-minute limit (wait a moment) or a daily one (wait hours).
+Free tiers run out; that's what makes them free. The message passes through the provider's
+own detail, including whether it's a per-minute limit (make a coffee) or a daily one (make
+plans).
 
 **Drive won't connect.**
 Check that the origin you're on is listed in your OAuth client's **Authorized JavaScript
@@ -704,13 +747,18 @@ Paste your Client ID into **⚙️ Settings → GOOGLE DRIVE SYNC** again and sa
 
 **Everything vanished.**
 Browser data was cleared. Restore from your most recent VAULT export, `.fenc` backup, or
-Drive. If you have none of those, it's gone — this is why section 14 is emphatic.
+Drive.
+
+If you have none of those three, it is gone, and I can't get it back for you — there is no
+server holding a copy, which is the same property that makes this app private. This is why
+section 14 nags. Go and do section 14.
 
 ---
 
 ## 16. Running your own copy
 
-Everything is per-user by design, so a fork needs **no code edits**.
+Everything is per-user by design, so a fork needs **no code edits**. Not "minimal edits."
+None.
 
 1. Fork the repository.
 2. Enable GitHub Pages: **Settings → Pages → Source: `main` / `/ (root)`**.
@@ -738,8 +786,9 @@ installed clients will keep serving a stale copy.
 
 ## 17. The honest bit
 
-This is a personal project shared because it might be useful to someone else, not a product
-with a support desk behind it. A few things worth being straight about:
+This is a personal project shared because it might be useful to someone else. It is not a
+product, there is no support desk, and there is no roadmap meeting. A few things I'd rather
+say plainly than bury in a licence file:
 
 **It's provided as-is.** No warranty, no guarantees, express or implied. It's built and
 tested against one man's setup, on his machines, with his gear, his plugins, and his
@@ -760,8 +809,8 @@ deletes it. Export a backup, set up Drive sync, and read
 [section 14](#14-your-data--storage-backup-privacy) — that's the whole safety net and it
 only works if you actually use it.
 
-**It's open source.** Read it, fork it, change it, take the parts you like. That's the
-point.
+**It's open source.** Read it, fork it, change it, gut it for parts, take the one function
+you liked and throw the rest away. That's the point. That was always the point.
 
 ---
 

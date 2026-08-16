@@ -5,6 +5,21 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v161 — 2026-08-15
+- **⏱ SYNCED / LRC export in the Lyrics Lab.** Copies your sheet as a `.LRC` — `[mm:ss.xx]` per
+  line, the format Musixmatch and every karaoke player read, and the route Spotify's lyrics
+  actually come through. Also copies **plain lyrics** (words only, no timestamps, no section tags,
+  no chords) for an unsynced submission, and downloads a `.lrc` file.
+- **The timings are derived, and the panel says so.** No timestamps are recorded anywhere in the
+  app — nothing knows where a line lands in the audio. Times are computed from tempo using the
+  same one-bar-per-line convention the arrangement sync already uses (two bars for a half-time
+  line), from an adjustable start offset. BPM prefills from the linked song. Beats-per-bar is
+  adjustable for non-4/4. It's a head start to nudge in a sync tool, not a finished sync, and the
+  panel is explicit about that rather than implying the numbers are authoritative.
+- Empty lines are treated as instrumental bars: they advance the clock but emit no lyric line.
+  Punch-up alternatives (`.alt`) are left out entirely and don't consume a bar — in an LRC they'd
+  read as duplicated lines. (The older .TXT and 📋 COPY paths still include them; unchanged here.)
+
 ## v160 — 2026-08-15
 - **Fixed: the patchbay diagram couldn't be scrolled on a phone.** The canvas carried
   `touch-action: none` so that dragging a device worked — but that also switches off native

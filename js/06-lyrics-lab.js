@@ -1022,6 +1022,72 @@
         if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
         else fallback();
       });
+      // === SYNCED / LRC EXPORT ===
+      // The sheet stores no timestamps, so times are derived from tempo and the same one-bar-per-line
+      // convention sectionsFromLines() already uses. An empty line is an instrumental bar: it eats a
+      // bar of time but emits no lyric. `.alt` lines are punch-up alternatives, not part of the song —
+      // the older .TXT/COPY paths include them, but in an LRC they'd read as duplicated lines.
+      const lrcTime=(sec)=>{ const s=Math.max(0,sec); const m=Math.floor(s/60); const r=s-m*60;
+        return `[${String(m).padStart(2,'0')}:${r.toFixed(2).padStart(5,'0')}]`; };
+      const parseOffset=(v)=>{ const t=String(v||'').trim(); if(!t) return 0;
+        const m=t.match(/^(\d+):(\d{1,2}(?:\.\d+)?)$/); if(m) return (+m[1])*60+parseFloat(m[2]);
+        const n=parseFloat(t); return isFinite(n)?n:0; };
+      const lrcSheetSong=()=>{ const id=activeSheet().songId; return id!=null?((window.db&&window.db.songBoard)||[]).find(x=>x.id===id):null; };
+
+      window.lyrBuildLrc=(opts)=>{
+        const o=opts||{}; const bpm=parseFloat(o.bpm)>0?parseFloat(o.bpm):90;
+        const beats=parseInt(o.beats,10)>0?parseInt(o.beats,10):4;
+        const secPerBar=beats*60/bpm;
+        const sheet=activeSheet();
+        const head=[];
+        if(sheet.title&&sheet.title!=='Untitled') head.push(`[ti:${sheet.title}]`);
+        if(o.artist) head.push(`[ar:${o.artist}]`);
+        head.push(`[re:Euterpe ${window.APP_VERSION||''}]`.trim());
+        let t=parseOffset(o.offset); const body=[];
+        sheet.lines.forEach((ln)=>{
+          if(ln.alt) return;                       // an alternative take, not a line of the song
+          const text=String(ln.text||'').trim();
+          if(text) body.push(lrcTime(t)+text);     // silent bars still advance the clock below
+          t += (ln.halfTime?2:1)*secPerBar;
+        });
+        return head.concat(body).join('\n');
+      };
+      // What a lyric service wants for an unsynced submission: words only.
+      window.lyrPlainForServices=()=> activeSheet().lines.filter(l=>!l.alt)
+        .map(l=>String(l.text||'').trim()).filter(Boolean).join('\n');
+
+      const lrcRefresh=()=>{
+        const pre=$('lrc-preview'); if(!pre) return;
+        pre.textContent = window.lyrBuildLrc({ bpm:$('lrc-bpm')?.value, offset:$('lrc-offset')?.value,
+          beats:$('lrc-beats')?.value, artist:$('lrc-artist')?.value }) || '(this sheet has no lines yet)';
+      };
+      const lrcFlash=(msg)=>{ const s=$('lrc-status'); if(!s) return; s.textContent=msg; setTimeout(()=>{ if(s.textContent===msg) s.textContent=''; },1600); };
+      const lrcCopy=(text,msg)=>{ if(!text.trim()) return;
+        const ok=()=>lrcFlash(msg);
+        const fb=()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); ok(); };
+        if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok).catch(fb); else fb(); };
+
+      $('btn-lyr-lrc')?.addEventListener('click',()=>{
+        const song=lrcSheetSong();
+        const bpmEl=$('lrc-bpm'); if(bpmEl&&!bpmEl.value) bpmEl.value=(song&&song.bpm)||90;
+        if($('lrc-offset')&&!$('lrc-offset').value) $('lrc-offset').value='0:00';
+        lrcRefresh();
+        $('lrc-modal')?.classList.replace('hidden','flex');
+      });
+      ['lrc-bpm','lrc-offset','lrc-beats','lrc-artist'].forEach(id=>$(id)?.addEventListener('input',lrcRefresh));
+      const closeLrc=()=>$('lrc-modal')?.classList.replace('flex','hidden');
+      $('lrc-close')?.addEventListener('click',closeLrc);
+      $('lrc-modal')?.addEventListener('click',(e)=>{ if(e.target.id==='lrc-modal') closeLrc(); });
+      document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'&&!$('lrc-modal')?.classList.contains('hidden')) closeLrc(); });
+      $('lrc-copy-lrc')?.addEventListener('click',()=>lrcCopy($('lrc-preview').textContent,'✓ .LRC copied'));
+      $('lrc-copy-plain')?.addEventListener('click',()=>lrcCopy(window.lyrPlainForServices(),'✓ Plain lyrics copied'));
+      $('lrc-download')?.addEventListener('click',()=>{
+        const text=$('lrc-preview').textContent; if(!text.trim()) return;
+        const name=(activeSheet().title||'lyrics').replace(/[^\w\-]+/g,'_');
+        const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+        a.download=name+'.lrc'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); lrcFlash('✓ downloaded');
+      });
+
       try{ const cb=$('lyr-show-chords'); if(cb) cb.checked = localStorage.getItem(LYR_CHORDS_KEY)==='1'; }catch(e){}
       // Chord offsets are measured against the rendered line, so a width change invalidates them.
       window.addEventListener('resize',()=>layoutChordChips());

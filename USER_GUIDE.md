@@ -729,7 +729,9 @@ actually sitting at.
 In **⚙️ Settings → Owned Plugins** you'll find:
 
 - **💻 THIS DEVICE** — name this machine ("Studio Mac", "Travel Laptop") so you can tell the
-  lists apart. The name is stored on this device only and never syncs.
+  lists apart. The name travels in your vault along with the lists themselves — that's what lets
+  this device show you the others by name — but it never leaves your own storage and your own
+  Drive.
 - **USE THE PLUGIN LIST FROM** — normally your own. Point a phone at your main rig here, or
   temporarily plan a session against the laptop's smaller set.
 - A list of every device you've scanned, with plugin counts and dates. You can **DEL** any

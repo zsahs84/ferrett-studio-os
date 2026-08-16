@@ -5,6 +5,25 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v167 — 2026-08-16
+- **Swept the whole app for overclaims, not just the docs.** Same pattern as the AI-kit one: the
+  code behaves honestly, the copy kept upgrading "checks and flags" into "guarantees".
+- **Fixed a false privacy claim.** The device-name field said *"stored on this device only — it
+  never syncs."* It does sync: renaming a device writes the name into `db.pluginProfiles`, which
+  rides in your vault and therefore to Drive. It has to, or your other machines couldn't show the
+  list picker by name — the guide's own description of that picker contradicted the claim. Now
+  says what actually happens: the name travels in your own vault and goes nowhere else.
+- **True peak is now described as approximate.** The metering panel advertised "true peak" flatly;
+  the implementation's own comment says *"approximate: 4× oversample via the browser's native
+  resampler… don't treat it as certified-exact."* The UI now matches the code. Loudness was
+  checked and its claim stands — it's a genuine ITU-R BS.1770-4 implementation with K-weighting
+  and 400 ms gated blocks, so that's stated explicitly rather than left vague.
+- The plugin-coverage panel said the owned list is what the AI "is allowed to suggest". Same
+  correction as the Cook Book: the AI is told to stick to it and the result is checked, with
+  anything off it flagged as "not your gear".
+- Verified as already honest and left alone: the SPL gauge ("estimated absolute SPL"), the
+  "keys never committed" notices, and the `drive.file` scope wording.
+
 ## v166 — 2026-08-16
 - **✍ AI MARKS in the Lyrics Lab.** A toggle that marks lines which came from the co-pilot and
   **haven't been edited since**. Editing a line clears its mark — a line you rewrote is your

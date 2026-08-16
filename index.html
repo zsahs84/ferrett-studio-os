@@ -925,7 +925,7 @@
 
         <div class="card border-[#00FF8830]">
             <h4 class="text-[11px] text-[#00FF88] font-bold tracking-widest mb-2 border-b border-[#00FF8820] pb-2">🔬 MIX ANALYZER</h4>
-            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Objective metering, run entirely on-device — loudness, true peak, dynamic range, stereo phase, and spectral balance. This measures what's actually in the file. It doesn't and can't tell you if the mix is <i>good</i> — no meter does that.</p>
+            <p class="text-[9px] text-[#E2E8F0]/40 mb-4">Objective metering, run entirely on-device — loudness (ITU-R BS.1770-4 K-weighted and gated), true peak, dynamic range, stereo phase, and spectral balance. True peak is a close approximation via 4× oversampling, good enough to flag inter-sample overs but not a certified meter. This measures what's actually in the file. It doesn't and can't tell you if the mix is <i>good</i> — no meter does that.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div class="p-3 rounded border border-[#00FF8820] bg-black/30">
                     <label class="text-[9px] tracking-widest text-[#00FF88]/70 font-bold block mb-2">YOUR MIX</label>
@@ -1934,7 +1934,7 @@
                             <button id="btn-save-device-name" class="text-[9px] font-bold tracking-widest px-2 py-1 rounded border border-[#00FF8840] text-[#00FF88] hover:bg-[#00FF88]/10 cursor-pointer">RENAME</button>
                         </div>
                     </div>
-                    <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Name this machine so you can tell its plugin list apart from your others. The name is stored on this device only — it never syncs.</p>
+                    <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Name this machine so you can tell its plugin list apart from your others. The name rides along in your own vault (that's how your other devices can show it in the picker below) — it never goes anywhere but your own storage and, if you use it, your own Drive.</p>
 
                     <div>
                         <label class="text-[9px] text-[#E2E8F0]/60 font-bold tracking-widest block mb-1">USE THE PLUGIN LIST FROM</label>
@@ -1946,7 +1946,7 @@
                 </div>
                 <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                 </div>
-                <p class="text-[10px] text-[#E2E8F0]/40 mb-3">Owned plugins never referenced in a single recipe or tone. This same list is what the AI Studio Brain is allowed to suggest.</p>
+                <p class="text-[10px] text-[#E2E8F0]/40 mb-3">Owned plugins never referenced in a single recipe or tone. This is the same list the AI is told to stick to, and chains are checked back against it — anything off it gets flagged as &quot;not your gear&quot;.</p>
                 <div id="owned-plugins-editor" class="hidden mb-3">
                     <p class="text-[9px] text-[#E2E8F0]/40 mb-2">One plugin per line. You can paste a raw folder listing straight in — full paths and <span class="font-mono">.vst3</span>/<span class="font-mono">.component</span>/<span class="font-mono">.dll</span> extensions are stripped automatically, and duplicates are merged.</p>
 

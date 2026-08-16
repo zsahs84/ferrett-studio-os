@@ -53,9 +53,9 @@ into one page like a clown car.
 
 ### The sincere part
 
-I grew up a poor kid who wanted an instrument. I spent my twenties and thirties
-as a poor musician with gear held together by tape, learning to save money every
-way I could. I've been one of you for decades.
+I grew up a poor kid who wanted an instrument. I spent my gigging days
+as a poor musician with gear held together by duct tape, learning to save money every
+way I could.
 
 I'm finally in a position to give something back to the thing I've loved most my
 whole life. If this is useful to one person, or knocks something loose for

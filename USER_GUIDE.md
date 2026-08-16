@@ -366,8 +366,60 @@ A full writing environment built around the Bowie/Burroughs **cut-up** technique
 - **Chord progressions** matched to the genre, mood, and the actual words — positioned over
   the word they land on, and draggable to reposition.
 
+**Rest bars** — a line containing nothing but a dash (`-`) is a **rest**: it holds its place in
+the timing and the bar count, but has no words. It shows a **REST** badge on the row, and it is
+left out of the lyric exports rather than appearing as a literal "-".
+
+**✅ Finalize** — the deliberate "this is the song now" step. The sheet is a working surface, but
+the arrangement, the Lyria prompt and the synced-lyrics export all read the same lines, so a
+half-tidied sheet produces a quietly *wrong* arrangement rather than an error. Finalize runs eight
+checks and separates what it can tidy from what needs a decision from you:
+
+| Check | What it means |
+|---|---|
+| Lyrics present | The sheet has words in it |
+| No punch-up alternatives left | ALT lines are still in the sheet |
+| No stray blank lines | An empty line still eats a bar — use `-` if you meant a rest |
+| Rest bars written as `-` | Normalises `–` and `—` |
+| Every line belongs to a part | Untagged lines break the section they sit in |
+| Linked to a song | Needed for an arrangement and a tempo |
+| Tempo set | Needed for export timings |
+| Intensities set on every part | Each section has a value you chose, not just the type default |
+
+**Why the ALT check matters:** punch-up alternatives are added *without* a section tag, and an
+untagged line breaks a run of tagged ones. So one ALT left inside a verse splits it into
+"Verse 1" and "Verse 2" and adds a phantom bar — every timing after it shifts. Finalize is what
+clears that up.
+
+**TIDY & RE-SYNC** removes only what is unambiguously not part of the song — punch-up
+alternatives and blank lines — normalises rest markers, then re-derives the arrangement. It will
+**never** write a lyric or pick a section tag for you; those stay as warnings. Accepting the
+default intensities is a **separate** button on purpose: writing them in silently would turn
+"I haven't chosen yet" into "I chose this". One ↶ **UNDO** reverses the whole thing.
+
+**⏱ Synced / LRC** — exports the sheet as a **`.LRC`** (`[mm:ss.xx]` per line), the format
+Musixmatch and karaoke players read.
+
+> **You can't upload lyrics to Spotify directly.** Spotify's lyrics come from **Musixmatch** —
+> you sync there, and it flows through to Spotify.
+
+> **The timings are estimated, not recorded.** Nothing in the app knows where a line actually
+> lands in your audio. They're calculated from tempo assuming a steady click, one bar per line
+> (two for a half-time line), from an adjustable start offset. Treat them as a head start you
+> nudge into place in a sync tool — not a finished sync.
+
+The panel also offers **plain lyrics** (words only — no timestamps, no section tags, no chords,
+punch-up alternatives left out), which is what a lyric service wants for an *unsynced*
+submission, and a `.lrc` file download.
+
 **Export** — `↓ .TXT`, **🖨 Print** (clean sheet, or Save-as-PDF), or **→ Track** to attach
 the lyric to a song.
+
+> **One difference worth knowing:** `↓ .TXT` and 📋 **COPY** are raw dumps of the sheet — they
+> include punch-up alternatives and rest dashes exactly as typed, because they're for getting
+> your work *out*, warts and all. The **LRC** and **plain lyrics** exports are the finished
+> article: alternatives and rests are left out. Run **✅ Finalize** first and the distinction
+> stops mattering, because there won't be any alternatives left.
 
 ---
 
@@ -401,8 +453,8 @@ Seven reference tabs live behind **🧰 Tools ▾**:
 | Tab | What it holds |
 |---|---|
 | 🎸 **Top Guitar/Bass Presets** | Curated amp/pedal starting points |
-| 🔌 **Hardware, Routing & Logic** | Patchbay layout, interface routing, DAW scripts |
-| 🔗 **Web Tools & Intel** | Your link database of external tools, tagged and searchable |
+| 🔌 **Hardware, Routing & Logic** | Your rig: patchbay diagram, signal paths, inputs, safety notes, monitor modes |
+| 🔗 **Tools & Intel** | Two halves: your **web link** database, and the **script arsenal** |
 | 🎚️ **Channel Settings** | The chains you *actually deployed* on a specific song |
 | 🎛️ **Tone DB** | Tagged tone/patch combos with photos and audio references |
 | 🧰 **Toolbox** | The utility collection — see below |
@@ -414,6 +466,34 @@ Seven reference tabs live behind **🧰 Tools ▾**:
 
 **Tone DB** is where hardware lives — synth patches, pedalboard states, amp settings. Snap
 a photo of the knob positions and attach it, so a sound is never lost to "I'll remember."
+
+### Hardware, Routing & Logic — it describes *your* rig
+
+Everything on this tab is derived from the **patchbay diagram** at the top. Drag boxes, rename
+them, wire them together, and the rest of the tab follows: the signal paths, the path-recall
+buttons, the A/B monitor rotation and the pre-export checklist all read that one diagram.
+
+- Tap **✎** on a box to set **what it is** (source / interface / outboard / amp / monitors /
+  speakers), its **settings to keep**, **notes**, and a **warning**. Boxes are tinted by type.
+- Tap a **cable** to give it a cable type and a port label, or a warning — a warning turns that
+  cable red on the diagram. Tap it to edit or remove it.
+- **Inputs**, **safety rules** and **monitor modes** are editable lists below the diagram.
+- On a phone the diagram **pans** — drag the background to reach boxes off-screen, drag a box to
+  move it.
+
+It ships seeded with the rig the app was built on, clearly labelled as an **example to replace**.
+That banner disappears once you make the rig your own.
+
+### Tools & Intel — links and scripts
+
+The tab is split in two, with a live count on each:
+
+- **🔗 Web Links** — your tagged, searchable database of external tools.
+- **📜 Scripts** — the REAPER Lua/Python arsenal. The app stores the *entry* (name, category,
+  keyboard shortcut, what it does) and links to the **raw download**; the files themselves live
+  in the companion repo, [ferrett-audio-tools](https://github.com/zsahs84/ferrett-audio-tools).
+
+It remembers which half you were last in.
 
 ---
 

@@ -64,9 +64,9 @@ walkthrough of every screen. This README is just the short version.
 |---|---|
 | 🚀 **Home** | Session starter, stats, idea catcher, voice memos, activity heatmap |
 | 🗂️ **Song Board** | Kanban tracking per song, arrangement timeline, structures, setlists |
-| 🎤 **Lyrics Lab** | Writing, cut-up engine, rhyme/synonym finder, rhyme-scheme analysis, AI co-pilot |
+| 🎤 **Lyrics Lab** | Writing, cut-up engine, rhyme/synonym finder, rhyme-scheme analysis, AI co-pilot, finalize + synced `.LRC` export |
 | 📖 **Cook Book** | Genre mix recipes and the AI Kit generator, restricted to plugins you own |
-| 🧰 **Tools** | Guitar/bass presets, hardware routing, link database, Channel Settings, Tone DB, Toolbox, Notes Vault |
+| 🧰 **Tools** | Guitar/bass presets, your rig's routing diagram, link database + script arsenal, Channel Settings, Tone DB, Toolbox, Notes Vault |
 | ⚙️ **Settings** | AI providers, Drive sync, plugin lists, spend ledger, backup, theme |
 
 The **Toolbox** alone holds ~50 utilities across theory & ear training,
@@ -74,7 +74,17 @@ calculators, players & practice (metronome, tuner, 16-step drum sequencer,
 melody sketchpad — all with MIDI export), monitoring & room, a spectrum
 analyzer, creative sparks, studio analytics, and studio ops.
 
-Full detail for every one of these is in the [User Guide](USER_GUIDE.md).
+Two things worth knowing up front, because both used to be hardcoded to one person's setup
+and are now yours:
+
+- **The Hardware tab describes your rig.** Everything on it — signal paths, path-recall,
+  the A/B monitor rotation, the pre-export checklist — is derived from the patchbay diagram
+  you draw. It ships seeded with the author's rig as a clearly-labelled *example to replace*.
+- **The plugin palette is per-device.** The AI only ever suggests plugins you told it you own,
+  and each machine keeps its own list.
+
+Full detail for every one of these is in the [User Guide](USER_GUIDE.md), and the
+release-by-release history is in the [Changelog](CHANGELOG.md).
 
 ---
 

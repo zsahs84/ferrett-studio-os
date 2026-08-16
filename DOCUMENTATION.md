@@ -21,6 +21,11 @@ A dedicated environment for writing, brainstorming, and structuring vocals.
 - **Cut-Up Engine:** Inspired by David Bowie and William S. Burroughs, this tool lets you drag, shuffle, and splice individual lines to break writer's block and discover happy accidents.
 - **Integrated Rhyming Dictionary:** Double-click any word (or type it in the search box) to pull up strong rhymes, slant rhymes and synonyms without leaving the page. Online it queries the free Datamuse API (no key, no account); offline it falls back to a built-in word bank and marks the results as such, so the panel answers either way. A separate row surfaces rhymes drawn from your own lyric sheets — words you've actually used, which no dictionary can supply.
 - **AI Co-Pilot:** An integrated AI assistant that can brainstorm 8 lines based on a theme and style, or read your existing lyrics and suggest the next 4 lines to help you get unstuck.
+- **Rest bars:** A line containing only a dash (`-`) is a rest — it holds its bar in the timing and the section's bar count, but carries no words. Rows show a `REST` badge, and the lyric exports leave them out.
+- **Finalize:** The sheet is a working surface, but the arrangement, the Lyria prompt and the synced-lyrics export all read the same lines — so a half-tidied sheet yields a quietly wrong arrangement rather than an error. **✅ FINALIZE** runs eight completeness checks and separates what it can tidy (punch-up alternatives, stray blanks, non-standard rest markers) from what needs a human decision (a missing lyric, an untagged line, an unset intensity). It never writes a lyric or picks a section tag. This matters most for punch-up alternatives: they are inserted *without* a section tag, and an untagged line breaks a run of tagged ones, so one left inside a verse splits it in two and adds a phantom bar to every downstream timing.
+- **Synced lyrics (`.LRC`):** Exports `[mm:ss.xx]` per line for Musixmatch (the route Spotify's lyrics come through) and karaoke players, plus a plain words-only export for unsynced submission. Timings are *derived* from tempo and the one-bar-per-line convention, not recorded — the app has no per-line timestamps — and the UI says so.
+
+> **Export distinction:** `.TXT` and 📋 COPY are raw dumps of the sheet and deliberately include punch-up alternatives and rest dashes as typed. The `.LRC` and plain-lyric exports are the finished article and exclude both.
 
 ## 3. The Cookbook (AI Kit Generator)
 The Cookbook is an intelligent recipe manager for mixing and sound design. 
@@ -34,8 +39,13 @@ The Cookbook is an intelligent recipe manager for mixing and sound design.
 ## 4. Hardware & Tones (Tone DB)
 A visual patchbay and preset manager for your analog gear and hardware synthesizers.
 
+- **The patchbay graph is the rig.** Everything the Hardware tab shows below the diagram — the signal paths, the path-recall buttons, the input list, the safety rules, the A/B monitor rotation and the pre-export checklist — is *derived* from the devices and connections you draw. Devices carry a type (source / interface / outboard / amp / monitors / speakers), settings, notes and warnings; connections carry a cable, a port label and warnings. Nothing about the rig is hardcoded in markup, so the tab describes whatever gear its owner actually has.
+  > It ships seeded with the original author's rig as a **labelled example to replace**. The banner disappears once the patchbay stops matching that seed.
 - **Patch Sheets:** Document complex synthesizer routings or pedalboard settings.
 - **Visual References:** Upload or paste photos of hardware settings directly into the tone entries so you never lose a knob position.
+
+## 4b. Tools & Intel
+Split into two halves with live counts: a tagged, searchable **web link** database, and the **script arsenal**. The app stores each script's metadata (name, category, keyboard shortcut, description) and links to its raw download — the Lua/Python files themselves live in the companion repo, [ferrett-audio-tools](https://github.com/zsahs84/ferrett-audio-tools), rather than being duplicated here.
 
 ## 5. Channel Settings
 A tracking sheet for specific mixes. While the Cookbook holds theoretical "ideal" chains for a genre, the Channel Settings tab documents the actual, deployed chains used on a specific song on the Song Board.

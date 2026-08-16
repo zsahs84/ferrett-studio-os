@@ -5,6 +5,19 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v163 — 2026-08-15
+- **Removed a personal hostname from the shipped code.** `DEFAULT_HA_URL` was hardcoded to the
+  author's own Home Assistant address, so every install carried a stranger's home endpoint
+  pre-filled and anyone reading the source learned it. It now defaults to blank, and the setup
+  placeholder is the generic `homeassistant.local:8123`. **Note:** the old value remains in this
+  repo's git history — removing it here stops it shipping, it does not un-publish it.
+- The Home Assistant CORS hint now prints **your** origin via `location.origin` instead of a
+  hardcoded one, so it's correct in a fork or a local copy rather than only on the canonical host.
+- **Docs brought up to date** with everything from v156–v162: the rig-driven Hardware tab, the
+  split Tools & Intel tab, per-device plugin lists, Finalize, rest bars, and the synced `.LRC`
+  export — including the export distinction that `.TXT`/📋 COPY are raw dumps that keep punch-up
+  alternatives and rest dashes, while `.LRC`/plain lyrics are the finished article and drop both.
+
 ## v162 — 2026-08-15
 - **✅ FINALIZE in the Lyrics Lab** — the deliberate "this is the song now" step. The sheet is a
   working surface, and the arrangement, the Lyria prompt and the .LRC all read the same lines, so a

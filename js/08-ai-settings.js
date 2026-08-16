@@ -1,7 +1,13 @@
 (function(){
   const $ = (id)=>document.getElementById(id);
   const AI_KEY='ferrett_os_ai_v1';
-  const DEFAULT_HA_URL='https://donita.ddns.net:8123'; // pre-filled; edit in ⚙ setup anytime. Must be https (mixed-content).
+  // Deliberately blank. This used to ship the author's own Home Assistant hostname as the default,
+  // which meant every install carried a stranger's home endpoint and anyone reading the source
+  // learned it. Your HA URL is yours — set it in ⚙ setup. Must be https (mixed-content rules).
+  const DEFAULT_HA_URL='';
+  // Whoever is reading this needs THEIR origin in cors_allowed_origins, not the one this app
+  // happened to be built at — a fork or a local copy has a different one.
+  try{ const o=document.getElementById('ai-cors-origin'); if(o) o.textContent=location.origin; }catch(e){}
   const loadCfg=()=>{ try{ return JSON.parse(localStorage.getItem(AI_KEY)||'{}'); }catch(e){ return {}; } };
   const saveCfg=(c)=>{ try{ localStorage.setItem(AI_KEY, JSON.stringify(c)); }catch(e){ alert('Failed to save AI config: ' + e.message + ' (You may be out of local storage space. Try clearing your browser cache or deleting large files in Ferrett Studio.)'); } };
   // Services that speak the OpenAI /chat/completions shape. Same request body, different

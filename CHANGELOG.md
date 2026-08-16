@@ -5,6 +5,24 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v165 — 2026-08-15
+- **The Accounting Ledger is now described honestly as an estimate.** The docs previously said
+  its figures were *"actual figures, not estimates"* — that was an overclaim. The ledger derives
+  spend from token counts rather than reading a provider's billing API, and the accounting code
+  is AI-written and unverified. It's a good gauge of the *shape* of your spending and which
+  features cost more; it is not a receipt. Corrected in the README, the guide (twice), and the
+  honest bit.
+- **The disclaimer now appears in the app itself**, directly under the ACCOUNTING LEDGER heading
+  where the dollar figures are — that's where someone actually reads a number and decides to
+  believe it, so a caveat that only lived in the docs was in the wrong place.
+- Real-world cost guidance replaces the vaguer old wording: testing on **Gemini 3.6 Flash (High
+  Reasoning)**, single runs rarely top **~$0.20** — plus the point that prompts, recipes,
+  producer notes and lyrics all save, so a run you liked is paid for once and kept.
+- **New: "Da fuq is Home Assistant → Groq?"** It sits at the top of the provider list and makes
+  no sense to anyone who doesn't run Home Assistant. It's now explained as what it is — the
+  author's own experimental setup, the product of a "could I / should I" decision that never got
+  as far as the second question — with a clear "if you don't run HA, ignore this" up front.
+
 ## v164 — 2026-08-15 · public beta `v0.1.0-beta.1`
 - **First tagged release.** Git tags now carry a SemVer release number
   (`v0.1.0-beta.1`) alongside the existing `vNNN` build counter in the tab title. They answer

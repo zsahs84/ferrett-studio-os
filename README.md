@@ -165,7 +165,7 @@ Open **⚙️ Settings** and pick your poison:
 
 | Provider | What you need | Get a key |
 |---|---|---|
-| **Home Assistant → Groq** | HA URL + long-lived token (key stays in HA secrets) | — |
+| **Home Assistant → Groq** | Only if you already run HA. [Da fuq is this?](USER_GUIDE.md#da-fuq-is-home-assistant--groq) | — |
 | **Groq** | API key — generous free tier, absurdly fast | [console.groq.com](https://console.groq.com/keys) |
 | **Google Gemini** | API key — free tier, big responses | [aistudio.google.com](https://aistudio.google.com/apikey) |
 | **Claude** | API key — best writing of the bunch | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
@@ -179,12 +179,21 @@ Saved keys are masked — leave the field blank to keep the existing one. Hit
 **TEST CONNECTION** and it prints back what the model actually said, so you know
 it works rather than hoping.
 
-**What it costs:** it bills to *your* account at *your* provider's rates. On
-Gemini Flash mine have run from a fraction of a cent up to twenty-something cents
-for the really big ones. Yours will differ — your provider, your model, your
-prompt length. The built-in **Accounting Ledger** shows real spend by week, month
-and lifetime, so read that instead of guessing and then being surprised. Keeping
-it cheap: [the guide](USER_GUIDE.md#what-it-actually-costs).
+**What it costs:** it bills to *your* account at *your* provider's rates. Testing
+on **Gemini 3.6 Flash (High Reasoning)**, I've rarely seen a single run top about
+**$0.20**. Yours will differ — different provider, model and prompt length.
+
+And you keep what you make: prompts, recipes, producer notes and lyrics all save.
+Twenty cents that hands you a great starting point for your snare sound is twenty
+cents spent once, on something that's yours from then on.
+
+> **On the built-in Accounting Ledger:** it's an **estimate**, not a receipt.
+> Full disclosure — that accounting code is entirely AI-written and I have no way
+> to verify its maths. It may be perfect. It may be off. Use it as a guideline for
+> the *shape* of your spending, and **check your provider's own dashboard** for the
+> real number. That's the one that bills you.
+
+More on keeping it cheap: [the guide](USER_GUIDE.md#what-it-actually-costs).
 
 **Two browser gotchas that will otherwise eat an hour of your life:** some
 endpoints refuse browser requests outright (Claude is handled for you; a local
@@ -302,9 +311,10 @@ machines, gear, plugins and providers are all different from mine, and results
 will vary accordingly.
 
 AI features bill to **your** account at **your** provider's rates. The Accounting
-Ledger shows real spend, but understand your provider's pricing and set spending
-limits *there* before turning anything loose. Your keys, your bill, your
-overdraft.
+Ledger gives you an *estimate* — AI-written code, unverified maths, useful as a
+gauge and nothing more. Understand your provider's pricing, watch their dashboard,
+and set spending limits *there* before turning anything loose. Your keys, your
+bill, your overdraft.
 
 Everything lives in your browser, so clearing browser data deletes it. I've now
 said this three times. Please export a backup.

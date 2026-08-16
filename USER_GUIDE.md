@@ -138,7 +138,7 @@ Go to **⚙️ Settings** in the sidebar. Under **CONNECTION**, pick one:
 
 | Provider | Good for | Where to get a key |
 |---|---|---|
-| **Home Assistant** | You already run HA; the key stays in HA secrets | — |
+| **Home Assistant → Groq** | Only if you already run HA — key stays in HA secrets. [Da fuq is this?](#da-fuq-is-home-assistant--groq) | — |
 | **Direct Groq** | Free tier, very fast | [console.groq.com/keys](https://console.groq.com/keys) |
 | **Google Gemini** | Free tier, big responses, thinking control | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 | **Claude** | Strongest writing and reasoning | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
@@ -181,13 +181,33 @@ longer answer out, more tokens, higher cost. Reasoning-heavy models charge their
 output, which is why Gemini's **THINKING LEVEL** setting is the single biggest cost lever
 available to you.
 
-**Don't guess — read the meter.** The **ACCOUNTING LEDGER** at the bottom of Settings shows
-real token usage as each provider reports it, with spend for the week, month, and lifetime.
-Those are actual figures, not estimates, and they're specific to you.
+**Read the meter — but treat it as a gauge, not a receipt.** The **ACCOUNTING LEDGER** at the
+bottom of Settings tracks token usage as each provider reports it and shows spend for the
+week, month and lifetime.
 
-**Save what you like.** Most AI cards have a save option, and it's there for a reason:
-regenerating the same idea five times because you didn't keep the good one is the easiest
-way to spend money for nothing. Keep the take you liked, then move on.
+> ### ⚠️ The ledger is an estimate. Your provider's dashboard is the truth.
+>
+> **Full disclosure:** the accounting code is entirely AI-written, and I have no way to
+> independently verify its maths. It may well be spot on. It may be out. I genuinely don't
+> know, and I'd rather tell you that than let you find out from a bill.
+>
+> Use it as a **guideline** — it's very good at showing you the *shape* of your spending and
+> which features cost more than others. For the actual number, **always check your provider's
+> own dashboard**. That's the one that bills you, and it's the only one either of us can
+> trust.
+
+**What it costs in practice.** Testing on **Gemini 3.6 Flash (High Reasoning)**, I've rarely
+seen a single run come in above about **$0.20**. Your mileage will vary with model, provider
+and how much text you're moving.
+
+**And you keep what you make.** Prompts, recipes, producer notes, lyrics — they all save. So
+when a run does cost twenty cents and it hands you a great starting point for your snare
+sound, that's twenty cents spent once, on something you own from then on. The expensive
+pattern isn't generating; it's regenerating the same idea five times because you didn't keep
+the good one.
+
+**Save what you like.** Most AI cards have a save option and it is there for exactly this
+reason. Keep the take you liked, then move on.
 
 Several providers have genuinely usable free tiers (Groq and Gemini especially), and the
 **Local / Custom** option runs a model on your own machine for nothing at all. If cost is a
@@ -229,6 +249,28 @@ http:
   cors_allowed_origins:
     - https://<your-username>.github.io
 ```
+
+### Da fuq is "Home Assistant → Groq"?
+
+Fair question. It's top of the provider list and it makes no sense to roughly everyone.
+
+**Short version: ignore it.** If you don't already run [Home Assistant](https://www.home-assistant.io/),
+this option is not for you and skipping it costs you nothing. Pick literally any other row
+in that table.
+
+**Long version:** it's my own experimental setup, left in because it works. I run Home
+Assistant at home, HA can already hold secrets and make REST calls, so I wired Euterpe to
+ask *HA* to talk to Groq instead of holding a Groq key in the browser. The key lives in HA's
+secrets store, the browser never sees it, and I got to feel clever for an afternoon.
+
+It is the product of one of those **"could I?" / "should I?"** decisions where I got so busy
+answering the first one that I never properly got round to the second. It shipped. It's
+staying. It has a certain charm.
+
+If you *do* run HA, it's genuinely nice — your key stays server-side and you can reuse HA's
+existing rate limiting and logging. You'll need a long-lived access token, your HA URL, and
+your origin in `cors_allowed_origins` (see just above). If you don't run HA, then again, and
+I cannot stress this enough: **ignore it**.
 
 ### Local models, free and offline
 
@@ -584,7 +626,8 @@ export.
 - **AI co-pilot setup** — [section 3](#3-setting-up-the-ai-co-pilot).
 - **Google Drive sync** — [section 4](#4-setting-up-google-drive-sync).
 - **Portable settings** — [section 5](#5-moving-your-setup-to-another-device).
-- **Accounting ledger** — real API spend, weekly / monthly / lifetime.
+- **Accounting ledger** — estimated API spend, weekly / monthly / lifetime. A guideline, not
+  a receipt — see [what it actually costs](#what-it-actually-costs).
 - **Owned plugins** — per-device plugin lists, folder scanning, coverage check. See below.
 - **Data vault & theme** — full export, and UI accent cycling.
 
@@ -795,11 +838,12 @@ tested against one man's setup, on his machines, with his gear, his plugins, and
 providers. Yours are different. Things that behave perfectly here may behave oddly there,
 and the app changes whenever there's a good reason to change it.
 
-**You're responsible for your own API usage.** Your keys, your account, your bill. The app
-shows you what it's spending in the Accounting Ledger, but nobody is standing between you
-and your provider — understand your provider's pricing before you turn something loose, keep
-an eye on the meter, and set spending limits at the provider if they offer them. If you
-manage to spend a fortune on tokens, that's between you and your credit card.
+**You're responsible for your own API usage.** Your keys, your account, your bill. The
+Accounting Ledger gives you an *estimate* — its maths is AI-written and unverified, so treat
+it as a gauge and check your provider's dashboard for the real figure. Nobody is standing
+between you and your provider: understand their pricing before you turn something loose, and
+set spending limits there if they offer them. If you manage to spend a fortune on tokens,
+that's between you and your credit card.
 
 **Don't follow it to a T.** Every recipe, chain, suggestion and generated idea is a starting
 point. This is a box of ideas and tools, not a rulebook. Your ears, your room, your song.

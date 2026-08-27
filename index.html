@@ -1310,6 +1310,7 @@
                 <button id="btn-lyr-mode-analyze" type="button" class="px-3 py-1.5 text-[10px] font-bold tracking-widest text-[#FF88FF]/50">EDIT/ANALYZE</button>
             </div>
             <div id="lyr-analyze-tools" class="hidden flex-wrap items-center gap-2">
+                <button id="btn-lyr-text-edit" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00FF8880;color:#00FF88" title="Edit the whole sheet as one block of plain text, or paste a whole song straight in" aria-label="Edit the whole sheet as plain text">📝 EDIT AS TEXT</button>
                 <button id="btn-lyr-read" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#00E5FF80;color:#00E5FF">🔊 READ ALOUD</button>
                 <div class="flex items-center gap-1.5"><span class="text-[8px] text-[#00E5FF]/60 tracking-widest">RATE</span><input type="range" id="lyr-read-rate" min="60" max="140" value="95" class="w-16 accent-[#00E5FF]"></div>
                 <button id="btn-lyr-spark" type="button" class="btn-euterpe px-3 py-1.5 text-[10px]" style="border-color:#FFD60A80;color:#FFD60A" title="Random word to spark a line" aria-label="Random word to spark a line">✨ SPARK</button>
@@ -1330,6 +1331,16 @@
         <div id="lyr-lines" class="space-y-1 mb-2"></div>
         <!-- analysis view (ANALYZE mode) -->
         <div id="lyr-analyze" class="hidden mb-3"></div>
+        <!-- whole-song plain-text editor (ANALYZE mode) -->
+        <div id="lyr-textedit" class="hidden mb-3 p-3 rounded border border-[#00FF8840] bg-black/30">
+            <p class="text-[9px] text-[#E2E8F0]/50 mb-2">The whole sheet as plain text — edit it here, or paste a whole song straight in. A <code class="text-[#00FF88]">[Verse 1]</code> header on its own line tags every line under it, <code class="text-[#00FF88]">[]</code> goes back to untagged, and a lone <code class="text-[#00FF88]">-</code> is a rest bar that still holds its place. Blank lines are only spacing. Saves as you type; UNDO restores what was here before you opened the box.</p>
+            <textarea id="lyr-textedit-area" rows="18" spellcheck="true" class="w-full bg-black/50 border border-[#00FF8840] rounded text-[12px] text-[#C9FFE6] p-2 focus:outline-none font-mono leading-relaxed" placeholder="[Verse 1]&#10;line one&#10;line two&#10;&#10;[Chorus]&#10;hook line"></textarea>
+            <div class="flex flex-wrap items-center gap-3 mt-2">
+                <button id="btn-lyr-textedit-done" type="button" class="btn-euterpe-green px-3 py-1.5 text-[10px]">✓ DONE — BACK TO ANALYSIS</button>
+                <span id="lyr-textedit-count" class="text-[9px] font-mono text-[#00FF88]/50 tracking-widest"></span>
+                <span id="lyr-textedit-status" class="text-[9px] font-mono text-[#00FF88] tracking-widest ml-auto"></span>
+            </div>
+        </div>
         <div id="lyr-meta" class="text-[9px] text-[#FF88FF]/50 font-mono tracking-widest mb-6"></div>
 
         <!-- rhyme / word bank -->

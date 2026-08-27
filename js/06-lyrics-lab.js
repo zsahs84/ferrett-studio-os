@@ -120,7 +120,10 @@
     for(const rl of rawLines){
       const trimmed=rl.trim();
       if(!trimmed) continue;
-      const m=trimmed.match(/^\[(.+)\]$/);
+      // ".*" not ".+": a bare "[]" is the explicit "back to untagged" marker (parseTagHeader
+      // reads an empty inner as tag ''), which is what lets sheetToTaggedText round-trip a line that
+      // sits outside any section instead of having it inherit the header above it.
+      const m=trimmed.match(/^\[(.*)\]$/);
       if(m){
         const parsed=parseTagHeader(m[1]);
         currentTag=parsed.tag; currentHalfTime=parsed.halfTime;
@@ -457,7 +460,7 @@
   }
   // renderLyrTakes lives in the AI Co-Pilot closure (js/08-ai-settings.js) but the saved-takes list is
   // per-sheet, so it has to repaint whenever the active sheet changes — which is exactly here.
-  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); renderStructureStrip(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); window.renderLyrTakes?.(); }
+  function renderLyr(){ const t=$('lyr-title'); if(t) t.value=activeSheet().title||''; renderSheetTabs(); renderLines(); renderStructureStrip(); if(typeof lyrMode!=='undefined' && lyrMode==='analyze') buildAnalyze(); syncLyrTextArea(); window.renderLyrTakes?.(); }
 
   // ---- built-in rhyme bank ----
   const RHYME_BANK='time rhyme climb prime mind find grind line shine sign design fire desire higher wire light night fight right sight tight bright flight sky high fly try eye cry die lie why day way say play stay away pray grey fade made way pain rain chain brain gain train plane game name flame fame blame shame ground sound found around down town crown clown gold cold bold soul road load code mode flow low grow show know glow slow snow soul roll control goal whole heart start apart part smart dark spark heavy ready steady heart hard guard hold gold fold told sold cold night alright tonight world word heard bird hurt work dirt love above enough tough rough stuff stay pay away today gun run fun done son one gone alone zone throne home roam dome smoke broke woke hope dope rope scope real feel deal steel steal wheel money honey funny sunny run done street beat heat sweet complete defeat repeat mine fine wine divine live give real deal fear tear near clear year hear dream team scheme cream king ring thing bring sing wing swing sting'.split(' ');
@@ -811,10 +814,96 @@
     $('lyr-show-internal')?.addEventListener('change', buildAnalyze);
     $('lyr-show-slant')?.addEventListener('change', buildAnalyze);
   }
+  // ---- WHOLE-SONG TEXT EDITING (inside ANALYZE mode) ----
+  // Analyze already lays the sheet out as one continuous block instead of one input per line, so it
+  // is also the natural place to work on the song as a whole: this swaps the coloured render for a
+  // plain textarea holding the entire sheet in the same [Section]-header format the paste panel
+  // accepts. Drop a whole song in, rewrite a verse, reorder by ordinary text editing — it parses
+  // back into lines and the arrangement follows, exactly like any other lyric edit.
+  let lyrTextMode=false, lyrTextTimer=null, lyrTextStatusTimer=null;
+  // Two things plain text can't say on its own, both handled here rather than in the parser:
+  //  - An empty line is a real bar (sectionsFromLines counts one bar per line whatever the text),
+  //    but the parser drops blank lines so they can serve as section spacing on the way back in.
+  //    Interior empties go out as a lone "-", the app's existing rest-bar convention, so a round
+  //    trip can't silently shorten a section. Trailing empties are only the blank line a fresh
+  //    sheet starts with, so they're dropped.
+  //  - A line can sit outside any section mid-sheet (add-a-line, and every punch-up alternative),
+  //    which without a marker would inherit the header above it on reparse. "[]" is that marker.
+  function sheetToTaggedText(sheet){
+    const lines=(sheet.lines||[]).slice();
+    while(lines.length && !String(lines[lines.length-1].text||'').trim()) lines.pop();
+    const out=[]; let cur=null;
+    lines.forEach(l=>{
+      const tag=l.tag||'';
+      const header=tag?`[${window.lyrTagDisplay?window.lyrTagDisplay(tag):tag}${l.halfTime?' Half Time':''}]`:'[]';
+      if(header!==cur){ if(out.length) out.push(''); if(tag || cur!==null) out.push(header); cur=header; }
+      out.push(String(l.text||'').trim()||'-');
+    });
+    return out.join('\n');
+  }
+  // Carries the per-line marks the text can't express (ALT punch-ups, the AI provenance badge)
+  // across a whole-song rewrite: a line whose text you didn't touch keeps its marks, one old line
+  // spent per new line so a repeated hook doesn't hand the same marks out twice over.
+  function applyLyrText(raw){
+    const s=activeSheet();
+    const old=new Map();
+    (s.lines||[]).forEach(l=>{ const k=String(l.text||'').trim(); if(!k) return; if(!old.has(k)) old.set(k,[]); old.get(k).push(l); });
+    const parsed=parseTaggedSongText(raw);
+    parsed.lines.forEach(l=>{ const q=old.get(l.text); if(q&&q.length){ const o=q.shift(); if(o.alt) l.alt=true; if(o.ai) l.ai=true; } });
+    s.lines = parsed.lines.length ? parsed.lines : [{text:'',tag:''}];
+    lyrSelected.clear(); // held references into the line array that no longer exists
+    saveLyr(); renderLyr(); updateLyrMeta();
+  }
+  function updateLyrTextCount(){
+    const ta=$('lyr-textedit-area'), out=$('lyr-textedit-count'); if(!ta||!out) return;
+    const ls=ta.value.split(/\r?\n/).filter(l=>l.trim() && !/^\[.*\]$/.test(l.trim()));
+    const words=ls.join(' ').split(/\s+/).filter(Boolean).length;
+    out.textContent=`${ls.length} LINES · ${words} WORDS`;
+  }
+  function flushLyrText(){
+    clearTimeout(lyrTextTimer); lyrTextTimer=null;
+    const ta=$('lyr-textedit-area'); if(!ta||!lyrTextMode) return;
+    // Guard against writing one sheet's text into another: if the active sheet changed underneath
+    // the box (sheet tabs, a Drive pull), reload rather than save.
+    if(String(activeSheet().id)!==ta.dataset.sheet){ ta.value=sheetToTaggedText(activeSheet()); ta.dataset.sheet=String(activeSheet().id); updateLyrTextCount(); return; }
+    applyLyrText(ta.value);
+    const st=$('lyr-textedit-status');
+    if(st){ st.textContent='SAVED'; clearTimeout(lyrTextStatusTimer); lyrTextStatusTimer=setTimeout(()=>{ st.textContent=''; },1400); }
+  }
+  function setLyrTextMode(on){
+    const panel=$('lyr-textedit'), ta=$('lyr-textedit-area'), btn=$('btn-lyr-text-edit');
+    if(!panel||!ta) return;
+    if(on && !lyrTextMode) pushUndo(); // one undo point per session in the box, not one per keystroke
+    if(!on && lyrTextMode) flushLyrText();
+    lyrTextMode=!!on;
+    if(lyrTextMode){
+      stopRead();
+      ta.value=sheetToTaggedText(activeSheet()); ta.dataset.sheet=String(activeSheet().id);
+      panel.classList.remove('hidden'); $('lyr-analyze')?.classList.add('hidden');
+      updateLyrTextCount(); ta.focus();
+    } else {
+      panel.classList.add('hidden');
+      if(lyrMode==='analyze') $('lyr-analyze')?.classList.remove('hidden');
+    }
+    if(btn){
+      btn.textContent=lyrTextMode?'✓ DONE EDITING':'📝 EDIT AS TEXT';
+      btn.classList.toggle('bg-[#00FF88]/20',lyrTextMode);
+    }
+  }
+  // Keeps the box honest when the sheet changes from outside it (sheet tabs, AI insert, undo).
+  // Same-sheet re-renders are left alone so a redraw can't stomp what you're mid-way through typing.
+  function syncLyrTextArea(){
+    if(!lyrTextMode) return; const ta=$('lyr-textedit-area'); if(!ta) return;
+    if(String(activeSheet().id)===ta.dataset.sheet) return;
+    ta.value=sheetToTaggedText(activeSheet()); ta.dataset.sheet=String(activeSheet().id); updateLyrTextCount();
+  }
   function setLyrMode(m){
+    // The text box lives inside analyze, so switching back to the line editor closes it — and
+    // closing it flushes, so a half-typed rewrite is saved rather than dropped on the way out.
+    if(m==='edit' && lyrTextMode) setLyrTextMode(false);
     lyrMode=m; const edit=m==='edit';
     $('lyr-lines')?.classList.toggle('hidden',!edit);
-    $('lyr-analyze')?.classList.toggle('hidden',edit);
+    $('lyr-analyze')?.classList.toggle('hidden',edit||lyrTextMode);
     $('lyr-analyze-tools')?.classList.toggle('hidden',edit);
     $('lyr-analyze-tools')?.classList.toggle('flex',!edit);
     const be=$('btn-lyr-mode-edit'), ba=$('btn-lyr-mode-analyze');
@@ -1023,6 +1112,11 @@
       $('btn-lyr-mode-rhyme')?.addEventListener('click',()=>setFind('rhyme'));
       $('btn-lyr-mode-syn')?.addEventListener('click',()=>setFind('syn'));
       // analyze tools
+      $('btn-lyr-text-edit')?.addEventListener('click',()=>setLyrTextMode(!lyrTextMode));
+      $('btn-lyr-textedit-done')?.addEventListener('click',()=>setLyrTextMode(false));
+      $('lyr-textedit-area')?.addEventListener('input',()=>{ updateLyrTextCount(); clearTimeout(lyrTextTimer); lyrTextTimer=setTimeout(flushLyrText,700); });
+      // Blur covers the case the debounce can't: clicking a sheet tab or another tool mid-edit.
+      $('lyr-textedit-area')?.addEventListener('blur',flushLyrText);
       $('btn-lyr-read')?.addEventListener('click',toggleRead);
       $('btn-lyr-spark')?.addEventListener('click',spark);
       $('btn-lyr-copy')?.addEventListener('click',()=>{

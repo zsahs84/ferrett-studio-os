@@ -5,6 +5,27 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v169 — 2026-08-26
+- **The EDIT/ANALYZE view can now actually be edited.** It laid the sheet out as one continuous
+  block but was read-only, so the only way to change anything was to go back to the one-input-per-line
+  editor. **📝 EDIT AS TEXT** swaps the coloured analysis for the whole sheet in a single textarea:
+  rewrite a verse, reorder by ordinary text editing, or paste a whole song straight in. It saves as
+  you type (and on the way out, so switching modes mid-edit doesn't drop it), and takes one UNDO
+  press to get back to before you opened it.
+- Round-tripping a sheet through plain text needed two things the format couldn't previously say,
+  both of which would otherwise have quietly changed the song:
+  - An empty line is a real bar — `sectionsFromLines` counts one bar per line whatever the text —
+    but the parser drops blank lines so they can act as section spacing on the way back in. Interior
+    empties are written out as a lone `-`, the app's existing rest-bar convention, so a round trip
+    can't silently shorten a section's bar count in the arrangement.
+  - A line can sit outside any section mid-sheet (add-a-line, and every punch-up alternative), which
+    without a marker would inherit the header above it on reparse. `[]` is now that marker —
+    `parseTaggedSongText` matches `\[(.*)\]` rather than `\[(.+)\]`, so a bare `[]` reads as
+    "back to untagged" instead of landing as literal lyric text.
+- ALT punch-up badges and AI provenance marks survive a whole-song rewrite for any line whose text
+  you didn't touch — one old line spent per new line, so a repeated hook doesn't hand the same marks
+  out twice.
+
 ## v168 — 2026-08-16
 - **Corrected the plugin starter-list count again — it's 188.** I'd "fixed" it to 190 in v166 by
   counting quoted strings in the source, which also counted two plugin names quoted inside comments

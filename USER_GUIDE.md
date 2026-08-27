@@ -424,6 +424,11 @@ did it on a kitchen table. You get an undo button.
 - **Internal-rhyme highlighter** — color-matches rhymes *inside* lines.
 - **Syllable contour** sparkline, to see whether your flow is even.
 - **🔊 Read Aloud** — the browser speaks the lyric, with a rate slider.
+- **📝 Edit as Text** — swaps the coloured analysis for the whole sheet in one plain textarea,
+  so you can rewrite a verse, reorder by ordinary text editing, or paste a whole song straight
+  in without going line by line. Same `[Verse 1]` header format as the paste panel; `[]` puts a
+  line back outside any section and a lone `-` is a rest bar that still holds its place. It
+  saves as you type, and one press of UNDO takes you back to before you opened the box.
 
 **Lookup**
 - **🔤 Rhyme & Word Finder** — double-click any word in a line to look it up without leaving

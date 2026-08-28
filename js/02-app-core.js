@@ -4656,6 +4656,55 @@ window.lyriaSongBlock = (songId) => {
     // that same saved version instead of needing SAVE clicked again.
     window.__producerNotesLoadedId = null;
 
+    // Google Flow's Producer "Instructions" field takes 10,000 characters and silently drops
+    // everything past that — a document that runs long isn't compressed, it's cut off mid-sentence,
+    // and Flow says nothing about it. The end of the document is what disappears, which is exactly
+    // where the AVOID: and vocal direction paragraphs tend to sit. So the character readout is shown
+    // against this ceiling rather than on its own, and going over turns it red instead of letting
+    // someone paste a block whose tail will quietly vanish.
+    window.PRODUCER_NOTES_LIMIT = 10000;
+    // Under this, the readout stays calm; between here and the limit it warns, because a document
+    // sitting at 9,900 leaves no room to hand-edit a sentence in without going over.
+    const PRODUCER_NOTES_SAFE = 9000;
+    window.updateProducerNotesCount = (text) => {
+        const el = document.getElementById('producer-notes-count');
+        const n = (text || '').length;
+        if (el) {
+            const base = `${n.toLocaleString()} / ${window.PRODUCER_NOTES_LIMIT.toLocaleString()} chars`;
+            if (n > window.PRODUCER_NOTES_LIMIT) {
+                el.textContent = `${base} · ⚠ ${(n - window.PRODUCER_NOTES_LIMIT).toLocaleString()} over — Flow will cut the end off`;
+                el.className = 'text-[9px] font-mono text-[#FF5A5A]';
+            } else if (n > PRODUCER_NOTES_SAFE) {
+                el.textContent = `${base} · close to Flow's limit`;
+                el.className = 'text-[9px] font-mono text-[#FFD60A]';
+            } else {
+                el.textContent = base;
+                el.className = 'text-[9px] font-mono text-[#FFD60A]/50';
+            }
+        }
+        document.getElementById('btn-producer-notes-trim')?.classList.toggle('hidden', n <= window.PRODUCER_NOTES_LIMIT);
+    };
+
+    // Trims an over-long document down to the limit at the last paragraph break that still fits, so
+    // it ends on a whole thought instead of mid-sentence the way Flow's own truncation would. Falls
+    // back to a sentence end, then to a hard cut, if there's no usable break late enough to keep most
+    // of the document. Dispatching 'input' reuses the existing listener, so the count and the
+    // autosave-into-the-loaded-version both update exactly as they do for typing.
+    window.trimProducerNotesToLimit = () => {
+        const out = document.getElementById('producer-notes-output'); if (!out) return;
+        const limit = window.PRODUCER_NOTES_LIMIT;
+        if (out.value.length <= limit) return;
+        const head = out.value.slice(0, limit);
+        const floor = limit * 0.6;
+        let cut = head.lastIndexOf('\n\n');
+        if (cut < floor) {
+            const dot = Math.max(head.lastIndexOf('. '), head.lastIndexOf('.\n'));
+            cut = dot > floor ? dot + 1 : limit;
+        }
+        out.value = out.value.slice(0, cut).trim();
+        out.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
     // The offline-safe draft: no AI call, assembled straight from data already in the Cookbook. Also
     // doubles as the AI's brief when a key IS configured, the same relationship buildLyriaPrompt has
     // to the AI-written version of a song prompt.
@@ -4706,6 +4755,8 @@ window.lyriaSongBlock = (songId) => {
         document.getElementById('producer-notes-output-wrap')?.classList.add('hidden');
         document.getElementById('btn-producer-notes-regenerate')?.classList.add('hidden');
         const out = document.getElementById('producer-notes-output'); if (out) out.value = '';
+        // Also re-hides ✂ TRIM, so it can't linger from a previous over-long document.
+        window.updateProducerNotesCount('');
         const note = document.getElementById('producer-notes-ai-note'); if (note) note.textContent = '';
         window.__producerNotesLoadedId = null;
         window.renderProducerNotesSaved();
@@ -4722,8 +4773,7 @@ window.lyriaSongBlock = (songId) => {
         const out = document.getElementById('producer-notes-output');
         const setOut = (text) => {
             if (out) out.value = text;
-            const countEl = document.getElementById('producer-notes-count');
-            if (countEl) countEl.textContent = `${text.length.toLocaleString()} chars · ~${Math.ceil(text.length / 4).toLocaleString()} tokens`;
+            window.updateProducerNotesCount(text);
         };
         setOut(draft);
         document.getElementById('producer-notes-output-wrap')?.classList.remove('hidden');
@@ -4745,8 +4795,10 @@ window.lyriaSongBlock = (songId) => {
         const progress = window.startAiProgress('producer-notes-progress-wrap', 'producer-notes-progress-bar', 'producer-notes-progress-label', 'Writing the producer instructions document', 90000);
         try {
             const sys = [
-                'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. This document is pasted ONCE into Flow\'s per-genre custom Instructions (or a named Flow) and stays active for every song generated in this genre afterward — write for reuse across dozens of future songs, not one.',
-                'Flow\'s Instructions field comfortably holds up to about 10,000 characters (confirmed by the producer directly) and there is no hard ceiling above that either — if this genre\'s recipe book genuinely supports more, keep writing past 10,000 characters rather than cutting it short. Target roughly 2,200-3,200 words (around 9,000-10,000+ characters) as the normal range for a genre with a full recipe book — treat that as a floor to write toward, not a cap to stop at early. Do NOT pad with filler or repetition just to hit a length, but also do not summarize or compress real detail just to stay short — every instrument, technique and character note in the recipe book below deserves its own fully-written-out sentence or two, not a passing mention. If you notice yourself wrapping up while still well under 9,000 characters, that almost always means real recipe detail got left out or under-explained — go back and expand it rather than closing the document short. Only a genre whose recipe book below is genuinely thin should land under that range.',
+                'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. Flow asks "What should Producer know about you?" — preferred genres, lyric styles, skill level, working methods, goals — and keeps the answer switched on automatically in every new session. So this is standing context for a whole genre, pasted ONCE and live for every song generated in it afterward. Write only what stays true across dozens of future songs: the instrumentation this genre defaults to, how it is normally played and arranged, its vocal approach, its harmonic and rhythmic habits, and what it must never drift into.',
+                'Because it is standing context, do NOT describe one particular song, one texture, one arrangement or one moment. Anything that is true of only a single track — that song\'s specific mood, its story, its structure, its one-off instrument — belongs in that track\'s own prompt, and repeating it here just spends the budget re-describing a texture the producer will describe again anyway. Write the defaults, not an example.',
+                'HARD LIMIT: Flow accepts 10,000 characters in this field and silently discards everything past that. A long document is not compressed, it is cut off mid-sentence and the tail is simply lost. Target 6,000-8,500 characters (roughly 1,000-1,400 words) and NEVER exceed 9,500, so the producer still has room to hand-edit a line or two afterwards without crossing the line. Spend that budget on breadth rather than depth: covering every instrument, arrangement habit and vocal note in the recipe book concisely beats writing beautifully about three of them and getting truncated before the rest. If this genre\'s recipe book below is thin, write a shorter document — never pad to hit a length.',
+                'Order the document most-important-first — the sound and core instrumentation near the top, the finer character notes further down — so that if it ever does get truncated, what survives is what matters most.',
                 'Plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, VOCAL STYLE:, ARRANGEMENT TENDENCIES:, AVOID:) — add as many labeled paragraphs as the genre supports, not just one per category. No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
                 'Always include a VOCAL STYLE paragraph — register, phrasing, energy, how it typically sits in the mix for this genre — using the VOCAL STYLE line below as your starting point. Frame it as what to do WHEN a song has vocals, since not every song in this genre will.',
                 'NEVER name a real artist, producer, band or song title — Lyria refuses prompts that do, and the whole document is wasted.',
@@ -4760,25 +4812,29 @@ window.lyriaSongBlock = (songId) => {
             // appear, named, in what you write. The recipe book below is already artist-free; lean on it.
             const user = `GENRE: ${genre}\nBACKGROUND (private reference only — never repeat any artist/song name from this in your output): ${meta.desc || ''}\n\nTHIS GENRE'S ACTUAL RECIPE BOOK AND CHARACTER, safe to build from directly:\n${draft}`;
             window.__aiUsage?.begin('Producer Instructions');
-            // HA mode defaults to 1500 max_tokens when nothing is passed (~1100 words) — nowhere near
-            // enough now that this is asking for up to ~3,200 words and allowed to run past 10k
-            // characters. This value also becomes Groq's max_completion_tokens directly (see the Groq
-            // branch above), which counts against that provider's free-tier 8000 TPM cap alongside the
-            // prompt — this system+genre prompt runs well under 2,000 tokens, so 5000 completion tokens
-            // (~20k chars, real headroom above the 10k target) still leaves comfortable margin instead of
-            // risking Groq's "Request too large" the way asking for 7000+ would on a full recipe book.
+            // HA mode defaults to 1500 max_tokens when nothing is passed (~1100 words) — short of the
+            // ~1,400 words this asks for at the top of its range, and a document that stops because it
+            // ran out of tokens is exactly the truncation the character limit above is trying to avoid.
+            // 3000 is ~12,000 characters: comfortably past the 9,500 ceiling the prompt enforces, so the
+            // model is never cut off by the budget, while staying well inside Groq's free-tier 8000 TPM
+            // cap (this value becomes Groq's max_completion_tokens directly — see the Groq branch above —
+            // and counts against that cap alongside the prompt, which runs under 2,000 tokens here).
             // ferrettAI's default abort timer is 45s (see the AbortController line in 08-ai-settings.js)
             // — plenty for a short answer, nowhere near enough for a model to actually write ~3,000 words
             // of prose. Without this, the fetch gets aborted client-side before the model finishes, which
             // reads as a failure and silently falls back to the offline draft every single time, even
             // though the model was never actually incapable of producing that much text. The AI Kit's
             // chain-sheet generation hit this exact problem and fixed it the same way — 90s here too.
-            const written = await window.ferrettAI(sys, user, { creative: true, maxTokens: 5000, timeoutMs: 90000 });
+            const written = await window.ferrettAI(sys, user, { creative: true, maxTokens: 3000, timeoutMs: 90000 });
             const spent = window.__aiUsage?.end();
             const spentStr = window.__aiUsage?.summary(spent) || '';
             if (written && written.trim()) setOut(written.trim());
             progress.stop(true);
-            setNote(`Written for "${genre}".${spentStr ? ` · 💲 ${spentStr}` : ''}`, true);
+            // The prompt asks the model to stay under 9,500, but models estimate their own length
+            // badly, so say so plainly when one overshoots rather than trusting it to have complied.
+            const over = (out?.value.length || 0) - window.PRODUCER_NOTES_LIMIT;
+            if (over > 0) setNote(`Written for "${genre}", but it ran ${over.toLocaleString()} characters over Flow's 10,000 limit — hit ✂ TRIM, or cut it down yourself, before pasting.${spentStr ? ` · 💲 ${spentStr}` : ''}`, false);
+            else setNote(`Written for "${genre}".${spentStr ? ` · 💲 ${spentStr}` : ''}`, true);
         } catch (e) {
             progress.stop(false);
             setNote('⚠ ' + e.message + ' — showing the offline draft instead.', false);
@@ -4804,7 +4860,7 @@ window.lyriaSongBlock = (songId) => {
             <div class="flex items-center gap-2 p-2 rounded border border-[#00E5FF20] bg-black/30">
                 <div class="flex-1 min-w-0">
                     <div class="text-[10px] font-bold text-[#00E5FF] truncate">${window.escapeHtml(p.name)}</div>
-                    <div class="text-[9px] text-white/35 font-mono">${new Date(p.createdAt).toLocaleDateString()} · ${p.text.length.toLocaleString()} chars</div>
+                    <div class="text-[9px] font-mono ${p.text.length > window.PRODUCER_NOTES_LIMIT ? 'text-[#FF5A5A]/80' : 'text-white/35'}">${new Date(p.createdAt).toLocaleDateString()} · ${p.text.length.toLocaleString()} chars${p.text.length > window.PRODUCER_NOTES_LIMIT ? ' · over Flow\'s limit' : ''}</div>
                 </div>
                 <button type="button" class="producer-notes-saved-load btn-euterpe px-2 py-1 text-[9px] shrink-0" data-id="${p.id}" title="Load this version back into the box above">✏️ LOAD</button>
                 <button type="button" class="producer-notes-saved-copy btn-euterpe-green px-2 py-1 text-[9px] shrink-0" data-id="${p.id}" title="Copy this exact saved version — handy for A/B against another take">📋</button>
@@ -4841,8 +4897,7 @@ window.lyriaSongBlock = (songId) => {
         const out = document.getElementById('producer-notes-output'); if (out) out.value = p.text;
         document.getElementById('producer-notes-output-wrap')?.classList.remove('hidden');
         document.getElementById('btn-producer-notes-regenerate')?.classList.remove('hidden');
-        const countEl = document.getElementById('producer-notes-count');
-        if (countEl) countEl.textContent = `${p.text.length.toLocaleString()} chars · ~${Math.ceil(p.text.length / 4).toLocaleString()} tokens`;
+        window.updateProducerNotesCount(p.text);
         const note = document.getElementById('producer-notes-ai-note');
         if (note) { note.textContent = `Loaded "${p.name}" — editing the text below now autosaves into it. Hit GENERATE PRODUCER NOTES instead for a fresh variation to save separately.`; note.className = 'text-[10px] mt-3 text-[#7AFFBF]/80'; }
         out?.scrollIntoView({ block: 'nearest' });
@@ -5691,13 +5746,13 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-producer-notes-generate')?.addEventListener('click', () => window.runProducerNotesGenerate());
     document.getElementById('btn-producer-notes-regenerate')?.addEventListener('click', () => window.runProducerNotesGenerate());
     document.getElementById('btn-producer-notes-copy')?.addEventListener('click', () => { const out = document.getElementById('producer-notes-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-producer-notes-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    document.getElementById('btn-producer-notes-trim')?.addEventListener('click', () => window.trimProducerNotesToLimit());
     document.getElementById('btn-producer-notes-save')?.addEventListener('click', () => window.saveProducerNotes());
     // The box is editable now (tweak the AI's wording, fix a detail, whatever) — keep the char/token
     // readout honest as you type instead of freezing it at whatever it said at generate time. If a
     // saved version is currently loaded, edits also autosave into it a moment after you stop typing.
     document.getElementById('producer-notes-output')?.addEventListener('input', (e) => {
-        const countEl = document.getElementById('producer-notes-count');
-        if (countEl) countEl.textContent = `${e.target.value.length.toLocaleString()} chars · ~${Math.ceil(e.target.value.length / 4).toLocaleString()} tokens`;
+        window.updateProducerNotesCount(e.target.value);
         if (!window.__producerNotesLoadedId) return;
         clearTimeout(window.__producerNotesAutosaveTimer);
         window.__producerNotesAutosaveTimer = setTimeout(() => {

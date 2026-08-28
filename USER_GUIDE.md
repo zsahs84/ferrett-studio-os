@@ -176,10 +176,10 @@ provider, different prices, different length of request.
 The thing that drives cost is simply how much text moves. Longer request in, longer answer
 out, more tokens, higher cost.
 
-**Producer Notes is the heavyweight** — a full write-up runs to around **ten thousand
-characters**, and it's the single most expensive thing in the app. It's budgeted at 5,000
-output tokens with a 90-second timeout for exactly that reason. A full FX chain is smaller,
-around half that. Most other calls are far smaller again.
+**Producer Notes is the heavyweight** — a full write-up runs to somewhere around **six to
+eight and a half thousand characters**, and it's the single most expensive thing in the app.
+It's budgeted at 3,000 output tokens with a 90-second timeout for exactly that reason. A full
+FX chain is smaller, around half that. Most other calls are far smaller again.
 
 Reasoning-heavy models also charge their *thinking* as output, which is why Gemini's
 **THINKING LEVEL** setting is the single biggest cost lever available to you — more so than
@@ -547,6 +547,46 @@ list is *yours*, which is a one-time setup step:
 
 - **Export** — share a genre as a JSON pack, or as a Markdown chapter for offline reading.
 - **📦 Import pack** — merge someone else's recipe pack into your cookbook.
+
+### 🎙️ Producer Notes — standing instructions for Google Flow
+
+Pick a genre, hit **🎙️ PRODUCER NOTES**, and the app writes one reusable block describing
+that genre's sound and production character — built from the recipes you've actually got in
+the Cook Book for it.
+
+You paste that block **once** into Google Flow Music, under **Settings → Customize Producer**,
+where Flow asks *"What should Producer know about you?"*. Flow keeps it switched on
+automatically in every new session, so it becomes standing context for the whole genre. Every
+song prompt you generate afterward only has to say what's different about *that one song*.
+
+That's the point of the split: the notes carry the things that stay true across dozens of
+tracks — default instrumentation, how the genre is normally played and arranged, its vocal
+approach, what it should never drift into. The per-song prompt carries the one song's mood and
+story. Describing a single texture in the standing notes just spends the space on something
+you'd have said in the song prompt anyway.
+
+> ### ⚠️ Flow's Instructions field stops dead at 10,000 characters
+>
+> Go over and Flow does **not** warn you and does **not** shorten anything — it silently
+> throws away everything past the limit, cut mid-sentence. The end of your document is the
+> part that vanishes.
+>
+> So the box shows a live **`N / 10,000 chars`** counter. It stays quiet under 9,000, goes
+> amber as you approach the line, and turns **red** with the overage the moment you cross it.
+> A **✂ TRIM** button appears alongside COPY when you're over: it cuts the block back to the
+> limit at the last paragraph break, so it ends on a whole thought instead of mid-sentence.
+> Saved versions that are over the limit are flagged in red in the list too.
+>
+> The AI is told to aim for 6,000–8,500 characters and stay under 9,500, leaving you room to
+> hand-edit a line or two. Models estimate their own length badly, though, so if one overshoots
+> the app tells you by how much rather than assuming it complied. The document is also written
+> most-important-first, so that if it ever does get cut, what survives is what matters most.
+
+Notes are **editable** — tweak the wording, fix a detail — and **saved per genre** with a
+version list, so you can A/B two takes against each other.
+
+**No API key?** You still get an offline draft assembled straight from the genre's recipe
+data. It's much shorter and plainer, but it's real and it's free.
 
 ---
 

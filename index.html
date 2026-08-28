@@ -2123,7 +2123,7 @@
         <div class="card border-[#FFD60A40] relative">
             <button id="close-producer-notes-modal" type="button" class="absolute top-4 right-4 text-white/40 hover:text-white font-bold text-[18px] leading-none cursor-pointer bg-transparent border-0" aria-label="Close">×</button>
             <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">🎙️ Producer Instructions — <span id="producer-notes-genre"></span></h3>
-            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Writes one reusable block describing this genre's sound and production character, from its actual recipe data — paste it once into Google Flow Music's per-genre <b class="text-[#FFD60A]/70">Instructions</b> (Settings → Customize Producer) or a named <b class="text-[#FFD60A]/70">Flow</b>. Every song prompt you generate for this genre afterward only needs to add what's different about that one song.</p>
+            <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Writes one reusable block describing this genre's sound and production character, from its actual recipe data — paste it once into Google Flow Music's per-genre <b class="text-[#FFD60A]/70">Instructions</b> (Settings → Customize Producer) or a named <b class="text-[#FFD60A]/70">Flow</b>. Every song prompt you generate for this genre afterward only needs to add what's different about that one song. Flow's field stops at <b class="text-[#FFD60A]/70">10,000 characters</b> and silently drops anything past it, so this stays under that — watch the counter if you edit.</p>
 
             <div class="flex gap-2 mb-4">
                 <button id="btn-producer-notes-generate" type="button" class="btn-euterpe-green flex-1">GENERATE PRODUCER NOTES</button>
@@ -2145,6 +2145,7 @@
                 <textarea id="producer-notes-output" class="w-full bg-black/60 border border-[#FFD60A]/30 rounded text-[#FFF3C4] text-[12px] font-mono leading-relaxed px-3 py-3 h-72 resize-y focus:outline-none"></textarea>
                 <div class="flex gap-2 mt-2 mb-4">
                     <button id="btn-producer-notes-copy" type="button" class="btn-euterpe-green flex-1">📋 COPY NOTES</button>
+                    <button id="btn-producer-notes-trim" type="button" class="btn-euterpe px-3 hidden" style="border-color:#FF5A5A80;color:#FF5A5A" title="Cut this down to Flow's 10,000-character limit, ending on a whole paragraph instead of mid-sentence" aria-label="Trim these producer notes to Flow's 10,000 character limit">✂ TRIM</button>
                     <button id="btn-producer-notes-save" type="button" class="btn-euterpe px-3" style="border-color:#00E5FF80;color:#00E5FF" title="Save this exact block onto the genre, so you can pull it back up or A/B it against another version later" aria-label="Save these producer notes to the genre">💾 SAVE</button>
                 </div>
                 <div id="producer-notes-ai-note" class="text-[10px] text-[#FF5A5A]/80 mt-3"></div>

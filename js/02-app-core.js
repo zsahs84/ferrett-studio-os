@@ -16,6 +16,11 @@ const defaultDb = {
     // that genre afterward. Same shape as genreKits: keyed by genre name, each value a history array
     // so regenerating adds a new saved take instead of overwriting the last one.
     producerNotes: {},
+    // Free-text context the producer types once per genre — who's playing, how tight they are,
+    // house rules, goals ("mid level musicians and a sloppy bassist"). Keyed by genre, one string
+    // each, not a history: it's a standing setting for the genre, not a take to A/B. Folded into the
+    // brief every generate reads, so the AI is told these things instead of guessing at them.
+    producerNotesExtra: {},
     // Saved Lyria prompt takes with no song attached — shopping sounds for a genre before any
     // lyrics/song exists. Same shape as producerNotes: keyed by genre, each value a history array.
     // A take made WITH a song attached still lives on that song (song.lyriaPrompts) as before.
@@ -181,6 +186,7 @@ try {
         if (parsed.pluginProfiles && typeof parsed.pluginProfiles === 'object') window.db.pluginProfiles = parsed.pluginProfiles;
         if (parsed.genreKits) window.db.genreKits = parsed.genreKits;
         if (parsed.producerNotes) window.db.producerNotes = parsed.producerNotes;
+        if (parsed.producerNotesExtra) window.db.producerNotesExtra = parsed.producerNotesExtra;
         if (parsed.lyriaPrompts) window.db.lyriaPrompts = parsed.lyriaPrompts;
         if (parsed.lyrics) window.db.lyrics = parsed.lyrics;
         if (parsed.accounting) window.db.accounting = parsed.accounting;
@@ -528,6 +534,7 @@ window.findOrPullDriveFile = async function() {
                 if (cloudDb.pluginProfiles) { window.db.pluginProfiles = cloudDb.pluginProfiles; window.resolveOwnedPlugins?.(); window.renderPluginProfiles?.(); }
                 if (cloudDb.genreKits) window.db.genreKits = cloudDb.genreKits;
                 if (cloudDb.producerNotes) window.db.producerNotes = cloudDb.producerNotes;
+                if (cloudDb.producerNotesExtra) window.db.producerNotesExtra = cloudDb.producerNotesExtra;
                 if (cloudDb.lyriaPrompts) window.db.lyriaPrompts = cloudDb.lyriaPrompts;
                 if (cloudDb.lyrics && (!window.lyrStateHasContent || window.lyrStateHasContent(cloudDb.lyrics) || !window.lyrStateHasContent(window.db.lyrics))) window.db.lyrics = cloudDb.lyrics;
                 if (cloudDb.accounting) window.db.accounting = cloudDb.accounting;
@@ -718,6 +725,7 @@ window.restoreVaultFromFile = (file) => {
         if (incoming.pluginProfiles) { window.db.pluginProfiles = incoming.pluginProfiles; window.resolveOwnedPlugins?.(); window.renderPluginProfiles?.(); }
         if (incoming.genreKits) window.db.genreKits = incoming.genreKits;
         if (incoming.producerNotes) window.db.producerNotes = incoming.producerNotes;
+        if (incoming.producerNotesExtra) window.db.producerNotesExtra = incoming.producerNotesExtra;
         if (incoming.lyriaPrompts) window.db.lyriaPrompts = incoming.lyriaPrompts;
         if (incoming.lyrics) window.db.lyrics = incoming.lyrics;
         if (incoming.accounting) window.db.accounting = incoming.accounting;
@@ -4705,6 +4713,22 @@ window.lyriaSongBlock = (songId) => {
         out.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
+    // Commits whatever is currently in the ADDITIONAL NOTES box to the genre, right now. The box saves
+    // itself on a 700ms debounce, which is fine for typing but loses a race against someone typing a
+    // line and hitting GENERATE straight away — the draft would be built from the previous value. So
+    // generate flushes through here first rather than waiting on the timer.
+    window.flushProducerNotesExtra = () => {
+        const genre = window.currentProducerNotesGenre; if (!genre) return false;
+        const el = document.getElementById('producer-notes-extra'); if (!el) return false;
+        clearTimeout(window.__producerNotesExtraTimer);
+        window.db.producerNotesExtra = window.db.producerNotesExtra || {};
+        const val = el.value;
+        if (val.trim()) window.db.producerNotesExtra[genre] = val;
+        else delete window.db.producerNotesExtra[genre];
+        window.saveData();
+        return true;
+    };
+
     // The offline-safe draft: no AI call, assembled straight from data already in the Cookbook. Also
     // doubles as the AI's brief when a key IS configured, the same relationship buildLyriaPrompt has
     // to the AI-written version of a song prompt.
@@ -4734,6 +4758,13 @@ window.lyriaSongBlock = (songId) => {
             `PRODUCTION CHARACTER: ${moodOverride || meta.mood}. ${texOverride || meta.texture}.`,
             `TEMPO: ${bpmOverride || `${meta.bpm[0]}-${meta.bpm[1]} BPM`} (typically ~${window.getGenreBpmMid(genre)} BPM).`,
         ];
+        // The producer's own standing context for this genre, typed once in the modal. Folded in here
+        // rather than bolted onto the AI call separately, so it lands in both places that matter from
+        // one insertion: the offline draft (which is what someone with no API key actually pastes) and
+        // the AI's brief (which embeds this whole draft). Sits high in the document deliberately — it's
+        // binding direction, so it should be what survives if Flow ever truncates the tail.
+        const extra = (window.db.producerNotesExtra?.[genre] || '').trim();
+        if (extra) parts.push(`ADDITIONAL DIRECTION FROM THE PRODUCER: ${extra}`);
         if (instrLines.length) parts.push(`INSTRUMENTATION:\n${instrLines.join('\n')}`);
         // This genre's own recipe book rarely has a Vox entry (most were built for instrumental
         // production), so without this the notes never said anything about vocals at all — every future
@@ -4750,8 +4781,14 @@ window.lyriaSongBlock = (songId) => {
 
     window.openProducerNotesModal = (genre) => {
         if (!genre) return;
+        // Still-pending notes belong to the genre being left, not the one being opened — commit them
+        // before currentProducerNotesGenre moves, or a fast switch files them under the wrong genre.
+        window.flushProducerNotesExtra();
         window.currentProducerNotesGenre = genre;
         const label = document.getElementById('producer-notes-genre'); if (label) label.textContent = genre;
+        // Standing per-genre context, so it comes back exactly as left rather than being retyped.
+        const extra = document.getElementById('producer-notes-extra');
+        if (extra) extra.value = window.db.producerNotesExtra?.[genre] || '';
         document.getElementById('producer-notes-output-wrap')?.classList.add('hidden');
         document.getElementById('btn-producer-notes-regenerate')?.classList.add('hidden');
         const out = document.getElementById('producer-notes-output'); if (out) out.value = '';
@@ -4762,13 +4799,19 @@ window.lyriaSongBlock = (songId) => {
         window.renderProducerNotesSaved();
         document.getElementById('producer-notes-modal')?.classList.replace('hidden', 'flex');
     };
-    window.closeProducerNotesModal = () => document.getElementById('producer-notes-modal')?.classList.replace('flex', 'hidden');
+    // Flushes first so closing right after typing doesn't discard the last half-second of it.
+    window.closeProducerNotesModal = () => {
+        window.flushProducerNotesExtra();
+        document.getElementById('producer-notes-modal')?.classList.replace('flex', 'hidden');
+    };
 
     window.runProducerNotesGenerate = async () => {
         const genre = window.currentProducerNotesGenre; if (!genre) return;
         // A fresh generate is a new unsaved draft, not a continuation of whatever was loaded — SAVE
         // makes a new version again until something is loaded (or this one is saved) to autosave into.
         window.__producerNotesLoadedId = null;
+        // Beat the debounce, so a note typed a half-second ago is in the brief this generate reads.
+        window.flushProducerNotesExtra();
         const draft = window.buildProducerNotesDraft(genre);
         const out = document.getElementById('producer-notes-output');
         const setOut = (text) => {
@@ -4798,6 +4841,7 @@ window.lyriaSongBlock = (songId) => {
                 'You write reusable "Producer Instructions" documents for Google Flow Music, a text-to-music AI built on Google Lyria. Flow asks "What should Producer know about you?" — preferred genres, lyric styles, skill level, working methods, goals — and keeps the answer switched on automatically in every new session. So this is standing context for a whole genre, pasted ONCE and live for every song generated in it afterward. Write only what stays true across dozens of future songs: the instrumentation this genre defaults to, how it is normally played and arranged, its vocal approach, its harmonic and rhythmic habits, and what it must never drift into.',
                 'Because it is standing context, do NOT describe one particular song, one texture, one arrangement or one moment. Anything that is true of only a single track — that song\'s specific mood, its story, its structure, its one-off instrument — belongs in that track\'s own prompt, and repeating it here just spends the budget re-describing a texture the producer will describe again anyway. Write the defaults, not an example.',
                 'HARD LIMIT: Flow accepts 10,000 characters in this field and silently discards everything past that. A long document is not compressed, it is cut off mid-sentence and the tail is simply lost. Target 6,000-8,500 characters (roughly 1,000-1,400 words) and NEVER exceed 9,500, so the producer still has room to hand-edit a line or two afterwards without crossing the line. Spend that budget on breadth rather than depth: covering every instrument, arrangement habit and vocal note in the recipe book concisely beats writing beautifully about three of them and getting truncated before the rest. If this genre\'s recipe book below is thin, write a shorter document — never pad to hit a length.',
+                'If the brief contains an ADDITIONAL DIRECTION FROM THE PRODUCER line, that is the producer telling you directly about their situation in their own words — who is playing and how tight they are, their skill level, working methods, house rules, goals, things they always or never want. Treat it as binding and specific, not as a suggestion, and never contradict it. Do NOT quote it back as its own labelled paragraph or repeat it verbatim: work it through the paragraphs it actually affects, in the same voice as the rest. If it says the players are mid-level and the bassist is sloppy, that shapes how you describe the playing, the timing feel and the arrangement throughout — it is not a line to restate at the bottom.',
                 'Order the document most-important-first — the sound and core instrumentation near the top, the finer character notes further down — so that if it ever does get truncated, what survives is what matters most.',
                 'Plain prose paragraphs, each opening with a short ALL-CAPS label of your own choosing (e.g. SOUND:, INSTRUMENTATION:, PRODUCTION CHARACTER:, VOCAL STYLE:, ARRANGEMENT TENDENCIES:, AVOID:) — add as many labeled paragraphs as the genre supports, not just one per category. No markdown, no bullet points, no bold text — this is pasted into a plain text field.',
                 'Always include a VOCAL STYLE paragraph — register, phrasing, energy, how it typically sits in the mix for this genre — using the VOCAL STYLE line below as your starting point. Frame it as what to do WHEN a song has vocals, since not every song in this genre will.',
@@ -5746,6 +5790,16 @@ window.lyriaSongBlock = (songId) => {
     document.getElementById('btn-producer-notes-generate')?.addEventListener('click', () => window.runProducerNotesGenerate());
     document.getElementById('btn-producer-notes-regenerate')?.addEventListener('click', () => window.runProducerNotesGenerate());
     document.getElementById('btn-producer-notes-copy')?.addEventListener('click', () => { const out = document.getElementById('producer-notes-output'); if (!out) return; out.select(); navigator.clipboard?.writeText(out.value).then(() => { const btn = document.getElementById('btn-producer-notes-copy'); if (btn) { const orig = btn.textContent; btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 1500); } }).catch(() => document.execCommand('copy')); });
+    // Saved against the genre a moment after typing stops — there's no SAVE button for this because
+    // it's a setting, not a take. Every later generate for this genre picks it up automatically.
+    document.getElementById('producer-notes-extra')?.addEventListener('input', () => {
+        clearTimeout(window.__producerNotesExtraTimer);
+        window.__producerNotesExtraTimer = setTimeout(() => {
+            if (!window.flushProducerNotesExtra()) return;
+            const hint = document.getElementById('producer-notes-extra-hint');
+            if (hint) { hint.textContent = '✓ saved'; setTimeout(() => { hint.textContent = 'saved with this genre'; }, 1200); }
+        }, 700);
+    });
     document.getElementById('btn-producer-notes-trim')?.addEventListener('click', () => window.trimProducerNotesToLimit());
     document.getElementById('btn-producer-notes-save')?.addEventListener('click', () => window.saveProducerNotes());
     // The box is editable now (tweak the AI's wording, fix a detail, whatever) — keep the char/token

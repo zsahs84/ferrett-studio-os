@@ -2125,6 +2125,14 @@
             <h3 class="text-[13px] font-bold tracking-widest text-[#FFD60A] uppercase mb-1 pr-8">🎙️ Producer Instructions — <span id="producer-notes-genre"></span></h3>
             <p class="text-[10px] text-[#E2E8F0]/40 mb-5">Writes one reusable block describing this genre's sound and production character, from its actual recipe data — paste it once into Google Flow Music's per-genre <b class="text-[#FFD60A]/70">Instructions</b> (Settings → Customize Producer) or a named <b class="text-[#FFD60A]/70">Flow</b>. Every song prompt you generate for this genre afterward only needs to add what's different about that one song. Flow's field stops at <b class="text-[#FFD60A]/70">10,000 characters</b> and silently drops anything past it, so this stays under that — watch the counter if you edit.</p>
 
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-1.5">
+                    <label for="producer-notes-extra" class="text-[9px] tracking-widest text-[#00E5FF]/70 font-bold">ADDITIONAL NOTES — anything the AI can't work out on its own</label>
+                    <span id="producer-notes-extra-hint" class="text-[9px] text-[#E2E8F0]/35">saved with this genre</span>
+                </div>
+                <textarea id="producer-notes-extra" rows="3" class="w-full bg-black/60 border border-[#00E5FF]/25 rounded text-[#E2E8F0] text-[11px] leading-relaxed px-3 py-2 resize-y focus:outline-none focus:border-[#00E5FF]/60" placeholder="Who's playing and how tight they are, your skill level, how you work, house rules, goals. e.g. &quot;mid level musicians and a sloppy bassist&quot; — this gets handed to the AI and worked into the notes instead of it guessing."></textarea>
+            </div>
+
             <div class="flex gap-2 mb-4">
                 <button id="btn-producer-notes-generate" type="button" class="btn-euterpe-green flex-1">GENERATE PRODUCER NOTES</button>
                 <button id="btn-producer-notes-regenerate" type="button" class="btn-euterpe hidden" title="Generate a different variation" aria-label="Generate a different variation">🎲</button>

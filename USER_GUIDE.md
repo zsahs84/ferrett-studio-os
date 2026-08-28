@@ -582,6 +582,28 @@ you'd have said in the song prompt anyway.
 > the app tells you by how much rather than assuming it complied. The document is also written
 > most-important-first, so that if it ever does get cut, what survives is what matters most.
 
+### Additional notes — tell it the things it can't work out
+
+Above the GENERATE button there's an **ADDITIONAL NOTES** box. Whatever you put there gets
+handed to the AI as part of the brief, so it works from what you told it instead of guessing.
+
+This is for the stuff that isn't in your recipes and never will be — who's playing and how
+tight they are, your own skill level, how you like to work, house rules, what you're aiming at:
+
+> *"mid level musicians and a sloppy bassist"*
+
+That one line changes how the whole document describes the playing, the timing feel and the
+arrangement. The AI is told to treat it as binding and to **work it through the paragraphs it
+actually affects**, in the same voice as everything else — not to quote it back at you as its
+own paragraph at the bottom, which would just spend characters repeating what you already know.
+
+It **saves against the genre** as you type, so you write it once. There's no save button
+because it's a setting rather than a take — every future generate for that genre picks it up.
+Each genre keeps its own, so a loose live-band genre and a tight programmed one don't share
+notes. Clear the box and it goes back to no additional direction at all.
+
+It feeds the **offline draft** too, so it's worth filling in even with no API key configured.
+
 Notes are **editable** — tweak the wording, fix a detail — and **saved per genre** with a
 version list, so you can A/B two takes against each other.
 

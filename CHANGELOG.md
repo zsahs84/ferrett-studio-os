@@ -5,6 +5,42 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v177 — 2026-09-03 · `ha-bridge` BRANCH ONLY
+
+- **A backup safety net, independent of the cabinet/wiki mirror.** BACKUP NOW (or the
+  30-minute auto timer) writes a byte-for-byte copy of the vault to two places, and the
+  AI/Drive settings to two different places, so no single outage — Drive down, a bad
+  mirror sync, a browser crash — is ever the only copy.
+  - **Vault data** (no credentials in it) → Drive as `Euterpe-Vault-Data.json`, and to this
+    box's own disk at `/local/euterpe_backups/euterpe-vault-data-latest.json` (+
+    `-previous.json`, rotated on every write so one bad save can't destroy the only good copy).
+  - **AI/Drive settings** (real provider API keys) → Drive as `Euterpe-AI-Settings.json`,
+    and a ZenOS cabinet drawer gated behind an HA session — **deliberately not `/www`**.
+    That path is public and unauthenticated; a plaintext key sitting there would be a
+    standing leak every 30 minutes, not the one-time historical one already flagged for the
+    old Google key. Vault data has no such risk, so it's the one thing that does go to `/www`.
+  - Runs on a 30-minute timer (only when something actually changed — reuses Drive sync's
+    own edit counter — and throttled to at most once per 20 minutes regardless) plus once on
+    tab-close, so ending a session doesn't mean waiting up to half an hour for the next
+    scheduled copy. A manual BACKUP NOW button covers "back up right now, I want to be sure."
+- **The local-disk write path took four tries to land**, and each dead end is left as a
+  comment in the box-side script so the next person doesn't repeat it: `python_script`'s
+  sandbox on this HA version strips builtins entirely (no `open()` at all); `pyscript` runs
+  its own AST interpreter rather than real Python and doesn't support generator
+  expressions; and — the one that actually mattered — pyscript's interpreted execution
+  does **not** block on plain `open()`/`read`/`write` the way real Python does, confirmed by
+  checking `os.path.exists()` immediately after a "successful" write and getting `False`.
+  The fix is `task.executor()` (run the blocking call in a worker thread and genuinely
+  await it) wrapping `@pyscript_compile`-decorated helpers (compiled as real Python
+  bytecode, since `task.executor` refuses pyscript's own interpreted functions).
+- **A real bug caught by testing two backups back to back**, not by inspection: the two
+  Drive uploads shared one `localStorage` id cache and ran concurrently, so the second to
+  finish clobbered the first's cached file id — meaning every other backup would have
+  needlessly recreated one of the two Drive files instead of updating it, leaving Drive
+  slowly littered with duplicates instead of one file with the revision history that was
+  the whole point of using Drive's own versioning instead of a second local `-previous`
+  copy. Fixed by chaining the two uploads instead of racing them.
+
 ## v176 — 2026-09-03 · `ha-bridge` BRANCH ONLY
 
 - **Lyrics can come back.** ↓ PULL LYRICS reads the wiki copies, shows exactly which lines differ,

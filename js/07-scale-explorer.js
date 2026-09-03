@@ -77,7 +77,7 @@
               <button type="button" class="song-arr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.arrangement?'text-[#B18CFF]':'text-white/25'} hover:text-[#B18CFF]" data-song-id="${s.id}">🎼 ${s.arrangement?'Edit arrangement':'Attach arrangement'}</button>
               <button type="button" class="song-lyr-btn flex-1 min-w-0 text-[8px] text-left truncate ${s.lyricsSheetId!=null?'text-[#FF88FF]':'text-white/25'} hover:text-[#FF88FF]" data-song-id="${s.id}">📝 ${s.lyricsSheetId!=null?'Open lyrics':'New lyrics'}</button>
             </div>
-            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length||s.kitId||s.kit)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}${(s.kitId||s.kit)?' · 🤖 kit':''}${(s.lyriaPrompts||[]).length?` · 💾 ${s.lyriaPrompts.length}`:''}</button>
+            <button type="button" class="song-detail-open w-full mt-1 text-[8px] text-left truncate ${((s.trackIds||[]).length||(s.toneIds||[]).length||(s.lyricsSheetIds||[]).length||s.kitId||s.kit)?'text-[#00E5FF]':'text-white/25'} hover:text-[#00E5FF]" data-song-id="${s.id}">🎚️ ${(s.trackIds||[]).length||0} track${(s.trackIds||[]).length===1?'':'s'} · 🎛️ ${(s.toneIds||[]).length||0} tone${(s.toneIds||[]).length===1?'':'s'}${(s.lyricsSheetIds||[]).length?` · 📝 ${s.lyricsSheetIds.length} lyric${s.lyricsSheetIds.length===1?'':'s'}`:''}${(s.kitId||s.kit)?' · 🤖 kit':''}${(s.lyriaPrompts||[]).length?` · 💾 ${s.lyriaPrompts.length}`:''}</button>
           </div>`;
         }).join('')}</div>
       </div>`;
@@ -106,6 +106,12 @@
     const tones=(window.db.tones||[]).filter(t=>!linked.has(t.id));
     sel.innerHTML='<option value="">— choose a tone —</option>'+tones.map(t=>`<option value="${t.id}">${window.escapeHtml((t.name||'Unnamed Combo').slice(0,40))}</option>`).join('');
   }
+  function populateSongDetailLyricsSelect(song){
+    const sel=$('song-detail-lyrics-select'); if(!sel) return;
+    const linked=new Set(song.lyricsSheetIds||[]);
+    const sheets=(window.lyrAllSheets?.()||[]).filter(sh=>!linked.has(sh.id));
+    sel.innerHTML='<option value="">— choose a lyrics sheet —</option>'+sheets.map(sh=>`<option value="${sh.id}">${window.escapeHtml((sh.title||'Untitled').slice(0,40))}</option>`).join('');
+  }
   function renderSongDetail(){
     const m=$('song-detail-modal'); if(!m || m.classList.contains('hidden')) return;
     const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId);
@@ -132,6 +138,10 @@
     const linkedTones=(song.toneIds||[]).map(id=>(window.db.tones||[]).find(t=>t.id===id)).filter(Boolean);
     toneList.innerHTML = linkedTones.length ? linkedTones.map(t=>`<div class="flex items-center justify-between text-[10px] text-white/70 bg-black/30 rounded px-2 py-1"><span class="truncate pr-2">${window.escapeHtml(t.name||'Unnamed Combo')}</span><button type="button" class="song-detail-tone-del text-white/30 hover:text-[#FF5A5A] text-[12px]" data-id="${t.id}">×</button></div>`).join('') : '<div class="text-[9px] text-white/25 italic py-1">No tones linked yet.</div>';
     populateSongDetailToneSelect(song);
+    const lyricsList=$('song-detail-lyrics-list');
+    const linkedLyrics=(song.lyricsSheetIds||[]).map(id=>(window.lyrAllSheets?.()||[]).find(sh=>sh.id===id)).filter(Boolean);
+    lyricsList.innerHTML = linkedLyrics.length ? linkedLyrics.map(sh=>`<div class="flex items-center justify-between text-[10px] text-white/70 bg-black/30 rounded px-2 py-1"><span class="song-detail-lyrics-open truncate pr-2 cursor-pointer hover:text-[#FF88FF]" data-id="${sh.id}" title="Open in Lyrics Lab">${window.escapeHtml(sh.title||'Untitled')}</span><button type="button" class="song-detail-lyrics-del text-white/30 hover:text-[#FF5A5A] text-[12px] shrink-0" data-id="${sh.id}">×</button></div>`).join('') : '<div class="text-[9px] text-white/25 italic py-1">No lyrics sheets linked yet.</div>';
+    populateSongDetailLyricsSelect(song);
     const kitBox=$('song-detail-kit');
     if(kitBox){
       // New songs reference a specific saved kit by id (kits are kept forever, so a reference is as
@@ -607,6 +617,26 @@
         const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(!song) return;
         song.toneIds=(song.toneIds||[]).filter(x=>x!==id);
         window.saveData(); renderSongDetail(); renderSongBoard();
+      });
+      $('song-detail-lyrics-add')?.addEventListener('click',()=>{
+        const sel=$('song-detail-lyrics-select'); const id=sel.value?parseInt(sel.value,10):null;
+        if(!id) return;
+        const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(!song) return;
+        song.lyricsSheetIds=song.lyricsSheetIds||[];
+        if(!song.lyricsSheetIds.includes(id)) song.lyricsSheetIds.push(id);
+        window.saveData(); renderSongDetail(); renderSongBoard();
+      });
+      $('song-detail-lyrics-list')?.addEventListener('click',(e)=>{
+        const del=e.target.closest('.song-detail-lyrics-del');
+        if(del){
+          const id=parseInt(del.dataset.id,10);
+          const song=(window.db.songBoard||[]).find(s=>s.id===songDetailId); if(!song) return;
+          song.lyricsSheetIds=(song.lyricsSheetIds||[]).filter(x=>x!==id);
+          window.saveData(); renderSongDetail(); renderSongBoard();
+          return;
+        }
+        const open=e.target.closest('.song-detail-lyrics-open');
+        if(open){ const id=parseInt(open.dataset.id,10); closeSongDetail(); window.lyrOpenSheetById?.(id); $('nav-lyrics')?.click(); }
       });
       sboard.addEventListener('dragstart',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c){ dragSongId=parseInt(c.dataset.songId,10); e.dataTransfer.effectAllowed='move'; c.style.opacity='0.4'; } });
       sboard.addEventListener('dragend',(e)=>{ const c=e.target.closest('.song-card-mini'); if(c) c.style.opacity=''; });

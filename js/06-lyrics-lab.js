@@ -212,7 +212,7 @@
     const visible=visibleTabIds.map(id=>lyrState.sheets.find(s=>s.id===id)).filter(Boolean);
     wrap.innerHTML=visible.map(s=>{ const on=s.id===lyrState.activeId; return `<button class="lyr-tab shrink-0 text-[10px] font-bold tracking-widest px-3 py-1.5 rounded border transition-colors ${on?'bg-[#FF88FF]/15 border-[#FF88FF60] text-[#FF88FF]':'border-[#FF88FF20] text-[#FF88FF]/50 hover:text-[#FF88FF]'}" data-id="${s.id}">${window.escapeHtml((s.title||'Untitled').slice(0,18))}${lyrState.sheets.length>1?` <span class="lyr-tab-x text-white/30 hover:text-[#FF5A5A] ml-1" data-del="${s.id}">×</span>`:''}</button>`; }).join('');
     wrap.querySelectorAll('.lyr-tab').forEach(b=>b.addEventListener('click',(e)=>{ if(e.target.classList.contains('lyr-tab-x')) return; lyrState.activeId=parseInt(b.dataset.id,10); lyrUndo=[]; lyrSelected.clear(); saveLyr(); renderLyr(); }));
-    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; visibleTabIds=visibleTabIds.filter(x=>x!==id); const orphan=(window.db&&window.db.songBoard||[]).find(s=>s.lyricsSheetId===id); if(orphan) orphan.lyricsSheetId=null; saveLyr(); renderLyr(); }));
+    wrap.querySelectorAll('.lyr-tab-x').forEach(x=>x.addEventListener('click',(e)=>{ e.stopPropagation(); const id=parseInt(x.dataset.del,10); if(!confirm('Delete this sheet?')) return; lyrState.sheets=lyrState.sheets.filter(s=>s.id!==id); if(lyrState.activeId===id) lyrState.activeId=lyrState.sheets[0].id; visibleTabIds=visibleTabIds.filter(x=>x!==id); const orphan=(window.db&&window.db.songBoard||[]).find(s=>s.lyricsSheetId===id); if(orphan) orphan.lyricsSheetId=null; (window.db&&window.db.songBoard||[]).forEach(s=>{ if(s.lyricsSheetIds) s.lyricsSheetIds=s.lyricsSheetIds.filter(x=>x!==id); }); saveLyr(); renderLyr(); }));
     const moreSel=$('lyr-sheet-more');
     if(moreSel){
       const others=lyrState.sheets.filter(s=>!visibleTabIds.includes(s.id));
@@ -596,6 +596,18 @@
     const blob=new Blob([`${s.title||'Untitled'}\n\n${txt}`],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(s.title||'lyrics').replace(/[^a-z0-9]+/gi,'_')+'.txt'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),800);
   }
   window.refreshLyrics=()=>{ if(!lyrState) initLyrState(); renderLyr(); };
+  // Exposes the full sheet list (id + title) so other tabs — e.g. the Song Board's "link an
+  // existing lyrics sheet" picker — can reference sheets without reaching into lyrState directly.
+  window.lyrAllSheets=()=>{ if(!lyrState) initLyrState(); return lyrState.sheets||[]; };
+  // Switches the Lyrics Lab to an already-existing sheet by id (no create), for jumping to a
+  // sheet that was linked onto a song rather than authored from that song.
+  window.lyrOpenSheetById=(id)=>{
+    if(!lyrState) initLyrState();
+    if(!lyrState.sheets.find(s=>s.id===id)) return;
+    lyrState.activeId=id;
+    lyrUndo=[]; lyrSelected.clear();
+    saveLyr(); renderLyr();
+  };
   // Opens (or creates) the lyric sheet linked to a Song Board song, so "Open in Lyrics" on a
   // song card can jump straight to that song's own sheet instead of whatever was last active.
   window.lyrOpenSheetForSong=(songId,songTitle)=>{

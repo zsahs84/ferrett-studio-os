@@ -647,23 +647,23 @@
   // wrong means trying to `get` a wiki path out of the cabinet), and the label vocabulary
   // to search on. The prose walkthrough goes to the wiki, which has no size pressure,
   // because the cabinet is the tier with 12% headroom left.
+  // Cut down to a pointer, not a manual, on 2026-09-03: the full version (labels,
+  // counts, the cabinet_keys/wiki_paths breakdown) cost ~1.2 KB, and the cabinet had
+  // ~900 bytes free at the time — this drawer was the ONE thing that didn't fit on a
+  // freshly-fixed sync. Everything that version explained is still written, just to
+  // /music/index on the wiki (no size pressure there at all — see indexPage below).
+  // This is deliberately small enough to never again be the reason something else
+  // doesn't fit: an agent that reads it gets exactly two facts, either of which is
+  // enough to get moving — the hub pattern, or where the real explanation lives.
   function indexDrawer(drawers, d) {
-    var sum = indexSummary(drawers);
     var root = cfg().wikiRoot;
     return {
       path: 'index',
-      title: 'Euterpe — what is in this cabinet',
-      tags: ['euterpe', 'index'],
+      title: 'Euterpe — start here',
+      tags: [],
       value: {
-        what: 'Music studio vault from Euterpe. Read-only — overwritten on every sync.',
-        updated: new Date().toISOString(),
         start_here: 'songs/<slugged-title> — the hub every song question routes through.',
-        cabinet_keys: ['recipe_keys', 'tone_keys'],
-        wiki_paths: ['lyrics_page', 'lyrics_pages', 'kit_page', 'prompt_pages'],
-        reading_a_wiki_path: 'same tool, stack: wiki, action_type: get. Wiki uses hyphens, cabinet keys use underscores. Root ' + root + '.',
-        labels: sum.vocab,
-        counts: sum.branches,
-        full_guide: root + '/index'
+        full_guide: root + '/index (stack: wiki) — tree, label vocabulary, cabinet-vs-wiki field map.'
       }
     };
   }
@@ -897,7 +897,7 @@
   // paths]. This is NOT a rounding error to skip — on the real vault it was 21.5 KB, 16%
   // of the entire cap, and a preview that doesn't count it isn't a preview. (First version
   // of this function didn't, and a sync ran the cabinet to 103% before anyone noticed.)
-  function labelIndexBytes(drawers) {
+  function labelIndexObject(drawers) {
     var idx = {}, i, j;
     for (i = 0; i < drawers.length; i++) {
       var tags = drawers[i].tags || [];
@@ -906,24 +906,53 @@
         if (idx[tags[j]].indexOf(drawers[i].path) < 0) idx[tags[j]].push(drawers[i].path);
       }
     }
-    return JSON.stringify(idx).length;
+    return idx;
+  }
+  function labelIndexBytes(drawers) { return JSON.stringify(labelIndexObject(drawers)).length; }
+
+  // A real ISO timestamp with microsecond precision, exactly the shape the cabinet
+  // stamps every write with ("2026-09-03T13:29:36.697180-07:00", 33 characters) — used
+  // as a stand-in so the size estimate isn't thrown off by Date.now()'s much shorter
+  // millisecond-precision default toISOString().
+  var TS_PLACEHOLDER = '2026-01-01T00:00:00.000000-07:00';
+
+  // Fixed cost of the three HA-managed system drawers (AI_Cabinet_VolumeInfo, meta,
+  // _zen_relationships — _label_index is built and measured separately above, since it
+  // grows with our own data). Measured directly off the live box, 2026-09-03:
+  // 633 + 77 + 125 = 835 bytes. Re-measure if this ever looks off — it's read off the
+  // real cabinet, not derived, because VolumeInfo's shape isn't ours to compute.
+  var SYSTEM_DRAWER_BYTES = 835;
+
+  // Builds the ACTUAL { path: { value, timestamp } } structure the cabinet stores and
+  // measures its real JSON size — not a per-drawer formula with a fudge factor. The
+  // previous version guessed a flat +40 bytes of envelope per drawer and missed
+  // _label_index entirely; both were real gaps between "dry run says" and "what actually
+  // happens" that only showed up once the vault was big enough to hit the 131,072 cap.
+  function cabinetPayloadBytes(drawers) {
+    var payload = {}, i;
+    for (i = 0; i < drawers.length; i++) {
+      payload[drawers[i].path] = { value: drawers[i].value, timestamp: TS_PLACEHOLDER };
+    }
+    payload._label_index = { value: labelIndexObject(drawers), timestamp: TS_PLACEHOLDER };
+    return JSON.stringify(payload).length + SYSTEM_DRAWER_BYTES;
   }
 
   function preview() {
     var d = db();
     var drawers = buildCabinet(d), pages = cfg().wiki ? buildWiki(d) : [];
-    var groups = {}, total = 0, i;
+    var groups = {}, i;
     for (i = 0; i < drawers.length; i++) {
       var top = drawers[i].path.split('/')[0];
-      // What the cabinet actually stores is { value, timestamp }, so the drawer key
-      // and the envelope count against the 128 KB too. Roughly +40 bytes each.
-      var b = bytes(drawers[i].value) + drawers[i].path.length + 40;
+      // Per-group breakdown for the log is still an approximation (real per-drawer cost
+      // depends on where it lands in the shared JSON object) — fine for "which bucket is
+      // biggest", not used for the total any more.
+      var b = bytes(drawers[i].value) + drawers[i].path.length + 64;
       groups[top] = groups[top] || { n: 0, bytes: 0 };
-      groups[top].n++; groups[top].bytes += b; total += b;
+      groups[top].n++; groups[top].bytes += b;
     }
     var labelBytes = labelIndexBytes(drawers);
-    total += labelBytes;
     groups['_label_index'] = { n: 1, bytes: labelBytes };
+    var total = cabinetPayloadBytes(drawers);
     var wikiBytes = 0;
     for (i = 0; i < pages.length; i++) wikiBytes += pages[i].content.length;
     return {

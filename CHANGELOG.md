@@ -5,6 +5,35 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v179 — 2026-09-03 · `ha-bridge` BRANCH ONLY
+
+- **The v178 label fix worked — confirmed on the live cabinet.** `_label_index` dropped from
+  21,854 bytes to 5,112, every old type-flag label (`script`, `link`, `recipe`, ...) and all
+  20 `cat_*` values gone, exactly as designed. 215 of 215 drawers landed except one: `index`.
+- **`preview()`'s size estimate was still wrong, just less wrong.** It priced each drawer's
+  envelope as a flat `+40` bytes; the real per-drawer cost (the `{value,timestamp}` wrapper
+  plus the drawer's own path as a JSON dict key) runs meaningfully higher, and it compounds
+  differently for the mix of short and long paths actually in the vault (`recipes/<genre>/
+  <instrument>` paths run 40–70 characters). **`preview()` no longer estimates at all** — it
+  builds the exact `{path: {value, timestamp}}` structure the cabinet stores and measures
+  its real `JSON.stringify` length, the same way the sutra's own size guard does. The fixed
+  cost of the three HA-managed system drawers (`AI_Cabinet_VolumeInfo`, `meta`,
+  `_zen_relationships`) is a constant read directly off the live box (835 B) rather than
+  assumed, since their shape isn't ours to compute.
+- **The one drawer that didn't fit — `index` — is now a pointer, not a manual.** It carried
+  the full label vocabulary, per-branch counts, and the cabinet-vs-wiki field map at ~1.2 KB;
+  with the cabinet sitting at ~99% full even after the label fix, that was the one thing
+  that didn't survive the squeeze. Everything it explained is still written — to
+  `/music/index` on the wiki, which has no size pressure at all — and the cabinet copy is
+  now two facts in ~180 bytes: the hub pattern, and where the full guide lives.
+- **Worth saying plainly:** even after building the exact payload structure, sizing this
+  against a local copy of the 2 Sept vault backup came out roughly 5–7% under what the live
+  cabinet actually measured — most likely the live vault has simply grown since that backup
+  was taken, not a remaining formula error, but not something to promise to the byte either.
+  If a future sync ever again reports "relabel requires an existing drawer... not found",
+  that is this same signature — check the cabinet's real fill via `mode: fleet` before
+  assuming anything else.
+
 ## v178 — 2026-09-03 · `ha-bridge` BRANCH ONLY
 
 - **Fixed a real sync failure: the cabinet ran over its own 128 KB cap.** His first live

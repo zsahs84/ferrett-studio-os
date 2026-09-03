@@ -5,6 +5,19 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v174 — 2026-09-02 · `ha-bridge` BRANCH ONLY
+
+- **The AI relay now borrows Home Assistant's session too, not just the bridge.** Served from
+  `/local/euterpe/` the page is the same origin as the API, so the HA url + token fields are simply
+  not needed there any more — nothing to enter, nothing to re-enter, nothing to keep in step with a
+  second copy of the app. Off that origin (github.io, a dev server) it falls back to a manually
+  entered url + token exactly as before, and an expired session falls back the same way.
+- Why this matters beyond convenience: settings live in `localStorage`, which is **per-origin**, so
+  every credential had to be entered twice — once per copy of the app — and re-entered on every
+  rotation. This removes the HA pair from that list permanently. The remaining items (Gemini/Groq/
+  OpenAI keys, the Drive OAuth client ID) still travel via ⚙ setup → EXPORT / IMPORT, which is the
+  file that carries settings; the **vault** JSON carries data only and never held them.
+
 ## v173 — 2026-09-02 · `ha-bridge` BRANCH ONLY — never merge to main
 
 > `main` is the app: no server, everything stays in your browser, exactly as the README promises.

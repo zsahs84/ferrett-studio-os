@@ -23,6 +23,8 @@
   const compatBase=(c,k)=>((k==='custom'?c.customBase:'')||'').trim()||OPENAI_COMPAT[k].base;
 
   const isConfigured=()=>{ const c=loadCfg();
+    // The HA relay needs no config at all when the page is served from HA itself.
+    if((c.mode||'ha')==='ha' && window.ZenOS?.haSession?.()) return true;
     if(c.mode==='groq') return !!c.groqKey;
     if(c.mode==='gemini') return !!c.geminiKey;
     if(c.mode==='anthropic') return !!c.anthropicKey;
@@ -310,9 +312,14 @@
         window.__aiUsage?.record(model, { in: data?.usage?.prompt_tokens, out: data?.usage?.completion_tokens });
         text=data?.choices?.[0]?.message?.content;
       } else {
-        if(!c.url||!c.token) throw new Error('Set your HA URL + token in ⚙ setup.');
-        const base=c.url.replace(/\/+$/,'');
-        const post=(cmd,body)=>fetch(base+'/api/services/rest_command/'+cmd+'?return_response',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.token}, body:JSON.stringify(body) });
+        // Served from Home Assistant's own /local/, this page is the same origin as the API and
+        // the HA frontend's session is already in localStorage here — so there is nothing to set up.
+        // Falls back to a manually entered url + token everywhere else (github.io, a dev server).
+        const ha=window.ZenOS?.haSession?.();
+        if(!ha && (!c.url||!c.token)) throw new Error('Set your HA URL + token in ⚙ setup — or open this app from Home Assistant at /local/euterpe/, where it needs neither.');
+        const base=ha ? ha.base : c.url.replace(/\/+$/,'');
+        const bearer=ha ? ha.token : c.token;
+        const post=(cmd,body)=>fetch(base+'/api/services/rest_command/'+cmd+'?return_response',{ method:'POST', signal:ctrl.signal, headers:{'Content-Type':'application/json','Authorization':'Bearer '+bearer}, body:JSON.stringify(body) });
         const shared={ system_prompt:system, user_prompt:user };
         // ferrett_ai_request is the hop that actually carries this app's parameters. The older
         // groq_speed_request / groq_creative_request hardcode model, temperature and (creative) a

@@ -966,6 +966,9 @@
   else wireUI();
 
   window.ZenOS = {
+    // Exposed so the AI relay in 08-ai-settings.js can borrow the same session instead of
+    // asking for an HA url + token that this origin already has sitting in localStorage.
+    haSession: hassAuth,
     cfg: cfg, saveCfg: saveCfg, patchCfg: patchCfg, configured: configured,
     haSlug: haSlug, wikiSlug: wikiSlug,
     call: call, get: getDrawer, list: listDrawers, fleet: fleet,

@@ -692,24 +692,56 @@
 
   /* --------------------------------------------------------- wiki builders */
 
+  // Marks the end of the round-trippable region. Anything below it is commentary for a
+  // human reading the page and is never parsed back into the sheet.
+  var LYRIC_FENCE = '\n---\n';
+
+  // The wiki copy is written in the app's OWN tagged-text format, not prettier markdown,
+  // so a pull is parseTaggedSongText() on this exact string — one parser, already debugged,
+  // instead of a second one that drifts. sheetToTaggedText is the matching writer.
   function lyricsMarkdown(sheet) {
-    var lines = sheet.lines || [], out = [], lastTag = null, i;
-    for (i = 0; i < lines.length; i++) {
-      var ln = lines[i] || {};
-      if (ln.tag && ln.tag !== lastTag) { out.push(''); out.push('## ' + ln.tag); lastTag = ln.tag; }
-      out.push(String(ln.text == null ? '' : ln.text));
+    var body;
+    if (typeof window.lyrSheetToText === 'function') {
+      body = window.lyrSheetToText(sheet);
+    } else {
+      // Fallback for the (impossible in practice) case where 06-lyrics-lab didn't load.
+      var lines = sheet.lines || [], out = [], lastTag = null, i;
+      for (i = 0; i < lines.length; i++) {
+        var ln = lines[i] || {};
+        var tag = ln.tag || '';
+        if (tag !== lastTag) { if (out.length) out.push(''); out.push('[' + (tag || '') + ']'); lastTag = tag; }
+        out.push(String(ln.text == null ? '' : ln.text).trim() || '-');
+      }
+      body = out.join('\n');
     }
+    // A leading blockquote so someone opening the page in WikiJS knows what it is. Pull
+    // strips '>' lines before parsing; a lyric starting with '>' would be lost, which has
+    // never happened and is worth the warning being visible where people actually edit.
+    var head = '> Managed by Euterpe. Edit the lines below and use PULL LYRICS in the app to bring\n' +
+               '> them back — the app is where they live. Section headers are [Verse 1] style; a\n' +
+               '> lone - is an intentional empty bar and holds the arrangement together.\n';
+    var tail = '';
     var takes = sheet.takes || [];
     if (takes.length) {
-      out.push(''); out.push('## Takes');
-      for (i = 0; i < takes.length; i++) {
-        var tk = takes[i] || {};
-        out.push('');
-        out.push('### ' + (tk.name || tk.title || ('Take ' + (i + 1))));
-        out.push(String(tk.text || tk.notes || ''));
+      var t = ['## Takes'];
+      for (var j = 0; j < takes.length; j++) {
+        var tk = takes[j] || {};
+        t.push('', '### ' + (tk.name || tk.title || ('Take ' + (j + 1))), String(tk.text || tk.notes || ''));
       }
+      tail = LYRIC_FENCE + '\n' + t.join('\n');
     }
-    return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return (head + '\n' + body + tail).replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // Inverse of the above: wiki page text -> the sheet's lines[].
+  function lyricsFromPage(content) {
+    var text = String(content == null ? '' : content);
+    var cut = text.indexOf(LYRIC_FENCE);
+    if (cut >= 0) text = text.slice(0, cut);
+    text = text.split(/\r?\n/).filter(function (l) { return l.trim().charAt(0) !== '>'; }).join('\n');
+    if (typeof window.parseTaggedSongText !== 'function') return null;
+    var parsed = window.parseTaggedSongText(text);
+    return (parsed && parsed.lines) || null;
   }
 
   function kitMarkdown(genre, kit) {
@@ -944,6 +976,120 @@
     });
   }
 
+  /* ------------------------------------------------------ pull (wiki -> app) */
+
+  // The one inbound path. Deliberately NOT automatic: he edits lyrics in the app constantly,
+  // so anything that pulls on its own would eventually overwrite his own work with a stale
+  // wiki copy. This fetches, diffs, and hands back a change set — nothing is written to the
+  // vault until applyLyricsPull() is called with what he accepted.
+  //
+  // Only lyrics. Everything else in the wiki (kits, producer notes, prompts) is generated
+  // FROM the vault and has no meaningful inbound edit.
+  function pullLyrics(opts) {
+    opts = opts || {};
+    var log = opts.onLog || function () {};
+    if (!configured()) return Promise.reject(new Error('No Home Assistant session on this origin.'));
+    var d = db();
+    var sheets = (d.lyrics && d.lyrics.sheets) || [];
+    if (!sheets.length) return Promise.resolve([]);
+    if (typeof window.parseTaggedSongText !== 'function') {
+      return Promise.reject(new Error('Lyrics Lab has not loaded — cannot parse a pull safely.'));
+    }
+    var changes = [];
+
+    function step(i) {
+      if (i >= sheets.length) return Promise.resolve(changes);
+      var sh = sheets[i], path = lyricsPageFor(sh, d);
+      return call({ action_type: 'get', stack: 'wiki', path: path }, 30000).then(function (r) {
+        // A page that was never pushed is not a change, it's just absent.
+        if (!r || r.status === 'not_found') { log('· ' + path + ' — not on the wiki yet'); return; }
+        var page = (r.page && typeof r.page === 'object') ? r.page : r;
+        var remote = lyricsFromPage(page.content);
+        if (!remote) { log('· ' + path + ' — unreadable, skipped'); return; }
+        var local = sh.lines || [];
+        var diff = diffLines(local, remote);
+        if (!diff.changed) { log('= ' + (sh.title || path) + ' — identical'); return; }
+        // A wiki page that parses to nothing, against a sheet that has words, is far more
+        // likely to be a broken page than a deliberate deletion. Refuse it rather than
+        // offering to wipe the sheet.
+        if (!remote.length && local.filter(function (l) { return String(l.text || '').trim(); }).length) {
+          log('! ' + (sh.title || path) + ' — wiki copy is empty, refusing (would erase ' + local.length + ' lines)');
+          return;
+        }
+        changes.push({ sheetId: sh.id, title: sh.title || path, path: path, lines: remote, diff: diff });
+        log('~ ' + (sh.title || path) + ' — ' + diff.summary);
+      }, function (e) {
+        log('✗ ' + path + ' — ' + e.message);
+      }).then(function () { return step(i + 1); });
+    }
+    return step(0);
+  }
+
+  // Line-level comparison on text + tag. Position-based, which is what a "change the third
+  // line" edit actually looks like; a wholesale reorder reads as many changes, which is
+  // honest rather than clever.
+  function diffLines(local, remote) {
+    // A lone '-' is the app's own rest-bar convention: an empty line still holds a bar of
+    // time, and sheetToTaggedText writes it as '-' so the arrangement survives the trip.
+    // Treating '' and '-' as different would make every sheet with an empty bar report
+    // phantom edits on every single pull.
+    function norm(t) { t = String(t == null ? '' : t).trim(); return t === '-' ? '' : t; }
+    // Trailing empties are trimmed on write, so compare only up to the last real line on
+    // each side — otherwise a sheet ending in blanks always looks shortened.
+    function endOf(a) { var i = a.length; while (i > 0 && !norm((a[i - 1] || {}).text)) i--; return i; }
+    local = local.slice(0, endOf(local));
+    remote = remote.slice(0, endOf(remote));
+    var n = Math.max(local.length, remote.length), edits = [], i;
+    for (i = 0; i < n; i++) {
+      var a = local[i] || {}, b = remote[i] || {};
+      var at = norm(a.text), bt = norm(b.text);
+      var ag = a.tag || '', bg = b.tag || '';
+      if (at !== bt || ag !== bg) edits.push({ n: i + 1, from: at, to: bt, fromTag: ag, toTag: bg });
+    }
+    var parts = [];
+    if (remote.length !== local.length) parts.push(local.length + ' → ' + remote.length + ' lines');
+    if (edits.length) parts.push(edits.length + ' line' + (edits.length === 1 ? '' : 's') + ' differ');
+    return { changed: edits.length > 0, edits: edits, summary: parts.join(', ') || 'no change' };
+  }
+
+  // Writes accepted changes into the vault. Preserves each line's per-line marks (ALT
+  // punch-ups, the AI provenance badge) for any line whose text is unchanged — losing those
+  // silently on a pull would be a nasty little data loss.
+  function applyLyricsPull(changes) {
+    var d = db(), sheets = (d.lyrics && d.lyrics.sheets) || [], applied = 0, i, j;
+    for (i = 0; i < (changes || []).length; i++) {
+      var c = changes[i], sh = null;
+      for (j = 0; j < sheets.length; j++) if (sameId(sheets[j].id, c.sheetId)) { sh = sheets[j]; break; }
+      if (!sh) continue;
+      var marks = {};
+      (sh.lines || []).forEach(function (l) {
+        var k = String(l.text || '').trim();
+        if (!k) return;
+        if (!marks[k]) marks[k] = [];
+        marks[k].push(l);
+      });
+      sh.lines = c.lines.map(function (l) {
+        var k = String(l.text || '').trim();
+        var prior = (marks[k] && marks[k].length) ? marks[k].shift() : null;
+        if (!prior) return l;
+        var out = { text: l.text, tag: l.tag, halfTime: l.halfTime };
+        if (prior.alt) out.alt = prior.alt;
+        if (prior.ai) out.ai = prior.ai;
+        if (prior.marks) out.marks = prior.marks;
+        if (prior.chords) out.chords = prior.chords;
+        return out;
+      });
+      applied++;
+    }
+    if (!applied) return 0;
+    // lyrState is a cached copy inside the Lyrics Lab; without the reload its next save
+    // would write the stale copy straight back over what we just pulled in.
+    window.saveData && window.saveData();
+    window.lyrForceReload && window.lyrForceReload();
+    window.refreshLyrics && window.refreshLyrics();
+    return applied;
+  }
+
   /* -------------------------------------------- write-through, fail silent */
 
   var pending = null;
@@ -998,7 +1144,7 @@
     }
     function reset() { elLog.textContent = ''; elLog.classList.remove('hidden'); }
     function busy(on) {
-      ['zenos-preview-btn', 'zenos-sync-btn', 'zenos-full-btn', 'zenos-check-btn'].forEach(function (id) {
+      ['zenos-preview-btn', 'zenos-sync-btn', 'zenos-full-btn', 'zenos-check-btn', 'zenos-pull-btn'].forEach(function (id) {
         var b = $(id); if (b) b.disabled = on;
       });
     }
@@ -1054,6 +1200,45 @@
       if (confirm('Rewrite every drawer and wiki page, ignoring the change cache?')) run(true);
     });
 
+    var pending = null;
+    $('zenos-pull-btn').addEventListener('click', function () {
+      persist(); reset(); busy(true);
+      $('zenos-apply-btn').classList.add('hidden'); pending = null;
+      say('Reading lyrics back from the wiki — nothing is written yet.');
+      pullLyrics({ onLog: say }).then(function (changes) {
+        busy(false);
+        if (!changes.length) { say('—'); say('Nothing to bring back. Your sheets already match the wiki.'); return; }
+        pending = changes;
+        say('—');
+        changes.forEach(function (c) {
+          say(c.title + ':');
+          c.diff.edits.slice(0, 12).forEach(function (e) {
+            say('   line ' + e.n + (e.fromTag !== e.toTag ? '  [' + (e.fromTag || '-') + ' → ' + (e.toTag || '-') + ']' : ''));
+            if (e.from) say('     - ' + e.from);
+            if (e.to) say('     + ' + e.to);
+          });
+          if (c.diff.edits.length > 12) say('   … and ' + (c.diff.edits.length - 12) + ' more');
+        });
+        say('—');
+        say('APPLY writes these into your sheets. Nothing else is touched.');
+        $('zenos-apply-btn').classList.remove('hidden');
+      }, function (e) { busy(false); say('✗ ' + e.message); });
+    });
+
+    $('zenos-apply-btn').addEventListener('click', function () {
+      if (!pending || !pending.length) return;
+      var n = applyLyricsPull(pending);
+      say('—');
+      say('✓ applied to ' + n + ' sheet' + (n === 1 ? '' : 's') + '. Open Lyrics Lab to see them.');
+      // The vault has moved on, so the cached page hashes are stale — drop the ones we
+      // just pulled so the next sync pushes the merged copy rather than skipping it.
+      var c = cfg(), wh = c.wikiHashes || {};
+      pending.forEach(function (x) { delete wh[x.path]; });
+      patchCfg({ wikiHashes: wh });
+      pending = null;
+      $('zenos-apply-btn').classList.add('hidden');
+    });
+
     $('zenos-check-btn').addEventListener('click', function () {
       reset(); busy(true); say('Asking the cabinet…');
       fleet().then(function (r) {
@@ -1078,6 +1263,7 @@
     buildCabinet: function () { return buildCabinet(db()); },
     buildWiki: function () { return buildWiki(db()); },
     preview: preview, sync: sync, touch: touch, readSong: readSong,
+    pullLyrics: pullLyrics, applyLyricsPull: applyLyricsPull, lyricsFromPage: lyricsFromPage,
     CAB_LIMIT: CAB_LIMIT
   };
 })();

@@ -5,6 +5,30 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v176 — 2026-09-03 · `ha-bridge` BRANCH ONLY
+
+- **Lyrics can come back.** ↓ PULL LYRICS reads the wiki copies, shows exactly which lines differ,
+  and writes nothing until you press APPLY. That closes the one real gap: Donita could always *read*
+  a sheet and propose a better third line, but there was no way to get it into the app.
+- **Deliberately not automatic, and not two-way.** You edit lyrics constantly, so anything that pulled
+  on its own would eventually overwrite your own work with a stale wiki copy. Only lyrics pull —
+  kits, producer notes and prompts are generated *from* the vault and have no meaningful inbound edit.
+- **The wiki copy is now written in the app's own tagged-text format** (`[Verse 1]` headers, a lone `-`
+  for a rest bar) rather than prettier markdown, so a pull is `parseTaggedSongText()` on that exact
+  string — the parser you already debugged, not a second one that drifts. A blockquote header explains
+  the page to anyone editing it in WikiJS; pull strips `>` lines before parsing.
+- Two things that would have made it useless, caught by testing rather than reasoning:
+  - **Phantom diffs.** An empty line is a real bar and is written as `-`, so a naive comparison
+    reported edits on every sheet with a rest bar, on every pull. `''` and `-` now compare equal, and
+    trailing empties are ignored because the writer trims them. All six sheets now diff clean against
+    an unedited wiki page — a pull with no edit reports nothing at all.
+  - **Silently losing per-line marks.** ALT punch-ups, the AI provenance badge, and chords live on the
+    line and can't survive a text round trip. Apply re-attaches them to any line whose text is
+    unchanged, one old line spent per new one, the same way the whole-song text editor already does.
+- Refuses to apply a wiki page that parses to nothing against a sheet that has words — far more likely
+  a broken page than a deliberate erasure. Applying clears that page's cached hash so the next sync
+  pushes the merged copy instead of skipping it.
+
 ## v175 — 2026-09-02 · `ha-bridge` BRANCH ONLY
 
 - **The cabinet now describes itself.** An agent reading it cold had no way to learn the layout — it

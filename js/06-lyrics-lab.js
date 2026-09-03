@@ -636,6 +636,10 @@
   // Drops the in-memory cache so the next refreshLyrics() re-reads window.db.lyrics from scratch —
   // needed after a Drive pull lands newer lyrics than whatever's already cached in this tab session.
   window.lyrForceReload=()=>{ lyrState=null; };
+  // Exposed for the ZenOS bridge: the wiki copy of a sheet is written in exactly this
+  // format so it can be parsed straight back with parseTaggedSongText instead of a second
+  // parser that would drift from this one.
+  window.lyrSheetToText=sheetToTaggedText;
   window.lyrStateHasContent=lyrStateHasContent; // lets a Drive pull refuse to let an empty cloud copy stomp real local lyrics
   // exposed for the AI co-pilot (keeps lyrState the single source of truth) — tagged, because the
   // AI needs section context to rewrite/analyze sensibly.

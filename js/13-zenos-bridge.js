@@ -36,7 +36,7 @@
 
   var AI_KEY = 'ferrett_os_ai_v1';        // HA url + token already live here — don't ask twice
   var KEY = 'ferrett_os_zenos_v1';
-  var SVC = 'script/zen_dojotools_filecabinet';
+  var SVC = 'zen_dojotools_filecabinet';  // domain ('script') is now passed separately to callService
   var CAB_LIMIT = 131072;                 // hard cap per cabinet, enforced by the sensor itself
 
   var DEFAULTS = {
@@ -47,7 +47,15 @@
     autoSync: false,
     lastSync: 0,
     hashes: {},        // drawer path -> content hash, so a re-sync only writes what changed
-    wikiHashes: {}
+    wikiHashes: {},
+    // Backup net: independent of the cabinet/wiki mirror above. autoBackup governs a
+    // periodic Drive + local-HA snapshot of the raw vault, so a Drive outage or a bad
+    // mirror sync is never the only copy of the data.
+    autoBackup: true,
+    lastBackupAt: 0,
+    lastBackupRev: -1  // -1, not 0, so a vault whose driveSyncMeta.localRev is genuinely
+                        // 0 (nothing ever saved this session) still gets one backup rather
+                        // than looking identical to "already backed up".
   };
 
   /* ---------------------------------------------------------------- config */
@@ -135,7 +143,11 @@
   // A plain call_service cannot return a response variable; the REST endpoint with
   // ?return_response can. That is the only reason this whole design works from a
   // browser, and it's the same hop the AI relay in 08-ai-settings.js already proved.
-  function call(params, timeoutMs) {
+  //
+  // Generic underneath — any HA service, not just FileCabinet — because the local backup
+  // write (pyscript.euterpe_write_backup) needs the exact same borrowed-session transport
+  // but is a plain fire-and-log service with no response body to check.
+  function callService(domain, service, params, timeoutMs, wantResponse) {
     var a = auth();
     if (!a) return Promise.reject(new Error(
       localStorage.getItem('hassTokens')
@@ -144,21 +156,33 @@
     var base = a.base;
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || 45000);
+    var qs = wantResponse === false ? '' : '?return_response';
 
-    return fetch(base + '/api/services/' + SVC + '?return_response', {
+    return fetch(base + '/api/services/' + domain + '/' + service + qs, {
       method: 'POST',
       signal: ctrl.signal,
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + a.token },
-      body: JSON.stringify(params)
+      body: JSON.stringify(params || {})
     }).then(function (res) {
       if (!res.ok) {
         throw new Error('HA ' + res.status + (
           res.status === 401 ? ' — token rejected (reload this page from HA to refresh the session)' :
-          res.status === 400 ? ' — script.zen_dojotools_filecabinet rejected the call' :
-          res.status === 404 ? ' — script.zen_dojotools_filecabinet not found' : ''));
+          res.status === 400 ? ' — ' + domain + '.' + service + ' rejected the call' :
+          res.status === 404 ? ' — ' + domain + '.' + service + ' not found' : ''));
       }
-      return res.json();
-    }).then(function (data) {
+      // A service call made without ?return_response still gets a 200 with a body (the
+      // list of changed states), but nothing here needs it — swallow a parse failure
+      // rather than fail a write that HA already accepted. res.json() reads the response
+      // stream, so it can only be called once here, not probed and then called again.
+      return res.json()['catch'](function () { return {}; });
+    })['catch'](function (e) {
+      if (e && e.name === 'AbortError') throw new Error('Home Assistant timed out');
+      throw e;
+    }).then(function (v) { clearTimeout(timer); return v; }, function (e) { clearTimeout(timer); throw e; });
+  }
+
+  function call(params, timeoutMs) {
+    return callService('script', SVC, params, timeoutMs).then(function (data) {
       var r = (data && data.service_response) || data || {};
       // FileCabinet reports its own failures inside a 200. not_found is a legitimate
       // answer to a read, so it is passed through rather than thrown.
@@ -167,10 +191,7 @@
         throw new Error(r.message || ('FileCabinet: ' + st));
       }
       return r;
-    })['catch'](function (e) {
-      if (e && e.name === 'AbortError') throw new Error('Home Assistant timed out');
-      throw e;
-    }).then(function (v) { clearTimeout(timer); return v; }, function (e) { clearTimeout(timer); throw e; });
+    });
   }
 
   function upsertDrawer(d) {
@@ -1112,18 +1133,184 @@
   // Reading a song back the way Donita would: one get, everything in one drawer.
   function readSong(title) { return getDrawer('songs/' + haSlug(title)); }
 
+  /* --------------------------------------------------------- backup net */
+  // Two independent copies of the raw vault, refreshed periodically, so a bad mirror
+  // sync or a Drive outage is never the only place the data lives. Deliberately separate
+  // from the cabinet/wiki mirror above: that mirror is a reshaped, Donita-readable VIEW
+  // of the vault and is allowed to have gaps (kit_page_resolved:"genre_latest" and the
+  // like); a backup is a byte-for-byte copy of window.db, full stop.
+  //
+  // VAULT DATA carries no credentials, so it goes to both Drive and this box's own /www —
+  // same shape downloadVaultBackup() already writes, so a file recovered from either
+  // place opens with the app's own Restore Vault, no format to remember.
+  //
+  // AI/DRIVE SETTINGS carries real provider API keys. It goes to Drive (OAuth + drive.file
+  // scope: only this app's own files are visible even to itself) and to a ZenOS cabinet
+  // drawer — gated behind an HA session — but never to /www, which is public and
+  // unauthenticated. A plaintext key sitting at a guessable URL is a standing leak, not a
+  // one-time one; that trade was never made for the vault-only /www copy above.
+
+  var BACKUP_DRIVE_IDS_KEY = 'ferrett_os_backup_drive_ids_v1';
+  var BACKUP_VAULT_LOCAL_NAME = 'euterpe-vault-data-latest.json';
+  var BACKUP_VAULT_DRIVE_NAME = 'Euterpe-Vault-Data.json';
+  var BACKUP_SETTINGS_DRIVE_NAME = 'Euterpe-AI-Settings.json';
+  var BACKUP_SETTINGS_CABINET = 'sensor.zenos_default_user_cabinet'; // NOT the music cabinet
+  var BACKUP_SETTINGS_PATH = 'backups/euterpe_ai_settings';
+
+  function driveDriveIds() {
+    try { return JSON.parse(localStorage.getItem(BACKUP_DRIVE_IDS_KEY) || '{}'); } catch (e) { return {}; }
+  }
+  function saveDriveIds(ids) {
+    try { localStorage.setItem(BACKUP_DRIVE_IDS_KEY, JSON.stringify(ids)); } catch (e) {}
+  }
+
+  // Generalizes the app's own uploadToDriveRaw to an arbitrary filename, kept as a
+  // SEPARATE Drive file from the live EUTERPE_OS_VAULT.json sync target and tracked under
+  // its own key so a corrupt live-sync file can never take this backup down with it.
+  // Uses gapi directly, exactly like uploadToDriveRaw — no new Drive plumbing.
+  function driveUploadNamed(idKey, filename, dataObj) {
+    if (!window.isDriveConnected || !window.gapi || !window.gapi.client || !window.gapi.client.drive) {
+      return Promise.reject(new Error('Drive not connected'));
+    }
+    var ids = driveDriveIds();
+    var body = JSON.stringify(dataObj);
+    var find = ids[idKey]
+      ? Promise.resolve(ids[idKey])
+      : window.gapi.client.drive.files.list({
+          q: "name='" + filename + "' and trashed=false", spaces: 'drive', fields: 'files(id)'
+        }).then(function (res) {
+          var f = res.result && res.result.files && res.result.files[0];
+          return f ? f.id : null;
+        });
+    return find.then(function (fileId) {
+      var file = new Blob([body], { type: 'application/json' });
+      var form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify({ name: filename, mimeType: 'application/json' })], { type: 'application/json' }));
+      form.append('file', file);
+      var token = window.gapi.client.getToken().access_token;
+      var url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
+      var method = 'POST';
+      if (fileId) { url = 'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=multipart&fields=id'; method = 'PATCH'; }
+      return fetch(url, { method: method, headers: { 'Authorization': 'Bearer ' + token }, body: form })
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+          if (json && json.id && json.id !== fileId) { ids[idKey] = json.id; saveDriveIds(ids); }
+          if (!json || !json.id) throw new Error('Drive upload did not return a file id');
+        });
+    });
+  }
+
+  function writeVaultBackupLocal(dataObj) {
+    return callService('pyscript', 'euterpe_write_backup', {
+      filename: BACKUP_VAULT_LOCAL_NAME,
+      content: JSON.stringify(dataObj)
+    }, 30000, false);
+  }
+
+  // Settings backup on this box: a small cabinet drawer, NOT a /www file — see the file
+  // header. mode:'replace' so a removed key (a revoked provider, say) actually disappears
+  // from the backup rather than lingering under upsert's default deep-merge.
+  function writeSettingsBackupLocal(dataObj) {
+    return call({
+      action_type: 'upsert', mode: 'replace', stack: 'cabinet',
+      volume_entity_id: BACKUP_SETTINGS_CABINET,
+      path: BACKUP_SETTINGS_PATH,
+      title: 'Euterpe AI + Drive settings backup',
+      value: dataObj,
+      tags: 'euterpe,backup', create_label: true
+    }, 15000);
+  }
+
+  function aiSettingsCfg() {
+    try { return JSON.parse(localStorage.getItem('ferrett_os_ai_v1') || '{}'); } catch (e) { return {}; }
+  }
+  function driveSettingsCfg() {
+    try { return JSON.parse(localStorage.getItem('ferrett_os_drive_cfg_v1') || '{}'); } catch (e) { return {}; }
+  }
+
+  // Runs all four writes independently — Drive being down must not block the local copy,
+  // and vice versa — and reports each outcome rather than collapsing to one pass/fail.
+  function backupNow(opts) {
+    opts = opts || {};
+    var log = opts.onLog || function () {};
+    var vault = { exportedAt: new Date().toISOString(), source: 'EUTERPE_OS', db: db() };
+    var settings = { ai: aiSettingsCfg(), drive: driveSettingsCfg() };
+    var results = {};
+
+    function attempt(key, label, fn) {
+      return fn().then(function () {
+        results[key] = { ok: true };
+        log('✓ ' + label);
+      }, function (e) {
+        results[key] = { ok: false, error: e && e.message };
+        log('✗ ' + label + ' — ' + (e && e.message));
+      });
+    }
+
+    var jobs = [
+      attempt('vaultLocal', 'vault → this box (/local/euterpe_backups/)', function () { return writeVaultBackupLocal(vault); }),
+      attempt('settingsLocal', 'settings → this box (cabinet)', function () { return writeSettingsBackupLocal(settings); })
+    ];
+    // The two Drive uploads are chained, not run alongside each other. Both read-modify-
+    // write the SAME localStorage id-cache key (driveUploadNamed's "find or create" step);
+    // run concurrently, the second to finish clobbers the first's cached id, and every
+    // other backup would needlessly recreate that file on Drive instead of updating it —
+    // caught by testing two uploads back to back, not by inspection.
+    var driveJob = window.isDriveConnected
+      ? attempt('vaultDrive', 'vault → Drive (' + BACKUP_VAULT_DRIVE_NAME + ')', function () { return driveUploadNamed('vault', BACKUP_VAULT_DRIVE_NAME, vault); })
+          .then(function () { return attempt('settingsDrive', 'settings → Drive (' + BACKUP_SETTINGS_DRIVE_NAME + ')', function () { return driveUploadNamed('settings', BACKUP_SETTINGS_DRIVE_NAME, settings); }); })
+      : (log('· Drive not connected — vault + settings still went to this box'), Promise.resolve());
+    jobs.push(driveJob);
+
+    return Promise.all(jobs).then(function () {
+      var anyOk = false;
+      for (var k in results) if (results[k].ok) anyOk = true;
+      if (anyOk) {
+        patchCfg({ lastBackupAt: Date.now(), lastBackupRev: (window.driveSyncMeta && window.driveSyncMeta.localRev) || 0 });
+      }
+      return results;
+    });
+  }
+
+  // Only backs up when something has actually changed since the last one (compares
+  // against the SAME localRev counter Drive sync uses — it already bumps on every save)
+  // and throttles regardless, so a burst of edits doesn't fire a backup per keystroke.
+  var BACKUP_INTERVAL_MS = 30 * 60 * 1000;
+  var BACKUP_MIN_GAP_MS = 20 * 60 * 1000;
+  var backupInFlight = false;
+  function maybeBackup(reason) {
+    if (!cfg().autoBackup || !configured() || backupInFlight) return;
+    var c = cfg();
+    var rev = (window.driveSyncMeta && window.driveSyncMeta.localRev) || 0;
+    if (rev === c.lastBackupRev) return;               // nothing changed since last backup
+    if (Date.now() - c.lastBackupAt < BACKUP_MIN_GAP_MS) return;  // too soon regardless
+    backupInFlight = true;
+    backupNow({}).then(function (r) {
+      backupInFlight = false;
+      var n = 0; for (var k in r) if (r[k].ok) n++;
+      console.log('[zenos] backup (' + (reason || 'timer') + '): ' + n + '/' + Object.keys(r).length + ' ok');
+    }, function () { backupInFlight = false; });
+  }
+  setInterval(function () { maybeBackup('interval'); }, BACKUP_INTERVAL_MS);
+  // Closing the tab after a productive session shouldn't mean waiting up to 30 minutes
+  // for the next scheduled check — try once more on the way out. maybeBackup's own
+  // throttle keeps this from doing anything if one already ran recently.
+  window.addEventListener('pagehide', function () { maybeBackup('pagehide'); });
+
   /* ------------------------------------------------------------------- ui */
 
   function $(id) { return document.getElementById(id); }
 
   function wireUI() {
     var elCab = $('zenos-cabinet'), elRoot = $('zenos-wikiroot'), elWiki = $('zenos-wiki'),
-        elAuto = $('zenos-auto'), elLog = $('zenos-log'), elStatus = $('zenos-status');
+        elAuto = $('zenos-auto'), elLog = $('zenos-log'), elStatus = $('zenos-status'),
+        elBackupAuto = $('zenos-backup-auto'), elBackupStatus = $('zenos-backup-status');
     if (!elCab) return;   // markup not present (e.g. main branch) — stay silent
 
     var c = cfg();
     elCab.value = c.cabinet; elRoot.value = c.wikiRoot;
     elWiki.checked = !!c.wiki; elAuto.checked = !!c.autoSync;
+    if (elBackupAuto) elBackupAuto.checked = c.autoBackup !== false;
 
     function status() {
       var src = authSource();
@@ -1247,7 +1434,26 @@
       }, function (e) { say('✗ ' + e.message); busy(false); });
     });
 
+    if (elBackupAuto) elBackupAuto.addEventListener('change', function () { patchCfg({ autoBackup: !!elBackupAuto.checked }); });
+
+    function backupStatus() {
+      if (!elBackupStatus) return;
+      var n = cfg().lastBackupAt;
+      elBackupStatus.textContent = n ? '· last backup ' + new Date(n).toLocaleString() : '· never backed up';
+    }
+    var elBackupNow = $('zenos-backup-now-btn');
+    if (elBackupNow) elBackupNow.addEventListener('click', function () {
+      reset(); busy(true); elBackupNow.disabled = true;
+      say('Backing up — Drive and this box, vault and settings…');
+      backupNow({ onLog: say }).then(function (r) {
+        var n = 0; for (var k in r) if (r[k].ok) n++;
+        say('—'); say('done: ' + n + '/' + Object.keys(r).length + ' ok');
+        busy(false); elBackupNow.disabled = false; backupStatus();
+      }, function (e) { say('✗ ' + e.message); busy(false); elBackupNow.disabled = false; });
+    });
+
     status();
+    backupStatus();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireUI);
@@ -1264,6 +1470,7 @@
     buildWiki: function () { return buildWiki(db()); },
     preview: preview, sync: sync, touch: touch, readSong: readSong,
     pullLyrics: pullLyrics, applyLyricsPull: applyLyricsPull, lyricsFromPage: lyricsFromPage,
+    backupNow: backupNow, maybeBackup: maybeBackup,
     CAB_LIMIT: CAB_LIMIT
   };
 })();

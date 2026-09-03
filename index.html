@@ -1794,6 +1794,17 @@
             <button id="zenos-apply-btn" type="button" class="btn-ferrett px-2.5 py-1 text-[9px] hidden" style="border-color:#7AFFBF50;color:#7AFFBF" title="Write the reviewed changes into your sheets">✓ APPLY</button>
           </div>
           <pre id="zenos-log" class="hidden text-[9px] leading-relaxed font-mono text-[#E2E8F0]/60 bg-black/40 border border-[#00E5FF20] rounded p-2 max-h-40 overflow-y-auto whitespace-pre-wrap break-all"></pre>
+
+          <div class="border-t border-[#00E5FF15] mt-3 pt-3 space-y-2">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-[9px] font-bold tracking-widest text-[#7AFFBF]">🛟 BACKUP NET <span id="zenos-backup-status" class="text-[8px] font-normal ml-1 text-[#E2E8F0]/40"></span></span>
+              <label class="flex items-center gap-1.5 text-[9px] text-[#E2E8F0]/60 cursor-pointer">
+                <input type="checkbox" id="zenos-backup-auto" class="accent-[#7AFFBF]"> auto, every 30 min
+              </label>
+            </div>
+            <p class="text-[9px] text-[#E2E8F0]/40 leading-relaxed">Separate from the mirror above — a byte-for-byte copy of the raw vault, not a reshaped view. Vault data goes to Drive (<span class="font-mono text-[#7AFFBF]/70">Euterpe-Vault-Data.json</span>) and to this box's own disk. Settings (real API keys) go to Drive (<span class="font-mono text-[#7AFFBF]/70">Euterpe-AI-Settings.json</span>) and a Home-Assistant-authenticated cabinet drawer — never to a public file, since a plaintext key sitting there would be a standing leak.</p>
+            <button id="zenos-backup-now-btn" type="button" class="btn-ferrett px-2.5 py-1 text-[9px]" style="border-color:#7AFFBF50;color:#7AFFBF" title="Back up now — Drive and this box, both vault and settings">🛟 BACKUP NOW</button>
+          </div>
         </div>
       </div>
 

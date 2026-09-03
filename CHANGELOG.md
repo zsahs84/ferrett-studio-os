@@ -5,6 +5,19 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v172 — 2026-09-02
+
+- **Link many lyrics sheets to one song.** Song detail gets a LINKED LYRICS SHEETS panel: pick any
+  existing sheet from the dropdown, click a linked one to jump straight to it in the Lyrics Lab, or
+  unlink it. Songs carry a new `lyricsSheetIds` array alongside the original single `lyricsSheetId`,
+  so nothing that already pointed at a sheet changes meaning — a song can now just have more than one.
+  The song card's summary line shows the count.
+- Deleting a sheet now unlinks it from **every** song that referenced it, not only the one that owned
+  it through the singular field. Previously a deleted sheet could stay listed on other songs forever.
+- Two small seams make this possible without one tab reaching into another's private state:
+  `window.lyrAllSheets()` exposes the sheet list, and `window.lyrOpenSheetById()` switches to an
+  existing sheet without creating one.
+
 ## v169 — 2026-08-26
 - **The EDIT/ANALYZE view can now actually be edited.** It laid the sheet out as one continuous
   block but was read-only, so the only way to change anything was to go back to the one-input-per-line

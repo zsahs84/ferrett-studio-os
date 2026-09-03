@@ -5,6 +5,27 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v180 — 2026-09-03 · `ha-bridge` BRANCH ONLY
+
+- **The size problem was fixed in v179. What was left was never about size.** `index` was
+  shrunk to ~180 bytes with 907 bytes of headroom to spare, and it *still* failed the exact
+  same way, a third time, always the one drawer, always this same message. Ruled out a name
+  collision directly against the sutra's own protected-drawer list (`ai_cabinet_volumeinfo`,
+  `label_index`, `zen_relationships`, `meta` — `index` isn't one of them) and confirmed with
+  a direct probe: writing `index` by hand landed instantly and cleanly.
+- **It's a tail-of-sequence timing gap.** `relabel` checks a drawer's existence with its own
+  fresh read, separate from `upsert`'s own write-confirmation poll — and `index` is, by this
+  code's own design, always the very last of 215 sequential round trips in a run. Three runs,
+  three failures, always the last item, never a second failure on retry. That's the signature
+  of a rare consistency lag between "upsert's poll saw it land" and "a brand new service call
+  a moment later reads it," not a problem with this specific drawer.
+- **Fix: one retry, after a 1.5s pause, on this exact failure.** Only for a relabel that fails
+  with "not found" — any other error still fails immediately, and upsert itself is never
+  retried (already confirmed to have landed; retrying it would be a second, wasted write).
+  Verified against both outcomes: a relabel that fails once then succeeds on retry now
+  reports the drawer written normally; one that fails both times still reports it as failed,
+  it isn't silently swallowed.
+
 ## v179 — 2026-09-03 · `ha-bridge` BRANCH ONLY
 
 - **The v178 label fix worked — confirmed on the live cabinet.** `_label_index` dropped from

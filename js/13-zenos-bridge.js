@@ -249,6 +249,7 @@
 
   /* --------------------------------------------------------------- helpers */
 
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function hash(o) {
     var s = JSON.stringify(o), h = 0x811c9dc5;
     for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
@@ -1005,7 +1006,18 @@
       // still claims. relabel with an empty tag list correctly strips-and-adds-nothing.
       // Two round-trips per CHANGED drawer is the price of the index telling the truth.
       return upsertDrawer(dr).then(function () {
-        return relabelDrawer(dr);
+        // relabel checks drawer existence via a FRESH read of the cabinet's own state,
+        // separate from upsert's own write-verification wait. In three real runs this
+        // has failed exactly once each time with "not found" — always on whichever
+        // drawer landed LAST in a long sequential run (215 round trips), never on any
+        // other drawer, and never twice. That is the signature of a rare tail-end
+        // consistency lag between "upsert's poll saw the write" and "a brand new
+        // service invocation's read sees it", not a real problem with the drawer.
+        // One retry after a short pause is cheap insurance against exactly that.
+        return relabelDrawer(dr)['catch'](function (e) {
+          if (!/not found/i.test(e.message || '')) throw e;
+          return sleep(1500).then(function () { return relabelDrawer(dr); });
+        });
       }).then(function () {
         hashes[dr.path] = h; stats.pushed++;
         log('✓ ' + dr.path);

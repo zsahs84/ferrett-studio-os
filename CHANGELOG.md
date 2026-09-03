@@ -5,6 +5,48 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v173 — 2026-09-02 · `ha-bridge` BRANCH ONLY — never merge to main
+
+> `main` is the app: no server, everything stays in your browser, exactly as the README promises.
+> This branch adds one file that talks to Home Assistant, and it exists so that promise can stay true.
+> It is deployed to the HA box, not to GitHub Pages. **github.io will always show `main`'s version.**
+
+**ZenOS Bridge** — `js/13-zenos-bridge.js`, panel at the bottom of Settings → AI. Mirrors the vault
+into Home Assistant so Donita can read and reason about it. One-way push; localStorage stays the
+working copy and the render source, and the UI never waits on HA.
+
+- **Cabinet tier** (214 drawers, 112 KB, 86% of the 131,072-byte cap): songs, cookbook, tones, rigs,
+  scripts, links, plugins, ledger-by-month, genre-level Lyria prompts, producer-notes extras.
+- **Wiki tier** (30 pages, 208 KB): lyrics, genre kits, producer notes, per-song Lyria takes — the
+  buckets whose per-item cost keeps climbing, and the ones that want revision history anyway.
+- **DRY RUN** builds and sizes the entire payload without writing anything. A sync refuses outright if
+  the cabinet tier would exceed the cap, and only writes drawers whose content hash actually changed.
+
+**Runs from Home Assistant, not GitHub Pages.** Served out of `/config/www/euterpe` at
+`<your-ha>/local/euterpe/`, which makes the page the same origin as the API. No `cors_allowed_origins`
+entry needed, and the HA frontend's own `hassTokens` are already on that origin — so there's no URL and
+no long-lived token to enter. The token is short-lived and deliberately not refreshed: near expiry it
+falls back to manually configured credentials, else says to reload from HA. Deploy/verify/rollback are
+`shell_command.euterpe_deploy` / `euterpe_verify` / `euterpe_undeploy` on the box.
+
+**Three things in the design doc did not survive contact with the live system**, and the code follows
+the system: the script's fields are `action_type` / `volume_entity_id` / `path` / `tags` (not
+`mode` / `cabinet` / `drawer_key` / `labels`); Home Assistant's `slugify()` separator is an
+**underscore**, so a song lands at `songs/combustible_confessions`; and `list` returns keys and
+timestamps only, never values.
+
+**Two silent-corruption traps, both handled.** `upsert` deep-merges by default, so every write passes
+`mode: 'replace'` — without it a field deleted in Euterpe lingers in the cabinet forever. And its tag
+handling is additive, so every write is followed by a `relabel` — without it a song moved from tracking
+to mixing stays filed under `status_tracking`, and "what's in flight?" answers with a song that shipped.
+
+**Shape notes** the vault forced: `cookbookRecipes` embedded frozen *copies* of recipes (14.5 KB of the
+song board's 21 KB) and is now references; `lyriaPrompts` is two different buckets wearing one name
+(genre-level → cabinet, per-song → wiki); a lyrics page is keyed on the **sheet**, not the owning song,
+because one sheet can be linked to several songs; four songs point at genre kits that were regenerated
+out from under them, so `kit_page` falls back to the genre's newest and records
+`kit_page_resolved: "genre_latest"` rather than faking an exact match.
+
 ## v172 — 2026-09-02
 
 - **Link many lyrics sheets to one song.** Song detail gets a LINKED LYRICS SHEETS panel: pick any

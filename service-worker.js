@@ -3,7 +3,7 @@
 // so returning clients pick up the new copy instead of a stale cache.
 // Keep the number in sync with window.APP_VERSION at the top of index.html —
 // one version number for both, not two drifting counters.
-const CACHE_VERSION = 'ferrett-os-v172';
+const CACHE_VERSION = 'ferrett-os-v173';
 
 // EVERY file the app needs to boot. index.html stopped being self-contained when it was split into
 // external CSS/JS, and this list wasn't updated to match — so a cold install (new device, or
@@ -30,6 +30,7 @@ const APP_SHELL = [
   './js/10-file-decode.js',
   './js/11-sw-register.js',
   './js/12-tab-init.js',
+  './js/13-zenos-bridge.js',
   './js/vendor-qrcode.js',
   './icons/icon-192.png',
   './icons/icon-512.png',

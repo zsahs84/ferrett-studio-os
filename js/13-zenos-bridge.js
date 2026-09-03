@@ -429,7 +429,7 @@
       for (j = 0; j < songSheets.length; j++) lyricsPages.push(lyricsPageFor(songSheets[j], d));
       var promptPages = [];
       for (j = 0; j < (s.lyriaPrompts || []).length; j++) promptPages.push(promptPageFor(s, s.lyriaPrompts[j], j));
-      var tags = ['song'];
+      var tags = [];  // no type-flag label — path_prefix='songs/' already groups these
       if (s.status) tags.push('status_' + haSlug(s.status));
       if (s.kitGenre) tags.push('genre_' + haSlug(s.kitGenre));
       var kit = kitPage(s.kitId, s.kitGenre, d);
@@ -473,7 +473,7 @@
       var fam = String(r.inst || '').split(':')[0];
       out.push({
         path: key, title: (r.genre || '') + ' — ' + (r.inst || ''),
-        tags: ['recipe', 'genre_' + haSlug(r.genre)].concat(fam ? ['inst_' + haSlug(fam)] : []),
+        tags: ['genre_' + haSlug(r.genre)],  // 'recipe'/inst_ dropped — both already in the path
         // images[] is base64 in every bucket that has it. Stripped on write, kept locally.
         value: tidy({ euterpe_id: r.id, genre: r.genre, inst: r.inst, desc: r.desc, reaper: r.reaper, notes: r.notes })
       });
@@ -486,7 +486,7 @@
       if (!t || !t.name) continue;
       out.push({
         path: 'tones/' + haSlug(t.name), title: t.name,
-        tags: ['tone'].concat(t.category ? ['cat_' + haSlug(t.category)] : []).concat(truthy(t.starred) ? ['starred'] : []),
+        tags: truthy(t.starred) ? ['starred'] : [],  // 'tone'/cat_ dropped — path_prefix='tones/' covers listing
         // nam / ir are the Neural Amp Modeler profile and impulse response. Real
         // fields, searchable gold — not typos to be tidied away.
         value: tidy({
@@ -500,17 +500,17 @@
     // devices, connections, annotations and monitor modes share one structure.
     // Normalising it would lose the thing that makes it a rig.
     if (d.patchbay && Object.keys(d.patchbay).length) {
-      out.push({ path: 'rigs/default', title: 'Patchbay — current rig', tags: ['rig'], value: d.patchbay });
+      out.push({ path: 'rigs/default', title: 'Patchbay — current rig', tags: [], value: d.patchbay });
     }
     if (d.patchbayUserDefault && Object.keys(d.patchbayUserDefault).length) {
-      out.push({ path: 'rigs/user_default', title: 'Patchbay — user default', tags: ['rig'], value: d.patchbayUserDefault });
+      out.push({ path: 'rigs/user_default', title: 'Patchbay — user default', tags: [], value: d.patchbayUserDefault });
     }
     var saved = d.patchbaySaved || [];
     for (i = 0; i < saved.length; i++) {
       if (!saved[i] || !saved[i].name) continue;
       out.push({
         path: 'rigs/saved/' + haSlug(saved[i].name), title: saved[i].name,
-        tags: ['rig'], value: saved[i]
+        tags: [], value: saved[i]
       });
     }
 
@@ -521,7 +521,7 @@
       if (!sc || !sc.title) continue;
       out.push({
         path: 'scripts/' + haSlug(sc.title), title: sc.title,
-        tags: ['script'].concat(sc.category ? ['cat_' + haSlug(sc.category)] : []),
+        tags: [],  // 'script'/cat_ dropped — path_prefix='scripts/' covers listing
         value: tidy({ euterpe_id: sc.id, title: sc.title, category: sc.category, shortcut: sc.shortcut, func: sc.func, url: sc.url })
       });
     }
@@ -533,7 +533,7 @@
       if (!l || !l.title) continue;
       out.push({
         path: 'links/' + haSlug(l.title), title: l.title,
-        tags: ['link'].concat(l.category ? ['cat_' + haSlug(l.category)] : []),
+        tags: [],  // 'link'/cat_ dropped — path_prefix='links/' covers listing
         value: tidy({ euterpe_id: l.id, title: l.title, url: l.url, category: l.category, daw: l.daw, notes: l.notes })
       });
     }
@@ -541,12 +541,12 @@
     // --- plugins -----------------------------------------------------------
     if ((d.ownedPlugins || []).length) {
       out.push({
-        path: 'plugins/owned', title: 'Owned plugins', tags: ['plugins'],
+        path: 'plugins/owned', title: 'Owned plugins', tags: [],
         value: { count: d.ownedPlugins.length, names: d.ownedPlugins }
       });
     }
     if (d.pluginProfiles && Object.keys(d.pluginProfiles).length) {
-      out.push({ path: 'plugins/profiles', title: 'Plugin profiles by device', tags: ['plugins'], value: d.pluginProfiles });
+      out.push({ path: 'plugins/profiles', title: 'Plugin profiles by device', tags: [], value: d.pluginProfiles });
     }
 
     // --- ledger, bucketed by month so it never becomes one fat drawer ------
@@ -565,7 +565,7 @@
       for (i = 0; i < rows.length; i++) total += (Number(rows[i].usd) || 0);
       out.push({
         path: 'ledger/' + mkey, title: 'AI spend ' + mkey.replace('_', '-'),
-        tags: ['ledger'],
+        tags: [],  // 'ledger' flag dropped — path_prefix='ledger/' covers listing
         // Derived from token counts, not from a provider's billing API. An estimate,
         // and labelled as one here so nobody downstream reads it as a receipt.
         value: { month: mkey.replace('_', '-'), rows: rows, total_usd: Math.round(total * 1e6) / 1e6, basis: 'estimated from token counts' }
@@ -585,7 +585,7 @@
         out.push({
           path: 'prompts/genre/' + haSlug(gname) + '/' + haSlug(e.name || ('take_' + (i + 1))),
           title: gname + ' — ' + (e.name || ('Take ' + (i + 1))),
-          tags: ['prompt', 'genre_' + haSlug(gname)],
+          tags: ['genre_' + haSlug(gname)],  // 'prompt' flag dropped — path_prefix covers listing
           value: tidy({ euterpe_id: e.id, genre: gname, name: e.name, prompt: e.prompt, params: e.params, created_at: e.createdAt })
         });
       }
@@ -602,7 +602,7 @@
       out.push({
         path: 'notes_extra/' + haSlug(xg),
         title: xg + ' — additional notes',
-        tags: ['producer_notes', 'genre_' + haSlug(xg)],
+        tags: ['genre_' + haSlug(xg)],  // 'producer_notes' flag dropped — path_prefix covers listing
         value: { genre: xg, text: xtext }
       });
     }
@@ -893,6 +893,22 @@
 
   /* ------------------------------------------------------------ dry run */
 
+  // Mirrors exactly what the sutra's relabel step builds server-side: label -> [drawer
+  // paths]. This is NOT a rounding error to skip — on the real vault it was 21.5 KB, 16%
+  // of the entire cap, and a preview that doesn't count it isn't a preview. (First version
+  // of this function didn't, and a sync ran the cabinet to 103% before anyone noticed.)
+  function labelIndexBytes(drawers) {
+    var idx = {}, i, j;
+    for (i = 0; i < drawers.length; i++) {
+      var tags = drawers[i].tags || [];
+      for (j = 0; j < tags.length; j++) {
+        if (!idx[tags[j]]) idx[tags[j]] = [];
+        if (idx[tags[j]].indexOf(drawers[i].path) < 0) idx[tags[j]].push(drawers[i].path);
+      }
+    }
+    return JSON.stringify(idx).length;
+  }
+
   function preview() {
     var d = db();
     var drawers = buildCabinet(d), pages = cfg().wiki ? buildWiki(d) : [];
@@ -905,6 +921,9 @@
       groups[top] = groups[top] || { n: 0, bytes: 0 };
       groups[top].n++; groups[top].bytes += b; total += b;
     }
+    var labelBytes = labelIndexBytes(drawers);
+    total += labelBytes;
+    groups['_label_index'] = { n: 1, bytes: labelBytes };
     var wikiBytes = 0;
     for (i = 0; i < pages.length; i++) wikiBytes += pages[i].content.length;
     return {
@@ -949,14 +968,15 @@
       if (i >= drawers.length) return Promise.resolve();
       var dr = drawers[i], h = hash(dr);
       if (hashes[dr.path] === h) { stats.skipped++; return step(i + 1); }
-      // Relabel runs after every write, not just after a tag change. The tempting
-      // optimisation — "a drawer we've never written can't have stale labels" — is
-      // wrong the moment the local hash cache and the cabinet disagree: a cleared
-      // browser, a second device, or a drawer someone else wrote all look brand new
-      // here while the cabinet still holds the old labels. Two round-trips per
-      // CHANGED drawer is the price of the query layer telling the truth.
+      // Relabel runs after EVERY write, including one whose new tag list is empty —
+      // that case is not a no-op. A drawer that used to carry ['script', 'cat_x'] and
+      // now carries [] still has those two entries sitting in _label_index; skipping
+      // relabel because "nothing to add" leaves them there forever, which is exactly
+      // the bug that let the index balloon to 21.5 KB of stale membership no drawer
+      // still claims. relabel with an empty tag list correctly strips-and-adds-nothing.
+      // Two round-trips per CHANGED drawer is the price of the index telling the truth.
       return upsertDrawer(dr).then(function () {
-        return (dr.tags && dr.tags.length) ? relabelDrawer(dr) : null;
+        return relabelDrawer(dr);
       }).then(function () {
         hashes[dr.path] = h; stats.pushed++;
         log('✓ ' + dr.path);

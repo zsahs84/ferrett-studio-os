@@ -5,6 +5,38 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v178 — 2026-09-03 · `ha-bridge` BRANCH ONLY
+
+- **Fixed a real sync failure: the cabinet ran over its own 128 KB cap.** His first live
+  sync landed 211 of 215 drawers, then started failing with "relabel requires an existing
+  drawer... not found" on `plugins/owned`, `plugins/profiles`, `ledger/2026_07`, and four
+  Lyria prompt drawers. Checked the live cabinet directly: **131,059 / 131,072 bytes** —
+  13 bytes of headroom. `_label_index`, the drawer that makes label search work, was
+  **21,570 bytes on its own — 16% of the entire cap — and DRY RUN never counted it.**
+  `preview()` summed drawer values only; the index that every labeled write grows was
+  invisible to it, so the tool confidently reported 86.7% while the real number was 103%.
+- **The fix removes nine labels that were pure redundancy, not new capability.**
+  `song` / `recipe` / `tone` / `rig` / `script` / `link` / `plugins` / `ledger` / `prompt`
+  each just marked a drawer's own type — information `list path_prefix=<type>/` already
+  gives for free, no label needed. `cat_*` (20 values across scripts/links/tones, never a
+  query axis he'd asked for) and `inst_*` on recipes (the instrument is already in the
+  drawer's own path, `recipes/<genre>/<instrument>`) went the same way. What's left —
+  `status_*`, `genre_*`, `starred` — are the cross-cutting questions that genuinely can't
+  be answered from a path alone. Real total: **118,368 B, 90.3%**, comfortable headroom
+  instead of a wall.
+- **A second bug in the same code path, caught while fixing the first:** a drawer whose
+  new tag list is empty was skipped for relabeling entirely — "nothing to add" was the
+  reasoning, but that drawer's OLD labels (`script`, `cat_ai_midi_extraction`, etc.) would
+  have stayed in the index forever, since only relabel strips stale membership. That would
+  have defeated this exact fix for the two biggest offenders, scripts (68) and links (48).
+  Relabel now runs after every write regardless of the new tag count.
+- `preview()` now builds the same label → [paths] structure the cabinet itself builds and
+  measures its real JSON size, so DRY RUN's percentage is what will actually happen, not
+  an estimate that quietly excludes a sixth of the budget.
+- Recovery needs nothing manual: `hash()` covers a drawer's tags as well as its value, so
+  the tag changes here make nearly every drawer look "changed" to a normal SYNC — no need
+  to reach for FULL RESYNC specifically, though it works too.
+
 ## v177 — 2026-09-03 · `ha-bridge` BRANCH ONLY
 
 - **A backup safety net, independent of the cabinet/wiki mirror.** BACKUP NOW (or the

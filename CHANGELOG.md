@@ -5,6 +5,21 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v175 — 2026-09-02 · `ha-bridge` BRANCH ONLY
+
+- **The cabinet now describes itself.** An agent reading it cold had no way to learn the layout — it
+  would have had to grope around with `list` and guess which references were drawer keys and which were
+  wiki paths. `index` answers that in one read, and it is **generated from the drawer set that was just
+  built**, so it can't drift from the real tree the way a hand-written README would.
+- **Split across the two tiers on purpose.** The cabinet copy (1.2 KB) carries only what's needed to
+  form a correct query: where to start, which fields are cabinet keys versus wiki paths — getting that
+  wrong means trying to `get` a wiki path out of the cabinet — the live label vocabulary to search on,
+  and per-branch counts. The prose walkthrough (3 KB) goes to `/music/index` on the wiki. Keeping the
+  whole thing in the cabinet cost 2.6 points of the tier that has ~12% headroom left; this costs 1.0.
+- Label values in both are the ones **actually in use**, not a pattern — `status_*` doesn't tell you
+  that `beat`, `lyrics` and `tracking` are the live values. `cat_*` is summarised rather than listed,
+  since 20 browse-y categories on scripts and links aren't worth 900 bytes of the constrained tier.
+
 ## v174 — 2026-09-02 · `ha-bridge` BRANCH ONLY
 
 - **The AI relay now borrows Home Assistant's session too, not just the bridge.** Served from

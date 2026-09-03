@@ -586,7 +586,108 @@
       });
     }
 
+    // --- the map, written last so it can describe what actually got built ------
+    out.push(indexDrawer(out, d));
+
     return out;
+  }
+
+  // A self-describing index, so an agent reading this cabinet cold learns the layout
+  // from one `get` instead of groping around with `list`. Generated from the drawer set
+  // that was just built, never hand-maintained, so it cannot drift from the real tree.
+  // Label values are the REAL ones present in the data — a vocabulary beats a pattern,
+  // because "status_*" doesn't tell you that `beat` and `tracking` are the live values.
+  function indexSummary(drawers) {
+    var branches = {}, labels = {}, i, j, top;
+    for (i = 0; i < drawers.length; i++) {
+      top = drawers[i].path.split('/')[0];
+      branches[top] = (branches[top] || 0) + 1;
+      var tg = drawers[i].tags || [];
+      for (j = 0; j < tg.length; j++) {
+        var m = /^(status|genre|inst|cat)_(.+)$/.exec(tg[j]);
+        var fam = m ? m[1] : tg[j];
+        if (!labels[fam]) labels[fam] = [];
+        if (m && labels[fam].indexOf(m[2]) < 0) labels[fam].push(m[2]);
+      }
+    }
+    var vocab = { flags: [] };
+    for (var k in labels) {
+      if (!Object.prototype.hasOwnProperty.call(labels, k)) continue;
+      if (!labels[k].length) { vocab.flags.push(k); continue; }
+      if (k === 'cat') { vocab.cat = labels[k].length + ' values on scripts/links/tones — search, do not list'; continue; }
+      vocab[k] = labels[k].sort();
+    }
+    vocab.flags.sort();
+    return { branches: branches, vocab: vocab };
+  }
+
+  // The cabinet copy is deliberately LEAN — only what an agent needs to form a correct
+  // query: where to start, which refs are cabinet keys versus wiki paths (getting that
+  // wrong means trying to `get` a wiki path out of the cabinet), and the label vocabulary
+  // to search on. The prose walkthrough goes to the wiki, which has no size pressure,
+  // because the cabinet is the tier with 12% headroom left.
+  function indexDrawer(drawers, d) {
+    var sum = indexSummary(drawers);
+    var root = cfg().wikiRoot;
+    return {
+      path: 'index',
+      title: 'Euterpe — what is in this cabinet',
+      tags: ['euterpe', 'index'],
+      value: {
+        what: 'Music studio vault from Euterpe. Read-only — overwritten on every sync.',
+        updated: new Date().toISOString(),
+        start_here: 'songs/<slugged-title> — the hub every song question routes through.',
+        cabinet_keys: ['recipe_keys', 'tone_keys'],
+        wiki_paths: ['lyrics_page', 'lyrics_pages', 'kit_page', 'prompt_pages'],
+        reading_a_wiki_path: 'same tool, stack: wiki, action_type: get. Wiki uses hyphens, cabinet keys use underscores. Root ' + root + '.',
+        labels: sum.vocab,
+        counts: sum.branches,
+        full_guide: root + '/index'
+      }
+    };
+  }
+
+  // The long version. Same facts, room to explain them.
+  function indexPage(drawers, d) {
+    var sum = indexSummary(drawers), root = cfg().wikiRoot, lines = [];
+    lines.push('# Euterpe — the music cabinet', '');
+    lines.push('Everything here is written by **Euterpe Creativity Workbench**, the studio app. It is a', 'mirror: overwritten on every sync, so edits made here do not travel back.', '');
+    lines.push('Cabinet: `' + cfg().cabinet + '`  ·  wiki root: `' + root + '`', '');
+    lines.push('## Start at the song', '');
+    lines.push('`songs/<slugged-title>` is the hub. One read gives you status, bpm, length_sec, the', 'arrangement, and references to everything else. Slugs use **underscores**: Combustible', 'Confessions is `songs/combustible_confessions`.', '');
+    lines.push('## The references, and which side they live on', '');
+    lines.push('| field | where |', '|---|---|');
+    lines.push('| `recipe_keys` | drawer keys in this cabinet — get them directly |');
+    lines.push('| `tone_keys` | drawer keys in this cabinet |');
+    lines.push('| `lyrics_page` / `lyrics_pages` | **wiki** paths — the actual words |');
+    lines.push('| `kit_page` | **wiki** path — the genre kit |');
+    lines.push('| `prompt_pages` | **wiki** paths — Lyria takes for that song |');
+    lines.push('| `track_ids` | stay in the browser; nothing here to fetch |');
+    lines.push('', 'Read a wiki path with the same tool, `stack: wiki`. Wiki paths use hyphens; cabinet keys', 'use underscores. `kit_page_resolved: "genre_latest"` means the exact kit that song was', 'written against no longer exists and this is the genre\'s newest instead.', '');
+    lines.push('## The tree', '');
+    var tree = {
+      'songs/': 'One drawer per song. The hub.',
+      'recipes/<genre>/<instrument>': 'Mix recipes — description, the REAPER chain, notes.',
+      'tones/': 'Guitar and bass tones. `nam` and `ir` are the Neural Amp Modeler profile and impulse response — real fields, and the searchable gold here.',
+      'rigs/': 'The physical studio patchbay: devices, connections, monitor modes.',
+      'scripts/': 'REAPER script metadata only. The .lua files live in the ferrett-audio-tools repo; `url` points there.',
+      'links/': 'Bookmarked web tools.',
+      'plugins/owned': 'Every plugin he owns. `plugins/profiles` is per-device palettes.',
+      'ledger/<YYYY_MM>': 'AI spend by month. Estimated from token counts — not a billing receipt.',
+      'prompts/genre/<g>/<name>': 'Lyria music-generation prompts, per genre.',
+      'notes_extra/<genre>': 'Free-text extra producer instructions for a genre.'
+    };
+    for (var t in tree) if (Object.prototype.hasOwnProperty.call(tree, t)) lines.push('- **`' + t + '`** — ' + tree[t]);
+    lines.push('', '## Labels are the query layer', '');
+    lines.push('Use `action_type: search` against a label instead of listing drawers. Values in use:', '');
+    for (var v in sum.vocab) {
+      if (!Object.prototype.hasOwnProperty.call(sum.vocab, v)) continue;
+      var val = sum.vocab[v];
+      lines.push('- `' + v + '` — ' + (Array.isArray(val) ? val.join(', ') : val));
+    }
+    lines.push('', '## What is deliberately not here', '');
+    lines.push('Images and audio never leave the browser — they are base64 and would blow the 128 KB', 'cabinet cap on their own. Lyrics, genre kits and producer notes live in the wiki rather', 'than the cabinet for the same reason: they grow per item, and they want revision history.');
+    return { path: root + '/index', title: 'Euterpe — the music cabinet', description: 'How the music cabinet is laid out and how to read it', tags: ['euterpe', 'index'], content: lines.join('\n') };
   }
 
   /* --------------------------------------------------------- wiki builders */
@@ -711,6 +812,8 @@
         });
       }
     }
+
+    out.push(indexPage(buildCabinet(d), d));
 
     // Per-song Lyria takes. Prose, ~3 KB each and one more every time he generates,
     // so the cabinet is the wrong home for them — the song drawer carries the paths.

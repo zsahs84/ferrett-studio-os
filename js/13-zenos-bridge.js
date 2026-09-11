@@ -48,11 +48,6 @@
     lastSync: 0,
     hashes: {},        // drawer path -> content hash, so a re-sync only writes what changed
     wikiHashes: {},
-    // Two-way lyric auto-sync: wiki path -> ms, the last time this device's sheet and the
-    // wiki page were known to match. The three-way merge base for autoSyncLyrics() — tells
-    // it whether a diff means "only Donita edited," "only the app edited," or a real
-    // same-window conflict that needs the newer-timestamp tie-break.
-    lyricsSyncedAt: {},
     // Backup net: independent of the cabinet/wiki mirror above. autoBackup governs a
     // periodic Drive + local-HA snapshot of the raw vault, so a Drive outage or a bad
     // mirror sync is never the only copy of the data.
@@ -1190,32 +1185,27 @@
   // no way to tell a fresh local edit from a stale one; linesUpdatedAt (stamped by saveLyr
   // in 06-lyrics-lab.js) plus the wiki page's own verified updatedAt field close that gap.
   //
-  // Three-way compare against lyricsSyncedAt[path], the last point local and wiki were
-  // known to match:
-  //   - only the wiki moved since then   -> apply it, nothing local is lost
-  //   - only the app moved since then    -> leave it; the next push overwrites the wiki,
-  //                                          same as it always has
-  //   - both moved (a real race)         -> newer of linesUpdatedAt vs remoteUpdatedAt wins
+  // Plain two-value comparison, re-run fresh from window.db every single tick — no
+  // persisted "last known" state. An earlier version of this pinned a per-path
+  // "last known synced" timestamp so it wouldn't have to keep asking, and that was the
+  // bug: this app's own Drive pull (findOrPullDriveFile in 02-app-core.js) overwrites
+  // window.db.lyrics wholesale on load without checking hasUnsyncedLocalEdits(), so a
+  // reload racing the debounced Drive upload can silently revert an apply. A pinned
+  // "already handled" marker then means the revert is never retried — permanently stuck
+  // showing stale lyrics with no error, exactly what surfaced in testing on 2026-09-11.
+  // Recomputing from current truth every time means a reverted apply just looks like a
+  // fresh difference again next tick and gets retried automatically.
+  //
+  // No local edit on record for this sheet, or the wiki edit is simply the newer one ->
+  // Donita wins. Otherwise the app's own edit is newer -> leave it for the next push.
   function resolveLyricsPull(changes) {
     var d = db(), sheets = (d.lyrics && d.lyrics.sheets) || [];
-    var syncedAt = cfg().lyricsSyncedAt || {};
     var toApply = [], toKeepLocal = [];
     changes.forEach(function (chg) {
       var sh = null, j;
       for (j = 0; j < sheets.length; j++) if (sameId(sheets[j].id, chg.sheetId)) { sh = sheets[j]; break; }
-      var base = syncedAt[chg.path] || 0;
       var localAt = (sh && sh.linesUpdatedAt) || 0;
-      var remoteMoved = chg.remoteUpdatedAt > base;
-      var localMoved = localAt > base;
-      if (remoteMoved && !localMoved) { toApply.push(chg); return; }
-      if (remoteMoved && localMoved) {
-        if (chg.remoteUpdatedAt >= localAt) toApply.push(chg); else toKeepLocal.push(chg);
-        return;
-      }
-      // Remote hasn't moved since the last known-matching point, so a content difference
-      // here just means the app is ahead of what it last pushed — the regular push cycle
-      // in sync() covers that; pulling would only hand back a stale copy of its own work.
-      toKeepLocal.push(chg);
+      if (chg.remoteUpdatedAt >= localAt) toApply.push(chg); else toKeepLocal.push(chg);
     });
     return { toApply: toApply, toKeepLocal: toKeepLocal };
   }
@@ -1232,17 +1222,16 @@
       var r = resolveLyricsPull(changes);
       if (r.toApply.length) {
         applyLyricsPull(r.toApply);
-        var c = cfg(), wh = c.wikiHashes || {}, syncedAt = c.lyricsSyncedAt || {};
+        var c = cfg(), wh = c.wikiHashes || {};
         r.toApply.forEach(function (chg) {
           // Cached hash is stale either way: apply may have re-attached local-only marks
           // (ALT lines, the AI badge) onto lines the wiki copy doesn't carry, so the next
           // sync() should push this merged copy back up rather than skip it as unchanged.
           delete wh[chg.path];
-          syncedAt[chg.path] = chg.remoteUpdatedAt;
           window.lyrMarkSynced && window.lyrMarkSynced(chg.sheetId, chg.remoteUpdatedAt);
           log('⇩ auto-applied from the wiki: ' + chg.title);
         });
-        patchCfg({ wikiHashes: wh, lyricsSyncedAt: syncedAt });
+        patchCfg({ wikiHashes: wh });
       }
       return r;
     }, function (e) { autoLyricsRunning = false; throw e; });

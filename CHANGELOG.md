@@ -5,6 +5,36 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v182 — 2026-09-11 · `personal` BRANCH ONLY
+
+- **v181 shipped and got stuck on the very first real test.** Console showed
+  `lyricsSyncedAt` pinned to a path with a value equal, to the millisecond, to Donita's
+  wiki edit time — but the sheet's own `linesUpdatedAt` read `(never stamped)` and the
+  line still differed from the wiki. That combination means an apply landed once, then
+  something reverted the local content afterward, and the pinned "already handled"
+  timestamp meant it was never retried. Silent, permanent, and it would have quietly kept
+  the OLD lyrics forever, with the next push eventually overwriting the wiki with them.
+- **The suspect: this app's own Drive pull.** `findOrPullDriveFile()` in `02-app-core.js`
+  (line ~539) does `window.db.lyrics = cloudDb.lyrics` — a wholesale replacement — on every
+  load, with no check against `hasUnsyncedLocalEdits()`. A reload racing ahead of the
+  bridge's own debounced Drive upload (or of `saveData()`'s 2-second push timer) can revert
+  an apply before it ever reaches Drive, wiping the just-set `linesUpdatedAt` along with it.
+  This is a pre-existing gap in the app's own multi-device sync, not something introduced
+  here — just newly exposed by reloading during testing. Left alone for now: fixing it
+  properly touches how ALL Drive pulls behave, not just lyrics, and deserves its own look
+  rather than a rushed change riding on this branch.
+- **The real fix: stop persisting a "last known synced" belief at all.** `lyricsSyncedAt`
+  and the three-way base compare are gone. `resolveLyricsPull()` now does a plain two-value
+  comparison — `sheet.linesUpdatedAt` vs the wiki page's `updatedAt` — recomputed fresh from
+  `window.db` on every single tick. No local edit on record, or the wiki edit is simply the
+  newer one → apply; otherwise keep local for the next push. Exactly the same
+  most-recent-wins policy as v181, but with nothing pinned to go stale: if a revert like the
+  one above happens again, the next 3-minute tick just sees the difference as new again and
+  retries automatically, instead of trusting a marker that turned out to be wrong.
+- Verified in isolation against the exact failure captured in testing: a sheet whose
+  `linesUpdatedAt` was wiped back to unset while the wiki timestamp stayed put now
+  re-applies on the next check rather than staying stuck.
+
 ## v181 — 2026-09-11 · `personal` BRANCH ONLY
 
 - **New branch: `personal`, forked from `ha-bridge`.** `ha-bridge` stays exactly what it was —

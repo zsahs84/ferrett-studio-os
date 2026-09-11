@@ -48,6 +48,11 @@
     lastSync: 0,
     hashes: {},        // drawer path -> content hash, so a re-sync only writes what changed
     wikiHashes: {},
+    // Two-way lyric auto-sync: wiki path -> ms, the last time this device's sheet and the
+    // wiki page were known to match. The three-way merge base for autoSyncLyrics() — tells
+    // it whether a diff means "only Donita edited," "only the app edited," or a real
+    // same-window conflict that needs the newer-timestamp tie-break.
+    lyricsSyncedAt: {},
     // Backup net: independent of the cabinet/wiki mirror above. autoBackup governs a
     // periodic Drive + local-HA snapshot of the raw vault, so a Drive outage or a bad
     // mirror sync is never the only copy of the data.
@@ -1060,10 +1065,11 @@
 
   /* ------------------------------------------------------ pull (wiki -> app) */
 
-  // The one inbound path. Deliberately NOT automatic: he edits lyrics in the app constantly,
-  // so anything that pulls on its own would eventually overwrite his own work with a stale
-  // wiki copy. This fetches, diffs, and hands back a change set — nothing is written to the
-  // vault until applyLyricsPull() is called with what he accepted.
+  // The one inbound path. This function itself only fetches and diffs — it writes nothing.
+  // Two callers decide what to do with the result: the manual PULL LYRICS / APPLY buttons in
+  // the UI below (a human reviews every line first), and autoSyncLyrics() further down, which
+  // resolves and applies automatically using linesUpdatedAt vs the wiki's own updatedAt, so a
+  // Donita edit shows up unattended, the same way a Drive pull already does for other data.
   //
   // Only lyrics. Everything else in the wiki (kits, producer notes, prompts) is generated
   // FROM the vault and has no meaningful inbound edit.
@@ -1098,7 +1104,10 @@
           log('! ' + (sh.title || path) + ' — wiki copy is empty, refusing (would erase ' + local.length + ' lines)');
           return;
         }
-        changes.push({ sheetId: sh.id, title: sh.title || path, path: path, lines: remote, diff: diff });
+        // WikiJS's own updatedAt, verified live (2026-09-11) to come back on every `get`.
+        // This is what lets autoSyncLyrics() tell a Donita edit from our own last push.
+        var remoteAt = page.updatedAt ? new Date(page.updatedAt).getTime() : Date.now();
+        changes.push({ sheetId: sh.id, title: sh.title || path, path: path, lines: remote, diff: diff, remoteUpdatedAt: remoteAt });
         log('~ ' + (sh.title || path) + ' — ' + diff.summary);
       }, function (e) {
         log('✗ ' + path + ' — ' + e.message);
@@ -1171,6 +1180,89 @@
     window.refreshLyrics && window.refreshLyrics();
     return applied;
   }
+
+  /* ------------------------------------------- two-way lyric auto-sync */
+  //
+  // pullLyrics() says WHAT differs; this says WHO wins, so a Donita edit can land on its
+  // own instead of waiting for someone to click APPLY — per his own call: a wiki edit
+  // should count exactly like an edit made in the app, not a second-class one that needs
+  // review. The 2026-09-03 pull feature deliberately stopped short of this because it had
+  // no way to tell a fresh local edit from a stale one; linesUpdatedAt (stamped by saveLyr
+  // in 06-lyrics-lab.js) plus the wiki page's own verified updatedAt field close that gap.
+  //
+  // Three-way compare against lyricsSyncedAt[path], the last point local and wiki were
+  // known to match:
+  //   - only the wiki moved since then   -> apply it, nothing local is lost
+  //   - only the app moved since then    -> leave it; the next push overwrites the wiki,
+  //                                          same as it always has
+  //   - both moved (a real race)         -> newer of linesUpdatedAt vs remoteUpdatedAt wins
+  function resolveLyricsPull(changes) {
+    var d = db(), sheets = (d.lyrics && d.lyrics.sheets) || [];
+    var syncedAt = cfg().lyricsSyncedAt || {};
+    var toApply = [], toKeepLocal = [];
+    changes.forEach(function (chg) {
+      var sh = null, j;
+      for (j = 0; j < sheets.length; j++) if (sameId(sheets[j].id, chg.sheetId)) { sh = sheets[j]; break; }
+      var base = syncedAt[chg.path] || 0;
+      var localAt = (sh && sh.linesUpdatedAt) || 0;
+      var remoteMoved = chg.remoteUpdatedAt > base;
+      var localMoved = localAt > base;
+      if (remoteMoved && !localMoved) { toApply.push(chg); return; }
+      if (remoteMoved && localMoved) {
+        if (chg.remoteUpdatedAt >= localAt) toApply.push(chg); else toKeepLocal.push(chg);
+        return;
+      }
+      // Remote hasn't moved since the last known-matching point, so a content difference
+      // here just means the app is ahead of what it last pushed — the regular push cycle
+      // in sync() covers that; pulling would only hand back a stale copy of its own work.
+      toKeepLocal.push(chg);
+    });
+    return { toApply: toApply, toKeepLocal: toKeepLocal };
+  }
+
+  var autoLyricsRunning = false;
+  function autoSyncLyrics(opts) {
+    opts = opts || {};
+    var log = opts.onLog || function () {};
+    if (!cfg().autoSync || !configured() || autoLyricsRunning) return Promise.resolve(null);
+    autoLyricsRunning = true;
+    return pullLyrics({ onLog: log }).then(function (changes) {
+      autoLyricsRunning = false;
+      if (!changes.length) return { toApply: [], toKeepLocal: [] };
+      var r = resolveLyricsPull(changes);
+      if (r.toApply.length) {
+        applyLyricsPull(r.toApply);
+        var c = cfg(), wh = c.wikiHashes || {}, syncedAt = c.lyricsSyncedAt || {};
+        r.toApply.forEach(function (chg) {
+          // Cached hash is stale either way: apply may have re-attached local-only marks
+          // (ALT lines, the AI badge) onto lines the wiki copy doesn't carry, so the next
+          // sync() should push this merged copy back up rather than skip it as unchanged.
+          delete wh[chg.path];
+          syncedAt[chg.path] = chg.remoteUpdatedAt;
+          window.lyrMarkSynced && window.lyrMarkSynced(chg.sheetId, chg.remoteUpdatedAt);
+          log('⇩ auto-applied from the wiki: ' + chg.title);
+        });
+        patchCfg({ wikiHashes: wh, lyricsSyncedAt: syncedAt });
+      }
+      return r;
+    }, function (e) { autoLyricsRunning = false; throw e; });
+  }
+
+  // Own timer, separate from the backup net's — a lyric edit is worth noticing sooner than
+  // 30 minutes, but still cheap enough (one wiki GET per sheet) not to run on every keystroke.
+  var LYRICS_AUTOSYNC_INTERVAL_MS = 3 * 60 * 1000;
+  function maybeAutoSyncLyrics(reason) {
+    autoSyncLyrics({}).then(function (r) {
+      if (r && (r.toApply.length || r.toKeepLocal.length)) {
+        console.log('[zenos] lyric auto-sync (' + (reason || 'timer') + '): ' +
+          r.toApply.length + ' pulled from the wiki, ' + r.toKeepLocal.length + ' left for the next push');
+      }
+    }, function (e) { console.warn('[zenos] lyric auto-sync deferred:', e && e.message); });
+  }
+  setInterval(function () { maybeAutoSyncLyrics('interval'); }, LYRICS_AUTOSYNC_INTERVAL_MS);
+  // A few seconds after boot rather than immediately — gives Lyrics Lab time to register
+  // parseTaggedSongText, which pullLyrics refuses to run without.
+  setTimeout(function () { maybeAutoSyncLyrics('boot'); }, 10000);
 
   /* -------------------------------------------- write-through, fail silent */
 
@@ -1531,6 +1623,7 @@
     buildWiki: function () { return buildWiki(db()); },
     preview: preview, sync: sync, touch: touch, readSong: readSong,
     pullLyrics: pullLyrics, applyLyricsPull: applyLyricsPull, lyricsFromPage: lyricsFromPage,
+    autoSyncLyrics: autoSyncLyrics,
     backupNow: backupNow, maybeBackup: maybeBackup,
     CAB_LIMIT: CAB_LIMIT
   };

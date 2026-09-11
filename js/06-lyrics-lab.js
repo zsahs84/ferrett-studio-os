@@ -144,6 +144,10 @@
     if(sections.length) window.applyParsedSectionsToSong?.(sheet.songId, sections);
   }
   let lyrState=null, lyrUndo=[];
+  // sheet.id -> JSON of its lines as of the last save, so saveLyr() can tell which sheet
+  // actually changed this session and stamp only that one's linesUpdatedAt — needed so the
+  // ZenOS bridge can compare "who edited more recently" against a wiki page's own updatedAt.
+  let lyrLineSnapshots={};
   let lyrSelected=new Set(); // holds line object references, not indices — survives reorder/insert
   // A bare, never-typed-in default counts as "no real content" — must not be treated as data worth
   // migrating/pushing (a device that only ever glanced at an empty Lyrics tab shouldn't be able to
@@ -173,6 +177,16 @@
   }
   function saveLyr(){
     if (!window.db) return;
+    // Stamp linesUpdatedAt only on a sheet whose lines actually changed since the last
+    // save (compared against the snapshot taken at load) — every save touches the whole
+    // lyrState, so without this every sheet would look "just edited" on every keystroke
+    // in ANY sheet, not just the one the user is actually typing in.
+    if (lyrState && lyrState.sheets){
+      lyrState.sheets.forEach(sh=>{
+        const h=JSON.stringify(sh.lines);
+        if(lyrLineSnapshots[sh.id]!==h){ sh.linesUpdatedAt=Date.now(); lyrLineSnapshots[sh.id]=h; }
+      });
+    }
     window.db.lyrics = lyrState;
     window.saveData && window.saveData();
     const s = lyrState && lyrState.sheets.find(sh=>sh.id===lyrState.activeId);
@@ -184,6 +198,10 @@
       lyrState={ activeId:1, sheets:[{ id:1, title:'Untitled', lines:[{text:'',tag:''}] }] };
       saveLyr();
     }
+    // Baseline snapshot from what was actually loaded, taken BEFORE any save runs — otherwise
+    // the first save() of the session would find every sheet "changed" (since the cache starts
+    // empty) and stamp them all as just-edited, even ones nobody touched.
+    lyrState.sheets.forEach(sh=>{ lyrLineSnapshots[sh.id]=JSON.stringify(sh.lines); });
   }
   const activeSheet=()=> lyrState.sheets.find(s=>s.id===lyrState.activeId) || lyrState.sheets[0];
   function pushUndo(){ try{ lyrUndo.push(JSON.stringify(activeSheet().lines)); if(lyrUndo.length>25) lyrUndo.shift(); }catch(e){} }
@@ -640,6 +658,20 @@
   // format so it can be parsed straight back with parseTaggedSongText instead of a second
   // parser that would drift from this one.
   window.lyrSheetToText=sheetToTaggedText;
+  // Exposed for the ZenOS bridge, called right after it auto-applies a wiki-side (Donita)
+  // edit. Stamps linesUpdatedAt to the wiki page's own updatedAt — not Date.now() — so this
+  // sheet reads as "current as of that wiki edit," and refreshes the change-snapshot so the
+  // very next saveLyr() doesn't mistake the just-applied pull for a fresh local edit.
+  // Reads window.db directly rather than the cached lyrState: applyLyricsPull() calls
+  // lyrForceReload() (which nulls lyrState) before the bridge gets a chance to call this.
+  window.lyrMarkSynced=(sheetId,atMs)=>{
+    const sheets=window.db && window.db.lyrics && window.db.lyrics.sheets;
+    if(!sheets) return;
+    const sh=sheets.find(s=>String(s.id)===String(sheetId));
+    if(!sh) return;
+    sh.linesUpdatedAt=atMs||Date.now();
+    lyrLineSnapshots[sh.id]=JSON.stringify(sh.lines);
+  };
   window.lyrStateHasContent=lyrStateHasContent; // lets a Drive pull refuse to let an empty cloud copy stomp real local lyrics
   // exposed for the AI co-pilot (keeps lyrState the single source of truth) — tagged, because the
   // AI needs section context to rewrite/analyze sensibly.

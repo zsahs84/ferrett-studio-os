@@ -5,6 +5,30 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v181 — 2026-09-11 · `personal` BRANCH ONLY
+
+- **New branch: `personal`, forked from `ha-bridge`.** `ha-bridge` stays exactly what it was —
+  the copy deployed to the HA box at `<ha>/local/euterpe/`, same-origin, borrowing `hassTokens`.
+  `personal` is the one meant to run on his own Mac and iPad too, authenticated with a manually
+  entered HA URL + token (the same off-origin fallback the AI relay already had). `main` is
+  untouched either way — it's the public template other people fork, and the whole reason the
+  bridge lives off it in the first place.
+- **Lyrics pulled from the wiki now apply automatically instead of waiting for a click.** The
+  09-03 pull feature (`pullLyrics()` / `applyLyricsPull()`) stopped short of this on purpose —
+  no way existed to tell a fresh local edit from a stale one, so an automatic pull would
+  eventually clobber his own work with an old wiki copy. Two new pieces close that gap:
+  `sheet.linesUpdatedAt` (stamped by `saveLyr()` in `06-lyrics-lab.js`, only on a sheet whose
+  lines actually changed since the last save) and the wiki page's own `updatedAt` field
+  (confirmed live against the real WikiJS bridge response, not assumed).
+- **`resolveLyricsPull()` + `autoSyncLyrics()`** three-way-compare each changed sheet against
+  `lyricsSyncedAt[path]`, the last point local and wiki were known to match: only the wiki
+  moved → auto-apply; only the app moved → leave it for the next push; both moved (a real
+  same-window race) → most-recent-edit-wins, compared directly against the wiki's own
+  timestamp. Runs on its own 3-minute timer plus once ~10s after boot, gated on the same
+  `autoSync` switch that already governs the outbound push side.
+- Manual PULL LYRICS / APPLY in ⚙ setup are untouched — still there for an on-demand look
+  without waiting for the timer.
+
 ## v180 — 2026-09-03 · `ha-bridge` BRANCH ONLY
 
 - **The size problem was fixed in v179. What was left was never about size.** `index` was

@@ -5,6 +5,21 @@ Version numbers match `window.APP_VERSION` (js/00-bootstrap.js) and `CACHE_VERSI
 (service-worker.js) — the two are always bumped together so the PWA's service worker
 actually picks up the new files instead of serving a stale cache.
 
+## v183 — 2026-09-11 · `personal` BRANCH ONLY
+
+- **Merged from `ha-bridge`/`main`: fixed the Lyrics Lab song tabs overlapping the
+  "+ SONG ▾" dropdown on narrow (mobile) screens once there were more than 3 sheets.**
+  `#lyr-sheet-tabs` (the tab-button wrapper) had no `shrink-0`, so as a flex child it got
+  compressed by its neighbors (the dropdown and `+ SHEET`, both already `shrink-0` and
+  refusing to yield space) — while its own children, the individual tab buttons, WERE
+  `shrink-0` and refused to shrink with it. The container's box shrank below its content's
+  actual width, and that content spilled out over whatever came next in the row.
+  Root-caused with real layout measurements at a 375px viewport (three tabs measuring
+  258px combined inside a box also measuring 258px wide, immediately overlapped by a
+  dropdown positioned 8px later) — not guessed from a screenshot alone. Fix is one class:
+  `shrink-0` on `#lyr-sheet-tabs` itself. General UI fix, unrelated to the bridge — shipped
+  on `main` as v173 first, merged through `ha-bridge` (v181 there) into this branch.
+
 ## v182 — 2026-09-11 · `personal` BRANCH ONLY
 
 - **v181 shipped and got stuck on the very first real test.** Console showed

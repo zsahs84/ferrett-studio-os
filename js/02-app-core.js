@@ -4497,7 +4497,11 @@ window.lyriaSongBlock = (songId) => {
             const songLines = song
                 ? `\nSONG: ${song.title}${song.structure ? `\nSECTION ORDER${song.timed ? ' AND TIMINGS' : ''}: ${song.structure}` : ''}${song.totalSecs ? `\nRUNS: ${lyriaFmtTime(song.totalSecs)}` : ''}${hasLyrics ? '\nThis is a VOCAL track — the lyrics exist and are supplied separately. Do not write any.' : ''}`
                 : '';
-            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: exactly ${song?.bpm || bpm || window.getGenreBpmMid(genre)} BPM — this is the song's actual tempo, not a genre estimate; state this number\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${hasLyrics && meta.vox && !built.claimed.includes('vox') ? `\nVOCAL STYLE: ${meta.vox}` : ''}${length ? `\nTARGET LENGTH: ${lyriaFmtTime(length)} — pace the arrangement description to fill this, not a generic 30-second clip.` : ''}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
+            // `bpm` is the value sitting in the lyria-bpm field right now, which is what the producer
+            // actually wants stated — it starts synced to song.bpm (see populateLyriaSongSelect's
+            // sync()) but a manual edit to the field for this take must win over the song record it
+            // came from, or the AI states a stale tempo while every other surface shows the new one.
+            const user = `GENRE: ${genre}\nDESCRIPTION: ${meta.desc || ''}\nTEMPO: exactly ${bpm || song?.bpm || window.getGenreBpmMid(genre)} BPM — this is the song's actual tempo, not a genre estimate; state this number\nMOOD: ${moodInput || meta.mood}\nTEXTURE: ${texInput || meta.texture}${hasLyrics && meta.vox && !built.claimed.includes('vox') ? `\nVOCAL STYLE: ${meta.vox}` : ''}${length ? `\nTARGET LENGTH: ${lyriaFmtTime(length)} — pace the arrangement description to fill this, not a generic 30-second clip.` : ''}${songLines}\n${roleLines}\n\nWHAT THIS GENRE ACTUALLY SOUNDS LIKE, from the producer's own recipe book:\n${built.prompt}`;
             window.__aiUsage?.begin('Lyria Prompt Generation');
             const written = await window.ferrettAI(sys, user, { creative: true });
             const spent = window.__aiUsage?.end();

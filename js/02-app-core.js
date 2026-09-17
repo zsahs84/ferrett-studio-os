@@ -4836,6 +4836,30 @@ window.lyriaSongBlock = (songId) => {
         document.getElementById('producer-notes-modal')?.classList.replace('flex', 'hidden');
     };
 
+    // The sys prompt below already tells the model never to use studio-processing language (plugins,
+    // mixing moves, dB, Hz, compression, EQ, reverb) — but a negative instruction buried in a long
+    // prompt isn't guaranteed compliance, so this is the after-the-fact safety net that catches it.
+    window.findBannedStudioTerms = (text) => {
+        if (!text) return [];
+        const patterns = [
+            /\bcompress(?:ed|ion|or)?\b/i,
+            /\bsidechain(?:ed|ing)?\b/i,
+            /\bgat(?:e|ed|ing)\b/i,
+            /\breverb(?:s)?\b/i,
+            /\bEQ'?d?\b/,
+            /\bequali[sz](?:e|er|ation)\b/i,
+            /\b\d+\s?dB\b/i,
+            /\b\d+\s?k?Hz\b/i,
+            /\bplug-?ins?\b/i,
+            /\bmaster(?:ing|ed)\b/i,
+            /\bmix(?:down|ing)\b/i,
+            /\bDAW\b/,
+        ];
+        const hits = new Set();
+        for (const re of patterns) { const m = text.match(re); if (m) hits.add(m[0].toLowerCase()); }
+        return [...hits];
+    };
+
     window.runProducerNotesGenerate = async () => {
         const genre = window.currentProducerNotesGenre; if (!genre) return;
         // A fresh generate is a new unsaved draft, not a continuation of whatever was loaded — SAVE
@@ -4908,7 +4932,11 @@ window.lyriaSongBlock = (songId) => {
             // The prompt asks the model to stay under 9,500, but models estimate their own length
             // badly, so say so plainly when one overshoots rather than trusting it to have complied.
             const over = (out?.value.length || 0) - window.PRODUCER_NOTES_LIMIT;
-            if (over > 0) setNote(`Written for "${genre}", but it ran ${over.toLocaleString()} characters over Flow's 10,000 limit — hit ✂ TRIM, or cut it down yourself, before pasting.${spentStr ? ` · 💲 ${spentStr}` : ''}`, false);
+            const banned = window.findBannedStudioTerms(out?.value || '');
+            const warnings = [];
+            if (over > 0) warnings.push(`ran ${over.toLocaleString()} characters over Flow's 10,000 limit — hit ✂ TRIM, or cut it down yourself, before pasting`);
+            if (banned.length) warnings.push(`slipped in studio-processing language it was told to avoid (${banned.join(', ')}) — worth a manual pass before pasting`);
+            if (warnings.length) setNote(`Written for "${genre}", but it ${warnings.join('; and it also ')}.${spentStr ? ` · 💲 ${spentStr}` : ''}`, false);
             else setNote(`Written for "${genre}".${spentStr ? ` · 💲 ${spentStr}` : ''}`, true);
         } catch (e) {
             progress.stop(false);

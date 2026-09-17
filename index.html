@@ -1879,6 +1879,9 @@
             <div class="mb-4 p-3 rounded border border-[#FFD60A30] bg-[#FFD60A]/5">
                 <p class="text-[10px] text-[#FFD60A]/90 leading-relaxed"><b>These timings are estimated, not recorded.</b> Nothing in this app knows where a line actually lands in your audio. They're calculated from tempo assuming a steady click, one bar per line (two for a half-time line), starting at the offset below. Treat them as a head start you nudge into place — not a finished sync.</p>
             </div>
+            <div class="mb-4 p-3 rounded border border-[#FF5A5A30] bg-[#FF5A5A]/5">
+                <p class="text-[10px] text-[#FF5A5A]/90 leading-relaxed"><b>Don't paste this .LRC into a Lyria / Google Flow prompt.</b> Lyria doesn't read per-line <code class="text-white">[00:00.00]</code> sync marks — it only understands whole-section timing (<code class="text-white">[0:00 - 0:12] Verse:</code>) and plain lyrics under <code class="text-white">[Verse]</code>-style tags. For Lyria, use the 🎼 LYRIA PROMPT button instead — it builds both correctly on its own.</p>
+            </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 <div><label class="text-[10px] tracking-widest text-[#B18CFF]/70 block mb-1 uppercase" for="lrc-bpm">BPM</label><input type="number" id="lrc-bpm" min="20" max="300" step="0.01" class="input-euterpe"></div>
                 <div><label class="text-[10px] tracking-widest text-[#B18CFF]/70 block mb-1 uppercase" for="lrc-offset">First line at</label><input type="text" id="lrc-offset" class="input-euterpe" placeholder="0:00"></div>

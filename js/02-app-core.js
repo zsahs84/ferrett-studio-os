@@ -4178,17 +4178,44 @@ window.lyriaSongBlock = (songId) => {
     // lyric sheet. The counter below is kept purely as a size readout, not as a limit.
     window.LYRIA_INPUT_TOKEN_LIMIT = 131072;
 
-    // The timed-arrangement block, in the documented shape. Only built when the user asks for it,
-    // because the same guide is explicit that timestamps describe what HAPPENS in a segment — they
-    // are an alternative to handing over lyrics, not a decoration on top of them.
+    // Google's own worked example never leaves a timed segment as a bare tag + number — every one of
+    // its five sections carries a clause of what's actually happening ("Gracefully pull back the
+    // intensity", "The groove deepens...") and that clause is derived directly from how the intensity
+    // number MOVED from the section before it, not from invented instrumentation. A skeleton like
+    // "[0:11 - 0:53] Verse: Intensity: 4/10" is syntactically valid but tells the model nothing a bare
+    // number doesn't already say. This fills that clause from data the producer already entered — the
+    // intensity curve — the same way Google's own example does it.
+    const lyriaDynamicCue = (intensity, prevIntensity, isFirst) => {
+        if (intensity == null) return '';
+        if (isFirst || prevIntensity == null) {
+            if (intensity <= 3) return 'Opens sparse and low-key.';
+            if (intensity >= 8) return 'Opens at full force.';
+            return 'Opens at a moderate build.';
+        }
+        const delta = intensity - prevIntensity;
+        if (delta >= 3) return 'Energy surges here.';
+        if (delta <= -3) return 'Pulls back sharply, energy drops.';
+        if (delta >= 1) return 'Energy climbs.';
+        if (delta <= -1) return 'Eases off.';
+        return 'Holds the same intensity.';
+    };
+
+    // The timed-arrangement block, in the documented shape: "[mm:ss - mm:ss] Section: <what happens>.
+    // Intensity: N/10 (Label)". Only built when the user asks for it. It is combined WITH the Lyrics:
+    // block below, not instead of it — Google's own guide says timestamps are for "controlling when
+    // instruments enter, when lyrics are delivered, and how the song progresses", i.e. they narrate the
+    // same song the lyrics are sung over, they don't replace the words.
     window.buildLyriaArrangementBlock = (song) => {
         if (!song || !Array.isArray(song.timeline) || !song.timeline.length) return '';
-        return song.timeline.map(s => {
+        let prevIntensity = null;
+        return song.timeline.map((s, i) => {
             const head = window.lyriaSectionHeader(s.tag, s.time, s.endTime, true);
+            const cue = lyriaDynamicCue(s.intensity, prevIntensity, i === 0);
             const inten = s.intensity != null && window.arrIntensityLabel
                 ? ` Intensity: ${s.intensity}/10 (${window.arrIntensityLabel(s.intensity)})`
                 : '';
-            return `${head}${inten}`;
+            if (s.intensity != null) prevIntensity = s.intensity;
+            return `${head}${cue ? ' ' + cue : ''}${inten}`;
         }).join('\n');
     };
 
